@@ -1,0 +1,10 @@
+sudo: false
+language: node_js
+node_js:
+  - '7.2.1'
+before_script:
+  - npm install -g grunt-cli
+  - redis-cli config set notify-keyspace-events Ex
+services:
+  - redis-server
+  - mongodb
