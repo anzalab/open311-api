@@ -7,13 +7,14 @@
  */
 
 //dependencies
-var path = require('path');
-var express = require('express');
-var router = express.Router();
-var controller = require(path.join(__dirname, '..', 'controllers', 'application_controller'));
+const path = require('path');
+const express = require('express');
+const router = express.Router();
+const controller = require(path.join(__dirname, '..', 'controllers',
+  'application_controller'));
 
 //enable token authentication
-var jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
+const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
 
 
 /**
@@ -22,8 +23,8 @@ var jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
-router.post('/signup', function(request, response, next) {
-    controller.signup(request, response, next);
+router.post('/signup', function (request, response, next) {
+  controller.signup(request, response, next);
 });
 
 
@@ -33,8 +34,8 @@ router.post('/signup', function(request, response, next) {
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
-router.post('/signin', function(request, response, next) {
-    controller.signin(request, response, next);
+router.post('/signin', function (request, response, next) {
+  controller.signin(request, response, next);
 });
 
 
@@ -45,8 +46,8 @@ router.post('/signin', function(request, response, next) {
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
-router.put('/confirm', function(request, response, next) {
-    controller.confirm(request, response, next);
+router.put('/confirm', function (request, response, next) {
+  controller.confirm(request, response, next);
 });
 
 
@@ -57,8 +58,8 @@ router.put('/confirm', function(request, response, next) {
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
-router.put('/forgot', function(request, response, next) {
-    controller.forgot(request, response, next);
+router.put('/forgot', function (request, response, next) {
+  controller.forgot(request, response, next);
 });
 
 
@@ -68,8 +69,8 @@ router.put('/forgot', function(request, response, next) {
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
-router.put('/recover', function(request, response, next) {
-    controller.recover(request, response, next);
+router.put('/recover', function (request, response, next) {
+  controller.recover(request, response, next);
 });
 
 
@@ -80,8 +81,8 @@ router.put('/recover', function(request, response, next) {
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
-router.put('/change', jwtAuth, function(request, response, next) {
-    controller.change(request, response, next);
+router.put('/change', jwtAuth, function (request, response, next) {
+  controller.change(request, response, next);
 });
 
 
@@ -91,8 +92,8 @@ router.put('/change', jwtAuth, function(request, response, next) {
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
-router.put('/unlock', function(request, response, next) {
-    controller.unlock(request, response, next);
+router.put('/unlock', function (request, response, next) {
+  controller.unlock(request, response, next);
 });
 
 
@@ -102,8 +103,8 @@ router.put('/unlock', function(request, response, next) {
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
-router.get('/heartbeats', function(request, response, next) {
-    controller.heartbeats(request, response, next);
+router.get('/heartbeats', function (request, response, next) {
+  controller.heartbeats(request, response, next);
 });
 
 
