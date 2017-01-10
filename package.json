@@ -2,7 +2,6 @@
   "name": "open311-api",
   "version": "0.1.0",
   "description": "open311 API",
-  "private": true,
   "main": "server.js",
   "keywords": [
     "open311",
