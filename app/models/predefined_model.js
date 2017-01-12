@@ -2,8 +2,8 @@
 
 
 /**
- * @module PredefinedData
- * @name PredefinedData
+ * @module Predefined
+ * @name Predefined
  * @description manage predefined data e.g status, priority, 
  *              settings etc
  * @author lally elias <lallyelias87@mail.com>
@@ -30,7 +30,7 @@ const DEFAULT_GROUP = 'Setting';
 
 
 //PredefinedData Schema
-const PredefineDataSchema = new Schema({
+const PredefineSchema = new Schema({
 
   /**
    * @name group
@@ -121,4 +121,4 @@ const PredefineDataSchema = new Schema({
 });
 
 //exports PredefinedData model
-module.exports = mongoose.model('PredefinedData', PredefineDataSchema);
+module.exports = mongoose.model('Predefined', PredefineSchema);

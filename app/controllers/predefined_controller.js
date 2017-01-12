@@ -2,12 +2,12 @@
 
 //dependencies
 const mongoose = require('mongoose');
-const PredefinedData = mongoose.model('PredefinedData');
+const Predefined = mongoose.model('Predefined');
 
 /**
- * PredefinedData Controller
+ * Predefined Data Controller
  *
- * @description :: Server-side logic for managing PredefinedData.
+ * @description :: Server-side logic for managing Predefined Data.
  */
 module.exports = {
   /**
@@ -18,7 +18,7 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   index: function (request, response, next) {
-    PredefinedData
+    Predefined
       .list(request, function (error, results) {
         if (error) {
           next(error);
@@ -37,7 +37,7 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   create: function (request, response, next) {
-    PredefinedData
+    Predefined
       .create(request.body, function (error, predefined) {
         if (error) {
           next(error);
@@ -56,7 +56,7 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   show: function (request, response, next) {
-    PredefinedData
+    Predefined
       .show(request, function (error, predefined) {
         if (error) {
           next(error);
@@ -75,7 +75,7 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   update: function (request, response, next) {
-    PredefinedData
+    Predefined
       .findByIdAndUpdate(
         request.params.id,
         request.body, {
@@ -100,7 +100,7 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   destroy: function (request, response, next) {
-    PredefinedData
+    Predefined
       .findByIdAndRemove(
         request.params.id,
         function (error, predefined) {

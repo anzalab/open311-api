@@ -1,19 +1,19 @@
 'use strict';
 
 /**
- * PredefinedData model specification
+ * Predefined model specification
  *
- * @description :: Server-side model specification for PredefinedData
+ * @description :: Server-side model specification for Predefined
  */
 
 //dependencies
 const mongoose = require('mongoose');
 const faker = require('faker');
 const expect = require('chai').expect;
-const PredefinedData = mongoose.model('PredefinedData');
+const Predefined = mongoose.model('Predefined');
 let predefined;
 
-describe('PredefinedData', function () {
+describe('Predefined', function () {
 
   it('should be able to create new predefined', function (done) {
 
@@ -22,7 +22,7 @@ describe('PredefinedData', function () {
       value: faker.random.word(),
     };
 
-    PredefinedData
+    Predefined
       .create(predefined, function (error, created) {
 
         expect(error).to.not.exist;
@@ -45,7 +45,7 @@ describe('PredefinedData', function () {
 
   it('should be able to find existing predefined', function (done) {
 
-    PredefinedData
+    Predefined
       .findById(predefined._id, function (error, found) {
 
         expect(error).to.not.exist;
@@ -72,7 +72,7 @@ describe('PredefinedData', function () {
       default: true
     };
 
-    PredefinedData
+    Predefined
       .findByIdAndUpdate(predefined._id, updates, {
         upsert: true,
         new: true
@@ -99,7 +99,7 @@ describe('PredefinedData', function () {
 
   it('should be able to list existing predefineds', function (done) {
 
-    PredefinedData
+    Predefined
       .paginate({
         page: 1,
         limit: 10
@@ -120,7 +120,7 @@ describe('PredefinedData', function () {
 
   it('should be able to delete existing predefined', function (done) {
 
-    PredefinedData
+    Predefined
       .findByIdAndRemove(predefined._id, function (error, removed) {
 
         expect(error).to.not.exist;
@@ -140,7 +140,7 @@ describe('PredefinedData', function () {
   });
 
   after(function (done) {
-    PredefinedData.remove(done);
+    Predefined.remove(done);
   });
 
 });

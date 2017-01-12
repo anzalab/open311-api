@@ -1,7 +1,9 @@
 'use strict';
 
+
 //dependencies
 const path = require('path');
+const environment = require('execution-environment');
 const conf = require('config');
 const winston = require('winston');
 const mongoose = require('mongoose');
@@ -105,7 +107,7 @@ mongoose.connect(uristring, mongoOptions);
 require('seed-mongoose')({
   suffix: '_seed',
   logger: winston,
-  active: true
+  active: !environment.isTest()
 });
 
 

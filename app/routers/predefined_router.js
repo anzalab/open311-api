@@ -2,9 +2,9 @@
 
 
 /**
- * PredefinedData Router
+ * Predefined Data Router
  *
- * @description :: Server-side router for managing PredefinedData.
+ * @description :: Server-side router for managing Predefined Data.
  */
 
 
@@ -13,8 +13,7 @@ const path = require('path');
 const express = require('express');
 const router = express.Router();
 const controller =
-  require(path.join(__dirname, '..', 'controllers',
-    'predefined_data_controller'));
+  require(path.join(__dirname, '..', 'controllers', 'predefined_controller'));
 
 //enable token authentication
 const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
