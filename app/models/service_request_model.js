@@ -339,7 +339,7 @@ const ServiceRequestSchema = new Schema({
  * @version 0.1.0
  */
 ServiceRequestSchema.virtual('longitude').get(function () {
-  return this.location[0];
+  return this.location ? this.location[0] : null;
 });
 
 
@@ -351,7 +351,7 @@ ServiceRequestSchema.virtual('longitude').get(function () {
  * @version 0.1.0
  */
 ServiceRequestSchema.virtual('latitude').get(function () {
-  return this.location[1];
+  return this.location ? this.location[1] : null;
 });
 
 

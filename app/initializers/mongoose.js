@@ -17,10 +17,12 @@ const mongooseSetter =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'autoset'));
 const mongooseSoftDelete =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'soft_delete'));
+const mongooseUrl =
+  require(path.join(__dirname, '..', 'libs', 'mongoose', 'url'));
 const mongooseValid8 = require('mongoose-valid8');
 const mongoosePaginate = require('express-mquery').plugin;
 const mongooseAutopopulate = require('mongoose-autopopulate');
-const mongooseUniqueValidator = require('mongoose-unique-validator');
+// const mongooseUniqueValidator = require('mongoose-unique-validator');
 const mongooseHidden = require('mongoose-hidden')({
   defaultHidden: {
     password: true,
@@ -71,6 +73,7 @@ mongoose.plugin(function (schema) {
   });
 
 });
+mongoose.plugin(mongooseUrl);
 mongoose.plugin(mongooseSoftDelete);
 mongoose.plugin(mongoosePaginate);
 mongoose.plugin(mongooseAutopopulate);
@@ -80,7 +83,7 @@ mongoose.plugin(mongooseShow);
 mongoose.plugin(mongooseList);
 mongoose.plugin(mongooseReload);
 mongoose.plugin(mongooseSetter);
-mongoose.plugin(mongooseUniqueValidator);
+// mongoose.plugin(mongooseUniqueValidator);
 
 //require external models
 // require('byteskode-logger');
@@ -114,11 +117,12 @@ async.waterfall([
     seedMongoose.load(next);
   },
   function afterLoad(result, next) {
+    // winston.debug(result);
     //run after seed logics
     afterSeed(result, next);
   }
-], function (error /*,result*/ ) {
-  console.log(error);
+], function ( /*error ,result*/ ) {
+  // winston.error(error);
 });
 
 

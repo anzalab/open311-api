@@ -27,7 +27,7 @@ module.exports = function (results, done) {
         email: 'lallyelias87@gmail.com',
         password: 'open311@qwerty',
         name: 'Lally Elias',
-        phoneNumber: '255714095061',
+        phone: '255714095061',
         roles: [role]
       }, next);
     }

@@ -1,4 +1,5 @@
 'use strict';
+
 /**
  * Jurisdiction Router
  *
@@ -82,6 +83,28 @@ router.patch('/jurisdictions/:id', function (request, response, next) {
 router.delete('/jurisdictions/:id', function (request, response, next) {
   controller.destroy(request, response, next);
 });
+
+
+/**
+ * Handle Http GET on /jurisdictions/:id/servicegroups
+ * @description display a specific jurisdiction service groups
+ * @param  {HttpRequest} request  a http request
+ * @param  {HttpResponse} response a http response
+ */
+// router.get('/jurisdictions/:id/groups', function (request, response, next) {
+//   controller.show(request, response, next);
+// });
+
+
+/**
+ * Handle Http GET on /jurisdictions/:id/services
+ * @description display a specific jurisdiction services
+ * @param  {HttpRequest} request  a http request
+ * @param  {HttpResponse} response a http response
+ */
+// router.get('/jurisdictions/:id/services', function (request, response, next) {
+//   controller.show(request, response, next);
+// });
 
 
 /**

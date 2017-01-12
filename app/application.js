@@ -68,7 +68,7 @@ app.use(respond());
 
 //configure helmet
 app.use(helmet.hidePoweredBy({
-  setTo: 'shuledirect 0.1.0'
+  setTo: 'open311 0.1.0'
 }));
 
 

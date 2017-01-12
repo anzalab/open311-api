@@ -13,6 +13,7 @@
 
 
 //dependencies
+const _ = require('lodash');
 const mongoose = require('mongoose');
 const searchable = require('mongoose-fts');
 const Schema = mongoose.Schema;
@@ -113,11 +114,50 @@ const JurisdictionSchema = new Schema({
 
 
 //-----------------------------------------------------------------------------
+// JurisdictionSchema Hooks
+//-----------------------------------------------------------------------------
+JurisdictionSchema.pre('validate', function (next) {
+
+  //set juridiction code
+  if (_.isEmpty(this.code) && !_.isEmpty(this.name)) {
+    this.code = this.name.split(' ').join('-').toUpperCase();
+  }
+
+  next();
+
+});
+
+
+//-----------------------------------------------------------------------------
+// JurisdictionSchema Instance Methods
+//-----------------------------------------------------------------------------
+
+
+JurisdictionSchema.methods.groups = function (done) {
+  //1. fetch all parent service groups
+  //2. fetch all jurisdiction service groups
+  //3. fetch global service groups
+  done();
+};
+
+
+JurisdictionSchema.methods.services = function (done) {
+  //1. fetch all parent services
+  //2. fetch all jurisdiction services
+  //3. fetch global services
+  done();
+};
+
+
+//-----------------------------------------------------------------------------
 // JurisdictionSchema Plugins
 //-----------------------------------------------------------------------------
 
 JurisdictionSchema.plugin(searchable, {
-  fields: ['code', 'name', 'domain', 'about'],
+  fields: [
+    'jurisdiction.name', 'code',
+    'name', 'domain', 'about'
+  ],
   keywordsPath: 'keywords'
 });
 

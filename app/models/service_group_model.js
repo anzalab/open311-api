@@ -136,13 +136,12 @@ ServiceGroupSchema.pre('validate', function (next) {
 
   //set service group code
   if (_.isEmpty(this.code) && !_.isEmpty(this.name)) {
-    this.code = this.name.toUpperCase();
+    this.code = this.name.split(' ').join('-').toUpperCase();
   }
 
   next();
 
 });
-
 
 //-----------------------------------------------------------------------------
 // ServiceGroupSchema Plugins

@@ -30,7 +30,8 @@ const StatusSchema = new Schema({
    */
   name: {
     type: String,
-    index: true
+    index: true,
+    default: 'OPEN'
   },
 
 
