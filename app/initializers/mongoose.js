@@ -1,7 +1,6 @@
 'use strict';
 
 //dependencies
-const async = require('async');
 const path = require('path');
 const conf = require('config');
 const winston = require('winston');
@@ -102,27 +101,11 @@ require('require-all')({
  */
 mongoose.connect(uristring, mongoOptions);
 
-//require seed-mongoose to allow seeding
-const seedMongoose = require('seed-mongoose')({
+// require seed - mongoose to allow seeding
+require('seed-mongoose')({
   suffix: '_seed',
   logger: winston,
   active: true
-});
-
-//after seed logics
-const afterSeed = require(path.join(__dirname, '..', '..', 'seeds'));
-
-async.waterfall([
-  function seed(next) {
-    seedMongoose.load(next);
-  },
-  function afterLoad(result, next) {
-    // winston.debug(result);
-    //run after seed logics
-    afterSeed(result, next);
-  }
-], function ( /*error ,result*/ ) {
-  // winston.error(error);
 });
 
 
