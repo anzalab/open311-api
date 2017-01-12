@@ -31,7 +31,7 @@ const StatusSchema = new Schema({
   name: {
     type: String,
     index: true,
-    default: 'OPEN'
+    default: 'Open'
   },
 
 
@@ -46,7 +46,7 @@ const StatusSchema = new Schema({
   weight: {
     type: Number,
     index: true,
-    default: 0
+    default: -5
   },
 
 

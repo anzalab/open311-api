@@ -32,7 +32,7 @@ const PrioritySchema = new Schema({
   name: {
     type: String,
     index: true,
-    default: 'NORMAL'
+    default: 'Normal'
   },
 
 
