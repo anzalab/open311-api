@@ -1,16 +1,20 @@
 'use strict';
+
+
 /**
  * ServiceRequest Router
  *
  * @description :: Server-side router for managing ServiceRequest.
  */
 
+
 //dependencies
 const path = require('path');
 const express = require('express');
 const router = express.Router();
 const controller =
-  require(path.join(__dirname, '..', 'controllers', 'service_request_controller'));
+  require(path.join(__dirname, '..', 'controllers',
+    'service_request_controller'));
 
 //enable token authentication
 const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));

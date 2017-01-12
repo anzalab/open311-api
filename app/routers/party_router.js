@@ -1,9 +1,12 @@
 'use strict';
+
+
 /**
  * Party Router
  *
  * @description :: Server-side router for managing Party.
  */
+
 
 //dependencies
 const path = require('path');

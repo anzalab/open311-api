@@ -1,10 +1,12 @@
 'use strict';
 
+
 /**
  * Jurisdiction Router
  *
  * @description :: Server-side router for managing Jurisdiction.
  */
+
 
 //dependencies
 const path = require('path');
