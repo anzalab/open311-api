@@ -23,7 +23,7 @@ module.exports = [
     name: 'password',
     value: 'guest',
     default: true
-  }
+  },
 
 
   //statuses
