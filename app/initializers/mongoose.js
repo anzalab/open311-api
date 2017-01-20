@@ -3,9 +3,9 @@
 
 //dependencies
 const path = require('path');
-// const environment = require('execution-environment');
+const environment = require('execution-environment');
 const conf = require('config');
-// const winston = require('winston');
+const winston = require('winston');
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 const mongooseShow =
@@ -107,7 +107,21 @@ require('require-all')({
 mongoose.connect(uristring, mongoOptions);
 
 
-
+// require seed - mongoose to allow seeding
+// TODO fix seed - many in seed mongoose
+if (!environment.isTest()) {
+  require('seed-mongoose')({
+    suffix: '_seed',
+    logger: winston,
+    // active: !environment.isTest()
+    active: false
+  }).load(function ( /*error ,results*/ ) {
+    require(path.join(__dirname, '..', '..', 'seeds'))
+      (function (error /*, results*/ ) {
+        console.log(error);
+      });
+  });
+}
 
 /**
  * @description export mongoose

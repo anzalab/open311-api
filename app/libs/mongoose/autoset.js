@@ -1,5 +1,22 @@
 'use strict';
 
+/**
+ * @name autoset
+ * @description mongoose plugin to allow to set ref from model instance(s)
+ * @author lally elias <lallyelias87@mail.com>
+ * @since  0.1.0
+ * @version 0.1.0
+ * @example
+ *
+ * const drinks = Drink.find(<criteria>);
+ * const waitress = User.findById(<id>);
+ * 
+ * const food = new Food({
+ *   drinks: drinks,
+ *   waitress: waitress
+ * });
+ */
+
 //dependencies
 const _ = require('lodash');
 

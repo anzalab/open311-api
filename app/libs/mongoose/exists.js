@@ -7,6 +7,17 @@
  * @author lally elias <lallyelias87@mail.com>
  * @since  0.1.0
  * @version 0.1.0
+ * @example
+ *
+ * const ServiceSchema = new Schema({
+ *   
+ *   vendor: {
+ *     type: ObjectId,
+ *     ref: 'Vendor',
+ *     exists: true
+ *   }
+ *   
+ * });
  */
 
 
