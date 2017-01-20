@@ -5,9 +5,10 @@ const async = require('async');
 const mongoose = require('mongoose');
 const Role = mongoose.model('Role');
 const Party = mongoose.model('Party');
+// const permissions = require(path.join(__dirname, 'development', 'role_seed'));
 
 //after data seeding logics
-module.exports = function (results, done) {
+module.exports = function (done) {
 
   async.waterfall([
     function createRoles(next) {
@@ -16,7 +17,7 @@ module.exports = function (results, done) {
       }, {
         name: 'Administrator',
         description: 'Administrator permissions',
-        permissions: results.data
+        // permissions: permissions
       }, {
         upsert: true,
         new: true

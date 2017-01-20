@@ -216,6 +216,32 @@ describe('Jurisdiction', function () {
 
       });
 
+    it('should fail to save jurisdiction with parent that not exists',
+      function (done) {
+        const id = new mongoose.Types.ObjectId();
+        const jurisdiction = {
+          jurisdiction: id,
+          code: faker.random.uuid(),
+          name: faker.company.companyName(),
+          domain: faker.internet.domainName(),
+          about: faker.company.catchPhrase()
+        };
+
+        Jurisdiction.create(jurisdiction, function (error /*, created*/ ) {
+
+          expect(error).to.exist;
+          expect(error.errors.jurisdiction).to.exist;
+          expect(error.name).to.be.equal('ValidationError');
+          expect(error.errors.jurisdiction.message)
+            .to.be.equal('jurisdiction with id ' + id +
+              ' does not exists');
+
+          done();
+
+        });
+
+      });
+
   });
 
 

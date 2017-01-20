@@ -5,10 +5,14 @@
  * @module Jurisdiction
  * @name Jurisdiction
  * @description an entity (e.g minicipal) responsible for addressing 
- *              service request(issue)
+ *              service request(issue).
+ *
+ *              It may be a self managed entity or division within an entity.
+ *
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
  * @version 0.1.0
+ * @public
  */
 
 
@@ -20,14 +24,24 @@ const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
 
-//Jurisdiction Schema
+/**
+ * @name JurisdictionSchema
+ * @type {Schema}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @private
+ */
 const JurisdictionSchema = new Schema({
   /**
    * @name jurisdiction
-   * @description Top jurisdiction for this jurisdiction. 
+   * @description Top jurisdiction under which this jurisdiction derived. 
    *              
    *              This is applicable where a large jurisdiction delegates 
-   *              its power to its division
+   *              its power to its division(s).
+   *
+   *              If not set the jurisdiction will be treated as a top
+   *              jurisdiction and will be affected by any logics implemented
+   *              accordingly.
    *              
    * @type {Object}
    * @private
@@ -38,6 +52,7 @@ const JurisdictionSchema = new Schema({
     type: ObjectId,
     ref: 'Jurisdiction',
     autoset: true,
+    exists: true,
     autopopulate: {
       select: 'code name domain'
     }
@@ -48,6 +63,7 @@ const JurisdictionSchema = new Schema({
    * @name code
    * @description Human readable coded name of the jurisdiction. 
    *              Used in deriving service request code.
+   *              
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -162,5 +178,13 @@ JurisdictionSchema.plugin(searchable, {
 });
 
 
-//exports Jurisdiction model
+/**
+ * @name Jurisdiction
+ * @description register JurisdictionSchema and initialize Jurisdiction
+ *              model
+ * @type {Model}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ */
 module.exports = mongoose.model('Jurisdiction', JurisdictionSchema);

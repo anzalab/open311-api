@@ -4,7 +4,9 @@ open311-api(WIP)
 [![Build Status](https://travis-ci.org/CodeTanzania/open311-api.svg?branch=master)](https://travis-ci.org/CodeTanzania/open311-api)
 [![Dependencies Status](https://david-dm.org/CodeTanzania/open311-api/status.svg?style=flat-square)](https://david-dm.org/CodeTanzania/open311-api)
 
-open311 API
+open311-api is partial implementation of [open311 GeoReport v2]().
+
+## About
 
 ## Requirements
 

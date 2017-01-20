@@ -3,9 +3,9 @@
 
 //dependencies
 const path = require('path');
-const environment = require('execution-environment');
+// const environment = require('execution-environment');
 const conf = require('config');
-const winston = require('winston');
+// const winston = require('winston');
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 const mongooseShow =
@@ -20,6 +20,8 @@ const mongooseSoftDelete =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'soft_delete'));
 const mongooseUrl =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'url'));
+const mongooseExists =
+  require(path.join(__dirname, '..', 'libs', 'mongoose', 'exists'));
 const mongooseValid8 = require('mongoose-valid8');
 const mongoosePaginate = require('express-mquery').plugin;
 const mongooseAutopopulate = require('mongoose-autopopulate');
@@ -74,6 +76,7 @@ mongoose.plugin(function (schema) {
   });
 
 });
+mongoose.plugin(mongooseExists);
 mongoose.plugin(mongooseUrl);
 mongoose.plugin(mongooseSoftDelete);
 mongoose.plugin(mongoosePaginate);
@@ -103,12 +106,7 @@ require('require-all')({
  */
 mongoose.connect(uristring, mongoOptions);
 
-// require seed - mongoose to allow seeding
-require('seed-mongoose')({
-  suffix: '_seed',
-  logger: winston,
-  active: !environment.isTest()
-});
+
 
 
 /**
