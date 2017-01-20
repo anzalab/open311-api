@@ -45,6 +45,7 @@ const ServiceGroupSchema = new Schema({
     type: ObjectId,
     ref: 'Jurisdiction',
     autoset: true,
+    exists: true,
     index: true,
     autopopulate: {
       select: 'code name domain'

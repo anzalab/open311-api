@@ -46,6 +46,7 @@ const ServiceSchema = new Schema({
     ref: 'Jurisdiction',
     index: true,
     autoset: true,
+    exists: true,
     autopopulate: {
       select: 'code name domain'
     }
@@ -67,6 +68,7 @@ const ServiceSchema = new Schema({
     required: true,
     index: true,
     autoset: true,
+    exists: true,
     autopopulate: {
       select: 'code name color'
     }

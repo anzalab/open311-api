@@ -51,6 +51,8 @@ const ServiceRequestSchema = new Schema({
     type: ObjectId,
     ref: 'Jurisdiction',
     autoset: true,
+    index: true,
+    exists: true,
     autopopulate: {
       select: 'code name domain'
     }
@@ -72,6 +74,7 @@ const ServiceRequestSchema = new Schema({
     required: true,
     index: true,
     autoset: true,
+    exists: true,
     autopopulate: {
       select: 'code name color group'
     }
@@ -94,6 +97,7 @@ const ServiceRequestSchema = new Schema({
     required: true,
     index: true,
     autoset: true,
+    exists: true,
     autopopulate: {
       select: 'name email phone'
     }
@@ -118,11 +122,11 @@ const ServiceRequestSchema = new Schema({
     ref: 'Party',
     index: true,
     autoset: true,
+    exists: true,
     autopopulate: {
       select: 'name email phone'
     }
   },
-
 
 
   /**
@@ -382,6 +386,7 @@ ServiceRequestSchema.pre('validate', function (next) {
 ServiceRequestSchema.post('save', function (doc, next) {
   //TODO notify CRM to update details based on the account id
   //TODO send(queue) notification
+  //TODO send service request code to reporte(sms or email)
   next();
 });
 

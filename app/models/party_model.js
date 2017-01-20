@@ -93,6 +93,7 @@ const PartySchema = new Schema({
     type: ObjectId,
     ref: 'Jurisdiction',
     autoset: true,
+    exists: true,
     autopopulate: {
       select: 'code name domain'
     }
