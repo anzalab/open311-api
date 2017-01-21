@@ -14,14 +14,12 @@ const mongooseList =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'list'));
 const mongooseReload =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'reload'));
-const mongooseSetter =
-  require(path.join(__dirname, '..', 'libs', 'mongoose', 'autoset'));
 const mongooseSoftDelete =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'soft_delete'));
 const mongooseUrl =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'url'));
-const mongooseExists =
-  require(path.join(__dirname, '..', 'libs', 'mongoose', 'exists'));
+const mongooseExists = require('mongoose-exists');
+const mongooseAutoset = require('mongoose-autoset');
 const mongooseValid8 = require('mongoose-valid8');
 const mongoosePaginate = require('express-mquery').plugin;
 const mongooseAutopopulate = require('mongoose-autopopulate');
@@ -76,6 +74,8 @@ mongoose.plugin(function (schema) {
   });
 
 });
+
+mongoose.plugin(mongooseAutoset);
 mongoose.plugin(mongooseExists);
 mongoose.plugin(mongooseUrl);
 mongoose.plugin(mongooseSoftDelete);
@@ -86,7 +86,6 @@ mongoose.plugin(mongooseValid8);
 mongoose.plugin(mongooseShow);
 mongoose.plugin(mongooseList);
 mongoose.plugin(mongooseReload);
-mongoose.plugin(mongooseSetter);
 // mongoose.plugin(mongooseUniqueValidator);
 
 //require external models
