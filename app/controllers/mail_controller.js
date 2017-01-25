@@ -1,7 +1,8 @@
 'use strict';
 
 //dependencies
-const Mail = require('byteskode-mailer');
+// const Mail = require('byteskode-mailer');
+const Mail = {}; //TODO make use of open311-smtp & open311-messages
 
 
 /**
