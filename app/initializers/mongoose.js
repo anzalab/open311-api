@@ -89,7 +89,7 @@ mongoose.plugin(mongooseReload);
 
 //require external models
 // require('byteskode-logger');
-require('byteskode-mailer');
+// require('byteskode-mailer');
 
 // load all models recursively
 require('require-all')({
