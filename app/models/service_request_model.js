@@ -106,6 +106,31 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name assignee
+   * @description A party oversee the work on the service request(issue). 
+   *              
+   *              It also a party that is answerable for the progress and 
+   *              status of the service request(issue) to a reporter.
+   *              
+   * @type {Object}
+   * @see {@link Party}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  representative: {
+    type: ObjectId,
+    ref: 'Party',
+    index: true,
+    autoset: true,
+    exists: true,
+    autopopulate: {
+      select: 'name email phone'
+    }
+  },
+
+
+  /**
+   * @name assignee
    * @description A party assigned to work on the service request(issue). 
    *              
    *              It also a party that is answerable for the progress and 
