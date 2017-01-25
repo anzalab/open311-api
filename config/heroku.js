@@ -59,6 +59,12 @@ module.exports = {
   baseUrl: 'https://dawasco.herokuapp.com',
 
   /**
+   * @description application port
+   * @type {Number}
+   */
+  port: (process.env.PORT || 5000),
+
+  /**
    * @description mongoose database configurations
    * @type {Object}
    */

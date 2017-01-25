@@ -1,9 +1,10 @@
 'use strict';
 
 //dependencies
+const _ = require('lodash');
 
 //set environment to development by default
-if (!(process.env || {}).NODE_ENV) {
+if (_.isEmpty((process.env || {}).NODE_ENV)) {
   process.env.NODE_ENV = 'development';
 }
 
@@ -27,7 +28,8 @@ const respond = require('express-respond');
 
 //register environment variables
 environment.registerEnvironments({
-  isLocal: ['test', 'dev', 'development']
+  isLocal: ['test', 'dev', 'development'],
+  isLive: ['heroku', 'production', 'prod']
 });
 
 
@@ -153,7 +155,7 @@ if (environment.isLocal()) {
 
 
 // production error handler
-if (environment.isProd()) {
+if (environment.isLive()) {
   app.use(function (error, request, response, next) {
 
     //log all errors

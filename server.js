@@ -11,7 +11,7 @@ const winston = require('winston');
 app.set('port', config.get('port'));
 
 //set application server ip address
-app.set('ip', config.get('ip'));
+// app.set('ip', config.get('ip'));
 
 //lift up application server
 process.nextTick(function start() {
