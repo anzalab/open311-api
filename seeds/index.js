@@ -5,22 +5,14 @@ const async = require('async');
 const mongoose = require('mongoose');
 const Role = mongoose.model('Role');
 const Party = mongoose.model('Party');
-// const permissions = require(path.join(__dirname, 'development', 'role_seed'));
 
 //after data seeding logics
 module.exports = function (done) {
 
   async.waterfall([
     function createRoles(next) {
-      Role.findOneAndUpdate({
+      Role.findOne({
         name: 'Administrator'
-      }, {
-        name: 'Administrator',
-        description: 'Administrator permissions',
-        // permissions: permissions
-      }, {
-        upsert: true,
-        new: true
       }, next);
     },
     function createParty(role, next) {

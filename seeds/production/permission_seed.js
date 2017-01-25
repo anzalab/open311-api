@@ -1,13 +1,13 @@
 'use strict';
 
 //dependencies
-const mongoose = require('mongoose');
-const _ = require('lodash');
+var mongoose = require('mongoose');
+var _ = require('lodash');
 
 /**
  * @description seed permissions and roles
  */
-let permissions = [];
+var permissions = [];
 
 //grab all current models and build CRUD permissions
 mongoose.modelNames().forEach(function (modelName) {

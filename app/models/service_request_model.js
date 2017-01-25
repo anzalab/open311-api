@@ -105,7 +105,7 @@ const ServiceRequestSchema = new Schema({
 
 
   /**
-   * @name assignee
+   * @name operator
    * @description A party oversee the work on the service request(issue). 
    *              
    *              It also a party that is answerable for the progress and 
@@ -117,7 +117,7 @@ const ServiceRequestSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  representative: {
+  operator: {
     type: ObjectId,
     ref: 'Party',
     index: true,
