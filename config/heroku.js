@@ -6,6 +6,7 @@ const parseMongoUrl = require('parse-mongo-url');
 
 //parse heroku mongo connection string
 //see https://docs.mongodb.com/manual/reference/connection-string/
+//see https://github.com/Automattic/mongoose/issues/4670
 let mongoOptions = {
   database: 'open311',
   host: '127.0.0.1',
