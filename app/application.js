@@ -134,7 +134,7 @@ app.use(function (request, response, next) {
 
 /*jshint unused:false */
 // development error handlers
-if (environment.isProd()) {
+if (environment.isLocal()) {
   app.use(function (error, request, response, next) {
 
     //log all errors
@@ -154,7 +154,7 @@ if (environment.isProd()) {
 
 
 // production error handler
-if (environment.isLive()) {
+if (environment.isProd()) {
   app.use(function (error, request, response, next) {
 
     //log all errors
