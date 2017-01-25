@@ -28,8 +28,7 @@ const respond = require('express-respond');
 
 //register environment variables
 environment.registerEnvironments({
-  isLocal: ['test', 'dev', 'development'],
-  isLive: ['heroku', 'production', 'prod']
+  isLocal: ['test', 'dev', 'development']
 });
 
 
@@ -135,7 +134,7 @@ app.use(function (request, response, next) {
 
 /*jshint unused:false */
 // development error handlers
-if (environment.isLocal()) {
+if (environment.isProd()) {
   app.use(function (error, request, response, next) {
 
     //log all errors

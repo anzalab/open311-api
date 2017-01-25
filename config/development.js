@@ -1,7 +1,7 @@
 'use strict';
 
 //dependencies
-var defer = require('config/defer').deferConfig;
+const defer = require('config/defer').deferConfig;
 
 /**
  * @description default configurations

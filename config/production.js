@@ -1,7 +1,55 @@
 'use strict';
 
 //dependencies
-var defer = require('config/defer').deferConfig;
+const _ = require('lodash');
+const defer = require('config/defer').deferConfig;
+const parseMongoUrl = require('parse-mongo-url');
+let isHeroku = false;
+
+//parse heroku mongo connection string
+//see https://docs.mongodb.com/manual/reference/connection-string/
+//see https://github.com/Automattic/mongoose/issues/4670
+let mongoOptions = {
+  database: 'open311',
+  host: '127.0.0.1',
+  port: 27017,
+  user: '',
+  password: '',
+  options: {
+    db: {
+      safe: true
+    },
+    server: {
+      socketOptions: {
+        keepAlive: 1
+      }
+    },
+    replset: {
+      socketOptions: {
+        keepAlive: 1
+      }
+    }
+  }
+};
+
+//parse mongodb uri if exists
+if (process.env && !_.isEmpty(process.env.MONGODB_URI)) {
+  isHeroku = true;
+
+  const parsed = parseMongoUrl(process.env.MONGODB_URI);
+  mongoOptions = _.merge({}, mongoOptions, {
+    database: _.get(parsed, 'dbName', 'open311'),
+    host: _.get(parsed, 'servers[0].host', '127.0.0.1'),
+    port: _.get(parsed, 'servers[0].port', 27017),
+    user: _.get(parsed, 'auth.user', ''),
+    password: _.get(parsed, 'auth.password', ''),
+    options: {
+      db: {
+        readPreference: _.get(parsed, 'db_options.read_preference', null)
+      }
+    }
+  });
+}
 
 /**
  * @description default configurations
@@ -13,7 +61,9 @@ module.exports = {
    * @type {String}
    */
   baseUrl: defer(function () {
-    return 'http://' + this.ip + ':' + this.port;
+    const _baseUrl = isHeroku ? 'https://dawasco.herokuapp.com' :
+      'http://' + this.ip + ':' + this.port;
+    return _baseUrl;
   }),
 
 
@@ -21,44 +71,20 @@ module.exports = {
    * @description application port
    * @type {Number}
    */
-  port: 3000,
+  port: (process.env.PORT || 5000),
 
 
-  /**
-   * @description application ip address
+  /* @description application ip address
    * @type {String}
    */
-  ip: '40.112.142.34',
-  // ip: '127.0.0.1',
-
+  ip: '127.0.0.1',
 
 
   /**
    * @description mongoose database configurations
    * @type {Object}
    */
-  mongoose: {
-    database: 'open311',
-    host: '127.0.0.1',
-    user: '',
-    password: '',
-    port: 27017,
-    options: {
-      db: {
-        safe: true
-      },
-      server: {
-        socketOptions: {
-          keepAlive: 1
-        }
-      },
-      replset: {
-        socketOptions: {
-          keepAlive: 1
-        }
-      }
-    }
-  },
+  mongoose: mongoOptions,
 
   /**
    * @description json web token configuration
