@@ -3,7 +3,6 @@
 
 //dependencies
 const path = require('path');
-const _ = require('lodash');
 const environment = require('execution-environment');
 const conf = require('config');
 const winston = require('winston');
@@ -53,14 +52,8 @@ const port = config.port ? ':' + config.port : '';
 const login =
   (config.user.length > 0) ? config.user + ':' + config.password + '@' : '';
 
-let uristring =
+const uristring =
   'mongodb://' + login + config.host + port + '/' + config.database;
-
-
-//try override with mongolab provided connection string
-if (process.env && !_.isEmpty(process.env.MONGOLAB_URI)) {
-  uristring = process.env.MONGOLAB_URI;
-}
 
 /**
  * @description mongodb options

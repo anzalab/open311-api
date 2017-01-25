@@ -1,7 +1,50 @@
 'use strict';
 
 //dependencies
-var defer = require('config/defer').deferConfig;
+const _ = require('lodash');
+const parseMongoUrl = require('parse-mongo-url');
+
+//parse heroku mongo connection string
+//see https://docs.mongodb.com/manual/reference/connection-string/
+let mongoOptions = {
+  database: 'open311',
+  host: '127.0.0.1',
+  port: 27017,
+  user: '',
+  password: '',
+  options: {
+    db: {
+      safe: true
+    },
+    server: {
+      socketOptions: {
+        keepAlive: 1
+      }
+    },
+    replset: {
+      socketOptions: {
+        keepAlive: 1
+      }
+    }
+  }
+};
+
+//parse mongodb uri if exists
+if (process.env && !_.isEmpty(process.env.MONGODB_URI)) {
+  const parsed = parseMongoUrl(process.env.MONGODB_URI);
+  mongoOptions = _.merge({}, mongoOptions, {
+    database: _.get(parsed, 'dbName', 'open311'),
+    host: _.get(parsed, 'servers[0].host', '127.0.0.1'),
+    port: _.get(parsed, 'servers[0].port', 27017),
+    user: _.get(parsed, 'auth.user', ''),
+    password: _.get(parsed, 'auth.password', ''),
+    options: {
+      db: {
+        readPreference: _.get(parsed, 'db_options.read_preference', null)
+      }
+    }
+  });
+}
 
 /**
  * @description default configurations
@@ -18,30 +61,7 @@ module.exports = {
    * @description mongoose database configurations
    * @type {Object}
    */
-  mongoose: defer(function () {
-    return {
-      database: 'open311',
-      host: '127.0.0.1',
-      user: '',
-      password: '',
-      port: 27017,
-      options: {
-        db: {
-          safe: true
-        },
-        server: {
-          socketOptions: {
-            keepAlive: 1
-          }
-        },
-        replset: {
-          socketOptions: {
-            keepAlive: 1
-          }
-        }
-      }
-    };
-  }),
+  mongoose: mongoOptions,
 
   /**
    * @description json web token configuration
