@@ -6,6 +6,8 @@ open311-api(WIP)
 
 open311-api is partial implementation of [open311 GeoReport v2]().
 
+*Note!: If your are running in [heroku](https://www.heroku.com/) make sure to run `heroku config:set NODE_ENV=heroku` and update `config/heroku.js` acccordingly*
+
 ## About
 
 ## Requirements

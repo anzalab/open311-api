@@ -16,7 +16,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Schema.ObjectId;
 const irina = require('irina');
-const Mail = require('byteskode-mailer');
+// const Mail = require('byteskode-mailer');
 const searchable = require('mongoose-fts');
 
 //relation name
@@ -324,7 +324,7 @@ PartySchema.methods.send = function (type, authenticable, done) {
   }
 
   //queue email for later send
-  Mail.queue(email);
+  // Mail.queue(email);
 
   //continue
   done();
