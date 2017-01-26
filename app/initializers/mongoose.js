@@ -113,11 +113,9 @@ if (!environment.isTest()) {
     logger: winston,
     // active: !environment.isTest()
     active: false
-  }).load(function ( /*error ,results*/ ) {
+  }).load(function ( /*error, results*/ ) {
     require(path.join(__dirname, '..', '..', 'seeds'))
-      (function (error /*, results*/ ) {
-        console.log(error);
-      });
+      (function ( /*error , results*/ ) {});
   });
 }
 
