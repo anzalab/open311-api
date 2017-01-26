@@ -1,8 +1,11 @@
 'use strict';
 
 //dependencies
+const _ = require('lodash');
+const async = require('async');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
+const Party = mongoose.model('Party');
 
 /**
  * ServiceRequest Controller
@@ -37,14 +40,39 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   create: function (request, response, next) {
-    ServiceRequest
-      .create(request.body, function (error, servicerequest) {
-        if (error) {
-          next(error);
+    //ensure reporter exists
+    //operator exists
+    let body = request.body;
+    if (!body.operator) {
+      body.operator = request.party;
+    }
+
+    async.waterfall([
+      function persistReporter(next) {
+        if (body.reporter && !body.reporter._id) {
+          const reporter = _.merge({}, {
+            email: new Date().getTime()+'@example.com'
+          }, body.reporter);
+          Party.create(reporter, function (error, party) {
+            body.reporter = party;
+            next(error, body);
+          });
         } else {
-          response.created(servicerequest);
+          next(null, body);
         }
-      });
+      },
+      function save(serviceRequest, next) {
+        console.log(serviceRequest);
+        ServiceRequest.create(body, next);
+      }
+    ], function (error, serviceRequest) {
+      if (error) {
+        console.log(error);
+        next(error);
+      } else {
+        response.created(serviceRequest);
+      }
+    });
   },
 
 

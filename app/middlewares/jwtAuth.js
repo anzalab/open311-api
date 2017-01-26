@@ -25,7 +25,6 @@ module.exports = function (request, response, next) {
           request.party = party;
         }
         next();
-
       }
     });
 };
