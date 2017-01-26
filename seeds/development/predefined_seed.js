@@ -44,7 +44,7 @@ module.exports = [
     }
   }, {
     group: 'Status',
-    name: 'Done',
+    name: 'Closed',
     value: {
       weight: 5,
       color: '#1B5E20' //material green-900
