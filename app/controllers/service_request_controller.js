@@ -48,10 +48,16 @@ module.exports = {
     }
 
     async.waterfall([
+      //TODO check if reporter already exists
+      //TODO upsert reporter
       function persistReporter(next) {
         if (body.reporter && !body.reporter._id) {
           const reporter = _.merge({}, {
-            email: new Date().getTime()+'@example.com'
+            email: new Date().getTime() + '@example.com',
+            relation: {
+              name: Party.RELATION_NAME_CIVILIAN,
+              type: Party.RELATION_TYPE_INDIVIDUAL
+            }
           }, body.reporter);
           Party.create(reporter, function (error, party) {
             body.reporter = party;
