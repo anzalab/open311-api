@@ -88,6 +88,8 @@ const PermissionSchema = new Schema({
     trim: true
   }
 
+}, {
+  timestamps: true
 });
 
 

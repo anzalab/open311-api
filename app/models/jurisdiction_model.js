@@ -126,6 +126,8 @@ const JurisdictionSchema = new Schema({
     type: String
   }
 
+}, {
+  timestamps: true
 });
 
 

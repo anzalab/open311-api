@@ -84,6 +84,8 @@ const SettingSchema = new Schema({
     }
   }
 
+}, {
+  timestamps: true
 });
 
 
