@@ -393,9 +393,16 @@ ServiceRequestSchema.pre('validate', function (next) {
   //set service request code
   //TODO update code algorithm
   if (_.isEmpty(this.code)) {
+    // this.code = [
+    //   this.jurisdiction.code, this.service.code, shortid.generate()
+    // ].join('-').toUpperCase();
     this.code = [
-      this.jurisdiction.code, this.service.code, shortid.generate()
-    ].join('-').toUpperCase();
+        shortid.generate(),
+        shortid.generate()
+      ].join('')
+      .replace(/-|_/g, '')
+      .substr(0, 8)
+      .toUpperCase();
   }
 
   //set priority based on the service
