@@ -32,6 +32,10 @@ module.exports = exports = function (schema /*, options*/ ) {
       const criteria = request.mquery ? request.mquery.query : undefined;
 
       const query = this.search(queryParams.q, 'or');
+      
+      if (name === 'ServiceRequest') {
+        query.populate('comments.commentator');
+      }
 
       if (criteria) {
         query.where(criteria);
