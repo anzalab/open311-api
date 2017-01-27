@@ -50,7 +50,7 @@ module.exports = {
     async.waterfall([
       //TODO check if reporter already exists
       //TODO upsert reporter
-      function persistReporter(next) {
+      function persistReporter(then) {
         if (body.reporter && !body.reporter._id) {
           const reporter = _.merge({}, {
             email: new Date().getTime() + '@example.com',
@@ -61,19 +61,17 @@ module.exports = {
           }, body.reporter);
           Party.create(reporter, function (error, party) {
             body.reporter = party;
-            next(error, body);
+            then(error, body);
           });
         } else {
-          next(null, body);
+          then(null, body);
         }
       },
-      function save(serviceRequest, next) {
-        console.log(serviceRequest);
-        ServiceRequest.create(body, next);
+      function save(serviceRequest, then) {
+        ServiceRequest.create(body, then);
       }
     ], function (error, serviceRequest) {
       if (error) {
-        console.log(error);
         next(error);
       } else {
         response.created(serviceRequest);
@@ -109,20 +107,29 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   update: function (request, response, next) {
-    ServiceRequest
-      .findByIdAndUpdate(
-        request.params.id,
-        request.body, {
-          upsert: true,
-          new: true
-        },
-        function (error, servicerequest) {
-          if (error) {
-            next(error);
-          } else {
-            response.ok(servicerequest);
-          }
-        });
+    async.waterfall([
+
+      function update(then) {
+        ServiceRequest
+          .findByIdAndUpdate(
+            request.params.id,
+            request.body, {
+              upsert: true,
+              new: true
+            }, then);
+      },
+
+      function reload(servicerequest, then) {
+        servicerequest.refresh(then);
+      }
+
+    ], function (error, servicerequest) {
+      if (error) {
+        next(error);
+      } else {
+        response.ok(servicerequest);
+      }
+    });
   },
 
 
