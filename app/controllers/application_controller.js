@@ -12,6 +12,7 @@ const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
 const Party = mongoose.model('Party');
+const ServiceRequest = mongoose.model('ServiceRequest');
 const JWT = require(path.join(__dirname, '..', 'libs', 'jwt'));
 
 module.exports = {
@@ -275,6 +276,16 @@ module.exports = {
       timestamp: today.getTime()
     });
 
+  },
+
+  summaries: function (request, response) {
+    ServiceRequest
+      .summary(function (error, summaries) {
+        if (error) {
+          summaries = {};
+        }
+        response.ok(summaries);
+      });
   }
 
 };

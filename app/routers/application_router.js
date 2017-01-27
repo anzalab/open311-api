@@ -110,5 +110,10 @@ router.get('/heartbeats', function (request, response, next) {
 });
 
 
+router.get('/summaries', function (request, response, next) {
+  controller.summaries(request, response, next);
+});
+
+
 //exports site router
 module.exports = router;
