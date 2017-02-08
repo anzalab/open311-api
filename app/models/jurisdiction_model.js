@@ -24,7 +24,6 @@
 const path = require('path');
 const _ = require('lodash');
 const mongoose = require('mongoose');
-// const searchable = require('mongoose-fts');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const GeoJSON = require(path.join(__dirname, 'schemas', 'geojson_schema'));
@@ -254,21 +253,6 @@ JurisdictionSchema.statics.findNearBy = function (coordinates, done) {
   }, done);
 
 };
-
-
-//-----------------------------------------------------------------------------
-// JurisdictionSchema Plugins
-//-----------------------------------------------------------------------------
-
-// JurisdictionSchema.plugin(searchable, {
-//   fields: [
-//     'jurisdiction.name', 'code',
-//     'name', 'domain', 'about'
-//   ],
-
-//   keywordsPath: 'keywords'
-
-// });
 
 
 /**
