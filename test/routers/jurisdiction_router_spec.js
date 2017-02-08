@@ -65,6 +65,9 @@ describe('Jurisdiction Router', function () {
           expect(created.name).to.be.equal(jurisdiction.name);
           expect(created.domain).to.be.equal(jurisdiction.domain);
           expect(created.about).to.be.equal(jurisdiction.about);
+          expect(created.location).to.exist;
+          expect(created.boundaries).to.exist;
+
 
           jurisdiction = created;
 
@@ -101,6 +104,8 @@ describe('Jurisdiction Router', function () {
           expect(found.name).to.be.equal(jurisdiction.name);
           expect(found.domain).to.be.equal(jurisdiction.domain);
           expect(found.about).to.be.equal(jurisdiction.about);
+          expect(found.location).to.exist;
+          expect(found.boundaries).to.exist;
 
           done(error, response);
 
@@ -139,6 +144,8 @@ describe('Jurisdiction Router', function () {
           expect(updated.name).to.be.equal(jurisdiction.name);
           expect(updated.domain).to.be.equal(jurisdiction.domain);
           expect(updated.about).to.be.equal(updates.about);
+          expect(updated.location).to.exist;
+          expect(updated.boundaries).to.exist;
 
           jurisdiction = updated;
 
@@ -179,6 +186,8 @@ describe('Jurisdiction Router', function () {
           expect(updated.name).to.be.equal(jurisdiction.name);
           expect(updated.domain).to.be.equal(jurisdiction.domain);
           expect(updated.about).to.be.equal(updates.about);
+          expect(updated.location).to.exist;
+          expect(updated.boundaries).to.exist;
 
           jurisdiction = updated;
 
@@ -191,6 +200,7 @@ describe('Jurisdiction Router', function () {
   it('should handle HTTP GET on /jurisdictions',
     function (
       done) {
+
       request(app)
         .get('/jurisdictions')
         .set('Accept', 'application/json')
@@ -210,7 +220,9 @@ describe('Jurisdiction Router', function () {
           //TODO more jurisdictions response assertions
 
           done(error, response);
+
         });
+
     });
 
 
@@ -218,6 +230,7 @@ describe('Jurisdiction Router', function () {
   it(
     'should handle HTTP DELETE on /jurisdictions/:id',
     function (done) {
+
       request(app)
         .delete('/jurisdictions/' + jurisdiction._id)
         .set('Accept', 'application/json')
@@ -239,6 +252,8 @@ describe('Jurisdiction Router', function () {
           expect(removed.name).to.be.equal(jurisdiction.name);
           expect(removed.domain).to.be.equal(jurisdiction.domain);
           expect(removed.about).to.be.equal(jurisdiction.about);
+          expect(removed.location).to.exist;
+          expect(removed.boundaries).to.exist;
 
           done(error, response);
 
