@@ -31,8 +31,8 @@ module.exports = exports = function (schema /*, options*/ ) {
       const sort = request.mquery ? request.mquery.sort : undefined;
       const criteria = request.mquery ? request.mquery.query : undefined;
 
-      const query = this.search(queryParams.q, 'or');
-      
+      const query = this.search(queryParams.q);
+
       if (name === 'ServiceRequest') {
         query.populate('comments.commentator');
       }

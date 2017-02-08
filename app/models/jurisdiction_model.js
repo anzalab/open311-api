@@ -174,9 +174,11 @@ const JurisdictionSchema = new Schema({
 // JurisdictionSchema Index
 //-----------------------------------------------------------------------------
 
+
 //ensure `2dsphere` on jurisdiction location and boundaries
 JurisdictionSchema.index({ location: '2dsphere' });
 JurisdictionSchema.index({ boundaries: '2dsphere' });
+
 
 
 //-----------------------------------------------------------------------------
