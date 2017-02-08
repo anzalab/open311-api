@@ -194,28 +194,6 @@ JurisdictionSchema.pre('validate', function (next) {
 
 
 //-----------------------------------------------------------------------------
-// JurisdictionSchema Instance Methods
-//-----------------------------------------------------------------------------
-
-
-JurisdictionSchema.methods.groups = function (done) {
-  //1. fetch all parent service groups
-  //2. fetch all jurisdiction service groups
-  //3. fetch global service groups
-  done();
-};
-
-
-JurisdictionSchema.methods.services = function (done) {
-  //1. fetch all parent services
-  //2. fetch all jurisdiction services
-  //3. fetch global services
-  done();
-
-};
-
-
-//-----------------------------------------------------------------------------
 // JurisdictionSchema Static Methods
 //-----------------------------------------------------------------------------
 
