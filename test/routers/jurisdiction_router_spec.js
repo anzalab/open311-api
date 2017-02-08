@@ -112,6 +112,7 @@ describe('Jurisdiction Router', function () {
   it(
     'should handle HTTP PUT on /jurisdictions/:id',
     function (done) {
+
       const updates = {
         about: faker.company.catchPhrase()
       };
@@ -128,16 +129,30 @@ describe('Jurisdiction Router', function () {
           expect(error).to.not.exist;
           expect(response).to.exist;
 
-          //TODO more jurisdiction response assertions
+          const updated = response.body;
+          expect(updated).to.exist;
+
+          expect(updated._id).to.exist;
+          expect(updated._id).to.be.eql(jurisdiction._id);
+
+          expect(updated.code).to.be.equal(jurisdiction.code);
+          expect(updated.name).to.be.equal(jurisdiction.name);
+          expect(updated.domain).to.be.equal(jurisdiction.domain);
+          expect(updated.about).to.be.equal(updates.about);
+
+          jurisdiction = updated;
 
           done(error, response);
+
         });
+
     });
 
 
   it(
     'should handle HTTP PATCH on /jurisdictions/:id',
     function (done) {
+
       const updates = {
         about: faker.company.catchPhrase()
       };
@@ -154,10 +169,23 @@ describe('Jurisdiction Router', function () {
           expect(error).to.not.exist;
           expect(response).to.exist;
 
-          //TODO more jurisdiction response assertions
+          const updated = response.body;
+          expect(updated).to.exist;
+
+          expect(updated._id).to.exist;
+          expect(updated._id).to.be.eql(jurisdiction._id);
+
+          expect(updated.code).to.be.equal(jurisdiction.code);
+          expect(updated.name).to.be.equal(jurisdiction.name);
+          expect(updated.domain).to.be.equal(jurisdiction.domain);
+          expect(updated.about).to.be.equal(updates.about);
+
+          jurisdiction = updated;
 
           done(error, response);
+
         });
+
     });
 
   it('should handle HTTP GET on /jurisdictions',
@@ -173,6 +201,11 @@ describe('Jurisdiction Router', function () {
 
           expect(error).to.not.exist;
           expect(response).to.exist;
+
+          const { jurisdictions, pages, count } = response.body;
+          expect(pages).to.exist;
+          expect(jurisdictions).to.exist;
+          expect(count).to.exist;
 
           //TODO more jurisdictions response assertions
 
@@ -196,10 +229,21 @@ describe('Jurisdiction Router', function () {
           expect(error).to.not.exist;
           expect(response).to.exist;
 
-          //TODO more jurisdiction response assertions
+          const removed = response.body;
+          expect(removed).to.exist;
+
+          expect(removed._id).to.exist;
+          expect(removed._id).to.be.eql(jurisdiction._id);
+
+          expect(removed.code).to.be.equal(jurisdiction.code);
+          expect(removed.name).to.be.equal(jurisdiction.name);
+          expect(removed.domain).to.be.equal(jurisdiction.domain);
+          expect(removed.about).to.be.equal(jurisdiction.about);
 
           done(error, response);
+
         });
+
     });
 
   after(function (done) {
