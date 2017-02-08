@@ -17,7 +17,7 @@ let jurisdiction;
 describe('Jurisdiction Router', function () {
 
   it(
-    'should be able to create new jurisdiction when http post on /jurisdictions',
+    'should handle HTTP POST on /jurisdictions',
     function (done) {
       jurisdiction = {
         name: faker.company.companyName(),
@@ -64,7 +64,7 @@ describe('Jurisdiction Router', function () {
 
 
   it(
-    'should be able to find jurisdiction when http get on /jurisdictions/:id',
+    'should handle HTTP GET on /jurisdictions/:id',
     function (done) {
       request(app)
         .get('/jurisdictions/' + jurisdiction._id)
@@ -85,7 +85,7 @@ describe('Jurisdiction Router', function () {
 
 
   it(
-    'should be able to update existing jurisdiction when http put on /jurisdictions/:id',
+    'should handle HTTP PUT on /jurisdictions/:id',
     function (done) {
       const updates = {
         about: faker.company.catchPhrase()
@@ -111,7 +111,7 @@ describe('Jurisdiction Router', function () {
 
 
   it(
-    'should be able to update existing jurisdiction when http patch on /jurisdictions/:id',
+    'should handle HTTP PATCH on /jurisdictions/:id',
     function (done) {
       const updates = {
         about: faker.company.catchPhrase()
@@ -135,7 +135,7 @@ describe('Jurisdiction Router', function () {
         });
     });
 
-  it('should be able to list jurisdictions when http get on /jurisdictions',
+  it('should handle HTTP GET on /jurisdictions',
     function (
       done) {
       request(app)
@@ -158,7 +158,7 @@ describe('Jurisdiction Router', function () {
 
 
   it(
-    'should be able to delete existing jurisdiction when http delete on /jurisdictions/:id',
+    'should handle HTTP DELETE on /jurisdictions/:id',
     function (done) {
       request(app)
         .delete('/jurisdictions/' + jurisdiction._id)
