@@ -347,11 +347,6 @@ describe('Jurisdiction', function () {
 
     });
 
-    before(function (done) {
-      //enforce indexes on geojson fields
-      Jurisdiction.ensureIndexes(done);
-    });
-
     it('should be able to find jurisdiction near by reported issue',
       function (done) {
         const coordinates = [-73.9667, 40.78];

@@ -17,12 +17,13 @@
  */
 
 
-//TODO ensure 2dsphere index before geo queries
+//Important!: ensure 2dsphere index before any geo queries
 
 
 //dependencies
 const path = require('path');
 const _ = require('lodash');
+const async = require('async');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
@@ -249,9 +250,21 @@ JurisdictionSchema.statics.findNearBy = function (options, done) {
   const Jurisdiction = this;
 
   //find jurisdiction(s) which is near by provided coordinates
-  Jurisdiction.find({
-    boundaries: criteria
-  }, done);
+  async.waterfall([
+
+    function ensureIndexes(next) {
+      Jurisdiction.ensureIndexes(function (error) {
+        next(error, true);
+      });
+    },
+
+    function query(indexed, next) {
+      Jurisdiction.find({
+        boundaries: criteria
+      }, next);
+    }
+
+  ], done);
 
 };
 
