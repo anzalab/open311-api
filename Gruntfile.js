@@ -196,7 +196,8 @@ module.exports = function (grunt) {
         },
         src: [
           '<%= project.test %>/bootstrap_spec.js',
-          '<%= project.test %>/routers/**/*.js'
+          '<%= project.test %>/routers/jurisdiction_router_spec.js'
+          // '<%= project.test %>/routers/**/*.js'
         ]
       },
       middlewares: {

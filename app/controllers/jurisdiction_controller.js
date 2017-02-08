@@ -2,6 +2,7 @@
 
 
 //dependencies
+const async = require('async');
 const mongoose = require('mongoose');
 const Jurisdiction = mongoose.model('Jurisdiction');
 
@@ -77,20 +78,29 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   update: function (request, response, next) {
-    Jurisdiction
-      .findByIdAndUpdate(
-        request.params.id,
-        request.body, {
-          upsert: true,
-          new: true
-        },
-        function (error, jurisdiction) {
-          if (error) {
-            next(error);
-          } else {
-            response.ok(jurisdiction);
-          }
-        });
+    async.waterfall([
+
+      function upsert(then) {
+        Jurisdiction
+          .findByIdAndUpdate(
+            request.params.id,
+            request.body, {
+              upsert: true,
+              new: true
+            }, then);
+      },
+
+      function refresh(jurisdiction, then) {
+        jurisdiction.refresh(then);
+      }
+
+    ], function (error, jurisdiction) {
+      if (error) {
+        next(error);
+      } else {
+        response.ok(jurisdiction);
+      }
+    });
   },
 
 
