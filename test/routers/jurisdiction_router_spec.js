@@ -19,6 +19,7 @@ describe('Jurisdiction Router', function () {
   it(
     'should handle HTTP POST on /jurisdictions',
     function (done) {
+
       jurisdiction = {
         name: faker.company.companyName(),
         domain: faker.internet.domainName(),
@@ -54,18 +55,30 @@ describe('Jurisdiction Router', function () {
           expect(error).to.not.exist;
           expect(response).to.exist;
 
-          jurisdiction = response.body;
+          const created = response.body;
 
-          //TODO more jurisdiction response assertions
+          expect(created).to.exist;
+
+          expect(created._id).to.exist;
+
+          expect(created.code).to.exist;
+          expect(created.name).to.be.equal(jurisdiction.name);
+          expect(created.domain).to.be.equal(jurisdiction.domain);
+          expect(created.about).to.be.equal(jurisdiction.about);
+
+          jurisdiction = created;
 
           done(error, response);
+
         });
+
     });
 
 
   it(
     'should handle HTTP GET on /jurisdictions/:id',
     function (done) {
+
       request(app)
         .get('/jurisdictions/' + jurisdiction._id)
         .set('Accept', 'application/json')
@@ -77,10 +90,22 @@ describe('Jurisdiction Router', function () {
           expect(error).to.not.exist;
           expect(response).to.exist;
 
-          //TODO more jurisdiction response assertions
+          const found = response.body;
+
+          expect(found).to.exist;
+
+          expect(found._id).to.exist;
+          expect(found._id).to.eql(jurisdiction._id);
+
+          expect(found.code).to.be.equal(jurisdiction.code);
+          expect(found.name).to.be.equal(jurisdiction.name);
+          expect(found.domain).to.be.equal(jurisdiction.domain);
+          expect(found.about).to.be.equal(jurisdiction.about);
 
           done(error, response);
+
         });
+
     });
 
 
