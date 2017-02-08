@@ -233,6 +233,7 @@ JurisdictionSchema.methods.services = function (done) {
  * @public
  */
 JurisdictionSchema.statics.findNearBy = function (coordinates, done) {
+  //TODO add support to min and max distance
 
   //reference jurisdiction
   const Jurisdiction = this;
