@@ -16,6 +16,7 @@
  * @public
  */
 
+
 //TODO ensure 2dsphere index before geo queries
 
 
@@ -181,7 +182,7 @@ JurisdictionSchema.pre('validate', function (next) {
 
   //set juridiction code
   if (_.isEmpty(this.code) && !_.isEmpty(this.name)) {
-    this.code = _.first(this.name).toUpperCase();
+    this.code = _.take(this.name, 2).join('').toUpperCase();
   }
 
   next();
@@ -214,6 +215,20 @@ JurisdictionSchema.methods.services = function (done) {
 //-----------------------------------------------------------------------------
 // JurisdictionSchema Static Methods
 //-----------------------------------------------------------------------------
+
+
+/**
+ * @name findNearBy
+ * @description find jurisdiction near a specified coordinates
+ * @param  {[Number]}   coordinates coordinates of the location
+ * @param  {Function} done        a callback to invoke on success or error
+ * @return {[Object]}             collection  of jurisdiction near by 
+ *                                specified coordinates  
+ * @see {@link https://docs.mongodb.com/manual/reference/operator/query/nearSphere/#op._S_nearSphere}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ */
 JurisdictionSchema.statics.findNearBy = function (coordinates, done) {
 
   //reference jurisdiction

@@ -18,7 +18,6 @@ describe('Jurisdiction', function () {
   it('should be able to create new jurisdiction', function (done) {
 
     jurisdiction = {
-      code: faker.random.uuid(),
       name: faker.company.companyName(),
       domain: faker.internet.domainName(),
       about: faker.company.catchPhrase(),
@@ -38,7 +37,7 @@ describe('Jurisdiction', function () {
 
         expect(created._id).to.exist;
 
-        expect(created.code).to.be.equal(jurisdiction.code);
+        expect(created.code).to.exist;
         expect(created.name).to.be.equal(jurisdiction.name);
         expect(created.domain).to.be.equal(jurisdiction.domain);
         expect(created.about).to.be.equal(jurisdiction.about);
@@ -146,9 +145,8 @@ describe('Jurisdiction', function () {
 
   });
 
-  describe('Jurisdiction Hierarchy', function () {
+  describe('Hierarchy', function () {
     let parent = {
-      code: faker.random.uuid(),
       name: faker.company.companyName(),
       domain: faker.internet.domainName(),
       about: faker.company.catchPhrase(),
@@ -161,7 +159,6 @@ describe('Jurisdiction', function () {
     };
 
     let jurisdiction = {
-      code: faker.random.uuid(),
       name: faker.company.companyName(),
       domain: faker.internet.domainName(),
       about: faker.company.catchPhrase(),
@@ -172,6 +169,10 @@ describe('Jurisdiction', function () {
         ]
       }
     };
+
+    before(function (done) {
+      Jurisdiction.remove(done);
+    });
 
     before(function (done) {
       Jurisdiction.create(parent, function (error, created) {
@@ -191,7 +192,7 @@ describe('Jurisdiction', function () {
 
           expect(created._id).to.exist;
 
-          expect(created.code).to.be.equal(jurisdiction.code);
+          expect(created.code).to.exist;
           expect(created.name).to.be.equal(jurisdiction.name);
           expect(created.domain).to.be.equal(jurisdiction.domain);
           expect(created.about).to.be.equal(jurisdiction.about);
@@ -239,7 +240,6 @@ describe('Jurisdiction', function () {
         const id = new mongoose.Types.ObjectId();
         const jurisdiction = {
           jurisdiction: id,
-          code: faker.random.uuid(),
           name: faker.company.companyName(),
           domain: faker.internet.domainName(),
           about: faker.company.catchPhrase()
@@ -263,19 +263,31 @@ describe('Jurisdiction', function () {
   });
 
 
-  describe('Jurisdiction Geo', function () {
+  describe('Geo Query', function () {
+
     let jurisdiction = {
-      code: faker.random.uuid(),
       name: faker.company.companyName(),
       domain: faker.internet.domainName(),
       about: faker.company.catchPhrase(),
       location: {
+        coordinates: [-73.9737, 40.7648]
+      },
+      boundaries: {
         coordinates: [
-          Number(faker.address.longitude()),
-          Number(faker.address.latitude())
+          [
+            [-73.9580, 40.8003],
+            [-73.9498, 40.7968],
+            [-73.9737, 40.7648],
+            [-73.9814, 40.7681],
+            [-73.9580, 40.8003]
+          ]
         ]
       }
     };
+
+    before(function (done) {
+      Jurisdiction.remove(done);
+    });
 
     before(function (done) {
 
@@ -287,34 +299,37 @@ describe('Jurisdiction', function () {
     });
 
     before(function (done) {
+      //enforce indexes on geojson fields
       Jurisdiction.ensureIndexes(done);
     });
 
     it('should be able to find jurisdiction near by reported issue',
       function (done) {
+        const coordinates = [-73.9667, 40.78];
 
-        Jurisdiction.find({
-            location: {
-              $nearSphere: {
-                $geometry: {
-                  type: 'Point',
-                  coordinates: jurisdiction.location.coordinates
-                }
-              }
-            }
-          },
-          function (error, docs) {
-            console.log(docs);
-            done(error, docs);
-          });
+        Jurisdiction.findNearBy(coordinates, function (error, docs) {
+          expect(error).to.not.exist;
+          expect(docs).to.exist;
+
+          //assert single found jurisdiction
+          const found = docs[0];
+          expect(found.code).to.exist;
+          expect(found.name).to.exist;
+          expect(found.domain).to.exist;
+          expect(found.about).to.exist;
+          expect(found.location).to.exist;
+          expect(found.boundaries).to.exist;
+
+          done(error, docs);
+        });
 
       });
 
   });
 
 
-  // after(function (done) {
-  //   Jurisdiction.remove(done);
-  // });
+  after(function (done) {
+    Jurisdiction.remove(done);
+  });
 
 });

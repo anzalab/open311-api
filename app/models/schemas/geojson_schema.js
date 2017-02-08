@@ -17,7 +17,7 @@
 //Note!: _id:false schema option is set so that id is not set by mongoose
 //when persisting geojson schema
 
-//Note!: coordinates must be stored in the longitude, latitude order
+//Important!: Always list coordinates in longitude, latitude order.
 
 //TODO add geojson schema validations
 //TODO improve test coverage
@@ -25,11 +25,12 @@
 //dependencies
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const Mixed = Schema.Types.Mixed;
 
 
 //const geojson types
-const TYPE_POINT = 'Point';
-const TYPE_POLYGON = 'Polygon';
+exports.TYPE_POINT = 'Point';
+exports.TYPE_POLYGON = 'Polygon';
 
 
 /**
@@ -45,13 +46,12 @@ exports.Point = new Schema({
    */
   type: {
     type: String,
-    default: TYPE_POINT,
-    enum: [TYPE_POINT]
+    default: exports.TYPE_POINT,
+    enum: [exports.TYPE_POINT]
   },
 
-  coordinates: {
-    type: Array
-  }
+  //TODO add validation for point characteristics
+  coordinates: [Number]
 
 }, { _id: false });
 
@@ -69,12 +69,13 @@ exports.Polygon = new Schema({
    */
   type: {
     type: String,
-    default: TYPE_POLYGON,
-    enum: [TYPE_POLYGON]
+    default: exports.TYPE_POLYGON,
+    enum: [exports.TYPE_POLYGON]
   },
 
-  coordinates: {
-    type: Array
-  }
+  //TODO add validation for polygon characteristics
+  coordinates: [{
+    type: Mixed
+  }]
 
 }, { _id: false });

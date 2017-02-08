@@ -57,6 +57,5 @@ before(function (done) {
 
 // restore initial environment
 after(function (done) {
-  // mongoose.connection.dropDatabase(done);
-  done();
+  mongoose.connection.dropDatabase(done);
 });
