@@ -18,6 +18,8 @@ const mongooseSoftDelete =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'soft_delete'));
 const mongooseUrl =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'url'));
+const mongooseSearchable =
+  require(path.join(__dirname, '..', 'libs', 'mongoose', 'searchable'));
 const mongooseExists = require('mongoose-exists');
 const mongooseAutoset = require('mongoose-autoset');
 const mongooseValid8 = require('mongoose-valid8');
@@ -85,6 +87,7 @@ mongoose.plugin(mongooseValid8);
 mongoose.plugin(mongooseShow);
 mongoose.plugin(mongooseList);
 mongoose.plugin(mongooseReload);
+mongoose.plugin(mongooseSearchable);
 // mongoose.plugin(mongooseUniqueValidator);
 
 //require external models

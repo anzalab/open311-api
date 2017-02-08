@@ -123,7 +123,6 @@ describe('Jurisdiction', function () {
 
   });
 
-
   it('should be able to delete existing jurisdiction', function (done) {
 
     Jurisdiction
@@ -141,6 +140,56 @@ describe('Jurisdiction', function () {
         expect(removed.about).to.be.equal(jurisdiction.about);
 
         done(error, removed);
+      });
+
+  });
+
+  describe('Search', function () {
+    let jurisdiction = {
+      name: faker.company.companyName(),
+      domain: faker.internet.domainName(),
+      about: faker.company.catchPhrase(),
+      location: {
+        coordinates: [
+          Number(faker.address.longitude()),
+          Number(faker.address.latitude())
+        ]
+      }
+    };
+
+    before(function (done) {
+      Jurisdiction.create(jurisdiction, function (error, created) {
+        jurisdiction = created;
+        done(error, created);
+      });
+    });
+
+    it('should be able to search jurisdiction by its fields',
+      function (done) {
+
+        Jurisdiction
+          .search(jurisdiction.name, function (error, results) {
+
+            expect(error).to.not.exist;
+            expect(results).to.exist;
+            expect(results).to.have.length.above(0);
+
+            //assert single result
+            const found = results[0];
+            expect(found.code).to.exist;
+            expect(found.name).to.exist;
+            expect(found.domain).to.exist;
+            expect(found.about).to.exist;
+            expect(found.location).to.exist;
+
+            expect(found.code).to.equal(jurisdiction.code);
+            expect(found.name).to.equal(jurisdiction.name);
+            expect(found.domain).to.equal(jurisdiction.domain);
+            expect(found.about).to.equal(jurisdiction.about);
+
+            done(error, results);
+
+          });
       });
 
   });

@@ -24,7 +24,7 @@
 const path = require('path');
 const _ = require('lodash');
 const mongoose = require('mongoose');
-const searchable = require('mongoose-fts');
+// const searchable = require('mongoose-fts');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const GeoJSON = require(path.join(__dirname, 'schemas', 'geojson_schema'));
@@ -79,6 +79,7 @@ const JurisdictionSchema = new Schema({
     type: String,
     required: true,
     trim: true,
+    searchable: true,
     unique: true
   },
 
@@ -95,6 +96,7 @@ const JurisdictionSchema = new Schema({
     type: String,
     required: true,
     trim: true,
+    searchable: true,
     unique: true
   },
 
@@ -117,6 +119,7 @@ const JurisdictionSchema = new Schema({
     required: true,
     trim: true,
     lowercase: true,
+    searchable: true,
     unique: true
   },
 
@@ -132,7 +135,8 @@ const JurisdictionSchema = new Schema({
    * @version 0.1.0
    */
   about: {
-    type: String
+    type: String,
+    searchable: true
   },
 
 
@@ -256,15 +260,15 @@ JurisdictionSchema.statics.findNearBy = function (coordinates, done) {
 // JurisdictionSchema Plugins
 //-----------------------------------------------------------------------------
 
-JurisdictionSchema.plugin(searchable, {
-  fields: [
-    'jurisdiction.name', 'code',
-    'name', 'domain', 'about'
-  ],
+// JurisdictionSchema.plugin(searchable, {
+//   fields: [
+//     'jurisdiction.name', 'code',
+//     'name', 'domain', 'about'
+//   ],
 
-  keywordsPath: 'keywords'
+//   keywordsPath: 'keywords'
 
-});
+// });
 
 
 /**
