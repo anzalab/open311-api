@@ -223,7 +223,9 @@ JurisdictionSchema.methods.services = function (done) {
 /**
  * @name findNearBy
  * @description find jurisdiction near a specified coordinates
- * @param  {[Number]}   coordinates coordinates of the location
+ * @param  {Number}   options.minDistance min distance in meters
+ * @param  {Number}   options.maxDistance max distance in meters
+ * @param  {[Number]}   options.coordinates coordinates of the location
  * @param  {Function} done        a callback to invoke on success or error
  * @return {[Object]}             collection  of jurisdiction near by 
  *                                specified coordinates  
@@ -232,25 +234,45 @@ JurisdictionSchema.methods.services = function (done) {
  * @version 0.1.0
  * @public
  */
-JurisdictionSchema.statics.findNearBy = function (coordinates, done) {
-  //TODO add support to min and max distance
+JurisdictionSchema.statics.findNearBy = function (options, done) {
+  //default criteria
+  let criteria = {
+    $nearSphere: {
+      $geometry: {
+        type: GeoJSON.TYPE_POLYGON,
+        coordinates: []
+      }
+    }
+  };
+
+  //set $geomentry coordinates
+  if (_.isArray(options)) {
+    criteria.$nearSphere.$geometry.coordinates =
+      _.compact(criteria.$nearSphere.$geometry.coordinates.concat(options));
+  }
+
+  if (_.isPlainObject(options)) {
+    //set minDistance criteria
+    if (options.minDistance) {
+      criteria.$nearSphere.$minDistance = options.minDistance;
+    }
+
+    //set maxDistance criteria
+    if (options.maxDistance) {
+      criteria.$nearSphere.$maxDistance = options.maxDistance;
+    }
+
+    //ensure coordinates
+    criteria.$nearSphere.$geometry.coordinates =
+      _.compact(criteria.$nearSphere.$geometry.coordinates.concat(options.coordinates));
+  }
 
   //reference jurisdiction
   const Jurisdiction = this;
 
-  //ensure coordinates
-  coordinates = _.compact([].concat(coordinates));
-
   //find jurisdiction(s) which is near by provided coordinates
   Jurisdiction.find({
-    boundaries: {
-      $nearSphere: {
-        $geometry: {
-          type: GeoJSON.TYPE_POLYGON,
-          coordinates: coordinates
-        }
-      }
-    }
+    boundaries: criteria
   }, done);
 
 };

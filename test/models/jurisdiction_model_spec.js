@@ -374,6 +374,36 @@ describe('Jurisdiction', function () {
 
       });
 
+    it(
+      'should be able to find jurisdiction near by reported issue with min and max distance specified',
+      function (done) {
+        const coordinates = [-73.9667, 40.78];
+
+        Jurisdiction
+          .findNearBy({
+              coordinates: coordinates,
+              minDistance: 0,
+              maxDistance: 1000
+            },
+            function (error, docs) {
+
+              expect(error).to.not.exist;
+              expect(docs).to.exist;
+
+              //assert single found jurisdiction
+              const found = docs[0];
+              expect(found.code).to.exist;
+              expect(found.name).to.exist;
+              expect(found.domain).to.exist;
+              expect(found.about).to.exist;
+              expect(found.location).to.exist;
+              expect(found.boundaries).to.exist;
+
+              done(error, docs);
+            });
+
+      });
+
   });
 
 
