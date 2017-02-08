@@ -261,9 +261,4 @@ describe('Jurisdiction Router', function () {
 
     });
 
-  after(function (done) {
-    //TODO write spec cleanup
-    done();
-  });
-
 });
