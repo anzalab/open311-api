@@ -1,8 +1,10 @@
 'use strict';
 
+
 //dependencies
 const mongoose = require('mongoose');
 const Jurisdiction = mongoose.model('Jurisdiction');
+
 
 /**
  * Jurisdiction Controller

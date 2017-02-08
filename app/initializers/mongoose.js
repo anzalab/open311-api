@@ -18,8 +18,7 @@ const mongooseSoftDelete =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'soft_delete'));
 const mongooseUrl =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'url'));
-const mongooseSearchable =
-  require(path.join(__dirname, '..', 'libs', 'mongoose', 'searchable'));
+const mongooseSearchable = require('mongoose-regex-search');
 const mongooseExists = require('mongoose-exists');
 const mongooseAutoset = require('mongoose-autoset');
 const mongooseValid8 = require('mongoose-valid8');
