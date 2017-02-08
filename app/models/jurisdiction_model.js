@@ -4,10 +4,11 @@
 /**
  * @module Jurisdiction
  * @name Jurisdiction
- * @description an entity (e.g minicipal) responsible for addressing 
+ * @description An entity (e.g minicipal) responsible for addressing 
  *              service request(issue).
  *
- *              It may be a self managed entity or division within an entity.
+ *              It may be a self managed entity or division within another
+ *              entity(jurisdiction) in case there is hierarchy.
  *
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
@@ -17,11 +18,14 @@
 
 
 //dependencies
+const path = require('path');
 const _ = require('lodash');
 const mongoose = require('mongoose');
 const searchable = require('mongoose-fts');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
+const GeoJSON = require(path.join(__dirname, 'schemas', 'geojson_schema'));
+const Point = GeoJSON.Point;
 
 
 /**
@@ -96,8 +100,10 @@ const JurisdictionSchema = new Schema({
   /**
    * @name domain
    * @description Unique reserved domain name of the jurisdiction 
-   *              e.g example.go.tz. It used as jurisdiction_id in open311 api
-   *              specification and whenever applicable
+   *              e.g example.go.tz. 
+   *              
+   *              It used as jurisdiction_id in open311 api specification and
+   *              whenever applicable
    *              
    * @type {Object}
    * @private
@@ -117,6 +123,7 @@ const JurisdictionSchema = new Schema({
    * @name description
    * @description A brief summary about jurusdiction if available i.e
    *              additional details that clarify what a jurisdiction do.
+   *              
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -124,6 +131,12 @@ const JurisdictionSchema = new Schema({
    */
   about: {
     type: String
+  },
+
+
+  location: {
+    type: Point,
+    index: '2dsphere'
   }
 
 }, {
@@ -138,7 +151,7 @@ JurisdictionSchema.pre('validate', function (next) {
 
   //set juridiction code
   if (_.isEmpty(this.code) && !_.isEmpty(this.name)) {
-    this.code = this.name.split(' ').join('-').toUpperCase();
+    this.code = _.first(this.name).toUpperCase();
   }
 
   next();

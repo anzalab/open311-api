@@ -9,7 +9,7 @@ module.exports = function (grunt) {
   require('time-grunt')(grunt);
 
   // Configurable paths for the application
-  var appConfig = {
+  const appConfig = {
     app: 'app',
     appConfig: 'config',
     appSeeds: 'seeds',
@@ -292,6 +292,5 @@ module.exports = function (grunt) {
     'express:dev',
     'watch'
   ]);
-
 
 };

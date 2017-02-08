@@ -4,9 +4,7 @@ open311-api(WIP)
 [![Build Status](https://travis-ci.org/CodeTanzania/open311-api.svg?branch=master)](https://travis-ci.org/CodeTanzania/open311-api)
 [![Dependencies Status](https://david-dm.org/CodeTanzania/open311-api/status.svg?style=flat-square)](https://david-dm.org/CodeTanzania/open311-api)
 
-open311-api is partial implementation of [open311 GeoReport v2]().
-
-*Note!: If your are running in [heroku](https://www.heroku.com/) make sure to run `heroku config:set NODE_ENV=heroku` and update `config/heroku.js` acccordingly*
+open311-api is partial implementation of [open311 GeoReport v2](http://wiki.open311.org/GeoReport_v2/).
 
 ## About
 
@@ -38,6 +36,12 @@ $ npm install
 $ npm test
 ```
 
+## References
+- [2dsphere](https://docs.mongodb.com/manual/core/2dsphere/)
+- [geojson](https://docs.mongodb.com/manual/reference/geojson/)
+- [geojson-second-bite](http://www.macwright.org/2015/03/23/geojson-second-bite.html)
+- [introduction-to-mongodb-geospatial](http://tugdualgrall.blogspot.com/2014/08/introduction-to-mongodb-geospatial.html)
+
 ## Contribute
 
 Fork this repo and push in your ideas. 
@@ -45,7 +49,7 @@ Do not forget to add a bit of test(s) of what value you adding.
 
 ## Licence
 
-The MIT License (MIT)
+The MIT Licence (MIT)
 
 Copyright (c) 2015 CodeTanzania & Contributors
 
