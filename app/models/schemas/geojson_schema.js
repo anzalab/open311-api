@@ -14,8 +14,10 @@
  * @version 0.1.0
  */
 
-//Note!:_id:false schema option is set so that id is not set by mongoose
+//Note!: _id:false schema option is set so that id is not set by mongoose
 //when persisting geojson schema
+
+//Note!: coordinates must be stored in the longitude, latitude order
 
 //TODO add geojson schema validations
 //TODO improve test coverage

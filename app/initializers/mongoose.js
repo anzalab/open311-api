@@ -104,7 +104,6 @@ require('require-all')({
  */
 mongoose.connect(uristring, mongoOptions);
 
-
 // require seed - mongoose to allow seeding
 // TODO fix seed - many in seed mongoose
 // if (!environment.isTest()) {

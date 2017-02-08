@@ -16,6 +16,8 @@
  * @public
  */
 
+//TODO ensure 2dsphere index before geo queries
+
 
 //dependencies
 const path = require('path');
@@ -25,7 +27,6 @@ const searchable = require('mongoose-fts');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const GeoJSON = require(path.join(__dirname, 'schemas', 'geojson_schema'));
-const Point = GeoJSON.Point;
 
 
 /**
@@ -134,14 +135,43 @@ const JurisdictionSchema = new Schema({
   },
 
 
-  location: {
-    type: Point,
-    index: '2dsphere'
-  }
+  /**
+   * @name location
+   * @description a center of jurisdiction
+   * @since  0.1.0
+   * @version  0.1.0
+   * @type {Object}
+   * @private
+   */
+  location: GeoJSON.Point,
+
+
+  /**
+   * @name boundaries
+   * @description jurisdiction boundaries. 
+   *
+   *              It mailnly used when geo lookup for service request 
+   *              jurisdiction based on geo coordinates
+   *              
+   * @since  0.1.0
+   * @version 0.1.0
+   * @type {Object}
+   * @private
+   */
+  boundaries: GeoJSON.Polygon
 
 }, {
   timestamps: true
 });
+
+
+//-----------------------------------------------------------------------------
+// JurisdictionSchema Index
+//-----------------------------------------------------------------------------
+
+//ensure `2dsphere` on jurisdiction location and boundaries
+JurisdictionSchema.index({ location: '2dsphere' });
+JurisdictionSchema.index({ boundaries: '2dsphere' });
 
 
 //-----------------------------------------------------------------------------
@@ -177,6 +207,33 @@ JurisdictionSchema.methods.services = function (done) {
   //2. fetch all jurisdiction services
   //3. fetch global services
   done();
+
+};
+
+
+//-----------------------------------------------------------------------------
+// JurisdictionSchema Static Methods
+//-----------------------------------------------------------------------------
+JurisdictionSchema.statics.findNearBy = function (coordinates, done) {
+
+  //reference jurisdiction
+  const Jurisdiction = this;
+
+  //ensure coordinates
+  coordinates = _.compact([].concat(coordinates));
+
+  //find jurisdiction(s) which is near by provided coordinates
+  Jurisdiction.find({
+    boundaries: {
+      $nearSphere: {
+        $geometry: {
+          type: GeoJSON.TYPE_POLYGON,
+          coordinates: coordinates
+        }
+      }
+    }
+  }, done);
+
 };
 
 
@@ -189,7 +246,9 @@ JurisdictionSchema.plugin(searchable, {
     'jurisdiction.name', 'code',
     'name', 'domain', 'about'
   ],
+
   keywordsPath: 'keywords'
+
 });
 
 

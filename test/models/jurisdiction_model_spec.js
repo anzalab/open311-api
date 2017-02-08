@@ -21,7 +21,13 @@ describe('Jurisdiction', function () {
       code: faker.random.uuid(),
       name: faker.company.companyName(),
       domain: faker.internet.domainName(),
-      about: faker.company.catchPhrase()
+      about: faker.company.catchPhrase(),
+      location: {
+        coordinates: [
+          Number(faker.address.longitude()),
+          Number(faker.address.latitude())
+        ]
+      }
     };
 
     Jurisdiction
@@ -145,14 +151,26 @@ describe('Jurisdiction', function () {
       code: faker.random.uuid(),
       name: faker.company.companyName(),
       domain: faker.internet.domainName(),
-      about: faker.company.catchPhrase()
+      about: faker.company.catchPhrase(),
+      location: {
+        coordinates: [
+          Number(faker.address.longitude()),
+          Number(faker.address.latitude())
+        ]
+      }
     };
 
     let jurisdiction = {
       code: faker.random.uuid(),
       name: faker.company.companyName(),
       domain: faker.internet.domainName(),
-      about: faker.company.catchPhrase()
+      about: faker.company.catchPhrase(),
+      location: {
+        coordinates: [
+          Number(faker.address.longitude()),
+          Number(faker.address.latitude())
+        ]
+      }
     };
 
     before(function (done) {
@@ -245,8 +263,58 @@ describe('Jurisdiction', function () {
   });
 
 
-  after(function (done) {
-    Jurisdiction.remove(done);
+  describe('Jurisdiction Geo', function () {
+    let jurisdiction = {
+      code: faker.random.uuid(),
+      name: faker.company.companyName(),
+      domain: faker.internet.domainName(),
+      about: faker.company.catchPhrase(),
+      location: {
+        coordinates: [
+          Number(faker.address.longitude()),
+          Number(faker.address.latitude())
+        ]
+      }
+    };
+
+    before(function (done) {
+
+      Jurisdiction.create(jurisdiction, function (error, created) {
+        jurisdiction = created;
+        done(error, created);
+      });
+
+    });
+
+    before(function (done) {
+      Jurisdiction.ensureIndexes(done);
+    });
+
+    it('should be able to find jurisdiction near by reported issue',
+      function (done) {
+
+        Jurisdiction.find({
+            location: {
+              $nearSphere: {
+                $geometry: {
+                  type: 'Point',
+                  coordinates: jurisdiction.location.coordinates
+                }
+              }
+            }
+          },
+          function (error, docs) {
+            console.log(docs);
+            done(error, docs);
+          });
+
+      });
+
   });
+
+
+  // after(function (done) {
+  //   Jurisdiction.remove(done);
+  // });
 
 });
