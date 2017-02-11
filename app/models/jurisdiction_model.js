@@ -136,6 +136,7 @@ const JurisdictionSchema = new Schema({
    */
   about: {
     type: String,
+    trim: true,
     searchable: true
   },
 
