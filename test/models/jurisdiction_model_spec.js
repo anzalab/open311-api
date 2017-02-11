@@ -144,6 +144,8 @@ describe('Jurisdiction', function () {
 
   });
 
+  it('should be able to soft delete a jurisdiction');
+
   describe('Search', function () {
     let jurisdiction = {
       name: faker.company.companyName(),
@@ -156,6 +158,10 @@ describe('Jurisdiction', function () {
         ]
       }
     };
+
+    before(function (done) {
+      Jurisdiction.remove(done);
+    });
 
     before(function (done) {
       Jurisdiction.create(jurisdiction, function (error, created) {

@@ -188,6 +188,56 @@ describe('ServiceGroup', function () {
 
   });
 
+  it('should be able to soft delete a service group');
+
+  describe('Search', function () {
+
+    let serviceGroup = {
+      jurisdiction: jurisdiction,
+      name: faker.company.companyName(),
+      description: faker.company.catchPhrase()
+    };
+
+    before(function (done) {
+      ServiceGroup.remove(done);
+    });
+
+    before(function (done) {
+      ServiceGroup.create(serviceGroup, function (error, created) {
+        serviceGroup = created;
+        done(error, created);
+      });
+    });
+
+    it('should be able to search service group by its fields',
+      function (done) {
+
+        ServiceGroup
+          .search(serviceGroup.name, function (error, results) {
+
+            expect(error).to.not.exist;
+            expect(results).to.exist;
+            expect(results).to.have.length.above(0);
+
+            //assert single result
+            const found = results[0];
+            expect(found.code).to.exist;
+            expect(found.name).to.exist;
+            expect(found.description).to.exist;
+            expect(found.color).to.exist;
+
+            expect(found.code).to.be.equal(serviceGroup.code);
+            expect(found.name).to.be.equal(serviceGroup.name);
+            expect(found.color).to.be.equal(serviceGroup.color);
+            expect(found.description).to.be.equal(serviceGroup.description);
+
+            done(error, results);
+
+          });
+      });
+
+  });
+
 
   after(function (done) {
     ServiceGroup.remove(done);
