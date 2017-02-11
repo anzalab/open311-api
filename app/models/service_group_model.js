@@ -141,6 +141,7 @@ const ServiceGroupSchema = new Schema({
    */
   color: {
     type: String,
+    uppercase: true,
     trim: true
   }
 
@@ -163,8 +164,8 @@ ServiceGroupSchema.pre('validate', function (next) {
     //and service group name
     const jurisdictionCode = _.get(this.jurisdiction, 'code');
     if (jurisdictionCode) {
-      this.code = [].concat(jurisdictionCode).concat(_.take(this.name, 1));
-      this.code = this.code.join('').toUpperCase();
+      const code = [].concat(jurisdictionCode).concat(_.take(this.name, 1));
+      this.code = code.join('').toUpperCase();
     }
 
     //generate code from service group name

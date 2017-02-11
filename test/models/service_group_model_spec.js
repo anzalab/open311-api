@@ -18,11 +18,25 @@ let serviceGroup;
 describe('ServiceGroup', function () {
 
   before(function (done) {
+
     jurisdiction = {
-      code: faker.random.uuid(),
       name: faker.company.companyName(),
       domain: faker.internet.domainName(),
-      about: faker.company.catchPhrase()
+      about: faker.company.catchPhrase(),
+      location: {
+        coordinates: [-73.9737, 40.7648]
+      },
+      boundaries: {
+        coordinates: [
+          [
+            [-73.9580, 40.8003],
+            [-73.9498, 40.7968],
+            [-73.9737, 40.7648],
+            [-73.9814, 40.7681],
+            [-73.9580, 40.8003]
+          ]
+        ]
+      }
     };
 
     Jurisdiction.create(jurisdiction, function (error, created) {
@@ -36,7 +50,6 @@ describe('ServiceGroup', function () {
 
     serviceGroup = {
       jurisdiction: jurisdiction,
-      code: faker.random.uuid(),
       name: faker.company.companyName(),
       description: faker.company.catchPhrase()
     };
@@ -48,15 +61,20 @@ describe('ServiceGroup', function () {
         expect(created).to.exist;
 
         expect(created._id).to.exist;
+        expect(created.jurisdiction).to.exist;
+        expect(created.code).to.exist;
+        expect(created.name).to.exist;
+        expect(created.description).to.exist;
         expect(created.color).to.exist;
 
-        expect(created.code).to.be.equal(serviceGroup.code);
+        expect(created.jurisdiction).to.be.eql(serviceGroup.jurisdiction);
         expect(created.name).to.be.equal(serviceGroup.name);
         expect(created.description).to.be.equal(serviceGroup.description);
 
         serviceGroup = created;
 
         done(error, created);
+
       });
 
   });
@@ -87,6 +105,7 @@ describe('ServiceGroup', function () {
         expect(found.jurisdiction.jurisdiction).to.not.exist;
 
         done(error, found);
+
       });
 
   });
@@ -119,7 +138,9 @@ describe('ServiceGroup', function () {
         serviceGroup = updated;
 
         done(error, updated);
+
       });
+
   });
 
 
@@ -139,6 +160,7 @@ describe('ServiceGroup', function () {
         //TODO application specific assertions
 
         done(error, serviceGroups);
+
       });
 
   });
@@ -161,6 +183,7 @@ describe('ServiceGroup', function () {
         expect(removed.description).to.be.equal(serviceGroup.description);
 
         done(error, removed);
+
       });
 
   });
