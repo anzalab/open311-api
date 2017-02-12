@@ -47,9 +47,9 @@ $ npm test
 Fork this repo and push in your ideas. 
 Do not forget to add a bit of test(s) of what value you adding.
 
-## Licence
+## License
 
-The MIT Licence (MIT)
+The MIT License (MIT)
 
 Copyright (c) 2016 lykmapipo, CodeTanzania & Contributors
 
