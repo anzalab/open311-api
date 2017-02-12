@@ -17,7 +17,6 @@
 //TODO make service request to support call log in a call center
 //TODO migrate location to use GeoJSON schema
 //TODO obtain geo-data from jurisdiction if not available(or set)
-//TODO migrate comment, worklog, status and priority to model
 
 
 //dependencies
@@ -433,11 +432,6 @@ ServiceRequestSchema.pre('validate', function (next) {
     this.jurisdiction = jurisdiction;
   }
 
-  //set priority based on the service
-  if (this.service && this.service.priority && !this.priority) {
-    this.priority = this.service.priority;
-  }
-
   //set default status & priority if not set
   if (!this.status || !this.priority) {
     async.parallel({
@@ -453,8 +447,8 @@ ServiceRequestSchema.pre('validate', function (next) {
       if (error) {
         next(error);
       } else {
-        this.status = this.status || result.status;
-        this.priority = this.priority || result.priority;
+        this.status = this.status || result.status || undefined;
+        this.priority = this.priority || result.priority || undefined;
         next();
       }
     }.bind(this));
