@@ -132,6 +132,31 @@ describe('Priority', function () {
   });
 
 
+  it('should be able to find default priority', function (done) {
+
+    Priority
+      .findDefault(function (error, found) {
+
+        expect(error).to.not.exist;
+        expect(found).to.exist;
+
+        //assert found
+        expect(found._id).to.exist;
+        expect(found.name).to.exist;
+        expect(found.weight).to.exist;
+        expect(found.color).to.exist;
+
+        expect(found.name).to.be.equal(priority.name);
+        expect(found.weight).to.be.equal(priority.weight);
+        expect(found.color).to.be.equal(priority.color);
+
+        done(error, found);
+
+      });
+
+  });
+
+
   it('should be able to delete existing priority', function (done) {
 
     Priority
