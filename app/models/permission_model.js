@@ -18,7 +18,6 @@
 const _ = require('lodash');
 const inflection = require('inflection');
 const mongoose = require('mongoose');
-const searchable = require('mongoose-fts');
 const Schema = mongoose.Schema;
 
 
@@ -38,7 +37,8 @@ const PermissionSchema = new Schema({
     type: String,
     required: true,
     lowercase: true,
-    trim: true
+    trim: true,
+    searchable: true
   },
 
 
@@ -54,7 +54,8 @@ const PermissionSchema = new Schema({
   resource: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
+    searchable: true
   },
 
 
@@ -68,7 +69,8 @@ const PermissionSchema = new Schema({
    */
   description: {
     type: String,
-    trim: true
+    trim: true,
+    searchable: true
   },
 
 
@@ -85,24 +87,12 @@ const PermissionSchema = new Schema({
     required: true,
     unique: true,
     lowercase: true,
-    trim: true
+    trim: true,
+    searchable: true
   }
 
 }, {
   timestamps: true
-});
-
-
-//-----------------------------------------------------------------------------
-// PermissionSchema Plugins
-//-----------------------------------------------------------------------------
-
-PermissionSchema.plugin(searchable, {
-  fields: [
-    'action', 'resource',
-    'description', 'wildcard'
-  ],
-  keywordsPath: 'keywords'
 });
 
 

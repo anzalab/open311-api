@@ -14,7 +14,6 @@
 //dependencies
 const _ = require('lodash');
 const mongoose = require('mongoose');
-const searchable = require('mongoose-fts');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
@@ -34,7 +33,8 @@ const RoleSchema = new Schema({
     type: String,
     required: true,
     trim: true,
-    unique: true
+    unique: true,
+    searchable: true
   },
 
 
@@ -48,7 +48,8 @@ const RoleSchema = new Schema({
    */
   description: {
     type: String,
-    trim: true
+    trim: true,
+    searchable: true
   },
 
 
@@ -127,16 +128,6 @@ RoleSchema.pre('validate', function (next) {
 
   next();
 
-});
-
-
-//-----------------------------------------------------------------------------
-// RoleSchema Plugins
-//-----------------------------------------------------------------------------
-
-RoleSchema.plugin(searchable, {
-  fields: ['name', 'description'],
-  keywordsPath: 'keywords'
 });
 
 

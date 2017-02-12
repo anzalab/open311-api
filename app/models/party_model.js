@@ -17,7 +17,6 @@ const Schema = mongoose.Schema;
 const ObjectId = mongoose.Schema.ObjectId;
 const irina = require('irina');
 // const Mail = require('byteskode-mailer');
-const searchable = require('mongoose-fts');
 
 //relation name
 const RELATION_NAME_INTERNAL = 'Internal';
@@ -50,7 +49,8 @@ const PartyRelation = new Schema({
       RELATION_NAME_CUSTOMER,
       RELATION_NAME_CIVILIAN,
       RELATION_NAME_AGENCY
-    ]
+    ],
+    searchable: true
   },
 
 
@@ -70,7 +70,8 @@ const PartyRelation = new Schema({
       RELATION_TYPE_WORKER,
       RELATION_TYPE_INDIVIDUAL,
       RELATION_TYPE_ORGANIZATION
-    ]
+    ],
+    searchable: true
   }
 
 });
@@ -114,7 +115,8 @@ const PartySchema = new Schema({
     type: String,
     required: true,
     index: true,
-    trim: true
+    trim: true,
+    searchable: true
   },
 
 
@@ -149,7 +151,8 @@ const PartySchema = new Schema({
     type: String,
     required: true,
     unique: true,
-    trim: true
+    trim: true,
+    searchable: true
   },
 
 
@@ -236,15 +239,6 @@ PartySchema.plugin(irina, {
   registerable: {
     autoConfirm: true
   }
-});
-
-//plugin searchable to make party searchable
-PartySchema.plugin(searchable, {
-  fields: [
-    'name', 'email', 'phone',
-    'relation.name', 'relation.type'
-  ],
-  keywordsPath: 'keywords'
 });
 
 
