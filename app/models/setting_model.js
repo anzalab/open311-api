@@ -14,7 +14,6 @@ const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const searchable = require('mongoose-fts');
 
 
 /**
@@ -51,7 +50,8 @@ const SettingSchema = new Schema({
     required: true,
     trim: true,
     unique: true,
-    set: set
+    set: set,
+    searchable: true
   },
 
 
@@ -81,21 +81,12 @@ const SettingSchema = new Schema({
       else {
         return value;
       }
-    }
+    },
+    searchable: true
   }
 
 }, {
   timestamps: true
-});
-
-
-//-----------------------------------------------------------------------------
-// SettingSchema Plugins
-//-----------------------------------------------------------------------------
-
-SettingSchema.plugin(searchable, {
-  fields: ['key', 'value'],
-  keywordsPath: 'keywords'
 });
 
 

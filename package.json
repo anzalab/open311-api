@@ -29,10 +29,12 @@
     "name": "lally elias",
     "email": "lallyelias87@gmail.com"
   },
-  "contributors": [{
-    "name": "lallyelias",
-    "email": "lallyelias87@gmail.com"
-  }],
+  "contributors": [
+    {
+      "name": "lallyelias",
+      "email": "lallyelias87@gmail.com"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/CodeTanzania/open311-api/"
@@ -78,7 +80,6 @@
     "mongoose-autopopulate": "^0.5.0",
     "mongoose-autoset": "^0.1.0",
     "mongoose-exists": "^0.1.0",
-    "mongoose-fts": "^0.2.0",
     "mongoose-hidden": "^0.9.3",
     "mongoose-regex-search": "^0.2.0",
     "mongoose-unique-validator": "^1.0.3",
