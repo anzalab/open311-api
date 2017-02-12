@@ -1,7 +1,9 @@
 'use strict';
 
 //dependencies
+const path = require('path');
 const _ = require('lodash');
+const pkg = require(path.join(__dirname, '..', 'package.json'));
 
 //set environment to development by default
 if (_.isEmpty((process.env || {}).NODE_ENV)) {
@@ -13,7 +15,6 @@ if (_.isEmpty((process.env || {}).NODE_ENV)) {
 process.env.SUPPRESS_NO_CONFIG_WARNING = true;
 
 
-const path = require('path');
 require('config'); //load configurations
 const environment = require('execution-environment');
 const mkdir = require('mkdir-p');
@@ -69,7 +70,7 @@ app.use(respond());
 
 //configure helmet
 app.use(helmet.hidePoweredBy({
-  setTo: 'open311 0.1.0'
+  setTo: [pkg.name, pkg.version].join(' ')
 }));
 
 
