@@ -5,26 +5,38 @@
  * @module Service
  * @name Service
  * @description An acceptable service (request types)(e.g Water Leakage) 
- *              offered(or handled) by a jurisdiction
+ *              offered(or handled) by a specific jurisdiction.
  *              
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
  * @version 0.1.0
+ * @public
  */
+
+
+//TODO migrate priority to model
+//TODO ensure default priority
+//TODO on UI add jurisdiction and service group filter
 
 
 //dependencies
 const path = require('path');
 const _ = require('lodash');
 const mongoose = require('mongoose');
-const searchable = require('mongoose-fts');
 const randomColor = require('randomcolor');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const PrioritySchema =
   require(path.join(__dirname, 'schemas', 'priority_schema'));
 
-//Service Schema
+
+/**
+ * @name ServiceSchema
+ * @type {Schema}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @private
+ */
 const ServiceSchema = new Schema({
 
   /**
@@ -33,7 +45,7 @@ const ServiceSchema = new Schema({
    *              applicable.
    *
    *              If not available a service is applicable to all 
-   *              jurisdictions
+   *              jurisdictions.
    *               
    * @type {Object}
    * @see {@link Jurisdiction}
@@ -80,7 +92,7 @@ const ServiceSchema = new Schema({
    * @description A unique identifier of the service. 
    *              
    *              Used in deriving code of the service request(issue) and 
-   *              internal usage
+   *              internal usage.
    *              
    * @type {Object}
    * @private
@@ -91,14 +103,15 @@ const ServiceSchema = new Schema({
     type: String,
     unique: true,
     required: true,
-    trim: true
+    trim: true,
+    searchable: true
   },
 
 
   /**
    * @name name
    * @description A unique human readable name of the service (request type)
-   *              e.g Sanitation
+   *              e.g Water Leakage
    *              
    * @type {Object}
    * @private
@@ -109,7 +122,8 @@ const ServiceSchema = new Schema({
     type: String,
     unique: true,
     required: true,
-    trim: true
+    trim: true,
+    searchable: true
   },
 
 
@@ -125,7 +139,8 @@ const ServiceSchema = new Schema({
    */
   description: {
     type: String,
-    trim: true
+    trim: true,
+    searchable: true
   },
 
 
@@ -178,9 +193,28 @@ ServiceSchema.pre('validate', function (next) {
     this.color = randomColor();
   }
 
-  //set service group code
+  //set service code
   if (_.isEmpty(this.code) && !_.isEmpty(this.name)) {
-    this.code = this.name.toUpperCase();
+    //generate code from jurisdiction code
+    //and service group
+    const jurisdictionCode = _.get(this.jurisdiction, 'code');
+    const serviceGroupCode = _.get(this.group, 'code');
+
+    if (jurisdictionCode && serviceGroupCode) {
+      const code = [].concat(serviceGroupCode).concat(_.take(this.name, 1));
+      this.code = code.join('').toUpperCase();
+    }
+
+    //generate code from jurisdiction only
+    else if (jurisdictionCode && !serviceGroupCode) {
+      const code = [].concat(jurisdictionCode).concat(_.take(this.name, 2));
+      this.code = code.join('').toUpperCase();
+    }
+
+    //generate code from service group name
+    else {
+      this.code = _.take(this.name, 4).join('').toUpperCase();
+    }
   }
 
   next();
@@ -188,18 +222,13 @@ ServiceSchema.pre('validate', function (next) {
 });
 
 
-//-----------------------------------------------------------------------------
-// ServiceSchema Plugins
-//-----------------------------------------------------------------------------
-
-ServiceSchema.plugin(searchable, {
-  fields: [
-    'jurisdiction.name', 'group.name',
-    'code', 'name', 'description'
-  ],
-  keywordsPath: 'keywords'
-});
-
-
-//exports Service model
+/**
+ * @name Service
+ * @description register ServiceSchema and initialize Service
+ *              model
+ * @type {Model}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ */
 module.exports = mongoose.model('Service', ServiceSchema);

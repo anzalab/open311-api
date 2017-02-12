@@ -19,6 +19,9 @@
 
 //Important!: ensure 2dsphere index before any geo queries
 
+//TODO add service inverse relation mapping & use restrictive population
+//TODO add service group inverse relation mapping & use restrictive population
+
 
 //dependencies
 const path = require('path');
@@ -59,6 +62,7 @@ const JurisdictionSchema = new Schema({
     ref: 'Jurisdiction',
     autoset: true,
     exists: true,
+    index: true,
     autopopulate: {
       select: 'code name domain'
     }

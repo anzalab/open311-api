@@ -13,6 +13,9 @@
  */
 
 
+//TODO make reporter embeded
+
+
 //dependencies
 const path = require('path');
 const _ = require('lodash');
