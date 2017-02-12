@@ -407,6 +407,11 @@ describe('Jurisdiction', function () {
 
   });
 
+  describe('Relation', function () {
+    it('should be able to populate service groups');
+    it('should be able to populate services');
+  });
+
 
   after(function (done) {
     Jurisdiction.remove(done);
