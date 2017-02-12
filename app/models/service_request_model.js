@@ -420,6 +420,12 @@ ServiceRequestSchema.pre('validate', function (next) {
       .toUpperCase();
   }
 
+  //ensure jurisdiction from service
+  const jurisdiction = _.get(this.service, 'jurisdiction');
+  if (!this.jurisdiction && _.get(this.service, 'jurisdiction')) {
+    this.jurisdiction = jurisdiction;
+  }
+
   //set priority based on the service
   if (this.service && this.service.priority && !this.priority) {
     this.priority = this.service.priority;
