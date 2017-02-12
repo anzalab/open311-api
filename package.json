@@ -80,7 +80,7 @@
     "mongoose-exists": "^0.1.0",
     "mongoose-fts": "^0.2.0",
     "mongoose-hidden": "^0.9.3",
-    "mongoose-regex-search": "^0.1.2",
+    "mongoose-regex-search": "^0.2.0",
     "mongoose-unique-validator": "^1.0.3",
     "mongoose-valid8": "^0.1.1",
     "nodemailer": "^3.0.2",
