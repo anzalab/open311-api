@@ -15,7 +15,7 @@
 
 
 //TODO make service request to support call log in a call center
-//TODO make reporter embeded
+//TODO migrate location to use GeoJSON schema
 //TODO obtain geo-data from jurisdiction if not available(or set)
 //TODO migrate comment, worklog, status and priority to model
 
@@ -25,16 +25,10 @@ const path = require('path');
 const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
-const searchable = require('mongoose-fts');
 const shortid = require('shortid');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
-const MediaSchema =
-  require(path.join(__dirname, 'schemas', 'media_schema'));
-const CommentSchema =
-  require(path.join(__dirname, 'schemas', 'comment_schema'));
-const WorkLogSchema =
-  require(path.join(__dirname, 'schemas', 'worklog_schema'));
+const MediaSchema = require(path.join(__dirname, 'schemas', 'media_schema'));
 
 
 /**
@@ -103,14 +97,71 @@ const ServiceRequestSchema = new Schema({
    * @version 0.1.0
    */
   reporter: {
-    type: ObjectId,
-    ref: 'Party',
-    required: true,
-    index: true,
-    autoset: true,
-    exists: true,
-    autopopulate: {
-      select: 'name email phone'
+    /**
+     * @name name
+     * @description Full name name of the reporter.
+     * @type {Object}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+    name: {
+      type: String,
+      index: true,
+      searchable: true
+    },
+
+
+    /**
+     * @name phone
+     * @description A mobile phone number of the reporter.
+     * @type {Object}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+    phone: {
+      type: String,
+      index: true,
+      searchable: true
+    },
+
+
+    /**
+     * @name email
+     * @description An email address of the reporter.
+     * @type {Object}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+    email: {
+      type: String,
+      index: true,
+      searchable: true
+    },
+
+
+    /**
+     * @name account
+     * @description A jurisdiction internal associated account id of the 
+     *              party submitting the request(issue).
+     *
+     *              This help a jurisdiction to link a reporter with the 
+     *              internal CRM.
+     *
+     *              When account id is available a reporter will be treated as
+     *              a customer and not a normal civilian.
+     *              
+     * @type {Object}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+    account: {
+      type: String,
+      index: true,
+      searchable: true
     }
   },
 
@@ -183,7 +234,8 @@ const ServiceRequestSchema = new Schema({
     unique: true,
     required: true,
     trim: true,
-    uppercase: true
+    uppercase: true,
+    searchable: true
   },
 
 
@@ -201,30 +253,8 @@ const ServiceRequestSchema = new Schema({
     type: String,
     index: true,
     trim: true,
-    required: true
-  },
-
-
-  /**
-   * @name account
-   * @description A jurisdiction internal associated account id of the 
-   *              party submitting the request(issue).
-   *
-   *              This help a jurisdiction to link a reporter with the internal
-   *              CRM.
-   *
-   *              When account id is available a reporter will be treated as a
-   *              customer and not a normal civilian.
-   *              
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  account: {
-    type: String,
-    trim: true,
-    index: true
+    required: true,
+    searchable: true
   },
 
 
@@ -241,7 +271,8 @@ const ServiceRequestSchema = new Schema({
   address: {
     type: String,
     trim: true,
-    index: true
+    index: true,
+    searchable: true
   },
 
 
@@ -447,107 +478,12 @@ ServiceRequestSchema.post('save', function (doc, next) {
 
 
 //-----------------------------------------------------------------------------
-// PartySchema Instance Methods
+// ServiceRequestSchema Static Properties & Methods
 //-----------------------------------------------------------------------------
 
-/**
- * @name  attach
- * @description attach a media to a service request(issue).
- *              
- *              It assumed that a media will be already handled and uploaded
- *              before attach.
- *              
- * @param  {Media}   media    media details to be added as attachment
- * @param  {Function} done    a callback to invoke on success or failure
- * @return {ServiceRequest}   updated service request(issue)
- * @private
- * @since 0.1.0
- * @version 0.1.0
- */
-ServiceRequestSchema.methods.attach = function (media, done) {
-  //TODO use current signin user as an uploader(owner) of the media
 
-  //merge default media details
-  media = _.merge({}, { uploadedAt: new Date() }, media);
-
-  //add attachment
-  this.attachments.push(media);
-
-  //persist attachments
-  this.save(function afterAttach(error, serviceRequest) {
-    //TODO send(queue) notifications
-    done(error, serviceRequest);
-  });
-
-};
-
-
-/**
- * @name comment
- * @description comment on the service request(issue).
- *              
- * @param  {Comment} comment  comment details
- * @param  {Function} done    a callback to invoke on success or failure
- * @return {ServiceRequest}   updated service request(issue)
- * @private
- * @since 0.1.0
- * @version 0.1.0
- */
-ServiceRequestSchema.methods.comment = function (comment, done) {
-  //TODO use current signin user as a commentor for the comment
-
-  //merge default comment details
-  comment = _.merge({}, { commentedAt: new Date() }, comment);
-
-  //add comment
-  this.works.push(comment);
-
-  //persist comment
-  this.save(function afterComment(error, serviceRequest) {
-    //TODO send(queue) notifications
-    done(error, serviceRequest);
-  });
-
-};
-
-
-/**
- * @name  logWork
- * @description log work performed on the service request(issue).
- *              
- *              If work log is resoulution a service request(issue) will
- *              be flagged as resolved.
- *              
- * @param  {WorkLog}   workLog work performed
- * @param  {Function} done    a callback to invoke on success or failure
- * @return {ServiceRequest}   updated service request(issue)
- * @private
- * @since 0.1.0
- * @version 0.1.0
- */
-ServiceRequestSchema.methods.logWork = function (workLog, done) {
-  //TODO use current signin user as a worker for the worklog
-
-  //merge default worklog details
-  workLog = _.merge({}, { workedAt: new Date() }, workLog);
-
-  //add worklog
-  this.works.push(workLog);
-
-  //update resolution state
-  if (workLog.resolution) {
-    this.resolvedAt = workLog.workedAt;
-  }
-
-  //persist work log
-  this.save(function afterLogWork(error, serviceRequest) {
-    //TODO send(queue) notifications
-    done(error, serviceRequest);
-  });
-
-};
-
-
+//TODO use aggregation
+//TODO use status and priority model
 ServiceRequestSchema.statics.summary = function (done) {
   // count by services
   const Service = mongoose.model('Service');
@@ -605,18 +541,13 @@ ServiceRequestSchema.statics.summary = function (done) {
 };
 
 
-//-----------------------------------------------------------------------------
-// ServiceRequestSchema Plugins
-//-----------------------------------------------------------------------------
-
-ServiceRequestSchema.plugin(searchable, {
-  fields: [
-    'jurisdiction.name', 'code', 'name',
-    'account', 'address', 'description'
-  ],
-  keywordsPath: 'keywords'
-});
-
-
-//exports ServiceRequest model
+/**
+ * @name ServiceRequest
+ * @description register ServiceRequestSchema and initialize ServiceRequest
+ *              model
+ * @type {Model}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ */
 module.exports = mongoose.model('ServiceRequest', ServiceRequestSchema);
