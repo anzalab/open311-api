@@ -35,10 +35,6 @@ const CommentSchema =
   require(path.join(__dirname, 'schemas', 'comment_schema'));
 const WorkLogSchema =
   require(path.join(__dirname, 'schemas', 'worklog_schema'));
-const StatusSchema =
-  require(path.join(__dirname, 'schemas', 'status_schema'));
-const PrioritySchema =
-  require(path.join(__dirname, 'schemas', 'priority_schema'));
 
 
 /**
@@ -280,11 +276,12 @@ const ServiceRequestSchema = new Schema({
    * @version 0.1.0
    */
   status: {
-    type: StatusSchema,
+    type: ObjectId,
+    ref: 'Status',
+    autoset: true,
+    exists: true,
     index: true,
-    default: {
-      name: 'OPEN'
-    }
+    autopopulate: true
   },
 
 
@@ -301,11 +298,12 @@ const ServiceRequestSchema = new Schema({
    * @version 0.1.0
    */
   priority: {
-    type: PrioritySchema,
+    type: ObjectId,
+    ref: 'Priority',
+    autoset: true,
+    exists: true,
     index: true,
-    default: {
-      name: 'NORMAL'
-    }
+    autopopulate: true
   },
 
 
@@ -333,25 +331,6 @@ const ServiceRequestSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  comments: { //TODO fix autopopulate commentor
-    type: [CommentSchema],
-    index: true
-  },
-
-
-  /**
-   * @name works
-   * @description Work(s) performed to resolve the issue(service request)
-   * @type {Array}
-   * @see {@link WorkLog}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  works: { //TODO fix autopopulate reporter
-    type: [WorkLogSchema],
-    index: true
-  },
 
 
   /**
