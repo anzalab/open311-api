@@ -101,6 +101,7 @@ if (!environment.isLocal()) {
 
 //bind settings loader middleware
 app.use(require(path.join(__dirname, 'middlewares', 'settings')));
+app.use(require(path.join(__dirname, 'middlewares', 'defaults')));
 
 
 // load all routers recursively
