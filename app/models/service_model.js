@@ -20,14 +20,11 @@
 
 
 //dependencies
-const path = require('path');
 const _ = require('lodash');
 const mongoose = require('mongoose');
 const randomColor = require('randomcolor');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
-const PrioritySchema =
-  require(path.join(__dirname, 'schemas', 'priority_schema'));
 
 
 /**
@@ -141,27 +138,6 @@ const ServiceSchema = new Schema({
     type: String,
     trim: true,
     searchable: true
-  },
-
-
-  /**
-   * @name priority
-   * @description A service request type priority.
-   *              
-   *              It used to weight a service request(issue) relative 
-   *              to other(s).
-   *              
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  priority: {
-    type: PrioritySchema,
-    index: true,
-    default: {
-      name: 'NORMAL'
-    }
   },
 
 

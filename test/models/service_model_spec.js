@@ -81,7 +81,6 @@ describe('Service', function () {
         expect(created.code).to.exist;
         expect(created.name).to.exist;
         expect(created.description).to.exist;
-        expect(created.priority).to.exist;
         expect(created.color).to.exist;
 
         expect(created.jurisdiction).to.be.eql(service.jurisdiction);
@@ -114,7 +113,6 @@ describe('Service', function () {
         expect(found.code).to.exist;
         expect(found.name).to.exist;
         expect(found.description).to.exist;
-        expect(found.priority).to.exist;
         expect(found.color).to.exist;
 
         expect(found.code).to.be.equal(service.code);
@@ -166,7 +164,6 @@ describe('Service', function () {
         expect(updated.code).to.exist;
         expect(updated.name).to.exist;
         expect(updated.description).to.exist;
-        expect(updated.priority).to.exist;
         expect(updated.color).to.exist;
 
         expect(updated.code).to.be.equal(service.code);
@@ -219,7 +216,6 @@ describe('Service', function () {
         expect(removed.code).to.exist;
         expect(removed.name).to.exist;
         expect(removed.description).to.exist;
-        expect(removed.priority).to.exist;
         expect(removed.color).to.exist;
 
         expect(removed.code).to.be.equal(service.code);
