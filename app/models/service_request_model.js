@@ -408,9 +408,6 @@ ServiceRequestSchema.pre('validate', function (next) {
   //set service request code
   //TODO update code algorithm
   if (_.isEmpty(this.code)) {
-    // this.code = [
-    //   this.jurisdiction.code, this.service.code, shortid.generate()
-    // ].join('-').toUpperCase();
     this.code = [
         shortid.generate(),
         shortid.generate()
@@ -431,7 +428,33 @@ ServiceRequestSchema.pre('validate', function (next) {
     this.priority = this.service.priority;
   }
 
-  next();
+  //set default status & priority if not set
+  if (!this.status || !this.priority) {
+    async.parallel({
+      status: function findDefaultStatus(then) {
+        const Status = mongoose.model('Status');
+        Status.findDefault(then);
+      },
+      priority: function findDefaultPriority(then) {
+        const Priority = mongoose.model('Priority');
+        Priority.findDefault(then);
+      }
+    }, function (error, result) {
+      if (error) {
+        next(error);
+      } else {
+        this.status = this.status || result.status;
+        this.priority = this.priority || result.priority;
+        next();
+      }
+    }.bind(this));
+
+  }
+
+  //continue
+  else {
+    next();
+  }
 
 });
 
