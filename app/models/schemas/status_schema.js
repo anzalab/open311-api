@@ -61,7 +61,8 @@ const StatusSchema = new Schema({
    */
   color: {
     type: String,
-    trim: true
+    trim: true,
+    uppercase: true
   }
 
 }, { timestamps: true });

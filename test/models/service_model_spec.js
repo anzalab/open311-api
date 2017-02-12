@@ -65,7 +65,6 @@ describe('Service', function () {
     service = {
       jurisdiction: jurisdiction,
       group: serviceGroup,
-      code: faker.random.uuid(),
       name: faker.company.companyName(),
       description: faker.company.catchPhrase()
     };
@@ -77,9 +76,16 @@ describe('Service', function () {
         expect(created).to.exist;
 
         expect(created._id).to.exist;
+        expect(created.jurisdiction).to.exist;
+        expect(created.group).to.exist;
+        expect(created.code).to.exist;
+        expect(created.name).to.exist;
+        expect(created.description).to.exist;
+        expect(created.priority).to.exist;
         expect(created.color).to.exist;
 
-        expect(created.code).to.be.equal(service.code);
+        expect(created.jurisdiction).to.be.eql(service.jurisdiction);
+        expect(created.group).to.be.eql(service.group);
         expect(created.name).to.be.equal(service.name);
         expect(created.description).to.be.equal(service.description);
 
@@ -87,12 +93,13 @@ describe('Service', function () {
         service = created;
 
         done(error, created);
+
       });
 
   });
 
 
-  it.skip('should be able to find existing service', function (done) {
+  it('should be able to find existing service', function (done) {
 
     Service
       .findById(service._id, function (error, found) {
@@ -100,8 +107,15 @@ describe('Service', function () {
         expect(error).to.not.exist;
         expect(found).to.exist;
 
+        //assert found
         expect(found._id).to.exist;
-        expect(found._id).to.eql(service._id);
+        expect(found.jurisdiction).to.exist;
+        expect(found.group).to.exist;
+        expect(found.code).to.exist;
+        expect(found.name).to.exist;
+        expect(found.description).to.exist;
+        expect(found.priority).to.exist;
+        expect(found.color).to.exist;
 
         expect(found.code).to.be.equal(service.code);
         expect(found.name).to.be.equal(service.name);
@@ -125,12 +139,13 @@ describe('Service', function () {
         expect(found.group.jurisdiction).to.not.exist;
 
         done(error, found);
+
       });
 
   });
 
 
-  it.skip('should be able to update existing service', function (done) {
+  it('should be able to update existing service', function (done) {
 
     const updates = {
       description: faker.company.catchPhrase()
@@ -146,7 +161,13 @@ describe('Service', function () {
         expect(updated).to.exist;
 
         expect(updated._id).to.exist;
-        expect(updated._id).to.be.eql(service._id);
+        expect(updated.jurisdiction).to.exist;
+        expect(updated.group).to.exist;
+        expect(updated.code).to.exist;
+        expect(updated.name).to.exist;
+        expect(updated.description).to.exist;
+        expect(updated.priority).to.exist;
+        expect(updated.color).to.exist;
 
         expect(updated.code).to.be.equal(service.code);
         expect(updated.name).to.be.equal(service.name);
@@ -157,11 +178,13 @@ describe('Service', function () {
         service = updated;
 
         done(error, updated);
+
       });
+
   });
 
 
-  it.skip('should be able to list existing services', function (done) {
+  it('should be able to list existing services', function (done) {
 
     Service
       .paginate({
@@ -182,7 +205,7 @@ describe('Service', function () {
   });
 
 
-  it.skip('should be able to delete existing service', function (done) {
+  it('should be able to delete existing service', function (done) {
 
     Service
       .findByIdAndRemove(service._id, function (error, removed) {
@@ -191,7 +214,13 @@ describe('Service', function () {
         expect(removed).to.exist;
 
         expect(removed._id).to.exist;
-        expect(removed._id).to.be.eql(service._id);
+        expect(removed.jurisdiction).to.exist;
+        expect(removed.group).to.exist;
+        expect(removed.code).to.exist;
+        expect(removed.name).to.exist;
+        expect(removed.description).to.exist;
+        expect(removed.priority).to.exist;
+        expect(removed.color).to.exist;
 
         expect(removed.code).to.be.equal(service.code);
         expect(removed.name).to.be.equal(service.name);
@@ -199,6 +228,71 @@ describe('Service', function () {
         expect(removed.description).to.be.equal(service.description);
 
         done(error, removed);
+
+      });
+
+  });
+
+  it('should be able to soft delete a service');
+
+  describe('Search', function () {
+
+    let serviceGroup = {
+      name: faker.company.companyName(),
+      description: faker.company.catchPhrase()
+    };
+
+    let service = {
+      group: serviceGroup,
+      name: faker.company.companyName(),
+      description: faker.company.catchPhrase()
+    };
+
+
+    before(function (done) {
+      Service.remove(done);
+    });
+
+    before(function (done) {
+      ServiceGroup.create(serviceGroup, function (error, created) {
+        serviceGroup = created;
+        done(error, created);
+      });
+    });
+
+    before(function (done) {
+      service.group = serviceGroup;
+      Service.create(service, function (error, created) {
+        service = created;
+        done(error, created);
+      });
+    });
+
+    it('should be able to search service group by its fields',
+      function (done) {
+
+        Service
+          .search(service.name, function (error, results) {
+
+            expect(error).to.not.exist;
+            expect(results).to.exist;
+            expect(results).to.have.length.above(0);
+
+            //assert single result
+            const found = results[0];
+            expect(found.code).to.exist;
+            expect(found.name).to.exist;
+            expect(found.description).to.exist;
+            expect(found.color).to.exist;
+
+            expect(found.code).to.be.equal(service.code);
+            expect(found.name).to.be.equal(service.name);
+            expect(found.color).to.be.equal(service.color);
+            expect(found.description).to.be.equal(service.description);
+
+            done(error, results);
+
+          });
       });
 
   });

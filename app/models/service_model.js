@@ -177,7 +177,8 @@ const ServiceSchema = new Schema({
    */
   color: {
     type: String,
-    trim: true
+    trim: true,
+    uppercase: true
   }
 
 }, { timestamps: true });
@@ -191,6 +192,12 @@ ServiceSchema.pre('validate', function (next) {
   //set default color if not set
   if (_.isEmpty(this.color)) {
     this.color = randomColor();
+  }
+
+  //ensure jurisdiction from service group
+  const jurisdiction = _.get(this.group, 'jurisdiction');
+  if (!this.jurisdiction && _.get(this.group, 'jurisdiction')) {
+    this.jurisdiction = jurisdiction;
   }
 
   //set service code
