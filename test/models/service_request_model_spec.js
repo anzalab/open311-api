@@ -147,16 +147,18 @@ describe('ServiceRequest', function () {
           expect(created.reporter).to.be.exist;
           expect(created.assignee).to.be.exist;
           expect(created.code).to.be.exist;
+          expect(created.description).to.be.exist;
+          expect(created.location).to.exist;
+          expect(created.status).to.be.exist;
+          expect(created.priority).to.be.exist;
           expect(created.description).to.be.equal(serviceRequest.description);
           expect(created.reporter.account).to.be.equal(serviceRequest.account);
           expect(created.address).to.be.equal(serviceRequest.address);
-          expect(created.location).to.exist;
           expect(created.longitude)
             .to.be.equal(serviceRequest.location[0]);
           expect(created.latitude)
             .to.be.equal(serviceRequest.location[1]);
-          expect(created.status).to.be.exist;
-          expect(created.priority).to.be.exist;
+
 
           //update serviceRequest reference
           serviceRequest = created;
@@ -167,7 +169,7 @@ describe('ServiceRequest', function () {
     });
 
 
-  it.skip('should be able to find existing service request(issue)',
+  it('should be able to find existing service request(issue)',
     function (done) {
 
       ServiceRequest
@@ -177,8 +179,18 @@ describe('ServiceRequest', function () {
           expect(found).to.exist;
 
           expect(found._id).to.exist;
-          expect(found._id).to.eql(serviceRequest._id);
 
+          expect(found.jurisdiction).to.be.exist;
+          expect(found.service).to.be.exist;
+          expect(found.reporter).to.be.exist;
+          expect(found.assignee).to.be.exist;
+          expect(found.code).to.be.exist;
+          expect(found.description).to.be.exist;
+          expect(found.location).to.exist;
+          expect(found.status).to.be.exist;
+          expect(found.priority).to.be.exist;
+
+          expect(found._id).to.eql(serviceRequest._id);
           expect(found.code).to.be.equal(serviceRequest.code);
           expect(found.description).to.be.equal(serviceRequest.description);
 
@@ -193,18 +205,21 @@ describe('ServiceRequest', function () {
           //assert service
           //assert reporter
           //assert assignee
+          //assert priority
+          //assert status
 
           done(error, found);
+
         });
 
     });
 
 
-  it.skip('should be able to update existing service request(issue)',
+  it('should be able to update existing service request(issue)',
     function (done) {
 
       const updates = {
-        description: faker.company.catchPhrase()
+        description: faker.lorem.paragraph()
       };
 
       ServiceRequest
@@ -217,8 +232,17 @@ describe('ServiceRequest', function () {
           expect(updated).to.exist;
 
           expect(updated._id).to.exist;
-          expect(updated._id).to.be.eql(serviceRequest._id);
+          expect(updated.jurisdiction).to.be.exist;
+          expect(updated.service).to.be.exist;
+          expect(updated.reporter).to.be.exist;
+          expect(updated.assignee).to.be.exist;
+          expect(updated.code).to.be.exist;
+          expect(updated.description).to.be.exist;
+          expect(updated.location).to.exist;
+          expect(updated.status).to.be.exist;
+          expect(updated.priority).to.be.exist;
 
+          expect(updated._id).to.be.eql(serviceRequest._id);
           expect(updated.code).to.be.equal(serviceRequest.code);
           expect(updated.description).to.be.equal(updates.description);
 
@@ -226,11 +250,13 @@ describe('ServiceRequest', function () {
           serviceRequest = updated;
 
           done(error, updated);
+
         });
+
     });
 
 
-  it.skip('should be able to list existing service request(s)(issues)',
+  it('should be able to list existing service request(s)(issues)',
     function (done) {
 
       ServiceRequest
@@ -247,12 +273,46 @@ describe('ServiceRequest', function () {
           //TODO application specific assertions
 
           done(error, serviceRequests);
+
         });
 
     });
 
+  it('should be able to search service request by code',
+    function (done) {
 
-  it.skip('should be able to delete existing service request(issue)',
+      ServiceRequest
+        .search(serviceRequest.code, function (error, results) {
+
+          expect(error).to.not.exist;
+          expect(results).to.exist;
+          expect(results).to.have.length.above(0);
+
+          //assert single result
+          const found = results[0];
+          expect(found._id).to.exist;
+          expect(found.jurisdiction).to.be.exist;
+          expect(found.service).to.be.exist;
+          expect(found.reporter).to.be.exist;
+          expect(found.assignee).to.be.exist;
+          expect(found.code).to.be.exist;
+          expect(found.description).to.be.exist;
+          expect(found.location).to.exist;
+          expect(found.status).to.be.exist;
+          expect(found.priority).to.be.exist;
+
+          expect(found._id).to.eql(serviceRequest._id);
+          expect(found.code).to.be.equal(serviceRequest.code);
+          expect(found.description).to.be.equal(serviceRequest.description);
+
+
+          done(error, results);
+
+        });
+    });
+
+
+  it('should be able to delete existing service request(issue)',
     function (done) {
 
       ServiceRequest
@@ -262,20 +322,28 @@ describe('ServiceRequest', function () {
           expect(removed).to.exist;
 
           expect(removed._id).to.exist;
-          expect(removed._id).to.be.eql(serviceRequest._id);
+          expect(removed.jurisdiction).to.be.exist;
+          expect(removed.service).to.be.exist;
+          expect(removed.reporter).to.be.exist;
+          expect(removed.assignee).to.be.exist;
+          expect(removed.code).to.be.exist;
+          expect(removed.description).to.be.exist;
+          expect(removed.location).to.exist;
+          expect(removed.status).to.be.exist;
+          expect(removed.priority).to.be.exist;
 
+          expect(removed._id).to.be.eql(serviceRequest._id);
           expect(removed.code).to.be.equal(serviceRequest.code);
           expect(removed.description).to.be.equal(serviceRequest.description);
 
           done(error, removed);
+
         });
 
     });
 
-  it('should be able to request a service');
   it('should be able to attach supported files');
   it('should be able to comment');
-  it('should be able to log work performed so far');
   it('should be able to resolve');
   it('should be able to update it status');
   it('should be able to update its priority');

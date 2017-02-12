@@ -415,7 +415,7 @@ ServiceRequestSchema.virtual('latitude').get(function () {
 ServiceRequestSchema.pre('validate', function (next) {
 
   //set service request code
-  //TODO update code algorithm
+  //TODO update code algorithm to use daily rotate increments
   if (_.isEmpty(this.code)) {
     this.code = [
         shortid.generate(),
@@ -447,8 +447,8 @@ ServiceRequestSchema.pre('validate', function (next) {
       if (error) {
         next(error);
       } else {
-        this.status = this.status || result.status || undefined;
-        this.priority = this.priority || result.priority || undefined;
+        this.status = (this.status || result.status || undefined);
+        this.priority = (this.priority || result.priority || undefined);
         next();
       }
     }.bind(this));
