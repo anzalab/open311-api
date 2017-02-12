@@ -5,15 +5,18 @@
  * @module ServiceRequest
  * @name ServiceRequest
  * @description An issue(or service request) reported by civilian 
- *              e.g Water Leakage
+ *              e.g Water Leakage occur at a particular area
  *              
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
  * @version 0.1.0
+ * @public
  */
 
 
+//TODO make service request to support call log in a call center
 //TODO make reporter embeded
+//TODO obtain geo-data from jurisdiction if not available(or set)
 
 
 //dependencies

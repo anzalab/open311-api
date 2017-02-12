@@ -185,10 +185,11 @@ module.exports = function (grunt) {
         },
         src: [
           '<%= project.test %>/bootstrap_spec.js',
-          // '<%= project.test %>/models/**/*.js'
-          // '<%= project.test %>/models/jurisdiction_model_spec.js'
-          // '<%= project.test %>/models/service_group_model_spec.js'
-          '<%= project.test %>/models/service_model_spec.js'
+          // '<%= project.test %>/models/**/*.js',
+          // '<%= project.test %>/models/jurisdiction_model_spec.js',
+          // '<%= project.test %>/models/service_group_model_spec.js',
+          // '<%= project.test %>/models/service_model_spec.js',
+          '<%= project.test %>/models/service_request_model_spec.js'
         ]
       },
       routers: {
