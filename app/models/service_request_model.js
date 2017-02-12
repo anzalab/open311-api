@@ -17,6 +17,7 @@
 //TODO make service request to support call log in a call center
 //TODO make reporter embeded
 //TODO obtain geo-data from jurisdiction if not available(or set)
+//TODO migrate comment, worklog, status and priority to model
 
 
 //dependencies
@@ -40,7 +41,13 @@ const PrioritySchema =
   require(path.join(__dirname, 'schemas', 'priority_schema'));
 
 
-//ServiceRequest Schema
+/**
+ * @name ServiceRequestSchema
+ * @type {Schema}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @private
+ */
 const ServiceRequestSchema = new Schema({
 
   /**
@@ -58,6 +65,7 @@ const ServiceRequestSchema = new Schema({
     type: ObjectId,
     ref: 'Jurisdiction',
     autoset: true,
+    required: true,
     index: true,
     exists: true,
     autopopulate: {
