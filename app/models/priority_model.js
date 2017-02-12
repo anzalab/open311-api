@@ -127,8 +127,8 @@ PrioritySchema.statics.findDefault = function (done) {
 
   //TODO make use of default priority settings
 
-  //sort priority by weight ascending and take one
-  Priority.findOne().sort({ weight: 1 }).exec(done);
+  //sort priority by weight descending and take one
+  Priority.findOne().sort({ weight: -1 }).exec(done);
 
 };
 
