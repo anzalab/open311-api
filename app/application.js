@@ -1,5 +1,30 @@
 'use strict';
 
+
+/**
+ * @module application
+ * @description application entry point responsible to load components
+ *
+ * Booting Order(Sequence):
+ *   1. setup application environment
+ *   2. loading configuration
+ *   3. sync log folder if not exists
+ *   4. initialize database (mongoose)
+ *     4.1 loading models
+ *     4.2 setup mongoose common plugins
+ *     4.3 establish mongodb connection
+ *   5. setup express
+ *     5.1 loading common express middlewares
+ *     5.1 setup application routes
+ *     5.2 setup error hanlders middlewares
+ * 
+ * @since 0.1.0
+ * @version 0.1.0
+ * @author lally elias <lallyelias87@gmail.com>
+ * @public
+ */
+
+
 //dependencies
 const path = require('path');
 const _ = require('lodash');
