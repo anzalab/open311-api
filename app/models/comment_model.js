@@ -85,7 +85,7 @@ const CommentSchema = new Schema({
     searchable: true
   }
 
-}, { timestamps: true });
+}, { timestamps: true, emitIndexErrors: true });
 
 
 /**

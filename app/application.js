@@ -30,6 +30,7 @@ const path = require('path');
 const _ = require('lodash');
 const pkg = require(path.join(__dirname, '..', 'package.json'));
 
+
 //set environment to development by default
 if (_.isEmpty((process.env || {}).NODE_ENV)) {
   process.env.NODE_ENV = 'development';

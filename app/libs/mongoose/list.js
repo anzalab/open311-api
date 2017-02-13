@@ -33,10 +33,6 @@ module.exports = exports = function (schema /*, options*/ ) {
 
       const query = this.search(queryParams.q);
 
-      if (name === 'ServiceRequest') {
-        query.populate('comments.commentator');
-      }
-
       if (criteria) {
         query.where(criteria);
       }

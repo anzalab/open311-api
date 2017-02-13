@@ -51,7 +51,10 @@ exports.Point = new Schema({
   },
 
   //TODO add validation for point characteristics
-  coordinates: [Number]
+  coordinates: {
+    type: [Number],
+    default: [0, 0] //TODO use settings for default coordinates
+  }
 
 }, { _id: false });
 
@@ -74,8 +77,16 @@ exports.Polygon = new Schema({
   },
 
   //TODO add validation for polygon characteristics
-  coordinates: [{
-    type: Mixed
-  }]
+  coordinates: {
+    type: [Mixed],
+    default: [ //TODO use settings to provide default values
+      [
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [0, 0]
+      ]
+    ]
+  }
 
 }, { _id: false });

@@ -170,9 +170,7 @@ const JurisdictionSchema = new Schema({
    */
   boundaries: GeoJSON.Polygon
 
-}, {
-  timestamps: true
-});
+}, { timestamps: true, emitIndexErrors: true });
 
 
 //-----------------------------------------------------------------------------

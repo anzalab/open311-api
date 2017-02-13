@@ -145,7 +145,7 @@ const ServiceGroupSchema = new Schema({
     trim: true
   }
 
-}, { timestamps: true });
+}, { timestamps: true, emitIndexErrors: true });
 
 
 //-----------------------------------------------------------------------------

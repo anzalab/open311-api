@@ -85,9 +85,7 @@ const SettingSchema = new Schema({
     searchable: true
   }
 
-}, {
-  timestamps: true
-});
+}, { timestamps: true, emitIndexErrors: true });
 
 
 //-----------------------------------------------------------------------------

@@ -191,9 +191,7 @@ const PartySchema = new Schema({
     index: true
   }
 
-}, {
-  timestamps: true
-});
+}, { timestamps: true, emitIndexErrors: true });
 
 
 //-----------------------------------------------------------------------------

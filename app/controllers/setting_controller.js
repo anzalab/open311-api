@@ -1,9 +1,11 @@
 'use strict';
 
+
 //dependencies
 const _ = require('lodash');
 const mongoose = require('mongoose');
 const Setting = mongoose.model('Setting');
+
 
 /**
  * Setting Controller

@@ -157,7 +157,7 @@ const ServiceSchema = new Schema({
     uppercase: true
   }
 
-}, { timestamps: true });
+}, { timestamps: true, emitIndexErrors: true });
 
 
 //-----------------------------------------------------------------------------

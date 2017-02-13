@@ -91,9 +91,7 @@ const PermissionSchema = new Schema({
     searchable: true
   }
 
-}, {
-  timestamps: true
-});
+}, { timestamps: true, emitIndexErrors: true });
 
 
 //-----------------------------------------------------------------------------

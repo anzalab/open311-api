@@ -90,7 +90,7 @@ const PrioritySchema = new Schema({
     required: true
   }
 
-}, { timestamps: true });
+}, { timestamps: true, emitIndexErrors: true });
 
 
 //-----------------------------------------------------------------------------

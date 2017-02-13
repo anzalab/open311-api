@@ -2,6 +2,7 @@
 
 //dependencies
 
+
 /**
  * @description seed settings
  */
@@ -28,7 +29,5 @@ var settings = [{
 
 /**
  * @description export settings seeder
- * @param  {Function} done [description]
- * @return {[type]}        [description]
  */
 module.exports = settings;

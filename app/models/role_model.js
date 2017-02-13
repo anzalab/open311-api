@@ -69,7 +69,7 @@ const RoleSchema = new Schema({
     }
   }]
 
-}, { timestamps: true });
+}, { timestamps: true, emitIndexErrors: true });
 
 
 //-----------------------------------------------------------------------------
