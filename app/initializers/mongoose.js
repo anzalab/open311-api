@@ -3,11 +3,12 @@
 
 //dependencies
 const path = require('path');
-const environment = require('execution-environment');
+// const environment = require('execution-environment');
 const conf = require('config');
-const winston = require('winston');
+// const winston = require('winston');
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
+mongoose.set('debug', true);
 const mongooseShow =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'show'));
 const mongooseList =
@@ -104,20 +105,39 @@ require('require-all')({
 /**
  * @description establish database connection.
  */
-mongoose.connect(uristring, mongoOptions);
-
-// require seed - mongoose to allow seeding
-if (!environment.isTest()) {
+mongoose.connect(uristring, mongoOptions, function () {
   require('seed-mongoose')({
     suffix: '_seed',
-    logger: winston,
+    order: [
+      'Setting', 'Permission', 'Role', 'Party',
+      'Status', 'Priority', 'Jurisdiction',
+      'ServiceGroup', 'Service'
+    ],
+    // logger: winston,
     // active: !environment.isTest()
     active: false
-  }).load(function ( /*error, results*/ ) {
-    require(path.join(__dirname, '..', '..', 'seeds'))
-      (function ( /*error , results*/ ) {});
+  }, mongoose, function (error, results) {
+    console.log(error);
+    console.log(results);
+    // require(path.join(__dirname, '..', '..', 'seeds'))
+    //   (function ( /*error , results*/ ) {});
   });
-}
+});
+
+// require seed - mongoose to allow seeding
+// if (!environment.isTest()) {
+// require('seed-mongoose')({
+//   suffix: '_seed',
+//   // logger: winston,
+//   // active: !environment.isTest()
+//   active: false
+// }, function (error, results) {
+//   console.log(error);
+//   console.log(results);
+//   // require(path.join(__dirname, '..', '..', 'seeds'))
+//   //   (function ( /*error , results*/ ) {});
+// });
+// }
 
 /**
  * @description export mongoose

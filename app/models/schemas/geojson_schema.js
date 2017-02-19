@@ -81,10 +81,13 @@ exports.Polygon = new Schema({
     type: [Mixed],
     default: [ //TODO use settings to provide default values
       [
-        [0, 0],
-        [0, 0],
-        [0, 0],
-        [0, 0]
+        [ //double array are used to prevent mongoose schema casting error
+          [-1, -1],
+          [1, -1],
+          [1, 1],
+          [-1, 1],
+          [-1, -1]
+        ]
       ]
     ]
   }
