@@ -3,7 +3,7 @@
 
 //dependencies
 const path = require('path');
-// const environment = require('execution-environment');
+const environment = require('execution-environment');
 const conf = require('config');
 const winston = require('winston');
 const mongoose = require('mongoose');
@@ -106,23 +106,25 @@ require('require-all')({
  * @description establish database connection.
  */
 mongoose.connect(uristring, mongoOptions, function () {
-  require('seed-mongoose')({
-    suffix: '_seed',
-    logger: winston,
-    mongoose: mongoose
-  }, function (error /*, results*/ ) {
-    if (error) {
-      throw error;
-    } else {
-      //seed default user(s)
-      require(path.join(__dirname, '..', '..', 'seeds'))
-        (function (error /*, party*/ ) {
-          if (error && error.code !== 11000) {
-            throw error;
-          }
-        });
-    }
-  });
+  if (!environment.isTest()) {
+    require('seed-mongoose')({
+      suffix: '_seed',
+      logger: winston,
+      mongoose: mongoose
+    }, function (error /*, results*/ ) {
+      if (error) {
+        throw error;
+      } else {
+        //seed default user(s)
+        require(path.join(__dirname, '..', '..', 'seeds'))
+          (function (error /*, party*/ ) {
+            if (error && error.code !== 11000) {
+              throw error;
+            }
+          });
+      }
+    });
+  }
 });
 
 /**

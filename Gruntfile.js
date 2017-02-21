@@ -188,10 +188,11 @@ module.exports = function (grunt) {
           // '<%= project.test %>/models/**/*.js',
           // '<%= project.test %>/models/jurisdiction_model_spec.js',
           // '<%= project.test %>/models/comment_model_spec.js',
+          '<%= project.test %>/models/permission_model_spec.js',
           // '<%= project.test %>/models/priority_model_spec.js',
           // '<%= project.test %>/models/service_group_model_spec.js',
           // '<%= project.test %>/models/service_model_spec.js',
-          '<%= project.test %>/models/service_request_model_spec.js',
+          // '<%= project.test %>/models/service_request_model_spec.js',
           // '<%= project.test %>/models/status_model_spec.js'
         ]
       },

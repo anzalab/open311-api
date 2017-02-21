@@ -140,6 +140,53 @@ describe('Permission', function () {
 
   });
 
+  describe('Search', function () {
+    let permission = {
+      action: faker.random.word(),
+      resource: faker.random.word(),
+    };
+
+    before(function (done) {
+      Permission.remove(done);
+    });
+
+    before(function (done) {
+      Permission.create(permission, function (error, created) {
+        permission = created;
+        done(error, created);
+      });
+    });
+
+    it('should be able to search permission by its fields',
+      function (done) {
+
+        Permission
+          .search(permission.wildcard, function (error, results) {
+
+            expect(error).to.not.exist;
+            expect(results).to.exist;
+            expect(results).to.have.length.above(0);
+
+            //assert single result
+            const found = results[0];
+            expect(found.action).to.exist;
+            expect(found.resource).to.exist;
+            expect(found.description).to.exist;
+            expect(found.wildcard).to.exist;
+
+            expect(found.action).to.be.equal(permission.action);
+            expect(found.resource).to.be.equal(permission.resource);
+            expect(found.description).to.be.equal(permission.description);
+            expect(found.description).to.be.equal(permission.description);
+            expect(found.wildcard).to.be.equal(permission.wildcard);
+
+            done(error, results);
+
+          });
+      });
+
+  });
+
   after(function (done) {
     Permission.remove(done);
   });

@@ -6,11 +6,13 @@
  * @name Permission
  * @description manage party(ies) permission(s)
  * 
- *              Note!: permissions are dynamic generated during booting.
+ *              Note!: permissions are dynamic generated during booting and 
+ *              are only assignable to party(user) roles.
  *              
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
  * @version 0.1.0
+ * @public
  */
 
 
@@ -21,7 +23,13 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 
-//Permission Schema
+/**
+ * @name PermissionSchema
+ * @type {Schema}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @private
+ */
 const PermissionSchema = new Schema({
 
   /**
@@ -45,7 +53,7 @@ const PermissionSchema = new Schema({
   /**
    * @name resource
    * @description resource constrained under this permission
-   *              e.g Party etc
+   *              e.g Jurisdiction, Service etc
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -61,7 +69,7 @@ const PermissionSchema = new Schema({
 
   /**
    * @name description
-   * @description additional explanation about this permission 
+   * @description human readable explanation about this permission 
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -76,7 +84,8 @@ const PermissionSchema = new Schema({
 
   /**
    * @name wildcard
-   * @description unique identifier of this permission 
+   * @description system readable unique identifier of this permission
+   *              e.g jurisdiction:create 
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -125,5 +134,13 @@ PermissionSchema.pre('validate', function (next) {
 });
 
 
-//exports Permission model
+/**
+ * @name Permission
+ * @description register PermissionSchema and initialize Permission
+ *              model
+ * @type {Model}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ */
 module.exports = mongoose.model('Permission', PermissionSchema);
