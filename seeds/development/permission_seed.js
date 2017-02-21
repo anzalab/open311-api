@@ -29,7 +29,7 @@ mongoose.modelNames().forEach(function (modelName) {
         resource: modelName,
         action: 'create',
         description: 'Create ' + simpleName,
-        wildcard: [modelName, 'create'].join(':')
+        wildcard: [simpleName, 'create'].join(':')
       },
 
       //read/view permission
@@ -37,7 +37,7 @@ mongoose.modelNames().forEach(function (modelName) {
         resource: modelName,
         action: 'view',
         description: 'View ' + simpleName,
-        wildcard: [modelName, 'view'].join(':')
+        wildcard: [simpleName, 'view'].join(':')
       },
 
       //update/edit permission
@@ -45,7 +45,7 @@ mongoose.modelNames().forEach(function (modelName) {
         resource: modelName,
         action: 'edit',
         description: 'Edit ' + simpleName,
-        wildcard: [modelName, 'edit'].join(':')
+        wildcard: [simpleName, 'edit'].join(':')
       },
 
       //delete permission
@@ -53,7 +53,7 @@ mongoose.modelNames().forEach(function (modelName) {
         resource: modelName,
         action: 'delete',
         description: 'Delete ' + simpleName,
-        wildcard: [modelName, 'delete'].join(':')
+        wildcard: [simpleName, 'delete'].join(':')
       });
   }
 });
@@ -72,7 +72,7 @@ _.forEach(additions, function (modelName) {
       resource: modelName,
       action: 'create',
       description: 'Create ' + simpleName,
-      wildcard: [modelName, 'create'].join(':')
+      wildcard: [simpleName, 'create'].join(':')
     },
 
     //read/view permission
@@ -80,7 +80,7 @@ _.forEach(additions, function (modelName) {
       resource: modelName,
       action: 'view',
       description: 'View ' + simpleName,
-      wildcard: [modelName, 'view'].join(':')
+      wildcard: [simpleName, 'view'].join(':')
     },
 
     //update/edit permission
@@ -88,7 +88,7 @@ _.forEach(additions, function (modelName) {
       resource: modelName,
       action: 'edit',
       description: 'Edit ' + simpleName,
-      wildcard: [modelName, 'edit'].join(':')
+      wildcard: [simpleName, 'edit'].join(':')
     },
 
     //delete permission
@@ -96,7 +96,7 @@ _.forEach(additions, function (modelName) {
       resource: modelName,
       action: 'delete',
       description: 'Delete ' + simpleName,
-      wildcard: [modelName, 'delete'].join(':')
+      wildcard: [simpleName, 'delete'].join(':')
     });
 });
 

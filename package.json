@@ -29,12 +29,10 @@
     "name": "lally elias",
     "email": "lallyelias87@gmail.com"
   },
-  "contributors": [
-    {
-      "name": "lallyelias",
-      "email": "lallyelias87@gmail.com"
-    }
-  ],
+  "contributors": [{
+    "name": "lallyelias",
+    "email": "lallyelias87@gmail.com"
+  }],
   "repository": {
     "type": "git",
     "url": "https://github.com/CodeTanzania/open311-api/"
@@ -76,7 +74,7 @@
     "method-override": "^2.3.7",
     "mkdir-p": "0.0.7",
     "moment": "^2.17.1",
-    "mongoose": "^4.8.3",
+    "mongoose": "^4.8.4",
     "mongoose-autopopulate": "^0.5.0",
     "mongoose-autoset": "^0.1.0",
     "mongoose-exists": "^0.1.0",
@@ -92,8 +90,8 @@
     "parse-mongo-url": "^1.1.1",
     "randomcolor": "^0.4.4",
     "require-all": "^2.2.0",
-    "seed-mongoose": "^0.4.1",
-    "serve-favicon": "^2.3.2",
+    "seed-mongoose": "^0.5.0",
+    "serve-favicon": "^2.4.0",
     "shortid": "^2.2.6",
     "uuid": "^3.0.1",
     "winston": "^2.3.1",
@@ -101,7 +99,7 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "faker": "^3.1.0",
+    "faker": "^4.0.0",
     "grunt": "^1.0.1",
     "grunt-concurrent": "^2.3.1",
     "grunt-contrib-clean": "^1.0.0",

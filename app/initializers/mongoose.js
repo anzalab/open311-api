@@ -5,10 +5,10 @@
 const path = require('path');
 // const environment = require('execution-environment');
 const conf = require('config');
-// const winston = require('winston');
+const winston = require('winston');
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
-mongoose.set('debug', true);
+// mongoose.set('debug', true);
 const mongooseShow =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'show'));
 const mongooseList =
@@ -108,36 +108,22 @@ require('require-all')({
 mongoose.connect(uristring, mongoOptions, function () {
   require('seed-mongoose')({
     suffix: '_seed',
-    order: [
-      'Setting', 'Permission', 'Role', 'Party',
-      'Status', 'Priority', 'Jurisdiction',
-      'ServiceGroup', 'Service'
-    ],
-    // logger: winston,
-    // active: !environment.isTest()
-    active: false
-  }, mongoose, function (error, results) {
-    console.log(error);
-    console.log(results);
-    // require(path.join(__dirname, '..', '..', 'seeds'))
-    //   (function ( /*error , results*/ ) {});
+    logger: winston,
+    mongoose: mongoose
+  }, function (error /*, results*/ ) {
+    if (error) {
+      throw error;
+    } else {
+      //seed default user(s)
+      require(path.join(__dirname, '..', '..', 'seeds'))
+        (function (error /*, party*/ ) {
+          if (error && error.code !== 11000) {
+            throw error;
+          }
+        });
+    }
   });
 });
-
-// require seed - mongoose to allow seeding
-// if (!environment.isTest()) {
-// require('seed-mongoose')({
-//   suffix: '_seed',
-//   // logger: winston,
-//   // active: !environment.isTest()
-//   active: false
-// }, function (error, results) {
-//   console.log(error);
-//   console.log(results);
-//   // require(path.join(__dirname, '..', '..', 'seeds'))
-//   //   (function ( /*error , results*/ ) {});
-// });
-// }
 
 /**
  * @description export mongoose
