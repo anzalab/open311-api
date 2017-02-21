@@ -4,10 +4,15 @@
 /**
  * @module Role
  * @name Role
- * @description manage parties role(s)
+ * @description manage parties role(s). 
+ *              
+ *              It is a collection of permission(s) that are applicable to
+ *              to a specific party(ies).
+ *              
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
  * @version 0.1.0
+ * @public
  */
 
 
@@ -18,7 +23,13 @@ const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
 
-//Role Schema
+/**
+ * @name RoleSchema
+ * @type {Schema}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @private
+ */
 const RoleSchema = new Schema({
 
   /**
@@ -40,7 +51,7 @@ const RoleSchema = new Schema({
 
   /**
    * @name description
-   * @description additional explanation about this role 
+   * @description human readable additional explanation about this role 
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -64,7 +75,7 @@ const RoleSchema = new Schema({
     ref: 'Permission',
     required: true,
     autoset: true,
-    autopopulate: { //TODO use lazy loading
+    autopopulate: {
       select: 'resource wildcard description'
     }
   }]
@@ -131,5 +142,13 @@ RoleSchema.pre('validate', function (next) {
 });
 
 
-//exports Role model
+/**
+ * @name Role
+ * @description register RoleSchema and initialize Role
+ *              model
+ * @type {Model}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ */
 module.exports = mongoose.model('Role', RoleSchema);

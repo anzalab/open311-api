@@ -177,7 +177,6 @@ describe('Permission', function () {
             expect(found.action).to.be.equal(permission.action);
             expect(found.resource).to.be.equal(permission.resource);
             expect(found.description).to.be.equal(permission.description);
-            expect(found.description).to.be.equal(permission.description);
             expect(found.wildcard).to.be.equal(permission.wildcard);
 
             done(error, results);

@@ -7,6 +7,7 @@
  */
 
 //dependencies
+const _ = require('lodash');
 const mongoose = require('mongoose');
 const faker = require('faker');
 const expect = require('chai').expect;
@@ -152,6 +153,68 @@ describe('Role', function () {
 
 
         done(error, removed);
+      });
+
+  });
+
+  describe('Search', function () {
+    let permissions = [{
+      action: faker.random.word(),
+      resource: faker.random.word(),
+    }];
+
+    let role = {
+      name: faker.random.word(),
+      description: faker.random.word()
+    };
+
+    before(function (done) {
+      Permission.remove(done);
+    });
+
+    before(function (done) {
+      Role.remove(done);
+    });
+
+    before(function (done) {
+      Permission.create(permissions, function (error, created) {
+        permissions = created;
+        done(error, created);
+      });
+    });
+
+    before(function (done) {
+      role.permissions = permissions;
+      Role.create(role, function (error, created) {
+        role = created;
+        done(error, created);
+      });
+    });
+
+    it('should be able to search role by its fields',
+      function (done) {
+
+        Role
+          .search(role.name, function (error, results) {
+
+            expect(error).to.not.exist;
+            expect(results).to.exist;
+            expect(results).to.have.length.above(0);
+
+            //assert single result
+            const found = results[0];
+            expect(found.name).to.exist;
+            expect(found.description).to.exist;
+            expect(found.permissions).to.exist;
+
+            expect(found.name).to.be.equal(role.name);
+            expect(found.description).to.be.equal(role.description);
+            expect(_.map(found.permissions, 'wildcard')).to
+              .include.members(_.map(found.permissions, 'wildcard'));
+
+            done(error, results);
+
+          });
       });
 
   });
