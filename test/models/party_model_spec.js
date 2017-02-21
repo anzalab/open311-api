@@ -106,6 +106,35 @@ describe('Party', function () {
 
   });
 
+  it('should be able to search party by its fields',
+    function (done) {
+
+      Party
+        .search(party.email, function (error, results) {
+
+          expect(error).to.not.exist;
+          expect(results).to.exist;
+          expect(results).to.have.length.above(0);
+
+          //assert single result
+          const found = results[0];
+          expect(found.email).to.exist;
+          expect(found.password).to.exist;
+          expect(found.phone).to.exist;
+          expect(found.roles).to.exist;
+          expect(found.relation).to.exist;
+          expect(found.relation.name)
+            .to.be.equal(Party.RELATION_NAME_INTERNAL);
+          expect(found.relation.type)
+            .to.be.equal(Party.RELATION_TYPE_WORKER);
+          expect(found.createdAt).to.exist;
+          expect(found.updatedAt).to.exist;
+
+          done(error, results);
+
+        });
+    });
+
   after(function (done) {
     Role.remove(done);
   });
