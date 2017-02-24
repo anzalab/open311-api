@@ -69,7 +69,7 @@ describe('ServiceRequest', function () {
     reporter = {
       email: faker.internet.email().toLowerCase(),
       name: faker.name.findName(),
-      phone: faker.phone.phoneNumber(),
+      phone: faker.phone.phoneNumber()
     };
   });
 
@@ -278,6 +278,7 @@ describe('ServiceRequest', function () {
 
     });
 
+
   it('should be able to search service request by code',
     function (done) {
 
@@ -311,6 +312,71 @@ describe('ServiceRequest', function () {
         });
     });
 
+  it('should be able to search service request reporter phone number',
+    function (done) {
+
+      ServiceRequest
+        .search(serviceRequest.reporter.phone, function (error, results) {
+
+          expect(error).to.not.exist;
+          expect(results).to.exist;
+          expect(results).to.have.length.above(0);
+
+          //assert single result
+          const found = results[0];
+          expect(found._id).to.exist;
+          expect(found.jurisdiction).to.be.exist;
+          expect(found.service).to.be.exist;
+          expect(found.reporter).to.be.exist;
+          expect(found.assignee).to.be.exist;
+          expect(found.code).to.be.exist;
+          expect(found.description).to.be.exist;
+          expect(found.location).to.exist;
+          expect(found.status).to.be.exist;
+          expect(found.priority).to.be.exist;
+
+          expect(found._id).to.eql(serviceRequest._id);
+          expect(found.code).to.be.equal(serviceRequest.code);
+          expect(found.description).to.be.equal(serviceRequest.description);
+
+
+          done(error, results);
+
+        });
+    });
+
+  it('should be able to search service request by reporter email',
+    function (done) {
+
+      ServiceRequest
+        .search(serviceRequest.reporter.email, function (error, results) {
+
+          expect(error).to.not.exist;
+          expect(results).to.exist;
+          expect(results).to.have.length.above(0);
+
+          //assert single result
+          const found = results[0];
+          expect(found._id).to.exist;
+          expect(found.jurisdiction).to.be.exist;
+          expect(found.service).to.be.exist;
+          expect(found.reporter).to.be.exist;
+          expect(found.assignee).to.be.exist;
+          expect(found.code).to.be.exist;
+          expect(found.description).to.be.exist;
+          expect(found.location).to.exist;
+          expect(found.status).to.be.exist;
+          expect(found.priority).to.be.exist;
+
+          expect(found._id).to.eql(serviceRequest._id);
+          expect(found.code).to.be.equal(serviceRequest.code);
+          expect(found.description).to.be.equal(serviceRequest.description);
+
+
+          done(error, results);
+
+        });
+    });
 
   it('should be able to delete existing service request(issue)',
     function (done) {

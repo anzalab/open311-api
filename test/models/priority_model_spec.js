@@ -146,10 +146,6 @@ describe('Priority', function () {
         expect(found.weight).to.exist;
         expect(found.color).to.exist;
 
-        expect(found.name).to.be.equal(priority.name);
-        expect(found.weight).to.be.equal(priority.weight);
-        expect(found.color).to.be.equal(priority.color);
-
         done(error, found);
 
       });

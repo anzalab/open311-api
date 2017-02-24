@@ -146,10 +146,6 @@ describe('Status', function () {
         expect(found.weight).to.exist;
         expect(found.color).to.exist;
 
-        expect(found.name).to.be.equal(status.name);
-        expect(found.weight).to.be.equal(status.weight);
-        expect(found.color).to.be.equal(status.color);
-
         done(error, found);
 
       });
