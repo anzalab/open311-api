@@ -20,14 +20,15 @@ module.exports = exports = function (request, response, next) {
 
   //instance variable to model mapping
   const instances = {
-    customer: 'Party',
-    reporter: 'Party',
+    operator: 'Party',
     commentator: 'Party',
     worker: 'Party',
     assignee: 'Party',
     jurisdiction: 'Jurisdiction',
     group: 'ServiceGroup',
-    service: 'Service'
+    service: 'Service',
+    priority: 'Priority',
+    request: 'ServiceRequest'
   };
 
   //check if request has any instance

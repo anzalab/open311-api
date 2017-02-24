@@ -479,9 +479,14 @@ ServiceRequestSchema.post('save', function (doc, next) {
 //TODO use aggregation
 //TODO use status and priority model
 ServiceRequestSchema.statics.summary = function (done) {
-  // count by services
+
+  //references
   const Service = mongoose.model('Service');
+  const Status = mongoose.model('Status');
   const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //TODO use aggregation
+
   async.parallel({
     services: function (next) {
       Service
@@ -493,8 +498,8 @@ ServiceRequestSchema.statics.summary = function (done) {
             const works = {};
             _.forEach(services, function (service) {
               works[service._id] = function (then) {
-                ServiceRequest.count({ service: service._id },
-                  then);
+                ServiceRequest
+                  .count({ service: service._id }, then);
               };
             });
             async.parallel(works, next);
@@ -503,35 +508,25 @@ ServiceRequestSchema.statics.summary = function (done) {
     },
 
     statuses: function (next) {
-      const statuses = [{
-        name: 'Open',
-        weight: -5,
-        color: '#0D47A1'
-      }, {
-        name: 'In Progress',
-        weight: 0,
-        color: '#F9A825'
-      }, {
-        name: 'Pending',
-        weight: 5,
-        color: '#9C27B0'
-      }, {
-        name: 'Closed',
-        weight: 10,
-        color: '#1B5E20'
-      }];
-
-      const works = {};
-      _.forEach(statuses, function (status) {
-        works[status.name] = function (then) {
-          ServiceRequest
-            .count({ 'status.name': status.name }, then);
-        };
-      });
-      async.parallel(works, next);
+      Status
+        .find({})
+        .exec(function (error, statuses) {
+          if (error) {
+            done(null, {});
+          } else {
+            const works = {};
+            _.forEach(statuses, function (status) {
+              works[status._id] = function (then) {
+                ServiceRequest
+                  .count({ status: status._id }, then);
+              };
+            });
+            async.parallel(works, next);
+          }
+        });
     }
   }, done);
-  // count by status
+
 };
 
 
