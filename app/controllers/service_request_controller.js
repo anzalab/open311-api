@@ -1,6 +1,7 @@
 'use strict';
 
 //dependencies
+const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
@@ -87,6 +88,16 @@ module.exports = {
     async.waterfall([
 
       function update(then) {
+        //obtain object id from refs
+        let refs =
+          _.pick(request.body, [
+            'status', 'priority',
+            'operator', 'assignee',
+            'jurisdiction', 'service'
+          ]);
+        refs = _.map(refs, '_id');
+        request.body = _.merge({}, request.body, refs);
+
         ServiceRequest
           .findByIdAndUpdate(
             request.params.id,

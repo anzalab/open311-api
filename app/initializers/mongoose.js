@@ -112,7 +112,7 @@ mongoose.connect(uristring, mongoOptions, function () {
       logger: winston,
       mongoose: mongoose
     }, function (error /*, results*/ ) {
-      if (error) {
+      if (error && error.code !== 11000) {
         throw error;
       } else {
         //seed default user(s)
