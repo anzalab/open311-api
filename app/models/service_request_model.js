@@ -17,6 +17,7 @@
 //TODO make service request to support call log in a call center
 //TODO migrate location to use GeoJSON schema
 //TODO obtain geo-data from jurisdiction if not available(or set)
+//TODO add service group
 
 
 //dependencies
@@ -83,6 +84,45 @@ const ServiceRequestSchema = new Schema({
       select: 'code name color group'
     }
   },
+
+
+  /**
+   * @name call
+   * @description log operator call details at a call center
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  call: {
+    /**
+     * @name startedAt
+     * @description time when a call received at the call center
+     * @type {Object}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+    startedAt: {
+      type: Date,
+      index: true
+    },
+
+
+    /**
+     * @name endedAt
+     * @description time when a call center operator end the call
+     *              and release a reporter
+     * @type {Object}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+    endedAt: {
+      type: Date,
+      index: true
+    }
+  }
 
 
   /**

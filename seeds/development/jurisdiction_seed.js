@@ -27,5 +27,5 @@ module.exports = [jurisdiction, {
   code: '3955',
   name: 'DAWASCO - Temeke',
   domain: 'temeke.dawasco.org',
-  about: 'Ilala Area Office for Dar es salaam Water Supply Company(DAWASCO)'
+  about: 'Temeke Area Office for Dar es salaam Water Supply Company(DAWASCO)'
 }];
