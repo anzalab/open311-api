@@ -15,11 +15,11 @@ const router = express.Router();
 const controller =
   require(path.join(__dirname, '..', 'controllers', 'service_group_controller'));
 
-//enable token authentication
-const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
+// enable token authentication
+// const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
 
-//add specific middlewares to servicegroups router
-router.all('/servicegroups*', jwtAuth);
+// add specific middlewares to servicegroups router
+// router.all('/servicegroups*', jwtAuth);
 
 /**
  * Handle Http GET on /servicegroups
