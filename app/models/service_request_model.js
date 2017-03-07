@@ -30,6 +30,21 @@ const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const MediaSchema = require(path.join(__dirname, 'schemas', 'media_schema'));
 
+//contact methods
+const CONTACT_METHOD_PHONE = 'Phone';
+const CONTACT_METHOD_EMAIL = 'Email';
+const CONTACT_METHOD_SMS = 'SMS';
+const CONTACT_METHOD_USSD = 'USSD';
+const CONTACT_METHOD_VISIT = 'Visit';
+const CONTACT_METHOD_LETTER = 'Letter';
+const CONTACT_METHOD_FAX = 'Fax';
+
+const CONTACT_METHODS = [
+  CONTACT_METHOD_PHONE, CONTACT_METHOD_EMAIL,
+  CONTACT_METHOD_SMS, CONTACT_METHOD_USSD, CONTACT_METHOD_VISIT,
+  CONTACT_METHOD_LETTER, CONTACT_METHOD_FAX
+];
+
 
 /**
  * @name ServiceRequestSchema
@@ -122,7 +137,7 @@ const ServiceRequestSchema = new Schema({
       type: Date,
       index: true
     }
-  }
+  },
 
 
   /**
@@ -316,6 +331,24 @@ const ServiceRequestSchema = new Schema({
 
 
   /**
+   * @name method
+   * @description A communication(contact) method(mechanism) used by a reporter 
+   *              to report the issue
+   *              
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  method: {
+    type: String,
+    enum: CONTACT_METHODS,
+    default: CONTACT_METHOD_PHONE,
+    index: true
+  },
+
+
+  /**
    * @name location
    * @description A longitude and latitude pair of the location of a 
    *              service request(issue).
@@ -504,7 +537,7 @@ ServiceRequestSchema.pre('validate', function (next) {
 
 
 ServiceRequestSchema.post('save', function (doc, next) {
-  //TODO notify CRM to update details based on the account id
+  //TODO notify customer details(DRM) to update details based on the account id
   //TODO send(queue) notification
   //TODO send service request code to reporte(sms or email)
   next();
@@ -515,6 +548,15 @@ ServiceRequestSchema.post('save', function (doc, next) {
 // ServiceRequestSchema Static Properties & Methods
 //-----------------------------------------------------------------------------
 
+//contact methods constants
+ServiceRequestSchema.statics.CONTACT_METHOD_PHONE = CONTACT_METHOD_PHONE;
+ServiceRequestSchema.statics.CONTACT_METHOD_FAX = CONTACT_METHOD_FAX;
+ServiceRequestSchema.statics.CONTACT_METHOD_LETTER = CONTACT_METHOD_LETTER;
+ServiceRequestSchema.statics.CONTACT_METHOD_VISIT = CONTACT_METHOD_VISIT;
+ServiceRequestSchema.statics.CONTACT_METHOD_SMS = CONTACT_METHOD_SMS;
+ServiceRequestSchema.statics.CONTACT_METHOD_USSD = CONTACT_METHOD_USSD;
+ServiceRequestSchema.statics.CONTACT_METHOD_EMAIL = CONTACT_METHOD_EMAIL;
+ServiceRequestSchema.statics.CONTACT_METHODS = CONTACT_METHODS;
 
 //TODO use aggregation
 //TODO use status and priority model
