@@ -13,6 +13,7 @@ module.exports = function (grunt) {
     app: 'app',
     appConfig: 'config',
     appSeeds: 'seeds',
+    scripts: 'scripts',
     test: 'test'
   };
 
@@ -135,6 +136,11 @@ module.exports = function (grunt) {
           '<%= project.app %>/**/*.js',
           '<%= project.appConfig %>/**/*.js',
           '<%= project.appSeeds %>/**/*.js'
+        ]
+      },
+      scripts: {
+        src: [
+          '<%= project.scripts %>/**/*.js'
         ]
       },
       test: {

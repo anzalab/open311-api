@@ -38,7 +38,8 @@
     "url": "https://github.com/CodeTanzania/open311-api/"
   },
   "scripts": {
-    "test": "grunt spec",
+    "drop": "node scripts/drop.js",
+    "test": "grunt modelsspec",
     "start": "pm2 start production.json",
     "stop": "pm2 stop production.json",
     "restart": "pm2 restart production.json",
@@ -120,6 +121,6 @@
     "time-grunt": "^1.4.0"
   },
   "engines": {
-    "node": ">=7.2.1"
+    "node": ">=7.6.0"
   }
 }
