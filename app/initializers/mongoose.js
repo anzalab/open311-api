@@ -25,7 +25,6 @@ const mongooseAutoset = require('mongoose-autoset');
 const mongooseValid8 = require('mongoose-valid8');
 const mongoosePaginate = require('express-mquery').plugin;
 const mongooseAutopopulate = require('mongoose-autopopulate');
-// const mongooseUniqueValidator = require('mongoose-unique-validator');
 const mongooseHidden = require('mongoose-hidden')({
   defaultHidden: {
     password: true,
@@ -88,7 +87,6 @@ mongoose.plugin(mongooseShow);
 mongoose.plugin(mongooseList);
 mongoose.plugin(mongooseReload);
 mongoose.plugin(mongooseSearchable);
-// mongoose.plugin(mongooseUniqueValidator);
 
 //require external models
 // require('byteskode-logger');
