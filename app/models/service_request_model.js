@@ -25,7 +25,7 @@ const path = require('path');
 const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
-const shortid = require('shortid');
+const moment = require('moment');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const MediaSchema = require(path.join(__dirname, 'schemas', 'media_schema'));
@@ -488,15 +488,16 @@ ServiceRequestSchema.virtual('latitude').get(function () {
 ServiceRequestSchema.pre('validate', function (next) {
 
   //set service request code
-  //TODO update code algorithm to use daily rotate increments
-  if (_.isEmpty(this.code)) {
+  //in format (Area Code Service Code Year Month Date Hour Minute)
+  //i.e IL1703171728
+  if (!this.code || _.isEmpty(this.code)) {
+
     this.code = [
-        shortid.generate(),
-        shortid.generate()
-      ].join('')
-      .replace(/-|_/g, '')
-      .substr(0, 8)
-      .toUpperCase();
+      this.jurisdiction.code,
+      this.service.code,
+      moment(new Date()).format('YYMMDDHHMM')
+    ].join('');
+
   }
 
   //ensure jurisdiction from service
@@ -506,6 +507,7 @@ ServiceRequestSchema.pre('validate', function (next) {
   }
 
   //set default status & priority if not set
+  //TODO preload default status & priority
   if (!this.status || !this.priority) {
     async.parallel({
       status: function findDefaultStatus(then) {
