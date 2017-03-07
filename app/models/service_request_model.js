@@ -487,6 +487,12 @@ ServiceRequestSchema.virtual('latitude').get(function () {
 
 ServiceRequestSchema.pre('validate', function (next) {
 
+  //ensure jurisdiction from service
+  const jurisdiction = _.get(this.service, 'jurisdiction');
+  if (!this.jurisdiction && _.get(this.service, 'jurisdiction')) {
+    this.jurisdiction = jurisdiction;
+  }
+
   //set service request code
   //in format (Area Code Service Code Year Month Date Hour Minute)
   //i.e IL1703171728
@@ -498,12 +504,6 @@ ServiceRequestSchema.pre('validate', function (next) {
       moment(new Date()).format('YYMMDDHHMM')
     ].join('');
 
-  }
-
-  //ensure jurisdiction from service
-  const jurisdiction = _.get(this.service, 'jurisdiction');
-  if (!this.jurisdiction && _.get(this.service, 'jurisdiction')) {
-    this.jurisdiction = jurisdiction;
   }
 
   //set default status & priority if not set

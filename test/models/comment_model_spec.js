@@ -55,6 +55,7 @@ describe('Comment', function () {
       },
       function createServiceRequest(service, next) {
         ServiceRequest.create({
+          jurisdiction: service.jurisdiction,
           service: service,
           reporter: reporter,
           description: faker.lorem.sentence(),

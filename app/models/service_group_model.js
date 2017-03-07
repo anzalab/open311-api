@@ -160,18 +160,7 @@ ServiceGroupSchema.pre('validate', function (next) {
 
   //set service group code
   if (_.isEmpty(this.code) && !_.isEmpty(this.name)) {
-    //generate code from jurisdiction code
-    //and service group name
-    const jurisdictionCode = _.get(this.jurisdiction, 'code');
-    if (jurisdictionCode) {
-      const code = [].concat(jurisdictionCode).concat(_.take(this.name, 1));
-      this.code = code.join('').toUpperCase();
-    }
-
-    //generate code from service group name
-    else {
-      this.code = _.take(this.name, 3).join('').toUpperCase();
-    }
+    this.code = _.take(this.name, 1).join('').toUpperCase();
   }
 
   next();

@@ -178,26 +178,10 @@ ServiceSchema.pre('validate', function (next) {
 
   //set service code
   if (_.isEmpty(this.code) && !_.isEmpty(this.name)) {
-    //generate code from jurisdiction code
-    //and service group
-    const jurisdictionCode = _.get(this.jurisdiction, 'code');
-    const serviceGroupCode = _.get(this.group, 'code');
-
-    if (jurisdictionCode && serviceGroupCode) {
-      const code = [].concat(serviceGroupCode).concat(_.take(this.name, 1));
-      this.code = code.join('').toUpperCase();
-    }
-
-    //generate code from jurisdiction only
-    else if (jurisdictionCode && !serviceGroupCode) {
-      const code = [].concat(jurisdictionCode).concat(_.take(this.name, 2));
-      this.code = code.join('').toUpperCase();
-    }
 
     //generate code from service group name
-    else {
-      this.code = _.take(this.name, 4).join('').toUpperCase();
-    }
+    this.code = _.take(this.name, 1).join('').toUpperCase();
+
   }
 
   next();

@@ -191,7 +191,7 @@ JurisdictionSchema.pre('validate', function (next) {
 
   //set juridiction code
   if (_.isEmpty(this.code) && !_.isEmpty(this.name)) {
-    this.code = _.take(this.name, 2).join('').toUpperCase();
+    this.code = _.take(this.name, 1).join('').toUpperCase();
   }
 
   next();
