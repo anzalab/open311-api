@@ -16,10 +16,10 @@ const controller =
   require(path.join(__dirname, '..', 'controllers', 'service_controller'));
 
 // enable token authentication
-// const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
+const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
 
 // add specific middlewares to services router
-// router.all('/services*', jwtAuth);
+router.all('/services*', jwtAuth);
 
 /**
  * Handle Http GET on /services

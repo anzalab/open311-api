@@ -16,10 +16,10 @@ const controller =
   require(path.join(__dirname, '..', 'controllers', 'jurisdiction_controller'));
 
 // enable token authentication
-// const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
+const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
 
 // add specific middlewares to jurisdictions router
-// router.all('/jurisdictions*', jwtAuth);
+router.all('/jurisdictions*', jwtAuth);
 
 /**
  * Handle Http GET on /jurisdictions
