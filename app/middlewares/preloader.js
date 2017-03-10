@@ -46,7 +46,8 @@ module.exports = exports = function (request, response, next) {
     let preloads = {};
     _.forEach(bodyInstances, function (value, key) {
       preloads[key] = function (after) {
-        const Model = mongoose.model(instances[key]);
+        const id = _.get(instances[key], '_id', instances[key]);
+        const Model = mongoose.model(id);
         Model.findById(value, after);
       };
     });

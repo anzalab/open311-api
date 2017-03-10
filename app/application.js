@@ -128,6 +128,7 @@ if (!environment.isLocal()) {
 
 //bind settings loader middleware
 app.use(require(path.join(__dirname, 'middlewares', 'settings')));
+app.use(require(path.join(__dirname, 'middlewares', 'preloader')));
 app.use(require(path.join(__dirname, 'middlewares', 'defaults')));
 
 
