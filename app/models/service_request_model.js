@@ -487,29 +487,34 @@ ServiceRequestSchema.virtual('latitude').get(function () {
 
 ServiceRequestSchema.pre('validate', function (next) {
 
+  //ensure call times
+  this.call = this.call || {};
+  this.call.startedAt = this.call.startedAt || new Date();
+  this.call.endedAt = this.call.endedAt || new Date();
+
   //ensure jurisdiction from service
   const jurisdiction = _.get(this.service, 'jurisdiction');
   if (!this.jurisdiction && _.get(this.service, 'jurisdiction')) {
     this.jurisdiction = jurisdiction;
   }
 
-  //set service request code
-  //in format (Area Code Service Code Year Month Date Hour Minute)
-  //i.e IL1703171728
-  if (!this.code || _.isEmpty(this.code)) {
-
-    this.code = [
-      this.jurisdiction.code,
-      this.service.code,
-      moment(new Date()).format('YYMMDDHHMM')
-    ].join('');
-
-  }
-
   //set default status & priority if not set
   //TODO preload default status & priority
-  if (!this.status || !this.priority) {
+  if (!this.status || !this.priority || !this.code || _.isEmpty(this.code)) {
     async.parallel({
+
+      jurisdiction: function (then) {
+        const Jurisdiction = mongoose.model('Jurisdiction');
+        const id = _.get(this.jurisdiction, '_id', this.jurisdiction);
+        Jurisdiction.findById(id, then);
+      }.bind(this),
+
+      service: function (then) {
+        const Service = mongoose.model('Service');
+        const id = _.get(this.service, '_id', this.service);
+        Service.findById(id, then);
+      }.bind(this),
+
       status: function findDefaultStatus(then) {
         const Status = mongoose.model('Status');
         Status.findDefault(then);
@@ -522,9 +527,21 @@ ServiceRequestSchema.pre('validate', function (next) {
       if (error) {
         next(error);
       } else {
+        //set default status and priority
         this.status = (this.status || result.status || undefined);
         this.priority = (this.priority || result.priority || undefined);
+
+        //set service request code
+        //in format (Area Code Service Code Year Month Date Hour Minute)
+        //i.e IL1703171728
+        this.code = [
+          (result.jurisdiction || {}).code,
+          (result.service || {}).code,
+          moment(new Date()).format('YYMMDDHHMM')
+        ].join('');
+
         next();
+
       }
     }.bind(this));
 

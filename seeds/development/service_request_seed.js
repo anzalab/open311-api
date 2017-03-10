@@ -19,25 +19,22 @@ module.exports = [{
   reporter: _.omit(parties[0], 'jurisdiction'),
   operator: _.omit(parties[0], 'jurisdiction'),
   assignee: _.omit(parties[0], 'jurisdiction'),
-  code: '1111',
   description: 'For three days now we dont have water',
   address: 'Mikocheni'
 }, {
-  jurisdiction: jurisdictions[0],
+  jurisdiction: jurisdictions[1],
   service: _.omit(services[1], 'jurisdiction', 'group'),
   reporter: _.omit(parties[0], 'jurisdiction'),
   operator: _.omit(parties[0], 'jurisdiction'),
   assignee: _.omit(parties[0], 'jurisdiction'),
-  code: '2222',
   description: 'There have been a leakage at my area. Lots of water in the street',
   address: 'Kijitonyama'
 }, {
-  jurisdiction: jurisdictions[0],
+  jurisdiction: jurisdictions[2],
   service: _.omit(services[2], 'jurisdiction', 'group'),
   reporter: _.omit(parties[0], 'jurisdiction'),
   operator: _.omit(parties[0], 'jurisdiction'),
   assignee: _.omit(parties[0], 'jurisdiction'),
-  code: '3333',
   description: 'I have not received my last month bill',
   address: 'Temeke - Mikoroshini'
 }, {
@@ -46,7 +43,6 @@ module.exports = [{
   reporter: _.omit(parties[0], 'jurisdiction'),
   operator: _.omit(parties[0], 'jurisdiction'),
   assignee: _.omit(parties[0], 'jurisdiction'),
-  code: '4444',
   description: 'Too much sewage in city center roads',
   address: 'Posta Mpya'
 }];

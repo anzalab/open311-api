@@ -14,28 +14,28 @@ module.exports = [{
   jurisdiction: jurisdictions[0],
   group: _.omit(groups[1], 'jurisdiction'),
   name: 'Lack of Water',
-  code: '1111',
+  code: 'LW',
   description: 'Lack of Water related service request(issue)',
   color: '#960F1E'
 }, {
   jurisdiction: jurisdictions[0],
   group: _.omit(groups[1], 'jurisdiction'),
   name: 'Leakage',
-  code: '2222',
+  code: 'LK',
   description: 'Water Leakage related service request(issue)',
   color: '#D31DBB'
 }, {
   jurisdiction: jurisdictions[0],
   group: _.omit(groups[0], 'jurisdiction'),
   name: 'Billing Enquiry',
-  code: '3333',
+  code: 'B',
   description: 'Billing Enquiry related service request(issue)',
   color: '#4D57B7'
 }, {
   jurisdiction: jurisdictions[0],
   group: _.omit(groups[2], 'jurisdiction'),
   name: 'Request Other',
-  code: '4444',
+  code: 'O',
   description: 'Other related service request(issue)',
   color: '#C9D13C'
 }];

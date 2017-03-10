@@ -5,7 +5,7 @@
 
 //parent jurisdiction
 const jurisdiction = {
-  code: '9545',
+  code: 'H',
   name: 'DAWASCO HQ',
   domain: 'dawasco.org',
   about: 'Main office for Dar es salaam Water Supply Company(DAWASCO)'
@@ -18,14 +18,14 @@ const jurisdiction = {
  */
 module.exports = [jurisdiction, {
   jurisdiction: jurisdiction,
-  code: '7729',
+  code: 'I',
   name: 'DAWASCO Ilala',
   domain: 'ilala.dawasco.org',
   about: 'Ilala Area Office for Dar es salaam Water Supply Company(DAWASCO)'
 }, {
   jurisdiction: jurisdiction,
-  code: '3955',
+  code: 'T',
   name: 'DAWASCO - Temeke',
   domain: 'temeke.dawasco.org',
-  about: 'Ilala Area Office for Dar es salaam Water Supply Company(DAWASCO)'
+  about: 'Temeke Area Office for Dar es salaam Water Supply Company(DAWASCO)'
 }];

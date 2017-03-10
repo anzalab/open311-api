@@ -12,19 +12,19 @@ const jurisdictions = require(path.join(__dirname, 'jurisdiction_seed'));
 module.exports = [{
   jurisdiction: jurisdictions[0],
   name: 'Commercial',
-  code: '1111',
+  code: 'C',
   description: 'Commercial related service request(issue)',
   color: '#06C947'
 }, {
   jurisdiction: jurisdictions[0],
   name: 'Non Commercial',
-  code: '2222',
+  code: 'N',
   description: 'Non commercial related service request(issue)',
   color: '#960F1E'
 }, {
   jurisdiction: jurisdictions[0],
   name: 'Other',
-  code: '3333',
+  code: 'O',
   description: 'Other related service request(issue)',
   color: '#C8B1EF'
 }];

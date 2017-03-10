@@ -11,6 +11,8 @@ mongoose.Promise = global.Promise;
 // mongoose.set('debug', true);
 const mongooseShow =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'show'));
+const mongooseEdit =
+  require(path.join(__dirname, '..', 'libs', 'mongoose', 'edit'));
 const mongooseList =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'list'));
 const mongooseReload =
@@ -84,6 +86,7 @@ mongoose.plugin(mongooseAutopopulate);
 mongoose.plugin(mongooseHidden);
 mongoose.plugin(mongooseValid8);
 mongoose.plugin(mongooseShow);
+mongoose.plugin(mongooseEdit);
 mongoose.plugin(mongooseList);
 mongoose.plugin(mongooseReload);
 mongoose.plugin(mongooseSearchable);
