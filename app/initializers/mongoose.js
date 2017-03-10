@@ -74,7 +74,6 @@ mongoose.plugin(function (schema) {
     getters: true,
     virtuals: true
   });
-
 });
 
 mongoose.plugin(mongooseAutoset);
