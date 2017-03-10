@@ -83,6 +83,7 @@ const JurisdictionSchema = new Schema({
     type: String,
     required: true,
     trim: true,
+    uppercase: true,
     searchable: true,
     unique: true
   },

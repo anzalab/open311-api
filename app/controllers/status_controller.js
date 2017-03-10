@@ -76,19 +76,13 @@ module.exports = {
    */
   update: function (request, response, next) {
     Status
-      .findByIdAndUpdate(
-        request.params.id,
-        request.body, {
-          upsert: true,
-          new: true
-        },
-        function (error, status) {
-          if (error) {
-            next(error);
-          } else {
-            response.ok(status);
-          }
-        });
+      .edit(request, function (error, status) {
+        if (error) {
+          next(error);
+        } else {
+          response.ok(status);
+        }
+      });
   },
 
 
