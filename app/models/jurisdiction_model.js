@@ -32,7 +32,6 @@ const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const GeoJSON = require(path.join(__dirname, 'schemas', 'geojson_schema'));
 
-
 /**
  * @name JurisdictionSchema
  * @type {Schema}

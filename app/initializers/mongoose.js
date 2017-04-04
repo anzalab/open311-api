@@ -27,16 +27,16 @@ const mongooseAutoset = require('mongoose-autoset');
 const mongooseValid8 = require('mongoose-valid8');
 const mongoosePaginate = require('express-mquery').plugin;
 const mongooseAutopopulate = require('mongoose-autopopulate');
-// const mongooseHidden = require('mongoose-hidden')({
-//   defaultHidden: {
-//     password: true,
-//     __v: true,
-//     __t: true
-//   },
-//   virtuals: {
-//     id: 'hideJSON'
-//   }
-// });
+const mongooseHidden = require('mongoose-hidden')({
+  defaultHidden: {
+    password: true,
+    __v: true,
+    __t: true
+  },
+  virtuals: {
+    id: 'hideJSON'
+  }
+});
 
 
 /**
@@ -82,7 +82,7 @@ mongoose.plugin(mongooseUrl);
 mongoose.plugin(mongooseSoftDelete);
 mongoose.plugin(mongoosePaginate);
 mongoose.plugin(mongooseAutopopulate);
-// mongoose.plugin(mongooseHidden);
+mongoose.plugin(mongooseHidden);
 mongoose.plugin(mongooseValid8);
 mongoose.plugin(mongooseShow);
 mongoose.plugin(mongooseEdit);
