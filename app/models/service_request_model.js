@@ -584,6 +584,7 @@ ServiceRequestSchema.statics.summary = function (done) {
   //references
   const Service = mongoose.model('Service');
   const Status = mongoose.model('Status');
+  const Priority = mongoose.model('Priority');
   const ServiceRequest = mongoose.model('ServiceRequest');
 
   //TODO use aggregation
@@ -620,6 +621,25 @@ ServiceRequestSchema.statics.summary = function (done) {
               works[status._id] = function (then) {
                 ServiceRequest
                   .count({ status: status._id }, then);
+              };
+            });
+            async.parallel(works, next);
+          }
+        });
+    },
+
+    priorities: function (next) {
+      Priority
+        .find({})
+        .exec(function (error, priorities) {
+          if (error) {
+            done(null, {});
+          } else {
+            const works = {};
+            _.forEach(priorities, function (priority) {
+              works[priority._id] = function (then) {
+                ServiceRequest
+                  .count({ priority: priority._id }, then);
               };
             });
             async.parallel(works, next);

@@ -43,7 +43,7 @@ function registerParties(role, done) {
     email: 'jeanbarroca@gmail.com',
     password: 'open311@qwerty',
     name: 'Jean Barroca',
-    phone: '255765952971',
+    phone: '255765111111',
     roles: [role]
   }];
 
