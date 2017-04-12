@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const Role = mongoose.model('Role');
 const Party = mongoose.model('Party');
 
+
 function registerParties(role, done) {
   //default parties
   let parties = [{
