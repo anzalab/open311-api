@@ -13,6 +13,11 @@ const async = require('async');
 const mongoose = require('mongoose');
 const Party = mongoose.model('Party');
 const ServiceRequest = mongoose.model('ServiceRequest');
+const Jurisdiction = mongoose.model('Jurisdiction');
+const ServiceGroup = mongoose.model('ServiceGroup');
+const Service = mongoose.model('Service');
+const Priority = mongoose.model('Priority');
+const Status = mongoose.model('Status');
 const JWT = require(path.join(__dirname, '..', 'libs', 'jwt'));
 
 module.exports = {
@@ -278,6 +283,12 @@ module.exports = {
 
   },
 
+
+  /**
+   * @description handle summaries request
+   * @param  {HttpRequest} request  http request
+   * @param  {HttpResponse} response http response
+   */
   summaries: function (request, response) {
     ServiceRequest
       .summary(function (error, summaries) {
@@ -286,6 +297,48 @@ module.exports = {
         }
         response.ok(summaries);
       });
+  },
+
+
+  /**
+   * @description handle endpoints request
+   * @param  {HttpRequest} request  http request
+   * @param  {HttpResponse} response http response
+   */
+  endpoints: function (request, response, next) {
+    async.parallel({
+
+      jurisdictions: function (next) { //fetch jurisdiction
+        Jurisdiction.list(request, next);
+      },
+
+      servicegroups: function (next) { //fetch service groups
+        ServiceGroup.list(request, next);
+      },
+
+      services: function (next) { //fetch services
+        Service.list(request, next);
+      },
+
+      priorities: function (next) { //fetch priorities
+        Priority.list(request, next);
+      },
+
+      statuses: function (next) { //fetch statuses
+        Status.list(request, next);
+      },
+
+      summaries: function (next) { //fetch issue summaries
+        ServiceRequest.summary(next);
+      }
+
+    }, function (error, endpoints) {
+      if (error) {
+        next(error);
+      } else {
+        response.ok(endpoints);
+      }
+    });
   }
 
 };

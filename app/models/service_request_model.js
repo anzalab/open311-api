@@ -603,6 +603,7 @@ ServiceRequestSchema.statics.summary = function (done) {
   const ServiceRequest = mongoose.model('ServiceRequest');
 
   //TODO use aggregation
+  //TODO make sure not include resolved
 
   async.parallel({
     services: function (next) {

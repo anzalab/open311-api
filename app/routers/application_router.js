@@ -110,8 +110,25 @@ router.get('/heartbeats', function (request, response, next) {
 });
 
 
-router.get('/summaries', function (request, response, next) {
+/**
+ * Handle Http GET on /summaries
+ * @description check client summaries
+ * @param  {HttpRequest} request  a http request
+ * @param  {HttpResponse} response a http response
+ */
+router.get('/summaries', jwtAuth, function (request, response, next) {
   controller.summaries(request, response, next);
+});
+
+
+/**
+ * Handle Http GET on /endpoints
+ * @description check client endpoints
+ * @param  {HttpRequest} request  a http request
+ * @param  {HttpResponse} response a http response
+ */
+router.get('/endpoints', jwtAuth, function (request, response, next) {
+  controller.endpoints(request, response, next);
 });
 
 
