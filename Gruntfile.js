@@ -203,6 +203,16 @@ module.exports = function (grunt) {
           // '<%= project.test %>/models/status_model_spec.js'
         ]
       },
+      counter: { // ticket number generation spec
+        options: {
+          reporter: 'spec',
+          timeout: 10000
+        },
+        src: [
+          '<%= project.test %>/bootstrap_spec.js',
+          '<%= project.test %>/models/counter_model_spec.js'
+        ]
+      },
       routers: {
         options: {
           reporter: 'spec',

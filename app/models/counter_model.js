@@ -11,11 +11,15 @@
  *
  *              The format for the ticket number is as below:
  *              jurisdiction code - service code - year(2digits) - sequence(4digits)
- *              i.e ILLK170001 
+ *              i.e ILLK170001
+ *              
+ *              At any time the above combo is ensured to be unique for better
+ *              ticket number generation.
  *
  * @see {@link ServiceRequest}
  * @see {@link Jurisdiction}
  * @see {@link Service}
+ * @see {@link https://docs.mongodb.com/v3.0/tutorial/create-an-auto-incrementing-field/}
  * @see {@link https://momentjs.com/|moment}
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
@@ -32,7 +36,7 @@ const Schema = mongoose.Schema;
 
 
 //default year digits to use
-const YEAR_FORMAT = 'YY';
+const YEAR_FORMAT = 'YY'; //TODO move this to configurations
 
 
 /**
@@ -143,6 +147,7 @@ CounterSchema.index({
  * @name format
  * @description format a counter to meaningful(human readable) ticket number
  * @return {String} formatted ticket number
+ * @see  {@link https://lodash.com/docs/4.17.4#padStart}
  * @since 0.1.0
  * @version 0.1.0
  * @private
@@ -151,22 +156,8 @@ CounterSchema.methods.format = function () {
 
   //format ticket number to whole meaningful(human readable) number
 
-  let padSize = 3; //we envision four digit sequence number
-
-  //if is on tenth use 2 padSize
-  if (this.sequence > 9 && this.sequence <= 99) {
-    padSize = 2;
-  }
-
-  //if is on hundreds use 1 padSize
-  if (this.sequence > 99 && this.sequence <= 999) {
-    padSize = 1;
-  }
-
-  //if is on thousands dont pad
-  if (this.sequence > 999) {
-    padSize = 0;
-  }
+  //TODO move this to configurations
+  let padSize = 4; //we envision four digit sequence number
 
   //format a sequence by padding 0's at the begin of it
   const sequence = _.padStart(this.sequence, padSize, '0');
@@ -223,15 +214,31 @@ CounterSchema.statics.generate = function (options, done) {
   //atomically upsert & increment sequence
   const criteria = _.pick(options, ['jurisdiction', 'service', 'year']);
   Counter
-    .findAndModify(criteria, { $inc: { sequence: 1 } }, { upsert: true, new: true })
+    .findOneAndUpdate(
+      criteria, {
+        $inc: {
+          sequence: 1 //increment sequence by one
+        }
+      }, {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true
+      })
     .exec(function (error, counter) {
+
       //generated formatted ticket number
       let ticketNumber;
       if (!error && counter) {
         ticketNumber = counter.format();
+        //return
+        return done(null, ticketNumber, counter);
       }
-      //return
-      return done(error, ticketNumber, counter);
+
+      //loop till succeed
+      else {
+        return Counter.generate(options, done);
+      }
+
     });
 
 };
