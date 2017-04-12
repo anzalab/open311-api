@@ -41,6 +41,7 @@ $ npm test
 - [geojson](https://docs.mongodb.com/manual/reference/geojson/)
 - [geojson-second-bite](http://www.macwright.org/2015/03/23/geojson-second-bite.html)
 - [introduction-to-mongodb-geospatial](http://tugdualgrall.blogspot.com/2014/08/introduction-to-mongodb-geospatial.html)
+- [create-an-auto-incrementing-field](https://docs.mongodb.com/v3.0/tutorial/create-an-auto-incrementing-field/)
 
 ## Contribute
 
