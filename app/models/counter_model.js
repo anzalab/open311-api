@@ -211,7 +211,15 @@ CounterSchema.statics.generate = function (options, done) {
     return done(error);
   }
 
-  //atomically upsert & increment sequence
+  /**
+   * 
+   * atomically upsert & increment sequence
+   * first start with counter collection by increment the sequent
+   * if we encounter error we loop till we succeed
+   * 
+   * @see {@link https://docs.mongodb.com/v3.0/tutorial/create-an-auto-incrementing-field/#counter-collection-implementation}
+   * @see {@link https://docs.mongodb.com/v3.0/tutorial/create-an-auto-incrementing-field/#optimistic-loop}
+   */
   const criteria = _.pick(options, ['jurisdiction', 'service', 'year']);
   Counter
     .findOneAndUpdate(

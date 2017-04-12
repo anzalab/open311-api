@@ -206,7 +206,7 @@ module.exports = function (grunt) {
       counter: { // ticket number generation spec
         options: {
           reporter: 'spec',
-          timeout: 10000
+          timeout: 20000
         },
         src: [
           '<%= project.test %>/bootstrap_spec.js',
