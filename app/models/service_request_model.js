@@ -25,7 +25,6 @@ const path = require('path');
 const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
-const moment = require('moment');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const MediaSchema = require(path.join(__dirname, 'schemas', 'media_schema'));
@@ -487,6 +486,9 @@ ServiceRequestSchema.virtual('latitude').get(function () {
 
 ServiceRequestSchema.pre('validate', function (next) {
 
+  //ref
+  const Counter = mongoose.model('Counter');
+
   //ensure call times
   this.call = this.call || {};
   this.call.startedAt = this.call.startedAt || new Date();
@@ -532,15 +534,28 @@ ServiceRequestSchema.pre('validate', function (next) {
         this.priority = (this.priority || result.priority || undefined);
 
         //set service request code
-        //in format (Area Code Service Code Year Month Date Hour Minute)
-        //i.e IL1703171728
-        this.code = [
-          (result.jurisdiction || {}).code,
-          (result.service || {}).code,
-          moment(new Date()).format('YYMMDDHHMM')
-        ].join('');
+        //in format (Area Code Service Code Year Sequence)
+        //i.e ILLK170001
+        if (!this.code) {
+          Counter
+            .generate({
+              jurisdiction: result.jurisdiction.code,
+              service: result.service.code,
+            }, function (error, ticketNumber) {
+              if (!error && ticketNumber) {
+                this.code = ticketNumber;
+                next();
+              } else {
+                next(error);
+              }
+            }.bind(this));
 
-        next();
+        }
+
+        //continue
+        else {
+          next();
+        }
 
       }
     }.bind(this));
@@ -558,7 +573,7 @@ ServiceRequestSchema.pre('validate', function (next) {
 ServiceRequestSchema.post('save', function (doc, next) {
   //TODO notify customer details(DRM) to update details based on the account id
   //TODO send(queue) notification
-  //TODO send service request code to reporte(sms or email)
+  //TODO send service request code to reporter(sms or email)
   next();
 });
 
