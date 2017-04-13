@@ -127,6 +127,47 @@ module.exports = {
         prefix: 'open311'
       }
     }
-  }
+  },
   /*jshint camelcase:true*/
+
+  /**
+   * @description open311 configurations
+   * @type {Object}
+   */
+  /*jshint camelcase:false*/
+  open311: defer(function () {
+      return {
+        discovery: {
+          changeset: '2017-04-13 09:20',
+          contact: 'You can email or call for assistance lallyelias87@gmail.com +255 714 095 061',
+          key_service: 'For detail on usage, contact lallyelias87@gmail.com +255 714 095 061',
+          endpoints: [{
+            specification: 'http://wiki.open311.org/GeoReport_v2',
+            url: 'http://dawasco.herokuapp.com/open311',
+            changeset: '2017-04-13 09:20',
+            type: 'test',
+            formats: [
+              'application/json'
+            ],
+            locales: [
+              'en_GB',
+              'en_US'
+            ]
+          }, {
+            specification: 'http://wiki.open311.org/GeoReport_v2',
+            url: 'http://dawasco.herokuapp.com/open311',
+            changeset: '2017-04-13 09:20',
+            type: 'development',
+            formats: [
+              'application/json'
+            ],
+            locales: [
+              'en_GB',
+              'en_US'
+            ]
+          }]
+        }
+      };
+    })
+    /*jshint camelcase:true*/
 };
