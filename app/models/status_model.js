@@ -28,6 +28,7 @@ const Schema = mongoose.Schema;
 //TODO review if status differ between jurisdictions
 //TODO implement status in service request to expose list of applicable 
 //statuses
+//TODO add support to status note
 
 
 /**

@@ -21,69 +21,59 @@ const controller = require(path.join(__dirname, '..', 'controllers',
 //TODO add jwtAuth on post requests
 //TODO improve discovery with more metadata
 
-/**
- * Handle Http GET on /discovery
- * @description check client discovery
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
- */
-router.get('/open311/discovery', function (request, response, next) {
-  controller.discovery(request, response, next);
-});
-
 
 /**
  * Handle Http GET on /discovery.json
- * @description check client discovery.json
+ * @description handle open311 api discovery request
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
-router.get('/open311/discovery.json', function (request, response, next) {
+router.get('/open311/discovery\.:ext?', function (request, response, next) {
   controller.discovery(request, response, next);
-});
-
-
-/**
- * Handle Http GET on /services
- * @description check client services
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
- */
-router.get('/open311/services', function (request, response, next) {
-  controller.services(request, response, next);
 });
 
 
 /**
  * Handle Http GET on /services.json
- * @description check client services.json
+ * @description display a list of available service requests
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
-router.get('/open311/services.json', function (request, response, next) {
+router.get('/open311/services\.:ext?', function (request, response, next) {
   controller.services(request, response, next);
 });
 
 
 /**
- * Handle Http POST on /requests
- * @description check client requests
+ * Handle Http POST on /requests.json
+ * @description create a new service request from open311 compliant client
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
-router.post('/open311/requests', function (request, response, next) {
-  controller.requests(request, response, next);
+router.post('/open311/requests\.:ext?', function (request, response, next) {
+  controller.create(request, response, next);
 });
 
 
 /**
- * Handle Http POST on /requests.json
- * @description check client requests.json
+ * Handle Http GET on /requests.json
+ * @description display a list service requests in open 311 compliant format
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
-router.post('/open311/requests.json', function (request, response, next) {
-  controller.requests(request, response, next);
+router.get('/open311/requests\.:ext?', function (request, response, next) {
+  controller.index(request, response, next);
+});
+
+
+/**
+ * Handle Http GET on /requests/:id
+ * @description display a specific service request in open 311 compliant format
+ * @param  {HttpRequest} request  a http request
+ * @param  {HttpResponse} response a http response
+ */
+router.get('/open311/requests/:id\.:ext?', function (request, response, next) {
+  controller.show(request, response, next);
 });
 
 

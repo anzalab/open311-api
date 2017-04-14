@@ -175,13 +175,15 @@ const ServiceSchema = new Schema({
  * @type {Function}
  */
 ServiceSchema.methods.toOpen311 = function () {
+  /*jshint camelcase:false*/
+
   let as311 = {};
 
   // The unique identifier for the service request type
-  as311['service_code'] = this.code;
+  as311.service_code = this.code;
 
   // The human readable name of the service request type
-  as311['service_name'] = this.name;
+  as311.service_name = this.name;
 
   // A brief description of the service request type.
   as311.description = this.description || this.name;
@@ -197,12 +199,14 @@ ServiceSchema.methods.toOpen311 = function () {
   // A comma separated list of tags or keywords to help users identify 
   // the request type. This can provide synonyms of the service_name and group.
   as311.keywords =
-    _.compact([this.name, (this.group || {}).name]);
+    _.compact([this.name, (this.group || {}).name]).join(',');
 
   // A category to group this service type within. 
   // This provides a way to group several service request types under 
   // one category such as "sanitation"
   as311.group = (this.group || {}).name;
+
+  /*jshint camelcase:true*/
 
   return as311;
 
@@ -212,6 +216,13 @@ ServiceSchema.methods.toOpen311 = function () {
 //-----------------------------------------------------------------------------
 // ServiceSchema Hooks
 //-----------------------------------------------------------------------------
+
+
+/**
+ * @name  preValidate
+ * @return {Fuction} next a callback invoked after pre validate
+ * @type {Function}
+ */
 ServiceSchema.pre('validate', function (next) {
 
   //set default color if not set
@@ -236,6 +247,11 @@ ServiceSchema.pre('validate', function (next) {
   next();
 
 });
+
+
+//-----------------------------------------------------------------------------
+// ServiceSchema Static Properties & Methods
+//-----------------------------------------------------------------------------
 
 
 /**

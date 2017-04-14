@@ -15,15 +15,10 @@ const _ = require('lodash');
 const config = require('config');
 const mongoose = require('mongoose');
 const Service = mongoose.model('Service');
+const ServiceRequest = mongoose.model('ServiceRequest');
 
-
-//TODO update open311 discovery meta before release
-//TODO add method to be OPEN311 REPORTER to be able to know the issue
-//was submitted with open 311 compliant application
-//check https://dev.hel.fi/apis/open311/
-//https://dev.hel.fi/apis/open311/
-//TODO improve documentation
-
+//TODO handle date & other open 311 filter on get request(s) status
+//TODO handle specific client issues
 
 module.exports = {
   /**
@@ -77,20 +72,78 @@ module.exports = {
 
 
   /**
-   * @name requests
-   * @description handle /requests request
-   * @param  {HttpRequest} request  http request
-   * @param  {HttpResponse} response http response
-   * @since 0.1.0
-   * @version 0.1.0
-   * @public
+   * @function
+   * @name open311.index()
+   * @description display a list of all service request in open311 compliant fomart
+   * @param  {HttpRequest} request  a http request
+   * @param  {HttpResponse} response a http response
    */
-  requests: function (request, response /*,next*/ ) {
-    console.log(request.body);
-    response.created([{
-      'service_request_id': new Date().getTime(),
-      'service_notice': ''
-    }]);
+  index: function (request, response, next) {
+    //TODO filter per jurisdiction
+    //TODO filter per client
+    let criteria = {};
+
+    ServiceRequest
+      .find(criteria)
+      .exec(function (error, serviceRequests) {
+        if (error) {
+          next(error);
+        } else {
+          //map serviceRequests to open311 compliant serviceRequest list
+          serviceRequests =
+            _.map(serviceRequests, function (serviceRequest) {
+              return serviceRequest.toOpen311();
+            });
+
+          response.ok(serviceRequests);
+        }
+      });
+  },
+
+
+  /**
+   * @function
+   * @name open311.create()
+   * @description create a new service request from open311 compliant client
+   * @param  {HttpRequest} request  a http request
+   * @param  {HttpResponse} response a http response
+   */
+  create: function (request, response, next) {
+    //TODO support media upload & media_url
+    let serviceRequest = request.body;
+
+    ServiceRequest
+      .createFromOpen311Client(serviceRequest,
+        function (error, open311Response /*, serviceRequest*/ ) {
+          if (error) {
+            next(error);
+          } else {
+            response.created(open311Response);
+          }
+        });
+  },
+
+
+  /**
+   * @function
+   * @name open311.show()
+   * @description display a specific service request in open 311 compliant format
+   * @param  {HttpRequest} request  a http request
+   * @param  {HttpResponse} response a http response
+   */
+  show: function (request, response, next) {
+    //obtain service request code
+    const code = request.params.id;
+
+    ServiceRequest
+      .findOne({ code: code })
+      .exec(function (error, serviceRequest) {
+        if (error) {
+          next(error);
+        } else {
+          response.ok([serviceRequest.toOpen311()]);
+        }
+      });
   }
 
 };

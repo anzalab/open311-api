@@ -21,6 +21,9 @@
 
 //TODO add service inverse relation mapping & use restrictive population
 //TODO add service group inverse relation mapping & use restrictive population
+//TODO add emails
+//TODO add phone numbers
+//TODO add physical address
 
 
 //dependencies
