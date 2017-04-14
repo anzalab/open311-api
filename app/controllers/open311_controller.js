@@ -18,6 +18,7 @@ const config = require('config');
 //TODO add method to be OPEN311 REPORTER to be able to know the issue
 //was submitted with open 311 compliant application
 //check https://dev.hel.fi/apis/open311/
+//https://dev.hel.fi/apis/open311/
 //TODO improve documentation
 
 

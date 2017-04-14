@@ -29,19 +29,20 @@ const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const MediaSchema = require(path.join(__dirname, 'schemas', 'media_schema'));
 
-//contact methods
-const CONTACT_METHOD_PHONE = 'Phone';
+//contact methods used for reporting the issue
+const CONTACT_METHOD_PHONE_CALL = 'Call';
 const CONTACT_METHOD_EMAIL = 'Email';
 const CONTACT_METHOD_SMS = 'SMS';
 const CONTACT_METHOD_USSD = 'USSD';
 const CONTACT_METHOD_VISIT = 'Visit';
 const CONTACT_METHOD_LETTER = 'Letter';
 const CONTACT_METHOD_FAX = 'Fax';
+const CONTACT_METHOD_MOBILE_APP = 'Mobile';
 
 const CONTACT_METHODS = [
-  CONTACT_METHOD_PHONE, CONTACT_METHOD_EMAIL,
+  CONTACT_METHOD_PHONE_CALL, CONTACT_METHOD_EMAIL,
   CONTACT_METHOD_SMS, CONTACT_METHOD_USSD, CONTACT_METHOD_VISIT,
-  CONTACT_METHOD_LETTER, CONTACT_METHOD_FAX
+  CONTACT_METHOD_LETTER, CONTACT_METHOD_FAX, CONTACT_METHOD_MOBILE_APP
 ];
 
 
@@ -342,7 +343,7 @@ const ServiceRequestSchema = new Schema({
   method: {
     type: String,
     enum: CONTACT_METHODS,
-    default: CONTACT_METHOD_PHONE,
+    default: CONTACT_METHOD_PHONE_CALL,
     index: true
   },
 
@@ -583,13 +584,16 @@ ServiceRequestSchema.post('save', function (doc, next) {
 //-----------------------------------------------------------------------------
 
 //contact methods constants
-ServiceRequestSchema.statics.CONTACT_METHOD_PHONE = CONTACT_METHOD_PHONE;
+ServiceRequestSchema.statics.CONTACT_METHOD_PHONE_CALL =
+  CONTACT_METHOD_PHONE_CALL;
 ServiceRequestSchema.statics.CONTACT_METHOD_FAX = CONTACT_METHOD_FAX;
 ServiceRequestSchema.statics.CONTACT_METHOD_LETTER = CONTACT_METHOD_LETTER;
 ServiceRequestSchema.statics.CONTACT_METHOD_VISIT = CONTACT_METHOD_VISIT;
 ServiceRequestSchema.statics.CONTACT_METHOD_SMS = CONTACT_METHOD_SMS;
 ServiceRequestSchema.statics.CONTACT_METHOD_USSD = CONTACT_METHOD_USSD;
 ServiceRequestSchema.statics.CONTACT_METHOD_EMAIL = CONTACT_METHOD_EMAIL;
+ServiceRequestSchema.statics.CONTACT_METHOD_MOBILE_APP =
+  CONTACT_METHOD_MOBILE_APP;
 ServiceRequestSchema.statics.CONTACT_METHODS = CONTACT_METHODS;
 
 //TODO use aggregation
