@@ -129,7 +129,7 @@ StatusSchema.statics.findDefault = function (done) {
   //TODO make use of default status settings
 
   //sort status by weight descending and take one
-  Status.findOne().sort({ weight: -1 }).exec(done);
+  Status.findOne().sort({ weight: 'asc' }).exec(done);
 
 };
 
