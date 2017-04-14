@@ -11,7 +11,10 @@
 
 
 //dependencies
+const _ = require('lodash');
 const config = require('config');
+const mongoose = require('mongoose');
+const Service = mongoose.model('Service');
 
 
 //TODO update open311 discovery meta before release
@@ -40,23 +43,36 @@ module.exports = {
 
   /**
    * @name services
-   * @description handle /services request
+   * @description handle /services request.
+   * 
+   *              It provides a list of all acceptable service request types 
+   *              and their associated service codes.
+   *
+   * 
    * @param  {HttpRequest} request  http request
    * @param  {HttpResponse} response http response
    * @since 0.1.0
    * @version 0.1.0
    * @public
    */
-  services: function (request, response /*,next*/ ) {
-    response.ok([{
-      'service_code': '172',
-      'service_name': 'Vandalism',
-      'description': 'Give feedback if you find that property or equipment is broken.',
-      'metadata': false,
-      'type': 'realtime',
-      'keywords': 'bench,parks,trashbins',
-      'group': 'Sanitation'
-    }]);
+  services: function (request, response, next) {
+    //TODO filter per jurisdiction
+    let criteria = {};
+
+    Service
+      .find(criteria)
+      .exec(function (error, services) {
+        if (error) {
+          next(error);
+        } else {
+          //map services to open311 compliant service list
+          services = _.map(services, function (service) {
+            return service.toOpen311();
+          });
+
+          response.ok(services);
+        }
+      });
   },
 
 
