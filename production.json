@@ -2,7 +2,7 @@
   "apps": [{
 
     // name your app will have in PM2
-    "name": "shuledirect",
+    "name": "open311",
 
     // path of your app
     "script": "server.js",
@@ -31,7 +31,7 @@
   }, {
 
     // name your app will have in PM2
-    "name": "shuledirect-worker",
+    "name": "open311-worker",
 
     // path of your app
     "script": "worker.js",

@@ -2,7 +2,7 @@
 
 /**
  * @name worker
- * @description job worker process for DRM API
+ * @description job worker process for open311 API
  *
  * Alert!: Please ensure your have installed Redis Server
  * 
