@@ -28,6 +28,7 @@
 const path = require('path');
 const _ = require('lodash');
 const async = require('async');
+const randomColor = require('randomcolor');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
@@ -120,7 +121,8 @@ const JurisdictionSchema = new Schema({
     type: String,
     index: true,
     trim: true,
-    searchable: true
+    searchable: true,
+    default: 'N/A'
   },
 
 
@@ -138,7 +140,8 @@ const JurisdictionSchema = new Schema({
     type: String,
     index: true,
     trim: true,
-    searchable: true
+    searchable: true,
+    default: 'N/A'
   },
 
 
@@ -178,7 +181,8 @@ const JurisdictionSchema = new Schema({
   about: {
     type: String,
     trim: true,
-    searchable: true
+    searchable: true,
+    default: 'N/A'
   },
 
 
@@ -195,7 +199,8 @@ const JurisdictionSchema = new Schema({
    */
   address: {
     type: String,
-    trim: true
+    trim: true,
+    default: 'N/A'
   },
 
 
@@ -222,7 +227,27 @@ const JurisdictionSchema = new Schema({
    * @type {Object}
    * @private
    */
-  boundaries: GeoJSON.Polygon
+  boundaries: GeoJSON.Polygon,
+
+  /**
+   * @name color
+   * @description A color code(in hexdecimal format) eg. #363636 used to
+   *              differentiate jurisdiction visually from other service
+   *              group.
+   *
+   *              If not provided it will randomly generated, but it is not
+   *              guarantee its visual appeal.
+   *               
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  color: {
+    type: String,
+    uppercase: true,
+    trim: true
+  }
 
 }, { timestamps: true, emitIndexErrors: true });
 
@@ -240,7 +265,8 @@ const JurisdictionSchema = new Schema({
  * @version 0.1.0
  */
 JurisdictionSchema.virtual('longitude').get(function () {
-  return this.location ? this.location[0] : null;
+  return this.location && this.location.coordinates ?
+    this.location.coordinates[0] : 0;
 });
 
 
@@ -252,7 +278,8 @@ JurisdictionSchema.virtual('longitude').get(function () {
  * @version 0.1.0
  */
 JurisdictionSchema.virtual('latitude').get(function () {
-  return this.location ? this.location[1] : null;
+  return this.location && this.location.coordinates ?
+    this.location.coordinates[1] : 0;
 });
 
 
@@ -272,10 +299,21 @@ JurisdictionSchema.index({ boundaries: '2dsphere' });
 //-----------------------------------------------------------------------------
 JurisdictionSchema.pre('validate', function (next) {
 
+  //set default color if not set
+  if (_.isEmpty(this.color)) {
+    this.color = randomColor();
+  }
+
   //set juridiction code
   if (_.isEmpty(this.code) && !_.isEmpty(this.name)) {
     this.code = _.take(this.name, 1).join('').toUpperCase();
   }
+
+  //ensure location details
+  this.location = _.merge({}, {
+    type: GeoJSON.TYPE_POINT,
+    coordinates: [0, 0]
+  }, this.location ? this.location.toObject() : {});
 
   next();
 

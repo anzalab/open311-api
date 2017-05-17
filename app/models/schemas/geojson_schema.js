@@ -56,7 +56,7 @@ exports.Point = new Schema({
     default: [0, 0] //TODO use settings for default coordinates
   }
 
-}, { _id: false });
+}, { _id: false, timestamps: false });
 
 
 /**
@@ -92,4 +92,4 @@ exports.Polygon = new Schema({
     ]
   }
 
-}, { _id: false });
+}, { _id: false, timestamps: false });
