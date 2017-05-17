@@ -228,6 +228,35 @@ const JurisdictionSchema = new Schema({
 
 
 //-----------------------------------------------------------------------------
+// JurisdictionSchema Virtuals
+//-----------------------------------------------------------------------------
+
+
+/**
+ * @name longitude
+ * @description obtain jurisdiction longitude
+ * @type {Number}
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+JurisdictionSchema.virtual('longitude').get(function () {
+  return this.location ? this.location[0] : null;
+});
+
+
+/**
+ * @name latitude
+ * @description obtain jurisdiction latitude
+ * @type {Number}
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+JurisdictionSchema.virtual('latitude').get(function () {
+  return this.location ? this.location[1] : null;
+});
+
+
+//-----------------------------------------------------------------------------
 // JurisdictionSchema Index
 //-----------------------------------------------------------------------------
 
