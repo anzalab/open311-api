@@ -21,8 +21,6 @@
 
 //TODO add service inverse relation mapping & use restrictive population
 //TODO add service group inverse relation mapping & use restrictive population
-//TODO add emails
-//TODO add phone numbers
 //TODO add physical address
 
 
@@ -109,6 +107,42 @@ const JurisdictionSchema = new Schema({
 
 
   /**
+   * @name phone
+   * @description Primary mobile phone number used to contact jurisdiction.
+   *              Used when a party want to send an SMS or call the
+   *              jurisdiction
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  phone: {
+    type: String,
+    index: true,
+    trim: true,
+    searchable: true
+  },
+
+
+  /**
+   * @name email
+   * @description Primary email address used to contact jurisdiction direct.
+   *              Used when a party want to send direct mail to specific
+   *              jurisdiction
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  email: {
+    type: String,
+    index: true,
+    trim: true,
+    searchable: true
+  },
+
+
+  /**
    * @name domain
    * @description Unique reserved domain name of the jurisdiction 
    *              e.g example.go.tz. 
@@ -132,7 +166,7 @@ const JurisdictionSchema = new Schema({
 
 
   /**
-   * @name description
+   * @name about
    * @description A brief summary about jurusdiction if available i.e
    *              additional details that clarify what a jurisdiction do.
    *              
@@ -145,6 +179,23 @@ const JurisdictionSchema = new Schema({
     type: String,
     trim: true,
     searchable: true
+  },
+
+
+  /**
+   * @name address
+   * @description Human readable physical address of jurisdiction office.
+   *              Used when a party what to physical go or visit the jurisdiction
+   *              office.
+   *              
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  address: {
+    type: String,
+    trim: true
   },
 
 
