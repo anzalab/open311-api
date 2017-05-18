@@ -779,8 +779,15 @@ ServiceRequestSchema.statics.createFromOpen311Client =
 
 
 
-//TODO use aggregation
-//TODO use status and priority model
+/**
+ * @name summary
+ * @description compute unresolved reported issue count summaries
+ * @param  {Function} done a callback to be invoked on success or failure
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
 ServiceRequestSchema.statics.summary = function (done) {
 
   //references
@@ -790,8 +797,6 @@ ServiceRequestSchema.statics.summary = function (done) {
   const ServiceRequest = mongoose.model('ServiceRequest');
 
   //TODO use aggregation
-  //TODO make sure not include resolved
-
   async.parallel({
     services: function (next) {
       Service
@@ -804,7 +809,8 @@ ServiceRequestSchema.statics.summary = function (done) {
             _.forEach(services, function (service) {
               works[service._id] = function (then) {
                 ServiceRequest
-                  .count({ service: service._id }, then);
+                  .count({ service: service._id, resolvedAt: null })
+                  .exec(then);
               };
             });
             async.parallel(works, next);
@@ -823,7 +829,8 @@ ServiceRequestSchema.statics.summary = function (done) {
             _.forEach(statuses, function (status) {
               works[status._id] = function (then) {
                 ServiceRequest
-                  .count({ status: status._id }, then);
+                  .count({ status: status._id, resolvedAt: null })
+                  .exec(then);
               };
             });
             async.parallel(works, next);
@@ -842,7 +849,8 @@ ServiceRequestSchema.statics.summary = function (done) {
             _.forEach(priorities, function (priority) {
               works[priority._id] = function (then) {
                 ServiceRequest
-                  .count({ priority: priority._id }, then);
+                  .count({ priority: priority._id, resolvedAt: null })
+                  .exec(then);
               };
             });
             async.parallel(works, next);
