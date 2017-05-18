@@ -136,6 +136,21 @@ const ServiceRequestSchema = new Schema({
     endedAt: {
       type: Date,
       index: true
+    },
+
+
+    /**
+     * @name duration
+     * @description call duration in minutes from time when call picke up to
+     *              time when a call released by the call center operator
+     * @type {Object}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+    duration: {
+      type: Number,
+      default: 0
     }
   },
 
@@ -572,6 +587,12 @@ ServiceRequestSchema.pre('validate', function (next) {
   this.call = this.call || {};
   this.call.startedAt = this.call.startedAt || new Date();
   this.call.endedAt = this.call.endedAt || new Date();
+
+  //compute call duration
+  const durationInMilliseconds =
+    this.call.endedAt.getTime() - this.call.startedAt.getTime();
+  this.call.duration =
+    (durationInMilliseconds) / (1000 * 60);
 
   //ensure jurisdiction from service
   const jurisdiction = _.get(this.service, 'jurisdiction');
