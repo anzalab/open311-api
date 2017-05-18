@@ -150,7 +150,8 @@ const ServiceRequestSchema = new Schema({
      */
     duration: {
       type: Number,
-      default: 0
+      default: 0,
+      index: true
     }
   },
 
@@ -462,6 +463,28 @@ const ServiceRequestSchema = new Schema({
   resolvedAt: {
     type: Date,
     index: true
+  },
+
+
+  /**
+   * @name ttr
+   * @description A time taken to resolve the issue(service request) in seconds.
+   * 
+   *              Used to calculcate Mean Time To Resolve(MTTR) KPI.
+   *              
+   *              It calculated as time taken since the issue reported to the
+   *              time when issue resolved.
+   *               
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   * @see {@link http://www.thinkhdi.com/~/media/HDICorp/Files/Library-Archive/Insider%20Articles/mean-time-to-resolve.pdf}
+   */
+  ttr: {
+    type: Number,
+    index: true,
+    default: 0
   }
 
 }, { timestamps: true, emitIndexErrors: true });
@@ -591,8 +614,14 @@ ServiceRequestSchema.pre('validate', function (next) {
   //compute call duration in seconds
   const durationInMilliseconds =
     this.call.endedAt.getTime() - this.call.startedAt.getTime();
-  this.call.duration =
-    (durationInMilliseconds) / (1000);
+  this.call.duration = (durationInMilliseconds / 1000);
+
+  //compute mean time to resolve (ttr)
+  if (this.resolvedAt) {
+    const ttrInSeconds =
+      (this.resolvedAt.getTime() - this.createdAt.getTime()) / (1000 * 60);
+    this.ttr = ttrInSeconds;
+  }
 
   //ensure jurisdiction from service
   const jurisdiction = _.get(this.service, 'jurisdiction');
