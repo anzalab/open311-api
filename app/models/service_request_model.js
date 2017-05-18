@@ -27,6 +27,7 @@ const async = require('async');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
+const GeoJSON = require(path.join(__dirname, 'schemas', 'geojson_schema'));
 const MediaSchema = require(path.join(__dirname, 'schemas', 'media_schema'));
 
 //contact methods used for reporting the issue
@@ -380,10 +381,7 @@ const ServiceRequestSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  location: {
-    type: [Number],
-    index: '2dsphere'
-  },
+  location: GeoJSON.Point,
 
 
   /**
@@ -491,8 +489,91 @@ const ServiceRequestSchema = new Schema({
 
 
 //-----------------------------------------------------------------------------
+// ServiceRequestSchema Index
+//-----------------------------------------------------------------------------
+
+
+//ensure `2dsphere` on service request location and boundaries
+ServiceRequestSchema.index({ location: '2dsphere' });
+
+
+//-----------------------------------------------------------------------------
 // ServiceRequestSchema Virtuals
 //-----------------------------------------------------------------------------
+
+/**
+ * @name ttrSeconds
+ * @description obtain ttr seconds(s) used
+ * @type {Number}
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+ServiceRequestSchema.virtual('ttrSeconds').get(function () {
+
+  let ttrSeconds = 0;
+
+  //convert ttr seconds to seconds used
+  ttrSeconds = this.ttr % 60;
+  ttrSeconds = _.round(ttrSeconds, 2);
+
+  return ttrSeconds;
+
+});
+
+/**
+ * @name ttrMinutes
+ * @description obtain ttr minute(s) used
+ * @type {Number}
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+ServiceRequestSchema.virtual('ttrMinutes').get(function () {
+
+  let ttrMinutes = 0;
+
+  //convert ttr seconds to minutes
+  if (this.ttr > 60) {
+
+    //obtain remained fractions after whole minutes
+    const mod = this.ttr % 60;
+
+    //remove fraction minutes and obtain whole minutes
+    ttrMinutes = (this.ttr - mod) / 60;
+
+  }
+
+  return ttrMinutes;
+
+});
+
+
+/**
+ * @name ttrHours
+ * @description obtain ttr hour(s) used
+ * @type {Number}
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+ServiceRequestSchema.virtual('ttrHours').get(function () {
+
+  let ttrHours = 0;
+
+  const hourSeconds = 60 * 60;
+
+  //convert ttr seconds to hours
+  if (this.ttr > hourSeconds) {
+
+    //obtain remained fractions after whole hours
+    const mod = this.ttr % hourSeconds;
+
+    //remove fraction hours and obtain whole hours
+    ttrHours = (this.ttr - mod) / hourSeconds;
+
+  }
+
+  return ttrHours;
+
+});
 
 
 /**
