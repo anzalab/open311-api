@@ -588,11 +588,11 @@ ServiceRequestSchema.pre('validate', function (next) {
   this.call.startedAt = this.call.startedAt || new Date();
   this.call.endedAt = this.call.endedAt || new Date();
 
-  //compute call duration
+  //compute call duration in seconds
   const durationInMilliseconds =
     this.call.endedAt.getTime() - this.call.startedAt.getTime();
   this.call.duration =
-    (durationInMilliseconds) / (1000 * 60);
+    (durationInMilliseconds) / (1000);
 
   //ensure jurisdiction from service
   const jurisdiction = _.get(this.service, 'jurisdiction');
@@ -793,6 +793,7 @@ ServiceRequestSchema.statics.summary = function (done) {
   //references
   const Service = mongoose.model('Service');
   const Status = mongoose.model('Status');
+  const Jurisdiction = mongoose.model('Jurisdiction');
   const Priority = mongoose.model('Priority');
   const ServiceRequest = mongoose.model('ServiceRequest');
 
@@ -850,6 +851,29 @@ ServiceRequestSchema.statics.summary = function (done) {
               works[priority._id] = function (then) {
                 ServiceRequest
                   .count({ priority: priority._id, resolvedAt: null })
+                  .exec(then);
+              };
+            });
+            async.parallel(works, next);
+          }
+        });
+    },
+
+    jurisdictions: function (next) {
+      Jurisdiction
+        .find({})
+        .exec(function (error, jurisdictions) {
+          if (error) {
+            done(null, {});
+          } else {
+            const works = {};
+            _.forEach(jurisdictions, function (jurisdiction) {
+              works[jurisdiction._id] = function (then) {
+                ServiceRequest
+                  .count({
+                    jurisdiction: jurisdiction._id,
+                    resolvedAt: null
+                  })
                   .exec(then);
               };
             });
