@@ -131,6 +131,17 @@ module.exports = {
   /*jshint camelcase:true*/
 
   /**
+   * @description infobip sms transport configurations
+   * @type {Object}
+   */
+  infobip: {
+    from: 'InfoSMS',
+    username: '',
+    password: '',
+    fake: true
+  },
+
+  /**
    * @description open311 configurations
    * @type {Object}
    */

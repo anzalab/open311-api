@@ -6,7 +6,10 @@
  *
  * Alert!: Please ensure your have installed Redis Server
  * 
- * Alert!: Run worker in the separate process from main process 
+ * Alert!: Run worker in the separate process from main process
+ *
+ * Recommendation!: It also adviced to run each worker per process or per machine
+ * with any number of concurrency(10 is sufficient max worker so far) 
  */
 
 

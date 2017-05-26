@@ -154,7 +154,17 @@ module.exports = {
         prefix: 'open311'
       }
     }
-  }
+  },
   /*jshint camelcase:true*/
+
+  /**
+   * @description infobip sms transport configurations
+   * @type {Object}
+   */
+  infobip: {
+    from: process.env.INFOBIP_FROM,
+    username: process.env.INFOBIP_USERNAME,
+    password: process.env.INFOBIP_PASSWORD
+  }
 
 };
