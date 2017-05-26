@@ -136,8 +136,8 @@ module.exports = {
    */
   infobip: {
     from: 'InfoSMS',
-    username: '',
-    password: '',
+    username: 'open311',
+    password: 'open311',
     fake: true
   },
 

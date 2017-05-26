@@ -26,7 +26,7 @@ process.env.SUPPRESS_NO_CONFIG_WARNING = true;
 const path = require('path');
 
 //dependencies
-require('config'); //load configurations
+const config = require('config'); //load configurations
 const environment = require('execution-environment');
 const mkdir = require('mkdir-p');
 
@@ -44,10 +44,14 @@ mkdir.sync(path.join(__dirname, '..', 'logs'));
 //setup application mongoose instance
 require(path.join(__dirname, 'app', 'initializers', 'mongoose'));
 
+//------------------------------------------------------------------------
+// Transports Initialization & Run
+//------------------------------------------------------------------------
 
-//load worker and it dependencies
-const mongoose = require('mongoose');
-const Mail = mongoose.model('Mail');
+//initialize infobip sms transport
+const infobip = require('open311-infobip');
+infobip.options = config.get('infobip');
 
-//start worker(s)
-Mail.worker.start();
+
+//start
+infobip.start();
