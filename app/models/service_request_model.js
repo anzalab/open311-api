@@ -18,6 +18,7 @@
 //TODO migrate location to use GeoJSON schema
 //TODO obtain geo-data from jurisdiction if not available(or set)
 //TODO add service group
+//TODO add a flag to make a ticket public
 
 
 //dependencies
@@ -25,6 +26,7 @@ const path = require('path');
 const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
+// const infobip = require('open311-infobip');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const GeoJSON = require(path.join(__dirname, 'schemas', 'geojson_schema'));
@@ -76,6 +78,27 @@ const ServiceRequestSchema = new Schema({
     exists: true,
     autopopulate: {
       select: 'code name domain'
+    }
+  },
+
+  /**
+   * @name group
+   * @description A service group undewhich request(issue) belongs to
+   * @type {Object}
+   * @see {@link Service}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  group: {
+    type: ObjectId,
+    ref: 'ServiceGroup',
+    required: true,
+    index: true,
+    autoset: true,
+    exists: true,
+    autopopulate: {
+      select: 'code name color'
     }
   },
 
@@ -142,7 +165,7 @@ const ServiceRequestSchema = new Schema({
 
     /**
      * @name duration
-     * @description call duration in minutes from time when call picke up to
+     * @description call duration in seconds from time when call picke up to
      *              time when a call released by the call center operator
      * @type {Object}
      * @private
@@ -584,7 +607,8 @@ ServiceRequestSchema.virtual('ttrHours').get(function () {
  * @version 0.1.0
  */
 ServiceRequestSchema.virtual('longitude').get(function () {
-  return this.location ? this.location[0] : null;
+  return this.location && this.location.coordinates ?
+    this.location.coordinates[0] : 0;
 });
 
 
@@ -596,7 +620,8 @@ ServiceRequestSchema.virtual('longitude').get(function () {
  * @version 0.1.0
  */
 ServiceRequestSchema.virtual('latitude').get(function () {
-  return this.location ? this.location[1] : null;
+  return this.location && this.location.coordinates ?
+    this.location.coordinates[1] : 0;
 });
 
 
@@ -697,7 +722,7 @@ ServiceRequestSchema.pre('validate', function (next) {
     this.call.endedAt.getTime() - this.call.startedAt.getTime();
   this.call.duration = (durationInMilliseconds / 1000);
 
-  //compute mean time to resolve (ttr)
+  //compute time to resolve (ttr)
   if (this.resolvedAt) {
     const ttrInSeconds =
       (this.resolvedAt.getTime() - this.createdAt.getTime()) / (1000 * 60);
@@ -706,8 +731,14 @@ ServiceRequestSchema.pre('validate', function (next) {
 
   //ensure jurisdiction from service
   const jurisdiction = _.get(this.service, 'jurisdiction');
-  if (!this.jurisdiction && _.get(this.service, 'jurisdiction')) {
+  if (!this.jurisdiction && jurisdiction) {
     this.jurisdiction = jurisdiction;
+  }
+
+  //ensure group from service
+  const group = _.get(this.service, 'group');
+  if (!this.group && group) {
+    this.group = group;
   }
 
   //set default status & priority if not set
@@ -781,10 +812,30 @@ ServiceRequestSchema.pre('validate', function (next) {
 
 
 ServiceRequestSchema.post('save', function (doc, next) {
-  //TODO notify customer details(DRM) to update details based on the account id
-  //TODO send(queue) notification
+  //refs
+  // const Message = mongoose.model('Message');
+
+  //TODO notify customer details to update details based on the account id
   //TODO send service request code to reporter(sms or email)
+  //TODO send service request code to area(sms or email)
+
+  //send ticket number to customer
+  // const body =
+  //   'Your ticket # is ' + doc.code + ' for ' + doc.service.name +
+  //   ' you have reported. Thanks.';
+
+  // const message = new Message({
+  //   to: doc.reporter.phone, //TODO ensure e.164 format
+  //   body: body
+  // });
+
+  // infobip.send(message, function (error, result) {
+  //   console.log('error', error);
+  //   console.log('result', result);
+  // });
+
   next();
+
 });
 
 
@@ -887,6 +938,413 @@ ServiceRequestSchema.statics.createFromOpen311Client =
 
   };
 
+
+//-----------------------------------------------------------------------------
+// ServiceRequestSchema Statistics
+//-----------------------------------------------------------------------------
+
+
+/**
+ * @name countResolved
+ * @description count resolved issues so far
+ * @param  {Function} done a callback to be invoked on success or failure
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.statics.countResolved = function (done) {
+
+  //TODO move to aggregation framework to support more operations
+
+  //refs
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //count total resolved issue so far
+  ServiceRequest
+    .count({ resolvedAt: { $ne: null } })
+    .exec(done);
+
+};
+
+
+/**
+ * @name countUnResolved
+ * @description count un resolved issues so far
+ * @param  {Function} done a callback to be invoked on success or failure
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.statics.countUnResolved = function (done) {
+
+  //TODO move to aggregation framework to support more operations
+
+  //refs
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //count total un resolved issue so far
+  ServiceRequest
+    .count({ resolvedAt: null })
+    .exec(done);
+
+};
+
+
+/**
+ * @name countPerJurisdiction
+ * @description count issue reported per jurisdiction
+ * @param  {Function} done a callback to be invoked on success or failure
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.statics.countPerJurisdiction = function (done) {
+
+  //refs
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //count issue per service
+  ServiceRequest
+    .aggregate()
+    .lookup({
+      from: 'jurisdictions',
+      localField: 'jurisdiction',
+      foreignField: '_id',
+      as: 'jurisdiction'
+    })
+    .unwind('$jurisdiction')
+    .group({
+      _id: '$jurisdiction.name',
+      code: { $first: '$jurisdiction.code' },
+      color: { $first: '$jurisdiction.color' },
+      count: { $sum: 1 }
+    })
+    .project({ jurisdiction: '$_id', code: '$code', color: '$color', count: '$count' })
+    .project({ _id: 0, jurisdiction: 1, code: 1, color: 1, count: 1 })
+    .exec(function (error, countPerJurisdiction) {
+
+      done(error, countPerJurisdiction);
+
+    });
+
+};
+
+
+/**
+ * @name countPerMethod
+ * @description count issue reported per method
+ * @param  {Function} done a callback to be invoked on success or failure
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.statics.countPerMethod = function (done) {
+
+  //refs
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //count issue per method used to report
+  ServiceRequest
+    .aggregate()
+    .group({
+      _id: '$method',
+      count: { $sum: 1 }
+    })
+    .project({ method: '$_id', count: '$count' })
+    .project({ _id: 0, method: 1, count: 1 })
+    .exec(function (error, countPerMethod) {
+
+      done(error, countPerMethod);
+
+    });
+
+};
+
+
+/**
+ * @name countPerGroup
+ * @description count issue reported per service group(category)
+ * @param  {Function} done a callback to be invoked on success or failure
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.statics.countPerGroup = function (done) {
+
+  //refs
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //count issue per service group
+  ServiceRequest
+    .aggregate()
+    .lookup({
+      from: 'servicegroups',
+      localField: 'group',
+      foreignField: '_id',
+      as: 'group'
+    })
+    .unwind('$group')
+    .group({
+      _id: '$group.name',
+      color: { $first: '$group.color' },
+      count: { $sum: 1 }
+    })
+    .project({ group: '$_id', color: '$color', count: '$count' })
+    .project({ _id: 0, group: 1, color: 1, count: 1 })
+    .exec(function (error, countPerGroup) {
+
+      done(error, countPerGroup);
+
+    });
+
+};
+
+
+/**
+ * @name countPerService
+ * @description count issue reported per service
+ * @param  {Function} done a callback to be invoked on success or failure
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.statics.countPerService = function (done) {
+
+  //refs
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //count issue per service
+  ServiceRequest
+    .aggregate()
+    .lookup({
+      from: 'services',
+      localField: 'service',
+      foreignField: '_id',
+      as: 'service'
+    })
+    .unwind('$service')
+    .group({
+      _id: '$service.name',
+      color: { $first: '$service.color' },
+      count: { $sum: 1 }
+    })
+    .project({ service: '$_id', color: '$color', count: '$count' })
+    .project({ _id: 0, service: 1, color: 1, count: 1 })
+    .exec(function (error, countPerGroup) {
+
+      done(error, countPerGroup);
+
+    });
+
+};
+
+
+/**
+ * @name countPerStatus
+ * @description count issue reported per status
+ * @param  {Function} done a callback to be invoked on success or failure
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.statics.countPerStatus = function (done) {
+
+  //refs
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //count issue per method used to report
+  ServiceRequest
+    .aggregate()
+    .lookup({
+      from: 'status',
+      localField: 'status',
+      foreignField: '_id',
+      as: 'status'
+    })
+    .unwind('$status')
+    .group({
+      _id: '$status.name',
+      color: { $first: '$status.color' },
+      count: { $sum: 1 }
+    })
+    .project({ status: '$_id', color: '$color', count: '$count' })
+    .project({ _id: 0, status: 1, color: 1, count: 1 })
+    .exec(function (error, countPerStatus) {
+
+      console.log(error);
+
+      done(error, countPerStatus);
+
+    });
+
+};
+
+
+/**
+ * @name countPerPriority
+ * @description count issue reported per priority
+ * @param  {Function} done a callback to be invoked on success or failure
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.statics.countPerPriority = function (done) {
+
+  //refs
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //count issue per method used to report
+  ServiceRequest
+    .aggregate()
+    .lookup({
+      from: 'priorities',
+      localField: 'priority',
+      foreignField: '_id',
+      as: 'priority'
+    })
+    .unwind('$priority')
+    .group({
+      _id: '$priority.name',
+      color: { $first: '$priority.color' },
+      count: { $sum: 1 }
+    })
+    .project({ priority: '$_id', color: '$color', count: '$count' })
+    .project({ _id: 0, priority: 1, color: 1, count: 1 })
+    .exec(function (error, countPerPriority) {
+
+      done(error, countPerPriority);
+
+    });
+
+};
+
+
+
+/**
+ * @name calculateAverageCallDuration
+ * @description compute average call duration
+ * @param  {Function} done a callback to be invoked on success or failure
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.statics.calculateAverageCallDuration = function (done) {
+
+  //refs
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //compute average call duration
+  ServiceRequest
+    .aggregate()
+    .group({
+      _id: null,
+      duration: { $avg: '$call.duration' }
+    })
+    .project({ _id: 0, duration: 1 })
+    .exec(function (error, durations) {
+      //obtain average duration
+      const duration = _.first(durations).duration || 0;
+
+      //convert duration seconds to seconds used
+      let seconds = 0;
+      seconds = duration % 60;
+      seconds = _.round(seconds);
+
+      let minutes = 0;
+
+      //convert duration seconds to minutes
+      if (duration > 60) {
+
+        //obtain remained fractions after whole minutes
+        const mod = duration % 60;
+
+        //remove fraction minutes and obtain whole minutes
+        minutes = (duration - mod) / 60;
+
+      }
+
+      done(error, { minutes, seconds });
+
+    });
+
+};
+
+
+/**
+ * @name overviews
+ * @description compute current issue overview/pipeline
+ * @param  {Function} done a callback to be invoked on success or failure
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.statics.overviews = function (done) {
+  //refs
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  async.parallel({
+
+    //total, resolved, un-resolved count & average call duration
+    issues: function (next) {
+
+      async.parallel({
+        total: function (then) {
+          ServiceRequest.count({}, then);
+        },
+        resolved: function (then) {
+          ServiceRequest.countResolved(then);
+        },
+        unresolved: function (then) {
+          ServiceRequest.countUnResolved(then);
+        },
+        averageCallDuration: function (then) {
+          ServiceRequest.calculateAverageCallDuration(then);
+        }
+      }, next);
+    },
+
+    //count issue per jurisdiction
+    jurisdictions: function (next) {
+      ServiceRequest.countPerJurisdiction(next);
+    },
+
+    //count issue per method used for reporting
+    methods: function (next) {
+      ServiceRequest.countPerMethod(next);
+    },
+
+    //count issue per service group
+    groups: function (next) {
+      ServiceRequest.countPerGroup(next);
+    },
+
+    //count issue per service
+    services: function (next) {
+      ServiceRequest.countPerService(next);
+    },
+
+    //count issue per statuses
+    statuses: function (next) {
+      ServiceRequest.countPerStatus(next);
+    },
+
+    //count issue per priorities
+    priorities: function (next) {
+      ServiceRequest.countPerPriority(next);
+    }
+
+  }, done);
+};
 
 
 /**

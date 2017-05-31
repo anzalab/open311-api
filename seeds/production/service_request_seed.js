@@ -15,7 +15,9 @@ const parties = require(path.join(__dirname, 'party_seed'));
  */
 module.exports = [{
   jurisdiction: jurisdictions[0],
-  service: _.omit(services[0], 'jurisdiction', 'group'),
+  group: services[0].group,
+  method: 'USSD',
+  service: _.omit(services[0], 'jurisdiction'),
   reporter: _.omit(parties[0], 'jurisdiction'),
   operator: _.omit(parties[0], 'jurisdiction'),
   assignee: _.omit(parties[0], 'jurisdiction'),
@@ -23,7 +25,8 @@ module.exports = [{
   address: 'Mikocheni'
 }, {
   jurisdiction: jurisdictions[1],
-  service: _.omit(services[1], 'jurisdiction', 'group'),
+  group: services[1].group,
+  service: _.omit(services[1], 'jurisdiction'),
   reporter: _.omit(parties[0], 'jurisdiction'),
   operator: _.omit(parties[0], 'jurisdiction'),
   assignee: _.omit(parties[0], 'jurisdiction'),
@@ -31,7 +34,8 @@ module.exports = [{
   address: 'Kijitonyama'
 }, {
   jurisdiction: jurisdictions[2],
-  service: _.omit(services[2], 'jurisdiction', 'group'),
+  group: services[2].group,
+  service: _.omit(services[2], 'jurisdiction'),
   reporter: _.omit(parties[0], 'jurisdiction'),
   operator: _.omit(parties[0], 'jurisdiction'),
   assignee: _.omit(parties[0], 'jurisdiction'),
@@ -39,6 +43,7 @@ module.exports = [{
   address: 'Temeke - Mikoroshini'
 }, {
   jurisdiction: jurisdictions[0],
+  group: services[3].group,
   service: _.omit(services[3], 'jurisdiction', 'group'),
   reporter: _.omit(parties[0], 'jurisdiction'),
   operator: _.omit(parties[0], 'jurisdiction'),

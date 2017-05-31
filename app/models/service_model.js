@@ -17,6 +17,7 @@
 //TODO migrate priority to model
 //TODO ensure default priority
 //TODO on UI add jurisdiction and service group filter
+//TODO add a flag to make a service request under a specified service to be public
 
 
 //dependencies

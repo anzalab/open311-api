@@ -283,6 +283,21 @@ module.exports = {
 
   },
 
+  /**
+   * @description handle overview request
+   * @param  {HttpRequest} request  http request
+   * @param  {HttpResponse} response http response
+   */
+  overviews: function (request, response) {
+    ServiceRequest
+      .overviews(function (error, overview) {
+        if (error) {
+          overview = {};
+        }
+        response.ok(overview);
+      });
+  },
+
 
   /**
    * @description handle summaries request

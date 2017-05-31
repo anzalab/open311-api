@@ -111,6 +111,17 @@ router.get('/heartbeats', function (request, response, next) {
 
 
 /**
+ * Handle Http GET on /overviews
+ * @description check client overviews
+ * @param  {HttpRequest} request  a http request
+ * @param  {HttpResponse} response a http response
+ */
+router.get('/overviews', function (request, response, next) {
+  controller.overviews(request, response, next);
+});
+
+
+/**
  * Handle Http GET on /summaries
  * @description check client summaries
  * @param  {HttpRequest} request  a http request

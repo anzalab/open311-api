@@ -135,10 +135,10 @@ module.exports = {
    * @type {Object}
    */
   infobip: {
-    from: 'InfoSMS',
-    username: 'open311',
-    password: 'open311',
-    fake: true
+    from: process.env.INFOBIP_FROM,
+    username: process.env.INFOBIP_USERNAME,
+    password: process.env.INFOBIP_PASSWORD,
+    // fake: true
   },
 
   /**
