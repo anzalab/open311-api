@@ -1146,6 +1146,45 @@ ServiceRequestSchema.statics.countPerService = function (done) {
 
 
 /**
+ * @name countPerOperator
+ * @description count issue reported per service
+ * @param  {Function} done a callback to be invoked on success or failure
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.statics.countPerOperator = function (done) {
+
+  //refs
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //count issue per service
+  ServiceRequest
+    .aggregate()
+    .lookup({
+      from: 'parties',
+      localField: 'operator',
+      foreignField: '_id',
+      as: 'operator'
+    })
+    .unwind('$operator')
+    .group({
+      _id: '$operator.name',
+      count: { $sum: 1 }
+    })
+    .project({ operator: '$_id', count: '$count' })
+    .project({ _id: 0, operator: 1, count: 1 })
+    .exec(function (error, countPerOperator) {
+
+      done(error, countPerOperator);
+
+    });
+
+};
+
+
+/**
  * @name countPerStatus
  * @description count issue reported per status
  * @param  {Function} done a callback to be invoked on success or failure
@@ -1177,8 +1216,6 @@ ServiceRequestSchema.statics.countPerStatus = function (done) {
     .project({ status: '$_id', color: '$color', count: '$count' })
     .project({ _id: 0, status: 1, color: 1, count: 1 })
     .exec(function (error, countPerStatus) {
-
-      console.log(error);
 
       done(error, countPerStatus);
 
@@ -1331,6 +1368,11 @@ ServiceRequestSchema.statics.overviews = function (done) {
     //count issue per service
     services: function (next) {
       ServiceRequest.countPerService(next);
+    },
+
+    //count issue per operator
+    operator: function (next) {
+      ServiceRequest.countPerOperator(next);
     },
 
     //count issue per statuses

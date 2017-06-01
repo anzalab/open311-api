@@ -54,4 +54,4 @@ infobip.options = config.get('infobip');
 
 
 //start
-infobip.start();
+// infobip.start();
