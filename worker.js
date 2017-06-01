@@ -26,7 +26,8 @@ process.env.SUPPRESS_NO_CONFIG_WARNING = true;
 const path = require('path');
 
 //dependencies
-const config = require('config'); //load configurations
+require('config'); //load configurations
+// const config = require('config'); //load configurations
 const environment = require('execution-environment');
 const mkdir = require('mkdir-p');
 
