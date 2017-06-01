@@ -49,8 +49,8 @@ require(path.join(__dirname, 'app', 'initializers', 'mongoose'));
 //------------------------------------------------------------------------
 
 //initialize infobip sms transport
-const infobip = require('open311-infobip');
-infobip.options = config.get('infobip');
+// const infobip = require('open311-infobip');
+// infobip.options = config.get('infobip');
 
 
 //start
