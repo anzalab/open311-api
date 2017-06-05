@@ -14,13 +14,6 @@
  */
 
 
-//TODO make service request to support call log in a call center
-//TODO migrate location to use GeoJSON schema
-//TODO obtain geo-data from jurisdiction if not available(or set)
-//TODO add service group
-//TODO add a flag to make a ticket public
-
-
 //dependencies
 const path = require('path');
 const _ = require('lodash');
@@ -166,8 +159,9 @@ const ServiceRequestSchema = new Schema({
 
     /**
      * @name duration
-     * @description call duration in seconds from time when call picke up to
-     *              time when a call released by the call center operator
+     * @description call duration in milliseconds from time when call picked up 
+     *              to time when a call released by the call center operator.
+     *              
      * @type {Object}
      * @private
      * @since 0.1.0
@@ -243,7 +237,7 @@ const ServiceRequestSchema = new Schema({
      *              party submitting the request(issue).
      *
      *              This help a jurisdiction to link a reporter with the
-     *              internal CRM.
+     *              internal CRM if available.
      *
      *              When account id is available a reporter will be treated as
      *              a customer and not a normal civilian.
@@ -268,6 +262,9 @@ const ServiceRequestSchema = new Schema({
    *              It also a party that is answerable for the progress and
    *              status of the service request(issue) to a reporter.
    *
+   *              For jurisdiction that own a call center, then operator is 
+   *              a person who received a call.
+   *
    * @type {Object}
    * @see {@link Party}
    * @private
@@ -291,7 +288,8 @@ const ServiceRequestSchema = new Schema({
    * @description A party assigned to work on the service request(issue).
    *
    *              It also a party that is answerable for the progress and
-   *              status of the service request(issue).
+   *              status of the service request(issue) to operator and overall
+   *              jurisdiction administrative structure.
    *
    * @type {Object}
    * @see {@link Party}
@@ -508,7 +506,7 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name ttr
-   * @description A time taken to resolve the issue(service request) in seconds.
+   * @description A time taken to resolve the issue(service request) in milliseconds.
    *
    *              Used to calculcate Mean Time To Resolve(MTTR) KPI.
    *
@@ -555,8 +553,8 @@ ServiceRequestSchema.virtual('ttrSeconds').get(function () {
   let ttrSeconds = 0;
 
   //convert ttr seconds to seconds used
-  ttrSeconds = this.ttr % 60;
-  ttrSeconds = _.round(ttrSeconds, 2);
+  ttrSeconds = this.ttr % (1000 * 60);
+  ttrSeconds = _.round(ttrSeconds);
 
   return ttrSeconds;
 
@@ -573,14 +571,16 @@ ServiceRequestSchema.virtual('ttrMinutes').get(function () {
 
   let ttrMinutes = 0;
 
+  const minuteMilliSeconds = 1000 * 60;
+
   //convert ttr seconds to minutes
-  if (this.ttr > 60) {
+  if (this.ttr > minuteMilliSeconds) {
 
     //obtain remained fractions after whole minutes
-    const mod = this.ttr % 60;
+    const mod = this.ttr % minuteMilliSeconds;
 
     //remove fraction minutes and obtain whole minutes
-    ttrMinutes = (this.ttr - mod) / 60;
+    ttrMinutes = (this.ttr - mod) / minuteMilliSeconds;
 
   }
 
@@ -600,16 +600,16 @@ ServiceRequestSchema.virtual('ttrHours').get(function () {
 
   let ttrHours = 0;
 
-  const hourSeconds = 60 * 60;
+  const hourMilliSeconds = 1000 * 60 * 60;
 
   //convert ttr seconds to hours
-  if (this.ttr > hourSeconds) {
+  if (this.ttr > hourMilliSeconds) {
 
     //obtain remained fractions after whole hours
-    const mod = this.ttr % hourSeconds;
+    const mod = this.ttr % hourMilliSeconds;
 
     //remove fraction hours and obtain whole hours
-    ttrHours = (this.ttr - mod) / hourSeconds;
+    ttrHours = (this.ttr - mod) / hourMilliSeconds;
 
   }
 
@@ -736,16 +736,18 @@ ServiceRequestSchema.pre('validate', function (next) {
   this.call.startedAt = this.call.startedAt || new Date();
   this.call.endedAt = this.call.endedAt || new Date();
 
-  //compute call duration in seconds
-  const durationInMilliseconds =
+  //compute call duration in milliseconds
+  this.call.duration =
     this.call.endedAt.getTime() - this.call.startedAt.getTime();
-  this.call.duration = (durationInMilliseconds / 1000);
 
   //compute expected time to resolve the issue
   //based on service level agreement
   if (!this.expectedAt && this.service) {
+    //obtain sla expected time ttr
     const ttr = _.get(this.service, 'sla.ttr');
     if (ttr) {
+      //compute time to when a service request(issue) 
+      //is expected to be resolve
       this.expectedAt =
         moment(this.createdAt).add(ttr, 'hours').toDate(); //or h
     }
@@ -753,9 +755,8 @@ ServiceRequestSchema.pre('validate', function (next) {
 
   //compute time to resolve (ttr)
   if (this.resolvedAt) {
-    const ttrInSeconds =
-      (this.resolvedAt.getTime() - this.createdAt.getTime()) / (1000 * 60);
-    this.ttr = ttrInSeconds;
+    this.ttr =
+      this.resolvedAt.getTime() - this.createdAt.getTime();
   }
 
   //ensure jurisdiction from service
@@ -772,6 +773,7 @@ ServiceRequestSchema.pre('validate', function (next) {
 
   //set default status & priority if not set
   //TODO preload default status & priority
+  //TODO find nearby jurisdiction using request geo data
   if (!this.status || !this.priority || !this.code || _.isEmpty(this.code)) {
     async.parallel({
 
@@ -1319,22 +1321,23 @@ ServiceRequestSchema.statics.calculateAverageCallDuration = function (done) {
     .exec(function (error, durations) {
       //obtain average duration
       const duration = _.first(durations).duration || 0;
+      const minuteMilliSeconds = 1000 * 60;
 
-      //convert duration seconds to seconds used
+      //convert duration milliseconds to whole seconds used
       let seconds = 0;
-      seconds = duration % 60;
+      seconds = duration % minuteMilliSeconds;
       seconds = _.round(seconds);
 
       let minutes = 0;
 
-      //convert duration seconds to minutes
-      if (duration > 60) {
+      //convert duration milliseconds to minutes used
+      if (duration > minuteMilliSeconds) {
 
         //obtain remained fractions after whole minutes
-        const mod = duration % 60;
+        const mod = duration % minuteMilliSeconds;
 
         //remove fraction minutes and obtain whole minutes
-        minutes = (duration - mod) / 60;
+        minutes = (duration - mod) / minuteMilliSeconds;
 
       }
 

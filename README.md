@@ -27,6 +27,9 @@ open311-api is partial implementation of [open311 GeoReport v2](http://wiki.open
 - [ ] improve api doc
 - [ ] add sla per service per area
 - [ ] add a flag to make a service request under a specified service to be public
+- [ ] add a flag to make a service request public visible
+- [ ] on service request get neaby area and add it to request if request has no area
+- [ ] set jurisdiction based on service request (long, lat)
 
 
 
