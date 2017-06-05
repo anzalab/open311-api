@@ -41,7 +41,8 @@ if (_.isEmpty((process.env || {}).NODE_ENV)) {
 process.env.SUPPRESS_NO_CONFIG_WARNING = true;
 
 
-const config = require('config'); //load configurations
+require('config'); //load configurations
+// const config = require('config'); //load configurations
 const environment = require('execution-environment');
 const mkdir = require('mkdir-p');
 const express = require('express');

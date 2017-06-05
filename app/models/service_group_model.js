@@ -26,13 +26,6 @@ const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
 
-//TODO make use of compaund unique index to allow name to be usable in more
-//than once jurisdiction
-
-//TODO fix unique indexes on code and name in case used in more than
-//one jurisdiction with different administration
-
-
 /**
  * @name ServiceGroupSchema
  * @type {Schema}
@@ -146,6 +139,17 @@ const ServiceGroupSchema = new Schema({
   }
 
 }, { timestamps: true, emitIndexErrors: true });
+
+
+//-----------------------------------------------------------------------------
+// ServiceGroupSchema Index
+//-----------------------------------------------------------------------------
+
+
+//ensure `unique` compound index on jurisdiction, name and code
+//to fix unique indexes on code and name in case they are used in more than
+//one jurisdiction with different administration
+ServiceGroupSchema.index({ jurisdiction: 1, name: 1, code: 1 }, { unique: true });
 
 
 //-----------------------------------------------------------------------------

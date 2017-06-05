@@ -4,9 +4,9 @@
 /**
  * @module ServiceRequest
  * @name ServiceRequest
- * @description An issue(or service request) reported by civilian 
+ * @description An issue(or service request) reported by civilian
  *              e.g Water Leakage occur at a particular area
- *              
+ *
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
  * @version 0.1.0
@@ -60,9 +60,9 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name jurisdiction
-   * @description A jurisdiction responsible in handling service 
+   * @description A jurisdiction responsible in handling service
    *              request(issue)
-   *               
+   *
    * @type {Object}
    * @see {@link Jurisdiction}
    * @private
@@ -182,7 +182,7 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name reporter
-   * @description A party i.e civilian, customer etc which reported an 
+   * @description A party i.e civilian, customer etc which reported an
    *              issue(service request)
    * @type {Object}
    * @see {@link Party}
@@ -238,15 +238,15 @@ const ServiceRequestSchema = new Schema({
 
     /**
      * @name account
-     * @description A jurisdiction internal associated account id of the 
+     * @description A jurisdiction internal associated account id of the
      *              party submitting the request(issue).
      *
-     *              This help a jurisdiction to link a reporter with the 
+     *              This help a jurisdiction to link a reporter with the
      *              internal CRM.
      *
      *              When account id is available a reporter will be treated as
      *              a customer and not a normal civilian.
-     *              
+     *
      * @type {Object}
      * @private
      * @since 0.1.0
@@ -262,11 +262,11 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name operator
-   * @description A party oversee the work on the service request(issue). 
-   *              
-   *              It also a party that is answerable for the progress and 
+   * @description A party oversee the work on the service request(issue).
+   *
+   *              It also a party that is answerable for the progress and
    *              status of the service request(issue) to a reporter.
-   *              
+   *
    * @type {Object}
    * @see {@link Party}
    * @private
@@ -287,11 +287,11 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name assignee
-   * @description A party assigned to work on the service request(issue). 
-   *              
-   *              It also a party that is answerable for the progress and 
+   * @description A party assigned to work on the service request(issue).
+   *
+   *              It also a party that is answerable for the progress and
    *              status of the service request(issue).
-   *              
+   *
    * @type {Object}
    * @see {@link Party}
    * @private
@@ -312,12 +312,12 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name code
-   * @description A unique human readable identifier of the 
-   *              service request(issue). 
-   *              
-   *              It mainly used by reporter to query for status and 
+   * @description A unique human readable identifier of the
+   *              service request(issue).
+   *
+   *              It mainly used by reporter to query for status and
    *              progress of the reported issue
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -335,9 +335,9 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name description
-   * @description A detailed human readable explanation about the 
+   * @description A detailed human readable explanation about the
    *              service request(issue)
-   *               
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -354,9 +354,9 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name address
-   * @description A human entered address or description of location 
+   * @description A human entered address or description of location
    *              where service request(issue) happened.
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -372,9 +372,9 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name method
-   * @description A communication(contact) method(mechanism) used by a reporter 
+   * @description A communication(contact) method(mechanism) used by a reporter
    *              to report the issue
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -390,13 +390,13 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name location
-   * @description A longitude and latitude pair of the location of a 
+   * @description A longitude and latitude pair of the location of a
    *              service request(issue).
    *
-   *             The order of adding longitude and latitude in the array must 
+   *             The order of adding longitude and latitude in the array must
    *             be <longitude> , <latitude> and not otherwise.
    *
-   *              
+   *
    * @type {Object}
    * @see  {@link https://docs.mongodb.com/manual/applications/geospatial-indexes/}
    * @see {@link https://docs.mongodb.com/manual/reference/operator/query-geospatial/}
@@ -427,11 +427,11 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name priority
-   * @description A priority of the service request(issue). 
-   *              
-   *              It used to weight a service request(issue) relative 
+   * @description A priority of the service request(issue).
+   *
+   *              It used to weight a service request(issue) relative
    *              to other(s).
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -490,12 +490,12 @@ const ServiceRequestSchema = new Schema({
   /**
    * @name ttr
    * @description A time taken to resolve the issue(service request) in seconds.
-   * 
+   *
    *              Used to calculcate Mean Time To Resolve(MTTR) KPI.
-   *              
+   *
    *              It calculated as time taken since the issue reported to the
    *              time when issue resolved.
-   *               
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -649,7 +649,7 @@ ServiceRequestSchema.methods.toOpen311 = function () {
   //Unique id of the service request
   as311.service_request_id = this.code;
 
-  //Explanation of why the status was changed to the current state 
+  //Explanation of why the status was changed to the current state
   //or more details on the current status than conveyed with status alone.
   as311.status_notes = this.status.name; //TODO make use of status description
 
@@ -665,22 +665,22 @@ ServiceRequestSchema.methods.toOpen311 = function () {
   //A full description of the request or report submitted.
   as311.description = this.description;
 
-  //The agency responsible for fulfilling or otherwise 
+  //The agency responsible for fulfilling or otherwise
   //addressing the service request.
   as311.agency_responsible = '';
 
-  // Information about the action expected to fulfill the request or 
+  // Information about the action expected to fulfill the request or
   // otherwise address the information reported.
   as311.service_notice = '';
 
   // The date and time when the service request was made.
   as311.requested_datetime = this.createdAt;
 
-  // The date and time when the service request was last modified. 
+  // The date and time when the service request was last modified.
   // For requests with status=closed, this will be the date the request was closed.
   as311.updated_datetime = this.updatedAt;
 
-  //The date and time when the service request can be expected to be fulfilled. 
+  //The date and time when the service request can be expected to be fulfilled.
   //This may be based on a service-specific service level agreement.
   as311.expected_datetime = '';
 
