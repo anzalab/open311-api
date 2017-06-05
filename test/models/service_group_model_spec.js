@@ -6,6 +6,7 @@
  * @description :: Server-side model specification for ServiceGroup
  */
 
+
 //dependencies
 const mongoose = require('mongoose');
 const faker = require('faker');
@@ -78,6 +79,11 @@ describe('ServiceGroup', function () {
       });
 
   });
+
+
+  it(
+    'should not allow saving of service group with same name, code and jurisdiction'
+  );
 
 
   it('should be able to find existing service group', function (done) {
