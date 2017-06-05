@@ -21,6 +21,15 @@ open311-api is partial implementation of [open311 GeoReport v2](http://wiki.open
 - MongoDB 3.4.1+
 - Redis Server 3.2.6+
 
+## TODO
+- [ ] ensure default priority
+- [ ] improve developer doc
+- [ ] improve api doc
+- [ ] add sla per service per area
+- [ ] add a flag to make a service request under a specified service to be public
+
+
+
 ## Testing
 
 * Clone this repository

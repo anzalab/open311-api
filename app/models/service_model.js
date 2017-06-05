@@ -14,12 +14,6 @@
  */
 
 
-//TODO migrate priority to model
-//TODO ensure default priority
-//TODO on UI add jurisdiction and service group filter
-//TODO add a flag to make a service request under a specified service to be public
-
-
 //dependencies
 const _ = require('lodash');
 const mongoose = require('mongoose');
@@ -99,9 +93,11 @@ const ServiceSchema = new Schema({
    */
   code: {
     type: String,
-    unique: true,
+    // unique: true, see index section below for compound index 
+    // used to enforce uniqueness
     required: true,
     trim: true,
+    index: true,
     searchable: true
   },
 
@@ -118,9 +114,11 @@ const ServiceSchema = new Schema({
    */
   name: {
     type: String,
-    unique: true,
+    // unique: true, see index section below for compound index 
+    // used to enforce uniqueness
     required: true,
     trim: true,
+    index: true,
     searchable: true
   },
 
@@ -159,6 +157,18 @@ const ServiceSchema = new Schema({
   }
 
 }, { timestamps: true, emitIndexErrors: true });
+
+
+//-----------------------------------------------------------------------------
+// ServiceSchema Index
+//-----------------------------------------------------------------------------
+
+
+//ensure `unique` compound index on jurisdiction, group, name and code
+//to fix unique indexes on code and name in case they are used in more than
+//one jurisdiction with different administration
+ServiceSchema.index({ jurisdiction: 1, group: 1, name: 1, code: 1 }, { unique: true });
+
 
 
 //-----------------------------------------------------------------------------
