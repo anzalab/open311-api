@@ -4,11 +4,12 @@
 /**
  * @module ServiceGroup
  * @name ServiceGroup
- * @description Provide ability to group service offered by a jurisdiction
+ * @description Provide ability to group service offered by a jurisdiction(s)
  *              into meaningful categories e.g Sanitation
  *              
  *              It provides a way to group several service request types
- *              (issues) under meaningful categories such as Sanitation.
+ *              (issues) under meaningful categories such as Sanitation, 
+ *              Commercial, Billing, Non-Commercial etc.
  *
  * @see {@link Jurisdiction}
  * @author lally elias <lallyelias87@mail.com>
@@ -75,9 +76,11 @@ const ServiceGroupSchema = new Schema({
    */
   code: {
     type: String,
-    unique: true,
+    // unique: true, see index section below for compound index 
+    // used to enforce uniqueness
     required: true,
     trim: true,
+    index: true,
     searchable: true
   },
 
@@ -94,9 +97,11 @@ const ServiceGroupSchema = new Schema({
    */
   name: {
     type: String,
-    unique: true,
+    // unique: true, see index section below for compound index 
+    // used to enforce uniqueness
     required: true,
     trim: true,
+    index: true,
     searchable: true
   },
 
