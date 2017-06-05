@@ -24,6 +24,7 @@
 //dependencies
 const path = require('path');
 const _ = require('lodash');
+const moment = require('moment');
 const async = require('async');
 const mongoose = require('mongoose');
 // const infobip = require('open311-infobip');
@@ -474,6 +475,24 @@ const ServiceRequestSchema = new Schema({
 
 
   /**
+   * @name expectedAt
+   * @description A time when the issue is expected to be resolved.
+   *
+   *              Computed by adding expected hours to resolve issue to the 
+   *              reporting time of the issue i.e (createdAt + service.sla.ttr in hours).
+   *              
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  expectedAt: {
+    type: Date,
+    index: true
+  },
+
+
+  /**
    * @name resolvedAt
    * @description A time when the issue was resolved
    * @type {Object}
@@ -721,6 +740,16 @@ ServiceRequestSchema.pre('validate', function (next) {
   const durationInMilliseconds =
     this.call.endedAt.getTime() - this.call.startedAt.getTime();
   this.call.duration = (durationInMilliseconds / 1000);
+
+  //compute expected time to resolve the issue
+  //based on service level agreement
+  if (!this.expectedAt && this.service) {
+    const ttr = _.get(this.service, 'sla.ttr');
+    if (ttr) {
+      this.expectedAt =
+        moment(this.createdAt).add(ttr, 'hours').toDate(); //or h
+    }
+  }
 
   //compute time to resolve (ttr)
   if (this.resolvedAt) {

@@ -15,11 +15,14 @@
 
 
 //dependencies
+const path = require('path');
 const _ = require('lodash');
 const mongoose = require('mongoose');
 const randomColor = require('randomcolor');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
+const SlaSchema = require(path.join(__dirname, 'schemas', 'sla_schema'));
+
 
 
 /**
@@ -154,7 +157,9 @@ const ServiceSchema = new Schema({
     type: String,
     trim: true,
     uppercase: true
-  }
+  },
+
+  sla: SlaSchema
 
 }, { timestamps: true, emitIndexErrors: true });
 
