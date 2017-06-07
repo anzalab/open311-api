@@ -4,7 +4,7 @@
 /**
  * @module ServiceRequest
  * @name ServiceRequest
- * @description An issue(or service request) reported by civilian
+ * @description An issue(or service request) reported by civilian(or customer)
  *              e.g Water Leakage occur at a particular area
  *
  * @author lally elias <lallyelias87@mail.com>
@@ -114,7 +114,7 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'code name color group'
+      select: 'code name color group' // remove group?
     }
   },
 
@@ -383,7 +383,8 @@ const ServiceRequestSchema = new Schema({
     type: String,
     enum: CONTACT_METHODS,
     default: CONTACT_METHOD_PHONE_CALL,
-    index: true
+    index: true,
+    searchable: true
   },
 
 
@@ -533,7 +534,7 @@ const ServiceRequestSchema = new Schema({
 //-----------------------------------------------------------------------------
 
 
-//ensure `2dsphere` on service request location and boundaries
+//ensure `2dsphere` on service request location
 ServiceRequestSchema.index({ location: '2dsphere' });
 
 
