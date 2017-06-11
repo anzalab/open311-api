@@ -71,7 +71,7 @@ const ServiceRequestSchema = new Schema({
     index: true,
     exists: true,
     autopopulate: {
-      select: 'code name domain'
+      select: 'code name phone email domain'
     }
   },
 

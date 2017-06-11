@@ -96,7 +96,7 @@ const PartySchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'code name domain'
+      select: 'code name phone email domain'
     }
   },
 
