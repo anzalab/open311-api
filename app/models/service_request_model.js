@@ -553,8 +553,11 @@ ServiceRequestSchema.virtual('ttrSeconds').get(function () {
 
   let ttrSeconds = 0;
 
+  //convert to millisecond to second
+  let ttr = _.round(this.ttr / 1000);
+
   //convert ttr seconds to seconds used
-  ttrSeconds = this.ttr % (1000 * 60);
+  ttrSeconds = ttr % 60;
   ttrSeconds = _.round(ttrSeconds);
 
   return ttrSeconds;
@@ -1321,8 +1324,11 @@ ServiceRequestSchema.statics.calculateAverageCallDuration = function (done) {
     .project({ _id: 0, duration: 1 })
     .exec(function (error, durations) {
       //obtain average duration
-      const duration = _.first(durations).duration || 0;
+      let duration = _.first(durations).duration || 0;
       const minuteMilliSeconds = 1000 * 60;
+
+      //convert duration to seconds
+      duration = _.round(duration / 1000);
 
       //convert duration milliseconds to whole seconds used
       let seconds = 0;

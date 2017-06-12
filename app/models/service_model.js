@@ -24,7 +24,6 @@ const ObjectId = Schema.Types.ObjectId;
 const SlaSchema = require(path.join(__dirname, 'schemas', 'sla_schema'));
 
 
-
 /**
  * @name ServiceSchema
  * @type {Schema}
@@ -159,6 +158,15 @@ const ServiceSchema = new Schema({
     uppercase: true
   },
 
+  /**
+   * @name sla
+   * @description A service level agreement
+   *               
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
   sla: SlaSchema
 
 }, { timestamps: true, emitIndexErrors: true });
