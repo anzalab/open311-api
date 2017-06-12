@@ -346,7 +346,7 @@ const ServiceRequestSchema = new Schema({
     type: String,
     index: true,
     trim: true,
-    required: true,
+    // required: true,
     searchable: true
   },
 
