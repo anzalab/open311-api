@@ -72,6 +72,19 @@ const MediaSchema = new Schema({
 
 
   /**
+   * @name content
+   * @description A base64 encode media content
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  content: {
+    type: String
+  },
+
+
+  /**
    * @name mime
    * @description A format of the media
    * @type {Object}
@@ -95,7 +108,7 @@ const MediaSchema = new Schema({
    */
   url: {
     type: String,
-    required: true
+    // required: true
   },
 
 
