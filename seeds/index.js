@@ -14,6 +14,7 @@ function registerParties(role, done) {
     email: 'lallyelias87@gmail.com',
     password: 'open311@qwerty',
     name: 'Lally Elias',
+    sipNumber: '1000',
     phone: '255714095061',
     roles: [role]
   }, {

@@ -157,6 +157,25 @@ const PartySchema = new Schema({
 
 
   /**
+   * @name sipNumber
+   * @description valid soft phone number for the party. Mainly used for
+   *              parties that operate a call center
+   *              
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  sipNumber: {
+    type: String,
+    // required: true,
+    // unique: true,
+    trim: true,
+    searchable: true
+  },
+
+
+  /**
    * @name roles
    * @description roles that played by this party
    * 
