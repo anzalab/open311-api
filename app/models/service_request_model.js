@@ -14,13 +14,29 @@
  */
 
 
+//TODO extract call details to plugin/module to make service request free
+//from call center details
+
+//TODO make use of milliseconds to all persisted time
+//TODO fix time convertions
+
+//TODO extract open311 methods and properties to a plugin/module to make
+//service request free from open311 boilerplates
+
+//TODO extract analysis to plugin/module to free service request from
+//analysis boilerplates 
+
 //dependencies
 const path = require('path');
 const _ = require('lodash');
-const moment = require('moment');
 const async = require('async');
+// const config = require('config');
+// const environment = require('execution-environment');
+const moment = require('moment');
 const mongoose = require('mongoose');
 // const infobip = require('open311-infobip');
+const parseMs = require('parse-ms');
+const prettyMs = require('pretty-ms');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const GeoJSON = require(path.join(__dirname, 'schemas', 'geojson_schema'));
@@ -474,6 +490,17 @@ const ServiceRequestSchema = new Schema({
 
 
   /**
+   * @name changes
+   * @description Associated status changes(s) with service request(issue)
+   * @type {Array}
+   * @see {@link StatusChange}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+
+
+  /**
    * @name expectedAt
    * @description A time when the issue is expected to be resolved.
    *
@@ -520,7 +547,7 @@ const ServiceRequestSchema = new Schema({
    * @version 0.1.0
    * @see {@link http://www.thinkhdi.com/~/media/HDICorp/Files/Library-Archive/Insider%20Articles/mean-time-to-resolve.pdf}
    */
-  ttr: {
+  ttr: { //TODO save ttr as object of d,h,m,s,ms,human
     type: Number,
     index: true,
     default: 0
@@ -551,14 +578,10 @@ ServiceRequestSchema.index({ location: '2dsphere' });
  */
 ServiceRequestSchema.virtual('ttrSeconds').get(function () {
 
-  let ttrSeconds = 0;
+  //parse ttr milliseconds to d,h,m,s
+  const parsedMs = parseMs(this.ttr || 0);
 
-  //convert to millisecond to second
-  let ttr = _.round(this.ttr / 1000);
-
-  //convert ttr seconds to seconds used
-  ttrSeconds = ttr % 60;
-  ttrSeconds = _.round(ttrSeconds);
+  const ttrSeconds = parsedMs.seconds || 0;
 
   return ttrSeconds;
 
@@ -573,20 +596,10 @@ ServiceRequestSchema.virtual('ttrSeconds').get(function () {
  */
 ServiceRequestSchema.virtual('ttrMinutes').get(function () {
 
-  let ttrMinutes = 0;
+  //parse ttr milliseconds to d,h,m,s
+  const parsedMs = parseMs(this.ttr || 0);
 
-  const minuteMilliSeconds = 1000 * 60;
-
-  //convert ttr seconds to minutes
-  if (this.ttr > minuteMilliSeconds) {
-
-    //obtain remained fractions after whole minutes
-    const mod = this.ttr % minuteMilliSeconds;
-
-    //remove fraction minutes and obtain whole minutes
-    ttrMinutes = (this.ttr - mod) / minuteMilliSeconds;
-
-  }
+  const ttrMinutes = parsedMs.minutes || 0;
 
   return ttrMinutes;
 
@@ -602,22 +615,65 @@ ServiceRequestSchema.virtual('ttrMinutes').get(function () {
  */
 ServiceRequestSchema.virtual('ttrHours').get(function () {
 
-  let ttrHours = 0;
+  //parse ttr milliseconds to d,h,m,s
+  const parsedMs = parseMs(this.ttr || 0);
 
-  const hourMilliSeconds = 1000 * 60 * 60;
-
-  //convert ttr seconds to hours
-  if (this.ttr > hourMilliSeconds) {
-
-    //obtain remained fractions after whole hours
-    const mod = this.ttr % hourMilliSeconds;
-
-    //remove fraction hours and obtain whole hours
-    ttrHours = (this.ttr - mod) / hourMilliSeconds;
-
-  }
+  const ttrHours = parsedMs.hours || 0;
 
   return ttrHours;
+
+});
+
+
+/**
+ * @name ttrDays
+ * @description obtain ttr day(s) used
+ * @type {Number}
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+ServiceRequestSchema.virtual('ttrDays').get(function () {
+
+  //parse ttr milliseconds to d,h,m,s
+  const parsedMs = parseMs(this.ttr || 0);
+
+  const ttrDays = parsedMs.days || 0;
+
+  return ttrDays;
+
+});
+
+
+/**
+ * @name ttrHuman
+ * @description obtain ttr in human readable format
+ * @type {Number}
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+ServiceRequestSchema.virtual('ttrHuman').get(function () {
+
+  //parse ttr into human readable d h m s
+  const pretifiedMs = prettyMs(this.ttr || 0);
+
+  return pretifiedMs;
+
+});
+
+
+/**
+ * @name callDurationHuman
+ * @description obtain call duration in human readable format
+ * @type {Number}
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+ServiceRequestSchema.virtual('callDurationHuman').get(function () {
+
+  //parse call duration into human readable d h m s
+  const pretifiedMs = prettyMs((this.call || {}).duration || 0);
+
+  return pretifiedMs;
 
 });
 
@@ -757,7 +813,7 @@ ServiceRequestSchema.pre('validate', function (next) {
     }
   }
 
-  //compute time to resolve (ttr)
+  //compute time to resolve (ttr) in milliseconds
   if (this.resolvedAt) {
     this.ttr =
       this.resolvedAt.getTime() - this.createdAt.getTime();

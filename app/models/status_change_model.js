@@ -18,10 +18,10 @@
 
 
 //dependencies
+const _ = require('lodash');
 const config = require('config');
 const environment = require('execution-environment');
 const infobip = require('open311-infobip');
-const _ = require('lodash');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;

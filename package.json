@@ -33,10 +33,12 @@
     "name": "lally elias",
     "email": "lallyelias87@gmail.com"
   },
-  "contributors": [{
-    "name": "lallyelias",
-    "email": "lallyelias87@gmail.com"
-  }],
+  "contributors": [
+    {
+      "name": "lallyelias",
+      "email": "lallyelias87@gmail.com"
+    }
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/CodeTanzania/open311-api/"
@@ -93,6 +95,8 @@
     "open311-messages": "^0.5.2",
     "open311-smtp": "^0.1.0",
     "parse-mongo-url": "^1.1.1",
+    "parse-ms": "^1.0.1",
+    "pretty-ms": "^2.1.0",
     "randomcolor": "^0.5.3",
     "require-all": "^2.2.0",
     "seed-mongoose": "^0.5.0",
