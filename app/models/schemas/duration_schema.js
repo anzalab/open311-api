@@ -135,10 +135,9 @@ const DurationSchema = new Schema({
    * @version 0.1.0
    */
   human: {
-    type: Number,
+    type: String,
     required: true,
-    trim: true,
-    index: true
+    trim: true
   }
 
 }, { _id: false, timestamps: false });
@@ -166,7 +165,7 @@ DurationSchema.pre('validate', function (next) {
     if (this.milliseconds) {
 
       //always parse milliseconds to human readable format
-      this.human = prettyMs(this.milliseconds || 0);
+      this.human = prettyMs(this.milliseconds || 0, { secDecimalDigits: 0 });
 
       //always parse milliseconds to respective parts
       const parsedMs = parseMs(this.milliseconds || 0);

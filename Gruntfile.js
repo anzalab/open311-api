@@ -187,7 +187,7 @@ module.exports = function (grunt) {
       models: {
         options: {
           reporter: 'spec',
-          timeout: 8000
+          timeout: 80000
         },
         src: [
           '<%= project.test %>/bootstrap_spec.js',

@@ -35,12 +35,12 @@ const async = require('async');
 const moment = require('moment');
 const mongoose = require('mongoose');
 // const infobip = require('open311-infobip');
-const parseMs = require('parse-ms');
 const prettyMs = require('pretty-ms');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const GeoJSON = require(path.join(__dirname, 'schemas', 'geojson_schema'));
 const MediaSchema = require(path.join(__dirname, 'schemas', 'media_schema'));
+const Duration = require(path.join(__dirname, 'schemas', 'duration_schema'));
 
 //contact methods used for reporting the issue
 const CONTACT_METHOD_PHONE_CALL = 'Call';
@@ -534,24 +534,21 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name ttr
-   * @description A time taken to resolve the issue(service request) in milliseconds.
+   * @description A time taken to resolve the issue(service request) in duration format.
    *
    *              Used to calculcate Mean Time To Resolve(MTTR) KPI.
    *
    *              It calculated as time taken since the issue reported to the
    *              time when issue resolved.
    *
-   * @type {Object}
+   * @type {Duration}
+   * @see {@link DurationSchema}
    * @private
    * @since 0.1.0
    * @version 0.1.0
    * @see {@link http://www.thinkhdi.com/~/media/HDICorp/Files/Library-Archive/Insider%20Articles/mean-time-to-resolve.pdf}
    */
-  ttr: { //TODO save ttr as object of d,h,m,s,ms,human
-    type: Number,
-    index: true,
-    default: 0
-  }
+  ttr: Duration
 
 }, { timestamps: true, emitIndexErrors: true });
 
@@ -568,98 +565,6 @@ ServiceRequestSchema.index({ location: '2dsphere' });
 //-----------------------------------------------------------------------------
 // ServiceRequestSchema Virtuals
 //-----------------------------------------------------------------------------
-
-/**
- * @name ttrSeconds
- * @description obtain ttr seconds(s) used
- * @type {Number}
- * @since 0.1.0
- * @version 0.1.0
- */
-ServiceRequestSchema.virtual('ttrSeconds').get(function () {
-
-  //parse ttr milliseconds to d,h,m,s
-  const parsedMs = parseMs(this.ttr || 0);
-
-  const ttrSeconds = parsedMs.seconds || 0;
-
-  return ttrSeconds;
-
-});
-
-/**
- * @name ttrMinutes
- * @description obtain ttr minute(s) used
- * @type {Number}
- * @since 0.1.0
- * @version 0.1.0
- */
-ServiceRequestSchema.virtual('ttrMinutes').get(function () {
-
-  //parse ttr milliseconds to d,h,m,s
-  const parsedMs = parseMs(this.ttr || 0);
-
-  const ttrMinutes = parsedMs.minutes || 0;
-
-  return ttrMinutes;
-
-});
-
-
-/**
- * @name ttrHours
- * @description obtain ttr hour(s) used
- * @type {Number}
- * @since 0.1.0
- * @version 0.1.0
- */
-ServiceRequestSchema.virtual('ttrHours').get(function () {
-
-  //parse ttr milliseconds to d,h,m,s
-  const parsedMs = parseMs(this.ttr || 0);
-
-  const ttrHours = parsedMs.hours || 0;
-
-  return ttrHours;
-
-});
-
-
-/**
- * @name ttrDays
- * @description obtain ttr day(s) used
- * @type {Number}
- * @since 0.1.0
- * @version 0.1.0
- */
-ServiceRequestSchema.virtual('ttrDays').get(function () {
-
-  //parse ttr milliseconds to d,h,m,s
-  const parsedMs = parseMs(this.ttr || 0);
-
-  const ttrDays = parsedMs.days || 0;
-
-  return ttrDays;
-
-});
-
-
-/**
- * @name ttrHuman
- * @description obtain ttr in human readable format
- * @type {Number}
- * @since 0.1.0
- * @version 0.1.0
- */
-ServiceRequestSchema.virtual('ttrHuman').get(function () {
-
-  //parse ttr into human readable d h m s
-  const pretifiedMs = prettyMs(this.ttr || 0);
-
-  return pretifiedMs;
-
-});
-
 
 /**
  * @name callDurationHuman
@@ -815,8 +720,8 @@ ServiceRequestSchema.pre('validate', function (next) {
 
   //compute time to resolve (ttr) in milliseconds
   if (this.resolvedAt) {
-    this.ttr =
-      this.resolvedAt.getTime() - this.createdAt.getTime();
+    const ttr = this.resolvedAt.getTime() - this.createdAt.getTime();
+    this.ttr = { milliseconds: ttr };
   }
 
   //ensure jurisdiction from service
@@ -1034,6 +939,8 @@ ServiceRequestSchema.statics.createFromOpen311Client =
 // ServiceRequestSchema Statistics
 //-----------------------------------------------------------------------------
 
+//TODO use new duration format
+//TODO use new call format
 
 /**
  * @name countResolved

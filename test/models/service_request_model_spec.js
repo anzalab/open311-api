@@ -128,8 +128,8 @@ describe('ServiceRequest', function () {
         assignee: assignee,
         description: faker.lorem.paragraph(),
         address: faker.address.streetAddress(),
-        createdAt:faker.date.past(),
-        resolvedAt:faker.date.future(),
+        createdAt: faker.date.past(),
+        resolvedAt: faker.date.future(),
         location: {
           coordinates: [
             Number(faker.address.longitude()),
@@ -140,6 +140,8 @@ describe('ServiceRequest', function () {
 
       ServiceRequest
         .create(serviceRequest, function (error, created) {
+
+          console.log(error);
 
           expect(error).to.not.exist;
           expect(created).to.exist;
@@ -162,6 +164,16 @@ describe('ServiceRequest', function () {
             .to.be.equal(serviceRequest.location.coordinates[0]);
           expect(created.latitude)
             .to.be.equal(serviceRequest.location.coordinates[1]);
+
+          //assert ttr
+          expect(created.ttr).to.exist;
+          expect(created.ttr.years).to.exist;
+          expect(created.ttr.months).to.exist;
+          expect(created.ttr.days).to.exist;
+          expect(created.ttr.minutes).to.exist;
+          expect(created.ttr.seconds).to.exist;
+          expect(created.ttr.milliseconds).to.exist;
+          expect(created.ttr.human).to.exist;
 
 
           //update serviceRequest reference
