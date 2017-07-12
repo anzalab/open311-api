@@ -128,6 +128,8 @@ describe('ServiceRequest', function () {
         assignee: assignee,
         description: faker.lorem.paragraph(),
         address: faker.address.streetAddress(),
+        createdAt:faker.date.past(),
+        resolvedAt:faker.date.future(),
         location: {
           coordinates: [
             Number(faker.address.longitude()),

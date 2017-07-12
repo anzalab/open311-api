@@ -24,7 +24,7 @@
 //service request free from open311 boilerplates
 
 //TODO extract analysis to plugin/module to free service request from
-//analysis boilerplates 
+//analysis boilerplates and improve their spec
 
 //dependencies
 const path = require('path');
