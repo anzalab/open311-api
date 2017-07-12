@@ -102,13 +102,14 @@ describe('StatusChange', function () {
 
   });
 
-  it('should be able to create new status change', function (done) {
+  it.only('should be able to create new status change', function (done) {
 
     statusChange = {
       request: serviceRequest,
       status: status,
       changer: changer,
-      remarks: faker.lorem.paragraph()
+      remarks: faker.lorem.paragraph(),
+      notify: true
     };
 
     StatusChange

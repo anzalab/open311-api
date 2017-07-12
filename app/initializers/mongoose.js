@@ -91,7 +91,7 @@ mongoose.plugin(mongooseReload);
 mongoose.plugin(mongooseSearchable);
 
 //require external models
-// require('open311-messages')();
+require('open311-messages')(); //TODO pass configurations
 
 // load all models recursively
 require('require-all')({
