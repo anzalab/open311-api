@@ -102,7 +102,7 @@ describe('StatusChange', function () {
 
   });
 
-  it.only('should be able to create new status change', function (done) {
+  it('should be able to create new status change', function (done) {
 
     statusChange = {
       request: serviceRequest,
