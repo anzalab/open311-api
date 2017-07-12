@@ -164,7 +164,8 @@ module.exports = {
   infobip: {
     from: process.env.INFOBIP_FROM,
     username: process.env.INFOBIP_USERNAME,
-    password: process.env.INFOBIP_PASSWORD
+    password: process.env.INFOBIP_PASSWORD,
+    sync: false
   }
 
 };

@@ -42,7 +42,7 @@ process.env.SUPPRESS_NO_CONFIG_WARNING = true;
 
 
 require('config'); //load configurations
-// const config = require('config'); //load configurations
+const config = require('config'); //load configurations
 const environment = require('execution-environment');
 const mkdir = require('mkdir-p');
 const express = require('express');
@@ -77,9 +77,9 @@ winston.level = 'silly';
 require(path.join(__dirname, 'initializers', 'mongoose'));
 
 //setup messages transports
-// const infobip = require('open311-infobip');
-// infobip.options = config.get('infobip');
-// infobip.init();
+const infobip = require('open311-infobip');
+infobip.options = config.get('infobip');
+infobip.init();
 //finish initializers
 
 

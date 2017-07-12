@@ -4,7 +4,7 @@ open311-api(WIP)
 [![Build Status](https://travis-ci.org/CodeTanzania/open311-api.svg?branch=develop)](https://travis-ci.org/CodeTanzania/open311-api)
 [![Dependencies Status](https://david-dm.org/CodeTanzania/open311-api/status.svg?style=flat-square)](https://david-dm.org/CodeTanzania/open311-api)
 
-open311-api is partial implementation of [open311 GeoReport v2](http://wiki.open311.org/GeoReport_v2/).
+open311-api is partial implementation of [open311 GeoReport v2](http://wiki.open311.org/GeoReport_v2/) with extension for [issue tracking](https://en.wikipedia.org/wiki/Issue_tracking_system).
 
 ## About
 
@@ -30,6 +30,11 @@ open311-api is partial implementation of [open311 GeoReport v2](http://wiki.open
 - [ ] add a flag to make a service request public visible
 - [ ] on service request get neaby area and add it to request if request has no area
 - [ ] set jurisdiction based on service request (long, lat)
+- [ ] improve routers and controller test coverage
+
+### Open311
+- [ ] Review compliance
+- [ ] Add filtering capability as per 
 
 
 

@@ -134,10 +134,11 @@ module.exports = {
    * @type {Object}
    */
   infobip: {
-    from: process.env.INFOBIP_FROM,
-    username: process.env.INFOBIP_USERNAME,
-    password: process.env.INFOBIP_PASSWORD,
-    // fake: true
+    from: 'open311', //process.env.INFOBIP_FROM,
+    username: 'open311', //process.env.INFOBIP_USERNAME,
+    password: 'open311', //process.env.INFOBIP_PASSWORD,
+    fake: true,
+    sync: true
   }
 
 };

@@ -128,10 +128,12 @@ describe('ServiceRequest', function () {
         assignee: assignee,
         description: faker.lorem.paragraph(),
         address: faker.address.streetAddress(),
-        location: [
-          Number(faker.address.longitude()),
-          Number(faker.address.latitude())
-        ],
+        location: {
+          coordinates: [
+            Number(faker.address.longitude()),
+            Number(faker.address.latitude())
+          ]
+        },
       };
 
       ServiceRequest
@@ -155,9 +157,9 @@ describe('ServiceRequest', function () {
           expect(created.reporter.account).to.be.equal(serviceRequest.account);
           expect(created.address).to.be.equal(serviceRequest.address);
           expect(created.longitude)
-            .to.be.equal(serviceRequest.location[0]);
+            .to.be.equal(serviceRequest.location.coordinates[0]);
           expect(created.latitude)
-            .to.be.equal(serviceRequest.location[1]);
+            .to.be.equal(serviceRequest.location.coordinates[1]);
 
 
           //update serviceRequest reference
