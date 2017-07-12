@@ -103,7 +103,22 @@ const StatusChangeSchema = new Schema({
   remarks: {
     type: String,
     index: true,
+    trim: true,
     searchable: true
+  },
+
+  /**
+   * @name notify
+   * @description Signal to send remarks to a service request(issue) reporter
+   *              using sms, email etc.
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  notify: {
+    type: Boolean,
+    default: false
   }
 
 }, { timestamps: true, emitIndexErrors: true });

@@ -199,8 +199,8 @@ module.exports = function (grunt) {
           // '<%= project.test %>/models/role_model_spec.js',
           // '<%= project.test %>/models/service_group_model_spec.js',
           // '<%= project.test %>/models/service_model_spec.js',
-          // '<%= project.test %>/models/service_request_model_spec.js',
-          '<%= project.test %>/models/status_change_model_spec.js'
+          '<%= project.test %>/models/service_request_model_spec.js',
+          // '<%= project.test %>/models/status_change_model_spec.js'
           // '<%= project.test %>/models/status_model_spec.js'
         ]
       },
