@@ -35,12 +35,12 @@ const async = require('async');
 const moment = require('moment');
 const mongoose = require('mongoose');
 // const infobip = require('open311-infobip');
-const prettyMs = require('pretty-ms');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const GeoJSON = require(path.join(__dirname, 'schemas', 'geojson_schema'));
 const MediaSchema = require(path.join(__dirname, 'schemas', 'media_schema'));
 const Duration = require(path.join(__dirname, 'schemas', 'duration_schema'));
+const Call = require(path.join(__dirname, 'schemas', 'call_schema'));
 
 //contact methods used for reporting the issue
 const CONTACT_METHOD_PHONE_CALL = 'Call';
@@ -138,57 +138,13 @@ const ServiceRequestSchema = new Schema({
   /**
    * @name call
    * @description log operator call details at a call center
-   * @type {Object}
+   * @type {CallSchema}
+   * @see {@link Party}
    * @private
    * @since 0.1.0
    * @version 0.1.0
    */
-  call: {
-    /**
-     * @name startedAt
-     * @description time when a call received at the call center
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    startedAt: {
-      type: Date,
-      index: true
-    },
-
-
-    /**
-     * @name endedAt
-     * @description time when a call center operator end the call
-     *              and release a reporter
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    endedAt: {
-      type: Date,
-      index: true
-    },
-
-
-    /**
-     * @name duration
-     * @description call duration in milliseconds from time when call picked up 
-     *              to time when a call released by the call center operator.
-     *              
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    duration: {
-      type: Number,
-      default: 0,
-      index: true
-    }
-  },
+  call: Call,
 
 
   /**
@@ -566,22 +522,6 @@ ServiceRequestSchema.index({ location: '2dsphere' });
 // ServiceRequestSchema Virtuals
 //-----------------------------------------------------------------------------
 
-/**
- * @name callDurationHuman
- * @description obtain call duration in human readable format
- * @type {Number}
- * @since 0.1.0
- * @version 0.1.0
- */
-ServiceRequestSchema.virtual('callDurationHuman').get(function () {
-
-  //parse call duration into human readable d h m s
-  const pretifiedMs = prettyMs((this.call || {}).duration || 0);
-
-  return pretifiedMs;
-
-});
-
 
 /**
  * @name longitude
@@ -691,19 +631,18 @@ ServiceRequestSchema.methods.toOpen311 = function () {
 // ServiceRequestSchema Hooks
 //-----------------------------------------------------------------------------
 
+/**
+ * @name  preValidate
+ * @description pre validation logics for service request
+ * @param  {Function} next a callback to be called after pre validation logics
+ * @since  0.1.0
+ * @version 0.1.0
+ * @private
+ */
 ServiceRequestSchema.pre('validate', function (next) {
 
   //ref
   const Counter = mongoose.model('Counter');
-
-  //ensure call times
-  this.call = this.call || {};
-  this.call.startedAt = this.call.startedAt || new Date();
-  this.call.endedAt = this.call.endedAt || new Date();
-
-  //compute call duration in milliseconds
-  this.call.duration =
-    this.call.endedAt.getTime() - this.call.startedAt.getTime();
 
   //compute expected time to resolve the issue
   //based on service level agreement

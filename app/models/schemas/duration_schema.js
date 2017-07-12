@@ -165,7 +165,8 @@ DurationSchema.pre('validate', function (next) {
     if (this.milliseconds) {
 
       //always parse milliseconds to human readable format
-      this.human = prettyMs(this.milliseconds || 0, { secDecimalDigits: 0 });
+      this.human =
+        prettyMs(this.milliseconds || 0, { secDecimalDigits: 0 });
 
       //always parse milliseconds to respective parts
       const parsedMs = parseMs(this.milliseconds || 0);

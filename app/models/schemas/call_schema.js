@@ -94,13 +94,17 @@ const CallSchema = new Schema({
  */
 CallSchema.pre('validate', function (next) {
 
+  //ensure call times
+  this.startedAt = this.startedAt || new Date();
+  this.endedAt = this.endedAt || new Date();
+
   //always ensure duration
-  const time = this.startedAt.getTime() - this.endedAt.getTime();
+  const time = this.endedAt.getTime() - this.startedAt.getTime();
 
   this.duration = { milliseconds: time };
 
   next(null, this);
-  
+
 });
 
 

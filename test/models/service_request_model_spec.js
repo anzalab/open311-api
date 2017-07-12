@@ -136,12 +136,17 @@ describe('ServiceRequest', function () {
             Number(faker.address.latitude())
           ]
         },
+        call: {
+          startedAt: faker.date.past(),
+          endedAt: faker.date.future()
+        }
       };
 
       ServiceRequest
         .create(serviceRequest, function (error, created) {
 
           console.log(error);
+          console.log(created.call);
 
           expect(error).to.not.exist;
           expect(created).to.exist;
@@ -167,6 +172,7 @@ describe('ServiceRequest', function () {
 
           //assert ttr
           expect(created.ttr).to.exist;
+          expect(created.ttr).to.be.an('object');
           expect(created.ttr.years).to.exist;
           expect(created.ttr.months).to.exist;
           expect(created.ttr.days).to.exist;
@@ -175,11 +181,24 @@ describe('ServiceRequest', function () {
           expect(created.ttr.milliseconds).to.exist;
           expect(created.ttr.human).to.exist;
 
+          //assert call
+          expect(created.call).to.exist;
+          expect(created.call).to.be.an('object');
+          expect(created.call.duration).to.exist;
+          expect(created.call.duration).to.be.an('object');
+          expect(created.call.duration.years).to.exist;
+          expect(created.call.duration.months).to.exist;
+          expect(created.call.duration.days).to.exist;
+          expect(created.call.duration.minutes).to.exist;
+          expect(created.call.duration.seconds).to.exist;
+          expect(created.call.duration.milliseconds).to.exist;
+          expect(created.call.duration.human).to.exist;
 
           //update serviceRequest reference
           serviceRequest = created;
 
           done(error, created);
+          
         });
 
     });
