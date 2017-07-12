@@ -5,13 +5,14 @@
   "main": "server.js",
   "keywords": [
     "open311",
-    "byteskode",
     "open311-api",
     "civic",
     "jurisdiction",
     "issue",
     "service",
     "service request",
+    "status",
+    "status change",
     "government",
     "jurisdiction",
     "service",
@@ -32,12 +33,10 @@
     "name": "lally elias",
     "email": "lallyelias87@gmail.com"
   },
-  "contributors": [
-    {
-      "name": "lallyelias",
-      "email": "lallyelias87@gmail.com"
-    }
-  ],
+  "contributors": [{
+    "name": "lallyelias",
+    "email": "lallyelias87@gmail.com"
+  }],
   "repository": {
     "type": "git",
     "url": "https://github.com/CodeTanzania/open311-api/"

@@ -23,12 +23,14 @@ module.exports = exports = function (request, response, next) {
     operator: 'Party',
     commentator: 'Party',
     worker: 'Party',
+    changer: 'Party',
     assignee: 'Party',
     jurisdiction: 'Jurisdiction',
     group: 'ServiceGroup',
     service: 'Service',
     priority: 'Priority',
-    request: 'ServiceRequest'
+    request: 'ServiceRequest',
+    status: 'ServiceRequest'
   };
 
   //check if request has any instance

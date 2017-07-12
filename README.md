@@ -31,6 +31,10 @@ open311-api is partial implementation of [open311 GeoReport v2](http://wiki.open
 - [ ] on service request get neaby area and add it to request if request has no area
 - [ ] set jurisdiction based on service request (long, lat)
 
+### Open311
+- [ ] Review compliance
+- [ ] Add filtering capability as per 
+
 
 
 ## Testing
