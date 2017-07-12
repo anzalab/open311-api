@@ -80,8 +80,8 @@ module.exports = {
      * @description lifespan of jwt
      * @type {String}
      */
-    expiresIn: '7 days',
-
+    expiresIn: '1000y', //7 days
+    
     /**
      * @description intended audience for jwt
      * @type {String}
