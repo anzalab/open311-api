@@ -231,7 +231,7 @@ StatusChangeSchema.post('save', function (statusChange, next) {
 
     //direct sms send in development & test
     else {
-      infobip.send(message, function (error, result) {
+      infobip.send(message, function (error /*, result*/ ) {
         next(error, message);
       });
     }
