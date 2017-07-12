@@ -38,9 +38,10 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const GeoJSON = require(path.join(__dirname, 'schemas', 'geojson_schema'));
-const MediaSchema = require(path.join(__dirname, 'schemas', 'media_schema'));
+const Media = require(path.join(__dirname, 'schemas', 'media_schema'));
 const Duration = require(path.join(__dirname, 'schemas', 'duration_schema'));
 const Call = require(path.join(__dirname, 'schemas', 'call_schema'));
+const Reporter = require(path.join(__dirname, 'schemas', 'reporter_schema'));
 
 //contact methods used for reporting the issue
 const CONTACT_METHOD_PHONE_CALL = 'Call';
@@ -152,79 +153,12 @@ const ServiceRequestSchema = new Schema({
    * @description A party i.e civilian, customer etc which reported an
    *              issue(service request)
    * @type {Object}
-   * @see {@link Party}
+   * @see {@link Reporter}
    * @private
    * @since 0.1.0
    * @version 0.1.0
    */
-  reporter: {
-    /**
-     * @name name
-     * @description Full name name of the reporter.
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    name: {
-      type: String,
-      index: true,
-      searchable: true
-    },
-
-
-    /**
-     * @name phone
-     * @description A mobile phone number of the reporter.
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    phone: {
-      type: String,
-      index: true,
-      searchable: true
-    },
-
-
-    /**
-     * @name email
-     * @description An email address of the reporter.
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    email: {
-      type: String,
-      index: true,
-      searchable: true
-    },
-
-
-    /**
-     * @name account
-     * @description A jurisdiction internal associated account id of the
-     *              party submitting the request(issue).
-     *
-     *              This help a jurisdiction to link a reporter with the
-     *              internal CRM if available.
-     *
-     *              When account id is available a reporter will be treated as
-     *              a customer and not a normal civilian.
-     *
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    account: {
-      type: String,
-      index: true,
-      searchable: true
-    }
-  },
+  reporter: Reporter,
 
 
   /**
@@ -318,7 +252,7 @@ const ServiceRequestSchema = new Schema({
     type: String,
     index: true,
     trim: true,
-    // required: true,
+    required: true,
     searchable: true
   },
 
@@ -376,7 +310,7 @@ const ServiceRequestSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  location: GeoJSON.Point,
+  location: GeoJSON.Point, //TODO set to jurisdiction geo point if non provided
 
 
   /**
@@ -423,13 +357,13 @@ const ServiceRequestSchema = new Schema({
    * @name attachments
    * @description Associated file(s) with service request(issue)
    * @type {Array}
-   * @see {@link Media}
+   * @see {@link MediaSchema}
    * @private
    * @since 0.1.0
    * @version 0.1.0
    */
   attachments: {
-    type: [MediaSchema],
+    type: [Media],
     index: true
   },
 

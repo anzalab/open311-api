@@ -145,9 +145,6 @@ describe('ServiceRequest', function () {
       ServiceRequest
         .create(serviceRequest, function (error, created) {
 
-          console.log(error);
-          console.log(created.call);
-
           expect(error).to.not.exist;
           expect(created).to.exist;
 
@@ -198,7 +195,7 @@ describe('ServiceRequest', function () {
           serviceRequest = created;
 
           done(error, created);
-          
+
         });
 
     });
