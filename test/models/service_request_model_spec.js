@@ -69,7 +69,8 @@ describe('ServiceRequest', function () {
     reporter = {
       email: faker.internet.email().toLowerCase(),
       name: faker.name.findName(),
-      phone: faker.phone.phoneNumber()
+      phone: faker.finance.account(), //faker.phone.phoneNumber(), TODO FIX ME
+      account: faker.finance.account()
     };
   });
 
@@ -121,6 +122,8 @@ describe('ServiceRequest', function () {
   it('should be able to create new service request(issue)',
     function (done) {
 
+      console.log(reporter);
+
       serviceRequest = {
         jurisdiction: jurisdiction,
         service: service,
@@ -160,10 +163,15 @@ describe('ServiceRequest', function () {
           expect(created.status).to.be.exist;
           expect(created.priority).to.be.exist;
           expect(created.description).to.be.equal(serviceRequest.description);
-          expect(created.reporter.account).to.be.equal(serviceRequest.account);
+
+          expect(created.reporter.account)
+            .to.be.equal(serviceRequest.reporter.account);
+
           expect(created.address).to.be.equal(serviceRequest.address);
+
           expect(created.longitude)
             .to.be.equal(serviceRequest.location.coordinates[0]);
+
           expect(created.latitude)
             .to.be.equal(serviceRequest.location.coordinates[1]);
 
