@@ -34,6 +34,7 @@ const async = require('async');
 // const environment = require('execution-environment');
 const moment = require('moment');
 const mongoose = require('mongoose');
+const parseMs = require('parse-ms');
 // const infobip = require('open311-infobip');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
@@ -1155,36 +1156,16 @@ ServiceRequestSchema.statics.calculateAverageCallDuration = function (done) {
     .aggregate()
     .group({
       _id: null,
-      duration: { $avg: '$call.duration' }
+      duration: { $avg: '$call.duration.milliseconds' }
     })
     .project({ _id: 0, duration: 1 })
     .exec(function (error, durations) {
+
       //obtain average duration
       let duration = _.first(durations).duration || 0;
-      const minuteMilliSeconds = 1000 * 60;
+      duration = parseMs(duration);
 
-      //convert duration to seconds
-      duration = _.round(duration / 1000);
-
-      //convert duration milliseconds to whole seconds used
-      let seconds = 0;
-      seconds = duration % minuteMilliSeconds;
-      seconds = _.round(seconds);
-
-      let minutes = 0;
-
-      //convert duration milliseconds to minutes used
-      if (duration > minuteMilliSeconds) {
-
-        //obtain remained fractions after whole minutes
-        const mod = duration % minuteMilliSeconds;
-
-        //remove fraction minutes and obtain whole minutes
-        minutes = (duration - mod) / minuteMilliSeconds;
-
-      }
-
-      done(error, { minutes, seconds });
+      done(error, duration);
 
     });
 
