@@ -77,11 +77,11 @@ module.exports = {
    * @param  {HttpRequest} request  a http request
    * @param  {HttpResponse} response a http response
    */
-  update: function (request, response, next) {
+  update: function (request, response /*, next*/ ) {
 
     //prevent message updating
     let error = new Error('Method Not Allowed');
-    error.status = 405;
+    error.status = error.message;
     error.code = 405;
     response.methodNotAllowed(error);
 
@@ -95,10 +95,10 @@ module.exports = {
    * @param  {HttpRequest} request  a http request
    * @param  {HttpResponse} response a http response
    */
-  destroy: function (request, response, next) {
+  destroy: function (request, response /*, next*/ ) {
     //prevent message deleting
     let error = new Error('Method Not Allowed');
-    error.status = 405;
+    error.status = error.message;
     error.code = 405;
     response.methodNotAllowed(error);
   }

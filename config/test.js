@@ -44,6 +44,9 @@ module.exports = {
       db: {
         safe: true
       },
+      config: {
+        autoIndex: false
+      },
       server: {
         socketOptions: {
           keepAlive: 1

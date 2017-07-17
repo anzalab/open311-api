@@ -94,7 +94,7 @@ module.exports = function (grunt) {
           script: 'server.js',
           /* jshint ignore:start */
           node_env: 'development'
-            /* jshint ignore:end */
+          /* jshint ignore:end */
         }
       },
       prod: {
@@ -102,7 +102,7 @@ module.exports = function (grunt) {
           script: 'server.js',
           /* jshint ignore:start */
           node_env: 'production'
-            /* jshint ignore:end */
+          /* jshint ignore:end */
         }
       },
       test: {
@@ -110,7 +110,7 @@ module.exports = function (grunt) {
           script: 'server.js',
           /* jshint ignore:start */
           node_env: 'test'
-            /* jshint ignore:end */
+          /* jshint ignore:end */
         }
       }
     },
@@ -221,7 +221,8 @@ module.exports = function (grunt) {
         },
         src: [
           '<%= project.test %>/bootstrap_spec.js',
-          '<%= project.test %>/routers/jurisdiction_router_spec.js'
+          // '<%= project.test %>/routers/jurisdiction_router_spec.js'
+          '<%= project.test %>/routers/message_router_spec.js'
           // '<%= project.test %>/routers/**/*.js'
         ]
       },
