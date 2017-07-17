@@ -79,14 +79,11 @@ module.exports = {
    */
   update: function (request, response, next) {
 
-    Message
-      .edit(request, function (error, message) {
-        if (error) {
-          next(error);
-        } else {
-          response.ok(message);
-        }
-      });
+    //prevent message updating
+    let error = new Error('Method Not Allowed');
+    error.status = 405;
+    error.code = 405;
+    response.methodNotAllowed(error);
 
   },
 
@@ -99,16 +96,11 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   destroy: function (request, response, next) {
-    Message
-      .findByIdAndRemove(
-        request.params.id,
-        function (error, message) {
-          if (error) {
-            next(error);
-          } else {
-            response.ok(message);
-          }
-        });
+    //prevent message deleting
+    let error = new Error('Method Not Allowed');
+    error.status = 405;
+    error.code = 405;
+    response.methodNotAllowed(error);
   }
 
 };
