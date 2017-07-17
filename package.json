@@ -70,6 +70,7 @@
     "express-respond": "^0.3.0",
     "express-winston": "^2.4.0",
     "fs-extra": "^4.0.0",
+    "grunt-cli": "^1.2.0",
     "helmet": "^3.6.1",
     "inflection": "^1.12.0",
     "irina": "^0.2.8",
