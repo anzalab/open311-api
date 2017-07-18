@@ -27,7 +27,8 @@ const async = require('async');
 const moment = require('moment');
 const mongoose = require('mongoose');
 const parseMs = require('parse-ms');
-const parseTemplate = require("string-template")
+const parseTemplate = require('string-template');
+const config = require('config');
 
 
 //libs
@@ -715,11 +716,13 @@ ServiceRequestSchema.post('save', function (serviceRequest, next) {
     //TODO what about salutation to a reporter?
     //TODO what about issue ticket number?
 
-    //send ticket number to customer
-    //TODO move to template
-    const body =
-      'Your ticket # is ' + serviceRequest.code + ' for ' + serviceRequest.service
-      .name + ' you have reported. Thanks.';
+    //compile message to send to customer
+    const template = config.get('infobip').templates.ticket;
+    console.log(serviceRequest.code);
+    const body = parseTemplate(template, {
+      ticket: serviceRequest.code,
+      service: serviceRequest.service.name
+    });
 
     //prepare sms message
     const message = {

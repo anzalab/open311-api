@@ -167,7 +167,7 @@ module.exports = {
     password: process.env.INFOBIP_PASSWORD,
     sync: false,
     templates: {
-      ticket: 'Your ticket # is {ticketNumber} for {service} you have reported. Thanks.'
+      ticket: 'Your ticket # is {ticket} for {service} you have reported. Thanks.'
     }
   }
 
