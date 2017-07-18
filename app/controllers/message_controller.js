@@ -2,8 +2,14 @@
 
 
 //dependencies
+const environment = require('environment');
 const mongoose = require('mongoose');
 const Message = mongoose.model('Message');
+
+
+//obtain current execution environment
+const isProduction = environment.isProd();
+
 
 
 /**
@@ -40,6 +46,11 @@ module.exports = {
    */
   create: function (request, response, next) {
     //TODO handle message type i.e sms, email etc
+    if(isProduction){
+      //TODO queue message
+    }else{
+      
+    }
     Message
       .create(request.body, function (error, message) {
         if (error) {

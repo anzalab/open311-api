@@ -22,7 +22,7 @@ describe('Message Router', function () {
     Message.remove(done);
   });
 
-  it(
+  it.only(
     'should handle HTTP POST on /messages',
     function (done) {
 
@@ -124,14 +124,36 @@ describe('Message Router', function () {
 
     });
 
-  it.only(
+  it(
     'should not handle HTTP PUT on /messages/:id',
     function (done) {
 
       const updates = { body: faker.lorem.sentence() };
 
       request(app)
-        .delete('/messages/' + new Message()._id)
+        .put('/messages/' + new Message()._id)
+        .set('Accept', 'application/json')
+        .set('Authorization', 'Bearer ' + this.token)
+        .send(updates)
+        .expect(405)
+        .expect('Content-Type', /json/)
+        .end(function (error, response) {
+          expect(response.body.status).to.exist;
+          expect(response.body.code).to.exist;
+          done(null, response);
+        });
+
+    });
+
+
+  it(
+    'should not handle HTTP PATCH on /messages/:id',
+    function (done) {
+
+      const updates = { body: faker.lorem.sentence() };
+
+      request(app)
+        .patch('/messages/' + new Message()._id)
         .set('Accept', 'application/json')
         .set('Authorization', 'Bearer ' + this.token)
         .send(updates)
