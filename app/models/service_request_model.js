@@ -590,6 +590,8 @@ ServiceRequestSchema.methods.toOpen311 = function () {
  */
 ServiceRequestSchema.pre('validate', function (next) {
   //TODO refactor
+  //TODO log status change?
+  //TODO log priority change?
 
   //ref
   const Counter = mongoose.model('Counter');
