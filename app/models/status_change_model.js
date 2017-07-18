@@ -212,7 +212,7 @@ StatusChangeSchema.post('save', function (statusChange, next) {
     //prepare sms message
     const message = {
       type: Message.TYPE_SMS,
-      to: statusChange.request.reporter.phone, //TODO ensure e.164 format
+      to: statusChange.request.reporter.phone,
       body: statusChange.remarks //TODO salute reporter
     };
 

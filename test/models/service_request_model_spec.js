@@ -122,8 +122,6 @@ describe('ServiceRequest', function () {
   it('should be able to create new service request(issue)',
     function (done) {
 
-      console.log(reporter);
-
       serviceRequest = {
         jurisdiction: jurisdiction,
         service: service,

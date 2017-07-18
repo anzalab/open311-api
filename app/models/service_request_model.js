@@ -14,12 +14,6 @@
  */
 
 
-//TODO extract call details to plugin/module to make service request free
-//from call center details
-
-//TODO make use of milliseconds to all persisted time
-//TODO fix time convertions
-
 //TODO extract open311 methods and properties to a plugin/module to make
 //service request free from open311 boilerplates
 
@@ -30,12 +24,14 @@
 const path = require('path');
 const _ = require('lodash');
 const async = require('async');
-// const config = require('config');
-// const environment = require('execution-environment');
 const moment = require('moment');
 const mongoose = require('mongoose');
 const parseMs = require('parse-ms');
-// const infobip = require('open311-infobip');
+
+//libs
+const Send = require(path.join(__dirname, '..', 'libs', 'send'));
+
+
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const GeoJSON = require(path.join(__dirname, 'schemas', 'geojson_schema'));
@@ -439,7 +435,21 @@ const ServiceRequestSchema = new Schema({
    * @version 0.1.0
    * @see {@link http://www.thinkhdi.com/~/media/HDICorp/Files/Library-Archive/Insider%20Articles/mean-time-to-resolve.pdf}
    */
-  ttr: Duration
+  ttr: Duration,
+
+  /**
+   * @name wasTicketSent
+   * @description tells whether a ticket number was sent to a 
+   *              service request(issue) reporter using sms, email etc.
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  wasTicketSent: {
+    type: Boolean,
+    default: false
+  }
 
 }, { timestamps: true, emitIndexErrors: true });
 
@@ -502,6 +512,7 @@ ServiceRequestSchema.methods.toOpen311 = function () {
   /*jshint camelcase:false*/
 
   //TODO add all missing fields
+  //TODO reafctor as schema plugin
 
   let as311 = {};
 
@@ -575,6 +586,7 @@ ServiceRequestSchema.methods.toOpen311 = function () {
  * @private
  */
 ServiceRequestSchema.pre('validate', function (next) {
+  //TODO refactor
 
   //ref
   const Counter = mongoose.model('Counter');
@@ -681,30 +693,64 @@ ServiceRequestSchema.pre('validate', function (next) {
 });
 
 
-ServiceRequestSchema.post('save', function (doc, next) {
+ServiceRequestSchema.post('save', function (serviceRequest, next) {
+  console.log('called ', new Date());
+
+  //TODO refactor to a static method
+
   //refs
-  // const Message = mongoose.model('Message');
+  const Message = mongoose.model('Message');
 
   //TODO notify customer details to update details based on the account id
   //TODO send service request code to reporter(sms or email)
   //TODO send service request code to area(sms or email)
 
-  //send ticket number to customer
-  // const body =
-  //   'Your ticket # is ' + doc.code + ' for ' + doc.service.name +
-  //   ' you have reported. Thanks.';
+  //check if should sent ticket
+  const sendTicket =
+    (serviceRequest && serviceRequest.wasTicketSent) &&
+    (serviceRequest.reporter && !_.isEmpty(serviceRequest.request.reporter.phone));
 
-  // const message = new Message({
-  //   to: doc.reporter.phone, //TODO ensure e.164 format
-  //   body: body
-  // });
+  //send ticket number to a reporter
+  if (sendTicket) {
+    //TODO what about salutation to a reporter?
+    //TODO what about issue ticket number?
 
-  // infobip.send(message, function (error, result) {
-  //   console.log('error', error);
-  //   console.log('result', result);
-  // });
+    //send ticket number to customer
+    //TODO move to template
+    const body =
+      'Your ticket # is ' + serviceRequest.code + ' for ' + serviceRequest.service
+      .name + ' you have reported. Thanks.';
 
-  next();
+    //prepare sms message
+    const message = {
+      type: Message.TYPE_SMS,
+      to: serviceRequest.reporter.phone,
+      body: body //TODO salute reporter
+    };
+
+    //send message
+    Send.sms(message, function (error /*, result*/ ) {
+
+      //error, back-off
+      if (error) {
+        next(error);
+      }
+
+      //set ticketNumber was sent
+      else {
+        //set ticket number was sent
+        serviceRequest.wasTicketSent = true;
+        serviceRequest.save(next);
+      }
+
+    });
+
+  }
+
+  //continue without sending ticket number
+  else {
+    next();
+  }
 
 });
 
