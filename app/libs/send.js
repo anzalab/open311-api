@@ -37,14 +37,20 @@ const Message = mongoose.model('Message');
  * @public
  */
 exports.formatPhoneNumberToE164 = function (phoneNumber, countryCode) {
+
+  //try convert give phone number to e.164
   try {
     countryCode = countryCode || 'TZ';
     phoneNumber = phone(phoneNumber, countryCode);
     phoneNumber = _.first(phoneNumber).replace(/\+/g, '');
     return phoneNumber;
-  } catch (error) {
+  }
+
+  //fail to convert, return original format
+  catch (error) {
     return phoneNumber;
   }
+
 };
 
 
