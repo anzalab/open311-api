@@ -18,13 +18,14 @@
 
 
 //dependencies
-const config = require('config');
-const environment = require('execution-environment');
-const infobip = require('open311-infobip');
+const path = require('path');
 const _ = require('lodash');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
+
+//libs
+const Send = require(path.join(__dirname, '..', 'libs', 'send'));
 
 
 /**
@@ -205,36 +206,18 @@ StatusChangeSchema.post('save', function (statusChange, next) {
   //notify reporter
   if (notifyReporter) {
 
-    //obtain current execution environment
-    const isProduction = environment.isProd();
-
-    //obtain sms configuration
-    const options = config.get('infobip');
-    const shouldSendSynchronously = options.sync;
-
     //TODO what about salutation to a reporter?
     //TODO what about issue ticket number?
 
     //prepare sms message
-    const message = new Message({
+    const message = {
       type: Message.TYPE_SMS,
-      to: statusChange.request.reporter.phone, //TODO ensure e.164 format
+      to: statusChange.request.reporter.phone,
       body: statusChange.remarks //TODO salute reporter
-    });
+    };
 
-    //queue message in production
-    //or if is asynchronous send
-    if (isProduction || !shouldSendSynchronously) {
-      infobip.queue(message);
-      next();
-    }
-
-    //direct sms send in development & test
-    else {
-      infobip.send(message, function (error /*, result*/ ) {
-        next(error, message);
-      });
-    }
+    //send message
+    Send.sms(message, next);
 
   }
 

@@ -158,7 +158,6 @@ if (!environment.isLocal()) {
 
 // catch 404 and forward to error handler
 app.use(function (request, response, next) {
-  console.log(request);
   let error = new Error('Not Found');
   error.status = 404;
   next(error);

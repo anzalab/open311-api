@@ -44,6 +44,9 @@ module.exports = {
       db: {
         safe: true
       },
+      config: {
+        autoIndex: false
+      },
       server: {
         socketOptions: {
           keepAlive: 1
@@ -138,7 +141,11 @@ module.exports = {
     username: 'open311', //process.env.INFOBIP_USERNAME,
     password: 'open311', //process.env.INFOBIP_PASSWORD,
     fake: true,
-    sync: true
+    sync: true,
+    templates: {
+      ticket: 'Your ticket # is {ticket} for {service} you have reported. Thanks.',
+      test: 'Test # is {template}'
+    }
   }
 
 };

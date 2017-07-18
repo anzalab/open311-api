@@ -14,17 +14,34 @@
  */
 
 
+//TODO extract open311 methods and properties to a plugin/module to make
+//service request free from open311 boilerplates
+
+//TODO extract analysis to plugin/module to free service request from
+//analysis boilerplates and improve their spec
+
 //dependencies
 const path = require('path');
 const _ = require('lodash');
-const moment = require('moment');
 const async = require('async');
+const moment = require('moment');
 const mongoose = require('mongoose');
-// const infobip = require('open311-infobip');
+const parseMs = require('parse-ms');
+const parseTemplate = require('string-template');
+const config = require('config');
+
+
+//libs
+const Send = require(path.join(__dirname, '..', 'libs', 'send'));
+
+
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const GeoJSON = require(path.join(__dirname, 'schemas', 'geojson_schema'));
-const MediaSchema = require(path.join(__dirname, 'schemas', 'media_schema'));
+const Media = require(path.join(__dirname, 'schemas', 'media_schema'));
+const Duration = require(path.join(__dirname, 'schemas', 'duration_schema'));
+const Call = require(path.join(__dirname, 'schemas', 'call_schema'));
+const Reporter = require(path.join(__dirname, 'schemas', 'reporter_schema'));
 
 //contact methods used for reporting the issue
 const CONTACT_METHOD_PHONE_CALL = 'Call';
@@ -122,57 +139,13 @@ const ServiceRequestSchema = new Schema({
   /**
    * @name call
    * @description log operator call details at a call center
-   * @type {Object}
+   * @type {CallSchema}
+   * @see {@link Party}
    * @private
    * @since 0.1.0
    * @version 0.1.0
    */
-  call: {
-    /**
-     * @name startedAt
-     * @description time when a call received at the call center
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    startedAt: {
-      type: Date,
-      index: true
-    },
-
-
-    /**
-     * @name endedAt
-     * @description time when a call center operator end the call
-     *              and release a reporter
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    endedAt: {
-      type: Date,
-      index: true
-    },
-
-
-    /**
-     * @name duration
-     * @description call duration in milliseconds from time when call picked up 
-     *              to time when a call released by the call center operator.
-     *              
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    duration: {
-      type: Number,
-      default: 0,
-      index: true
-    }
-  },
+  call: Call,
 
 
   /**
@@ -180,79 +153,12 @@ const ServiceRequestSchema = new Schema({
    * @description A party i.e civilian, customer etc which reported an
    *              issue(service request)
    * @type {Object}
-   * @see {@link Party}
+   * @see {@link Reporter}
    * @private
    * @since 0.1.0
    * @version 0.1.0
    */
-  reporter: {
-    /**
-     * @name name
-     * @description Full name name of the reporter.
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    name: {
-      type: String,
-      index: true,
-      searchable: true
-    },
-
-
-    /**
-     * @name phone
-     * @description A mobile phone number of the reporter.
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    phone: {
-      type: String,
-      index: true,
-      searchable: true
-    },
-
-
-    /**
-     * @name email
-     * @description An email address of the reporter.
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    email: {
-      type: String,
-      index: true,
-      searchable: true
-    },
-
-
-    /**
-     * @name account
-     * @description A jurisdiction internal associated account id of the
-     *              party submitting the request(issue).
-     *
-     *              This help a jurisdiction to link a reporter with the
-     *              internal CRM if available.
-     *
-     *              When account id is available a reporter will be treated as
-     *              a customer and not a normal civilian.
-     *
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    account: {
-      type: String,
-      index: true,
-      searchable: true
-    }
-  },
+  reporter: Reporter,
 
 
   /**
@@ -346,7 +252,7 @@ const ServiceRequestSchema = new Schema({
     type: String,
     index: true,
     trim: true,
-    // required: true,
+    required: true,
     searchable: true
   },
 
@@ -404,7 +310,7 @@ const ServiceRequestSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  location: GeoJSON.Point,
+  location: GeoJSON.Point, //TODO set to jurisdiction geo point if non provided
 
 
   /**
@@ -451,13 +357,13 @@ const ServiceRequestSchema = new Schema({
    * @name attachments
    * @description Associated file(s) with service request(issue)
    * @type {Array}
-   * @see {@link Media}
+   * @see {@link MediaSchema}
    * @private
    * @since 0.1.0
    * @version 0.1.0
    */
   attachments: {
-    type: [MediaSchema],
+    type: [Media],
     index: true
   },
 
@@ -467,6 +373,17 @@ const ServiceRequestSchema = new Schema({
    * @description Associated comment(s) with service request(issue)
    * @type {Array}
    * @see {@link Comment}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+
+
+  /**
+   * @name changes
+   * @description Associated status changes(s) with service request(issue)
+   * @type {Array}
+   * @see {@link StatusChange}
    * @private
    * @since 0.1.0
    * @version 0.1.0
@@ -507,23 +424,34 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name ttr
-   * @description A time taken to resolve the issue(service request) in milliseconds.
+   * @description A time taken to resolve the issue(service request) in duration format.
    *
    *              Used to calculcate Mean Time To Resolve(MTTR) KPI.
    *
    *              It calculated as time taken since the issue reported to the
    *              time when issue resolved.
    *
-   * @type {Object}
+   * @type {Duration}
+   * @see {@link DurationSchema}
    * @private
    * @since 0.1.0
    * @version 0.1.0
    * @see {@link http://www.thinkhdi.com/~/media/HDICorp/Files/Library-Archive/Insider%20Articles/mean-time-to-resolve.pdf}
    */
-  ttr: {
-    type: Number,
-    index: true,
-    default: 0
+  ttr: Duration,
+
+  /**
+   * @name wasTicketSent
+   * @description tells whether a ticket number was sent to a 
+   *              service request(issue) reporter using sms, email etc.
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  wasTicketSent: {
+    type: Boolean,
+    default: false
   }
 
 }, { timestamps: true, emitIndexErrors: true });
@@ -541,85 +469,6 @@ ServiceRequestSchema.index({ location: '2dsphere' });
 //-----------------------------------------------------------------------------
 // ServiceRequestSchema Virtuals
 //-----------------------------------------------------------------------------
-
-/**
- * @name ttrSeconds
- * @description obtain ttr seconds(s) used
- * @type {Number}
- * @since 0.1.0
- * @version 0.1.0
- */
-ServiceRequestSchema.virtual('ttrSeconds').get(function () {
-
-  let ttrSeconds = 0;
-
-  //convert to millisecond to second
-  let ttr = _.round(this.ttr / 1000);
-
-  //convert ttr seconds to seconds used
-  ttrSeconds = ttr % 60;
-  ttrSeconds = _.round(ttrSeconds);
-
-  return ttrSeconds;
-
-});
-
-/**
- * @name ttrMinutes
- * @description obtain ttr minute(s) used
- * @type {Number}
- * @since 0.1.0
- * @version 0.1.0
- */
-ServiceRequestSchema.virtual('ttrMinutes').get(function () {
-
-  let ttrMinutes = 0;
-
-  const minuteMilliSeconds = 1000 * 60;
-
-  //convert ttr seconds to minutes
-  if (this.ttr > minuteMilliSeconds) {
-
-    //obtain remained fractions after whole minutes
-    const mod = this.ttr % minuteMilliSeconds;
-
-    //remove fraction minutes and obtain whole minutes
-    ttrMinutes = (this.ttr - mod) / minuteMilliSeconds;
-
-  }
-
-  return ttrMinutes;
-
-});
-
-
-/**
- * @name ttrHours
- * @description obtain ttr hour(s) used
- * @type {Number}
- * @since 0.1.0
- * @version 0.1.0
- */
-ServiceRequestSchema.virtual('ttrHours').get(function () {
-
-  let ttrHours = 0;
-
-  const hourMilliSeconds = 1000 * 60 * 60;
-
-  //convert ttr seconds to hours
-  if (this.ttr > hourMilliSeconds) {
-
-    //obtain remained fractions after whole hours
-    const mod = this.ttr % hourMilliSeconds;
-
-    //remove fraction hours and obtain whole hours
-    ttrHours = (this.ttr - mod) / hourMilliSeconds;
-
-  }
-
-  return ttrHours;
-
-});
 
 
 /**
@@ -666,6 +515,7 @@ ServiceRequestSchema.methods.toOpen311 = function () {
   /*jshint camelcase:false*/
 
   //TODO add all missing fields
+  //TODO reafctor as schema plugin
 
   let as311 = {};
 
@@ -730,19 +580,19 @@ ServiceRequestSchema.methods.toOpen311 = function () {
 // ServiceRequestSchema Hooks
 //-----------------------------------------------------------------------------
 
+/**
+ * @name  preValidate
+ * @description pre validation logics for service request
+ * @param  {Function} next a callback to be called after pre validation logics
+ * @since  0.1.0
+ * @version 0.1.0
+ * @private
+ */
 ServiceRequestSchema.pre('validate', function (next) {
+  //TODO refactor
 
   //ref
   const Counter = mongoose.model('Counter');
-
-  //ensure call times
-  this.call = this.call || {};
-  this.call.startedAt = this.call.startedAt || new Date();
-  this.call.endedAt = this.call.endedAt || new Date();
-
-  //compute call duration in milliseconds
-  this.call.duration =
-    this.call.endedAt.getTime() - this.call.startedAt.getTime();
 
   //compute expected time to resolve the issue
   //based on service level agreement
@@ -757,10 +607,10 @@ ServiceRequestSchema.pre('validate', function (next) {
     }
   }
 
-  //compute time to resolve (ttr)
+  //compute time to resolve (ttr) in milliseconds
   if (this.resolvedAt) {
-    this.ttr =
-      this.resolvedAt.getTime() - this.createdAt.getTime();
+    const ttr = this.resolvedAt.getTime() - this.createdAt.getTime();
+    this.ttr = { milliseconds: ttr };
   }
 
   //ensure jurisdiction from service
@@ -846,30 +696,63 @@ ServiceRequestSchema.pre('validate', function (next) {
 });
 
 
-ServiceRequestSchema.post('save', function (doc, next) {
+ServiceRequestSchema.post('save', function (serviceRequest, next) {
+  //TODO refactor to a static method
+
   //refs
-  // const Message = mongoose.model('Message');
+  const Message = mongoose.model('Message');
 
   //TODO notify customer details to update details based on the account id
   //TODO send service request code to reporter(sms or email)
   //TODO send service request code to area(sms or email)
 
-  //send ticket number to customer
-  // const body =
-  //   'Your ticket # is ' + doc.code + ' for ' + doc.service.name +
-  //   ' you have reported. Thanks.';
+  //check if should sent ticket
+  const sendTicket =
+    (serviceRequest && !serviceRequest.wasTicketSent) &&
+    (serviceRequest.reporter && !_.isEmpty(serviceRequest.reporter.phone));
 
-  // const message = new Message({
-  //   to: doc.reporter.phone, //TODO ensure e.164 format
-  //   body: body
-  // });
+  //send ticket number to a reporter
+  if (sendTicket) {
+    //TODO what about salutation to a reporter?
+    //TODO what about issue ticket number?
 
-  // infobip.send(message, function (error, result) {
-  //   console.log('error', error);
-  //   console.log('result', result);
-  // });
+    //compile message to send to customer
+    const template = config.get('infobip').templates.ticket;
+    const body = parseTemplate(template, {
+      ticket: serviceRequest.code,
+      service: serviceRequest.service.name
+    });
 
-  next();
+    //prepare sms message
+    const message = {
+      type: Message.TYPE_SMS,
+      to: serviceRequest.reporter.phone,
+      body: body //TODO salute reporter
+    };
+
+    //send message
+    Send.sms(message, function (error /*, result*/ ) {
+
+      //error, back-off
+      if (error) {
+        next(error);
+      }
+
+      //set ticketNumber was sent
+      else {
+        //set ticket number was sent
+        serviceRequest.wasTicketSent = true;
+        serviceRequest.save(next);
+      }
+
+    });
+
+  }
+
+  //continue without sending ticket number
+  else {
+    next();
+  }
 
 });
 
@@ -978,6 +861,8 @@ ServiceRequestSchema.statics.createFromOpen311Client =
 // ServiceRequestSchema Statistics
 //-----------------------------------------------------------------------------
 
+//TODO use new duration format
+//TODO use new call format
 
 /**
  * @name countResolved
@@ -1319,36 +1204,16 @@ ServiceRequestSchema.statics.calculateAverageCallDuration = function (done) {
     .aggregate()
     .group({
       _id: null,
-      duration: { $avg: '$call.duration' }
+      duration: { $avg: '$call.duration.milliseconds' }
     })
     .project({ _id: 0, duration: 1 })
     .exec(function (error, durations) {
+
       //obtain average duration
       let duration = _.first(durations).duration || 0;
-      const minuteMilliSeconds = 1000 * 60;
+      duration = parseMs(duration);
 
-      //convert duration to seconds
-      duration = _.round(duration / 1000);
-
-      //convert duration milliseconds to whole seconds used
-      let seconds = 0;
-      seconds = duration % minuteMilliSeconds;
-      seconds = _.round(seconds);
-
-      let minutes = 0;
-
-      //convert duration milliseconds to minutes used
-      if (duration > minuteMilliSeconds) {
-
-        //obtain remained fractions after whole minutes
-        const mod = duration % minuteMilliSeconds;
-
-        //remove fraction minutes and obtain whole minutes
-        minutes = (duration - mod) / minuteMilliSeconds;
-
-      }
-
-      done(error, { minutes, seconds });
+      done(error, duration);
 
     });
 

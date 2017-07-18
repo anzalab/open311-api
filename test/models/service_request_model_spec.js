@@ -69,7 +69,8 @@ describe('ServiceRequest', function () {
     reporter = {
       email: faker.internet.email().toLowerCase(),
       name: faker.name.findName(),
-      phone: faker.phone.phoneNumber()
+      phone: faker.finance.account(), //faker.phone.phoneNumber(), TODO FIX ME
+      account: faker.finance.account()
     };
   });
 
@@ -128,12 +129,18 @@ describe('ServiceRequest', function () {
         assignee: assignee,
         description: faker.lorem.paragraph(),
         address: faker.address.streetAddress(),
+        createdAt: faker.date.past(),
+        resolvedAt: faker.date.future(),
         location: {
           coordinates: [
             Number(faker.address.longitude()),
             Number(faker.address.latitude())
           ]
         },
+        call: {
+          startedAt: faker.date.past(),
+          endedAt: faker.date.future()
+        }
       };
 
       ServiceRequest
@@ -141,6 +148,8 @@ describe('ServiceRequest', function () {
 
           expect(error).to.not.exist;
           expect(created).to.exist;
+
+          //reload to check ticket sending
 
           expect(created._id).to.exist;
 
@@ -154,18 +163,50 @@ describe('ServiceRequest', function () {
           expect(created.status).to.be.exist;
           expect(created.priority).to.be.exist;
           expect(created.description).to.be.equal(serviceRequest.description);
-          expect(created.reporter.account).to.be.equal(serviceRequest.account);
+
+          expect(created.reporter.account)
+            .to.be.equal(serviceRequest.reporter.account);
+
           expect(created.address).to.be.equal(serviceRequest.address);
+
           expect(created.longitude)
             .to.be.equal(serviceRequest.location.coordinates[0]);
+
           expect(created.latitude)
             .to.be.equal(serviceRequest.location.coordinates[1]);
 
+          //assert ttr
+          expect(created.ttr).to.exist;
+          expect(created.ttr).to.be.an('object');
+          expect(created.ttr.years).to.exist;
+          expect(created.ttr.months).to.exist;
+          expect(created.ttr.days).to.exist;
+          expect(created.ttr.minutes).to.exist;
+          expect(created.ttr.seconds).to.exist;
+          expect(created.ttr.milliseconds).to.exist;
+          expect(created.ttr.human).to.exist;
+
+          //assert call
+          expect(created.call).to.exist;
+          expect(created.call).to.be.an('object');
+          expect(created.call.duration).to.exist;
+          expect(created.call.duration).to.be.an('object');
+          expect(created.call.duration.years).to.exist;
+          expect(created.call.duration.months).to.exist;
+          expect(created.call.duration.days).to.exist;
+          expect(created.call.duration.minutes).to.exist;
+          expect(created.call.duration.seconds).to.exist;
+          expect(created.call.duration.milliseconds).to.exist;
+          expect(created.call.duration.human).to.exist;
+
+          //assert ticket sending
+          expect(created.wasTicketSent).to.be.true;
 
           //update serviceRequest reference
           serviceRequest = created;
 
           done(error, created);
+
         });
 
     });

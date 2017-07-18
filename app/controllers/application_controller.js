@@ -332,6 +332,8 @@ module.exports = {
       },
 
       services: function (next) { //fetch services
+        //increase limit
+        request.query.limit = 100;
         Service.list(request, next);
       },
 
