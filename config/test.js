@@ -143,7 +143,8 @@ module.exports = {
     fake: true,
     sync: true,
     templates: {
-      ticket: 'Your ticket # is {ticket} for {service} you have reported. Thanks.'
+      ticket: 'Your ticket # is {ticket} for {service} you have reported. Thanks.',
+      test: 'Test # is {template}'
     }
   }
 

@@ -67,6 +67,48 @@ describe('Message Router', function () {
 
     });
 
+  it.only(
+    'should handle HTTP POST on /messages with specific template',
+    function (done) {
+
+      message = {
+        type: Message.TYPE_SMS,
+        to: '0714066066',
+        template: 'test'
+      };
+
+      request(app)
+        .post('/messages')
+        .send(message)
+        .set('Accept', 'application/json')
+        .set('Authorization', 'Bearer ' + this.token)
+        .expect(201)
+        .expect('Content-Type', /json/)
+        .end(function (error, response) {
+
+          expect(error).to.not.exist;
+          expect(response).to.exist;
+
+          const created = response.body;
+
+          expect(created).to.exist;
+
+          expect(created._id).to.exist;
+
+          expect(created.type).to.exist;
+          expect(created.type).to.equal(message.type);
+
+          expect(created.to).to.exist;
+          expect(created.to).to.include('255714066066');
+
+          expect(created.body).to.exist;
+          expect(created.body).to.equal('Test # is test');
+
+          done(error, response);
+
+        });
+
+    });
 
   it(
     'should handle HTTP GET on /messages/:id',

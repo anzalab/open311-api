@@ -718,7 +718,6 @@ ServiceRequestSchema.post('save', function (serviceRequest, next) {
 
     //compile message to send to customer
     const template = config.get('infobip').templates.ticket;
-    console.log(serviceRequest.code);
     const body = parseTemplate(template, {
       ticket: serviceRequest.code,
       service: serviceRequest.service.name

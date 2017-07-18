@@ -3,8 +3,11 @@
 
 //dependencies
 const path = require('path');
+const _ = require('lodash');
+const config = require('config');
 const mongoose = require('mongoose');
 const Message = mongoose.model('Message');
+const parseTemplate = require('string-template');
 
 //libs
 const Send = require(path.join(__dirname, '..', 'libs', 'send'));
@@ -48,6 +51,14 @@ module.exports = {
     //send sms by default
     let message = request.body;
     message.type = message.type || Message.TYPE_SMS;
+
+    //check for sms template to use
+    if (message.template) {
+      //compile message to send
+      const template = _.get(config.get('infobip').templates, message.template);
+      message.body = parseTemplate(template, message);
+    }
+
     Send
       .sms(message, function (error, message) {
         if (error) {
