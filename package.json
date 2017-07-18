@@ -102,6 +102,7 @@
     "seed-mongoose": "^0.5.0",
     "serve-favicon": "^2.4.3",
     "shortid": "^2.2.8",
+    "string-template": "^1.0.0",
     "uuid": "^3.1.0",
     "winston": "^2.3.1",
     "winston-daily-rotate-file": "^1.4.6"

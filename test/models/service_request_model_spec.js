@@ -149,6 +149,8 @@ describe('ServiceRequest', function () {
           expect(error).to.not.exist;
           expect(created).to.exist;
 
+          //reload to check ticket sending
+
           expect(created._id).to.exist;
 
           expect(created.jurisdiction).to.be.exist;
@@ -196,6 +198,9 @@ describe('ServiceRequest', function () {
           expect(created.call.duration.seconds).to.exist;
           expect(created.call.duration.milliseconds).to.exist;
           expect(created.call.duration.human).to.exist;
+
+          //assert ticket sending
+          expect(created.wasTicketSent).to.be.true;
 
           //update serviceRequest reference
           serviceRequest = created;

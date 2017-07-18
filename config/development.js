@@ -139,7 +139,10 @@ module.exports = {
     username: 'open311', //process.env.INFOBIP_USERNAME,
     password: 'open311', //process.env.INFOBIP_PASSWORD,
     fake: true,
-    sync: true
+    sync: true,
+    templates: {
+      ticket: 'Your ticket # is {ticketNumber} for {service} you have reported. Thanks.'
+    }
   }
 
 };

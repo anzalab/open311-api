@@ -27,6 +27,8 @@ const async = require('async');
 const moment = require('moment');
 const mongoose = require('mongoose');
 const parseMs = require('parse-ms');
+const parseTemplate = require("string-template")
+
 
 //libs
 const Send = require(path.join(__dirname, '..', 'libs', 'send'));
@@ -694,8 +696,6 @@ ServiceRequestSchema.pre('validate', function (next) {
 
 
 ServiceRequestSchema.post('save', function (serviceRequest, next) {
-  console.log('called ', new Date());
-
   //TODO refactor to a static method
 
   //refs
@@ -707,8 +707,8 @@ ServiceRequestSchema.post('save', function (serviceRequest, next) {
 
   //check if should sent ticket
   const sendTicket =
-    (serviceRequest && serviceRequest.wasTicketSent) &&
-    (serviceRequest.reporter && !_.isEmpty(serviceRequest.request.reporter.phone));
+    (serviceRequest && !serviceRequest.wasTicketSent) &&
+    (serviceRequest.reporter && !_.isEmpty(serviceRequest.reporter.phone));
 
   //send ticket number to a reporter
   if (sendTicket) {

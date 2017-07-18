@@ -165,7 +165,10 @@ module.exports = {
     from: process.env.INFOBIP_FROM,
     username: process.env.INFOBIP_USERNAME,
     password: process.env.INFOBIP_PASSWORD,
-    sync: false
+    sync: false,
+    templates: {
+      ticket: 'Your ticket # is {ticketNumber} for {service} you have reported. Thanks.'
+    }
   }
 
 };
