@@ -242,6 +242,7 @@ module.exports = function (grunt) {
           timeout: 8000
         },
         src: [
+          '<%= project.test %>/bootstrap_spec.js',
           '<%= project.test %>/libs/**/*.js'
         ]
       }

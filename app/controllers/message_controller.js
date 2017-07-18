@@ -2,14 +2,12 @@
 
 
 //dependencies
-const environment = require('environment');
+const path = require('path');
 const mongoose = require('mongoose');
 const Message = mongoose.model('Message');
 
-
-//obtain current execution environment
-const isProduction = environment.isProd();
-
+//libs
+const Send = require(path.join(__dirname, '..', 'libs', 'send'));
 
 
 /**
@@ -46,13 +44,12 @@ module.exports = {
    */
   create: function (request, response, next) {
     //TODO handle message type i.e sms, email etc
-    if(isProduction){
-      //TODO queue message
-    }else{
-      
-    }
-    Message
-      .create(request.body, function (error, message) {
+
+    //send sms by default
+    let message = request.body;
+    message.type = message.type || Message.TYPE_SMS;
+    Send
+      .sms(message, function (error, message) {
         if (error) {
           next(error);
         } else {

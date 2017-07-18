@@ -25,7 +25,7 @@ const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
 //libs
-const send = require(path.join(__dirname, '..', 'libs', 'send'));
+const Send = require(path.join(__dirname, '..', 'libs', 'send'));
 
 
 /**
@@ -217,7 +217,7 @@ StatusChangeSchema.post('save', function (statusChange, next) {
     };
 
     //send message
-    send.sms(message, next);
+    Send.sms(message, next);
 
   }
 

@@ -95,6 +95,7 @@
     "open311-smtp": "^0.1.0",
     "parse-mongo-url": "^1.1.1",
     "parse-ms": "^1.0.1",
+    "phone": "git+https://github.com/lykmapipo/phone.git",
     "pretty-ms": "^3.0.0",
     "randomcolor": "^0.5.3",
     "require-all": "^2.2.0",

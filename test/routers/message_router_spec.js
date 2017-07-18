@@ -22,7 +22,7 @@ describe('Message Router', function () {
     Message.remove(done);
   });
 
-  it.only(
+  it(
     'should handle HTTP POST on /messages',
     function (done) {
 
@@ -51,8 +51,13 @@ describe('Message Router', function () {
           expect(created._id).to.exist;
 
           expect(created.type).to.exist;
+          expect(created.type).to.equal(message.type);
+
           expect(created.to).to.exist;
+          expect(created.to).to.include('255714066066');
+
           expect(created.body).to.exist;
+          expect(created.body).to.equal(message.body);
 
           message = created;
 
