@@ -324,6 +324,7 @@ module.exports = {
     async.parallel({
 
       jurisdictions: function (next) { //fetch jurisdiction
+        request.query.limit = 100;
         Jurisdiction.list(request, next);
       },
 
