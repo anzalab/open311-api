@@ -79,7 +79,10 @@ module.exports = exports = function aggregated(schema /*, options*/ ) {
       foreignField: '_id',
       as: 'operator'
     });
-    aggregate.unwind('$operator');
+    aggregate.unwind({ //to allow no-operator service requests
+      path: '$operator',
+      preserveNullAndEmptyArrays: true
+    });
 
 
     /**
@@ -92,7 +95,10 @@ module.exports = exports = function aggregated(schema /*, options*/ ) {
       foreignField: '_id',
       as: 'assignee'
     });
-    aggregate.unwind('$assignee');
+    aggregate.unwind({ //to allow no-assignee service requests
+      path: '$assignee',
+      preserveNullAndEmptyArrays: true
+    });
 
 
     /**

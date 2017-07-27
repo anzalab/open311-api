@@ -14,9 +14,6 @@
  */
 
 
-//TODO extract open311 methods and properties to a plugin/module to make
-//service request free from open311 boilerplates
-
 //TODO extract analysis to plugin/module to free service request from
 //analysis boilerplates and improve their spec
 
@@ -730,6 +727,11 @@ ServiceRequestSchema.plugin(open311);
 //TODO use new duration format
 //TODO use new call format
 
+//TODO implement counts in facet for all counts required
+//total
+//resolved
+//unresolved
+
 /**
  * @name countResolved
  * @description count resolved issues so far
@@ -748,8 +750,13 @@ ServiceRequestSchema.statics.countResolved = function (done) {
 
   //count total resolved issue so far
   ServiceRequest
-    .count({ resolvedAt: { $ne: null } })
-    .exec(done);
+    .aggregated()
+    .match({ resolvedAt: { $ne: null } })
+    .append({ $count: 'count' })
+    .exec(function (error, count) {
+      count = (_.first(count) || {}).count || 0;
+      done(error, count);
+    });
 
 };
 
@@ -772,8 +779,13 @@ ServiceRequestSchema.statics.countUnResolved = function (done) {
 
   //count total un resolved issue so far
   ServiceRequest
-    .count({ resolvedAt: null })
-    .exec(done);
+    .aggregated()
+    .match({ resolvedAt: { $eq: null } })
+    .append({ $count: 'count' })
+    .exec(function (error, count) {
+      count = (_.first(count) || {}).count || 0;
+      done(error, count);
+    });
 
 };
 
