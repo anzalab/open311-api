@@ -22,6 +22,9 @@ const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
 
+//TODO handle public & private(internal note) comment
+
+
 /**
  * @name CommentSchema
  * @type {Schema}

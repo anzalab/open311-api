@@ -20,6 +20,7 @@
 //TODO extract analysis to plugin/module to free service request from
 //analysis boilerplates and improve their spec
 
+
 //dependencies
 const path = require('path');
 const _ = require('lodash');
@@ -35,13 +36,24 @@ const config = require('config');
 const Send = require(path.join(__dirname, '..', 'libs', 'send'));
 
 
+//plugins
+const pluginsPath = path.join(__dirname, 'plugins');
+const aggregate =
+  require(path.join(pluginsPath, 'service_request_aggregated_plugin'));
+const open311 =
+  require(path.join(pluginsPath, 'service_request_open311_plugin'));
+
+
+//schemas
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
-const GeoJSON = require(path.join(__dirname, 'schemas', 'geojson_schema'));
-const Media = require(path.join(__dirname, 'schemas', 'media_schema'));
-const Duration = require(path.join(__dirname, 'schemas', 'duration_schema'));
-const Call = require(path.join(__dirname, 'schemas', 'call_schema'));
-const Reporter = require(path.join(__dirname, 'schemas', 'reporter_schema'));
+const schemaPath = path.join(__dirname, 'schemas');
+const GeoJSON = require(path.join(schemaPath, 'geojson_schema'));
+const Media = require(path.join(schemaPath, 'media_schema'));
+const Duration = require(path.join(schemaPath, 'duration_schema'));
+const Call = require(path.join(schemaPath, 'call_schema'));
+const Reporter = require(path.join(schemaPath, 'reporter_schema'));
+
 
 //contact methods used for reporting the issue
 const CONTACT_METHOD_PHONE_CALL = 'Call';
@@ -502,80 +514,6 @@ ServiceRequestSchema.virtual('latitude').get(function () {
 //-----------------------------------------------------------------------------
 
 
-/**
- * @name toOpen311
- * @description convert service request instance to Open311 compliant schema
- * @return {Object} open311 compliant service request instance
- * @private
- * @since 0.1.0
- * @version 0.1.0
- * @type {Function}
- */
-ServiceRequestSchema.methods.toOpen311 = function () {
-  /*jshint camelcase:false*/
-
-  //TODO add all missing fields
-  //TODO reafctor as schema plugin
-
-  let as311 = {};
-
-  //Unique id of the service request
-  as311.service_request_id = this.code;
-
-  //Explanation of why the status was changed to the current state
-  //or more details on the current status than conveyed with status alone.
-  as311.status_notes = this.status.name; //TODO make use of status description
-
-  //The human readable name of the service request type
-  as311.service_name = this.service.name;
-
-  //The unique identifier for the service request type
-  as311.service_code = this.service.code;
-
-  //The current status of the service request.
-  as311.status = this.status.name;
-
-  //A full description of the request or report submitted.
-  as311.description = this.description;
-
-  //The agency responsible for fulfilling or otherwise
-  //addressing the service request.
-  as311.agency_responsible = '';
-
-  // Information about the action expected to fulfill the request or
-  // otherwise address the information reported.
-  as311.service_notice = '';
-
-  // The date and time when the service request was made.
-  as311.requested_datetime = this.createdAt;
-
-  // The date and time when the service request was last modified.
-  // For requests with status=closed, this will be the date the request was closed.
-  as311.updated_datetime = this.updatedAt;
-
-  //The date and time when the service request can be expected to be fulfilled.
-  //This may be based on a service-specific service level agreement.
-  as311.expected_datetime = '';
-
-  //Human readable address or description of location.
-  as311.address = this.address;
-
-  //latitude using the (WGS84) projection.
-  as311.lat = this.latitude;
-
-  //longitude using the (WGS84) projection.
-  as311.long = this.longitude;
-
-  //A URL to media associated with the request, for example an image.
-  as311.media_url = '';
-
-  /*jshint camelcase:true*/
-
-  return as311;
-
-};
-
-
 //-----------------------------------------------------------------------------
 // ServiceRequestSchema Hooks
 //-----------------------------------------------------------------------------
@@ -777,86 +715,12 @@ ServiceRequestSchema.statics.CONTACT_METHOD_MOBILE_APP =
 ServiceRequestSchema.statics.CONTACT_METHODS = CONTACT_METHODS;
 
 
-/**
- * @name createFromOpen311Client
- * @description create a new service request from open 311 compliant client
- * @return {Object, ServiceRequest}  open 311 compliant issue create response
- *                                   & new instance of service request
- * @since 0.1.0
- * @version 0.1.0
- * @public
- * @type {Function}
- */
-ServiceRequestSchema.statics.createFromOpen311Client =
-  function (serviceRequest, done) {
 
-    //refs
-    const ServiceRequest = this;
-    const Service = mongoose.model('Service');
-
-    async.waterfall([
-
-      function ensureServiceExist(next) {
-        /*jshint camelcase:false*/
-
-        // find service by request code
-        Service
-          .findOne({ code: serviceRequest.service_code })
-          .exec(function (error, service) {
-            if (!service) {
-              error = new Error('Service Not Found');
-              error.status = 404;
-            }
-
-            next(error, service);
-          });
-
-        /*jshint camelcase:true*/
-      },
-
-      function createServiceRequest(service, next) {
-        /*jshint camelcase:false*/
-
-        //check for location presence
-        let location;
-        if (serviceRequest.long && serviceRequest.lat) {
-          location = [serviceRequest.long, serviceRequest.lat];
-        }
-
-        //prepare service request
-        serviceRequest = {
-          service: service,
-          reporter: {
-            name: [serviceRequest.first_name,
-              serviceRequest.last_name
-            ].join(''),
-            phone: serviceRequest.phone,
-            email: serviceRequest.email
-          },
-          description: serviceRequest.description,
-          address: serviceRequest.address_string,
-          method: CONTACT_METHOD_MOBILE_APP,
-          location: location ? location : undefined
-        };
-
-        /*jshint camelcase:false*/
-
-        ServiceRequest.create(serviceRequest, next);
-      },
-
-      function prepareOpen311Response(serviceRequest, next) {
-        /*jshint camelcase:false*/
-        const open311Response = {
-          service_request_id: serviceRequest.code,
-          service_notice: '' //TODO return acknowledge
-        };
-        /*jshint camelcase:true*/
-        next(null, [open311Response], serviceRequest);
-      }
-
-    ], done);
-
-  };
+//-----------------------------------------------------------------------------
+// ServiceRequestSchema Plugins
+//-----------------------------------------------------------------------------
+ServiceRequestSchema.plugin(aggregate);
+ServiceRequestSchema.plugin(open311);
 
 
 //-----------------------------------------------------------------------------
@@ -930,14 +794,7 @@ ServiceRequestSchema.statics.countPerJurisdiction = function (done) {
 
   //count issue per service
   ServiceRequest
-    .aggregate()
-    .lookup({
-      from: 'jurisdictions',
-      localField: 'jurisdiction',
-      foreignField: '_id',
-      as: 'jurisdiction'
-    })
-    .unwind('$jurisdiction')
+    .aggregated()
     .group({
       _id: '$jurisdiction.name',
       code: { $first: '$jurisdiction.code' },
@@ -971,7 +828,7 @@ ServiceRequestSchema.statics.countPerMethod = function (done) {
 
   //count issue per method used to report
   ServiceRequest
-    .aggregate()
+    .aggregated()
     .group({
       _id: '$method',
       count: { $sum: 1 }
@@ -1003,14 +860,7 @@ ServiceRequestSchema.statics.countPerGroup = function (done) {
 
   //count issue per service group
   ServiceRequest
-    .aggregate()
-    .lookup({
-      from: 'servicegroups',
-      localField: 'group',
-      foreignField: '_id',
-      as: 'group'
-    })
-    .unwind('$group')
+    .aggregated()
     .group({
       _id: '$group.name',
       color: { $first: '$group.color' },
@@ -1043,14 +893,7 @@ ServiceRequestSchema.statics.countPerService = function (done) {
 
   //count issue per service
   ServiceRequest
-    .aggregate()
-    .lookup({
-      from: 'services',
-      localField: 'service',
-      foreignField: '_id',
-      as: 'service'
-    })
-    .unwind('$service')
+    .aggregated()
     .group({
       _id: '$service.name',
       color: { $first: '$service.color' },
@@ -1083,14 +926,7 @@ ServiceRequestSchema.statics.countPerOperator = function (done) {
 
   //count issue per service
   ServiceRequest
-    .aggregate()
-    .lookup({
-      from: 'parties',
-      localField: 'operator',
-      foreignField: '_id',
-      as: 'operator'
-    })
-    .unwind('$operator')
+    .aggregated()
     .group({
       _id: '$operator.name',
       count: { $sum: 1 }
@@ -1122,14 +958,7 @@ ServiceRequestSchema.statics.countPerStatus = function (done) {
 
   //count issue per method used to report
   ServiceRequest
-    .aggregate()
-    .lookup({
-      from: 'status',
-      localField: 'status',
-      foreignField: '_id',
-      as: 'status'
-    })
-    .unwind('$status')
+    .aggregated()
     .group({
       _id: '$status.name',
       color: { $first: '$status.color' },
@@ -1162,14 +991,7 @@ ServiceRequestSchema.statics.countPerPriority = function (done) {
 
   //count issue per method used to report
   ServiceRequest
-    .aggregate()
-    .lookup({
-      from: 'priorities',
-      localField: 'priority',
-      foreignField: '_id',
-      as: 'priority'
-    })
-    .unwind('$priority')
+    .aggregated()
     .group({
       _id: '$priority.name',
       color: { $first: '$priority.color' },
@@ -1203,7 +1025,7 @@ ServiceRequestSchema.statics.calculateAverageCallDuration = function (done) {
 
   //compute average call duration
   ServiceRequest
-    .aggregate()
+    .aggregated()
     .group({
       _id: null,
       duration: { $avg: '$call.duration.milliseconds' }
@@ -1234,6 +1056,8 @@ ServiceRequestSchema.statics.calculateAverageCallDuration = function (done) {
 ServiceRequestSchema.statics.overviews = function (done) {
   //refs
   const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //TODO make use of https://docs.mongodb.com/v3.4/reference/operator/aggregation/facet/
 
   async.parallel({
 

@@ -122,6 +122,7 @@ const JurisdictionSchema = new Schema({
     index: true,
     trim: true,
     searchable: true,
+    // required:true,
     default: 'N/A'
   },
 
@@ -140,6 +141,7 @@ const JurisdictionSchema = new Schema({
     type: String,
     index: true,
     trim: true,
+    // required:true,
     searchable: true,
     default: 'N/A'
   },
