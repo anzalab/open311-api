@@ -1,5 +1,6 @@
 {
-  "apps": [{
+  "apps": [
+  {
 
     // name your app will have in PM2
     "name": "open311",
@@ -25,10 +26,12 @@
     "watch": false,
 
     // env variables which will appear in your app
-    "env": {
+    "env":
+    {
       "NODE_ENV": "production"
     }
-  }, {
+  },
+  {
 
     // name your app will have in PM2
     "name": "open311-worker",
@@ -54,7 +57,8 @@
     "watch": false,
 
     // env variables which will appear in your app
-    "env": {
+    "env":
+    {
       "NODE_ENV": "production"
     }
   }]
