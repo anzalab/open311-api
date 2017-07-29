@@ -41,7 +41,7 @@ router.all('/statuses*', jwtAuth);
  * @apiSuccess {Timestamp}  updatedAt     Status updated date
  * @apiSuccess {String}     uri           Status URI
  * @apiSuccess {Number}     pages         Number of results pages
- * @apiSuccess {Number}     count         Number of status contained in the current json response
+ * @apiSuccess {Number}     count         Number of status results  in the current json response
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -106,7 +106,7 @@ router.get('/statuses', function (request, response, next) {
  *
  * @apiParam   {String}     name             Human readable name of the status e.g Open, In Progress, Resolved.
  * @apiParam   {Number}     weight           Weight of the status to help in ordering service request(issue) based on status
- * @apiParam   {String}     [color]            A color code used to differentiate a service request status visually.
+ * @apiParam   {String}     [color]          A color code used to differentiate a service request status visually.
  *
  *
  * @apiSuccess {String}     name             Status Name
@@ -120,17 +120,14 @@ router.get('/statuses', function (request, response, next) {
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 201 Created
  *    {
- *      "statuses": [
- *         {
- *            "name": "Suspended",
- *            "weight": 2,
- *            "color": "#0D47A1",
- *            "_id": "592029e5e8dd8e00048c180d",
- *             "createdAt": "2017-05-20T11:35:01.059Z",
- *             "updatedAt": "2017-05-20T11:35:01.059Z",
- *             "uri": "https://dawasco.herokuapp.com/statuses/597acd4932494800041ed7b2"
- *         }
- *   }
+ *        "name": "Suspended",
+ *        "weight": 2,
+ *        "color": "#0D47A1",
+ *        "_id": "592029e5e8dd8e00048c180d",
+ *        "createdAt": "2017-05-20T11:35:01.059Z",
+ *        "updatedAt": "2017-05-20T11:35:01.059Z",
+ *        "uri": "https://dawasco.herokuapp.com/statuses/597acd4932494800041ed7b2"
+ *     }
  *
  * @apiError  AuthorizationHeaderRequired  Authorization header is required
  *
@@ -149,7 +146,7 @@ router.post('/statuses', function (request, response, next) {
 
 
 /**
- * @api {get} /statues/:id Request Status information
+ * @api {get} /statuses/:id Request Status information
  * @apiName GetStatus
  * @apiGroup Status
  *
@@ -196,7 +193,7 @@ router.get('/statuses/:id', function (request, response, next) {
 
 
 /**
- * @api {put} /statues/:id Request Status information
+ * @api {put} /statuses/:id Update Status information
  * @apiName PutStatus
  * @apiGroup Status
  *
@@ -246,7 +243,7 @@ router.put('/statuses/:id', function (request, response, next) {
 
 
 /**
- * @api {patch} /statues/:id Request Status information
+ * @api {patch} /statuses/:id Update Status information
  * @apiName PatchStatus
  * @apiGroup Status
  *
@@ -296,7 +293,7 @@ router.patch('/statuses/:id', function (request, response, next) {
 
 
 /**
- * @api {delete} /statues/:id Request Status information
+ * @api {delete} /statuses/:id Delete Status information
  * @apiName DeleteStatus
  * @apiGroup Status
  *
