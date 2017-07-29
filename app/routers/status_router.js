@@ -153,8 +153,9 @@ router.post('/statuses', function (request, response, next) {
  * @apiName GetStatus
  * @apiGroup Status
  *
- * @apiHeader {String}      accept         Accept value
+ * @apiHeader {String}      accept         Accept value i.e application/json
  * @apiHeader {String}      authorization  Authorization token
+
  *
  * @apiParam {ObjectId}     id               Status unique ID.
  *
@@ -167,7 +168,7 @@ router.post('/statuses', function (request, response, next) {
  * @apiSuccess {String}     uri              Status URI
  *
  * @apiSuccessExample {json} Success-Response:
- *    HTTP/1.1 201 Created
+ *    HTTP/1.1 200 OK
  *    {
  *       "name": "Open",
  *       "weight": -5,
@@ -178,7 +179,7 @@ router.post('/statuses', function (request, response, next) {
  *       "uri": "https://dawasco.herokuapp.com/statuses/592029e5e8dd8e00048c180d"
  *     }
  *
- * @apiError JWTExpired
+ * @apiError JWTExpired     Authorization token has expired
  *
  * @apiErrorExample  {json}   Error-Response:
  *    HTTP/1.1 403 Forbidden
@@ -195,10 +196,49 @@ router.get('/statuses/:id', function (request, response, next) {
 
 
 /**
- * Handle Http PUT on /statuses/:id
- * @description update a specific status
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+ * @api {put} /statues/:id Request Status information
+ * @apiName PutStatus
+ * @apiGroup Status
+ *
+ * @apiHeader {String}      accept           Accept value i.e application/json
+ * @apiHeader {String}      authorization    Authorization token
+ * @apiHeader {String}      content-type     Content type i.e application/json
+ *
+ * @apiParam {ObjectId}     id               Status unique ID.
+ * @apiParam   {String}     [name]           Human readable name of the status e.g Open, In Progress, Resolved.
+ * @apiParam   {Number}     [weight]         Weight of the status to help in ordering service request(issue) based on status
+ * @apiParam   {String}     [color]          A color code used to differentiate a service request status visually.
+ *
+ * @apiSuccess {String}     name             Status Name
+ * @apiSuccess {Number}     weight           Weight of the status to help in ordering service request(issue) based on status
+ * @apiSuccess {String}     color            A color code used to differentiate a service request status visually.
+ * @apiSuccess {ObjectId}   _id              Status Id
+ * @apiSuccess {Timestamp}  createdAt        Status creation date
+ * @apiSuccess {Timestamp}  updatedAt        Status updated date
+ * @apiSuccess {String}     uri              Status URI
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *    HTTP/1.1 200 OK
+ *    {
+ *       "name": "Resolved",
+ *       "weight": -5,
+ *       "color": "#0D47A1",
+ *       "_id": "592029e5e8dd8e00048c180d",
+ *       "createdAt": "2017-05-20T11:35:01.059Z",
+ *       "updatedAt": "2017-05-20T11:35:01.059Z",
+ *       "uri": "https://dawasco.herokuapp.com/statuses/592029e5e8dd8e00048c180d"
+ *     }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
+ *
  */
 router.put('/statuses/:id', function (request, response, next) {
   controller.update(request, response, next);
@@ -206,10 +246,49 @@ router.put('/statuses/:id', function (request, response, next) {
 
 
 /**
- * Handle Http PATCH on /statuses/:id
- * @description update a specific status
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+ * @api {patch} /statues/:id Request Status information
+ * @apiName PatchStatus
+ * @apiGroup Status
+ *
+ * @apiHeader {String}      accept           Accept value i.e application/json
+ * @apiHeader {String}      authorization    Authorization token
+ * @apiHeader {String}      content-type     Content type i.e application/json
+ *
+ * @apiParam {ObjectId}     id               Status unique ID.
+ * @apiParam   {String}     [name]           Human readable name of the status e.g Open, In Progress, Resolved.
+ * @apiParam   {Number}     [weight]         Weight of the status to help in ordering service request(issue) based on status
+ * @apiParam   {String}     [color]          A color code used to differentiate a service request status visually.
+ *
+ * @apiSuccess {String}     name             Status Name
+ * @apiSuccess {Number}     weight           Weight of the status to help in ordering service request(issue) based on status
+ * @apiSuccess {String}     color            A color code used to differentiate a service request status visually.
+ * @apiSuccess {ObjectId}   _id              Status Id
+ * @apiSuccess {Timestamp}  createdAt        Status creation date
+ * @apiSuccess {Timestamp}  updatedAt        Status updated date
+ * @apiSuccess {String}     uri              Status URI
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *    HTTP/1.1 200 OK
+ *    {
+ *       "name": "Resolved",
+ *       "weight": -5,
+ *       "color": "#0D47A1",
+ *       "_id": "592029e5e8dd8e00048c180d",
+ *       "createdAt": "2017-05-20T11:35:01.059Z",
+ *       "updatedAt": "2017-05-20T11:35:01.059Z",
+ *       "uri": "https://dawasco.herokuapp.com/statuses/592029e5e8dd8e00048c180d"
+ *     }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
+ *
  */
 router.patch('/statuses/:id', function (request, response, next) {
   controller.update(request, response, next);
@@ -217,10 +296,46 @@ router.patch('/statuses/:id', function (request, response, next) {
 
 
 /**
- * Handle Http DELETE on /statuses/:id
- * @description delete a specific status
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+ * @api {delete} /statues/:id Request Status information
+ * @apiName DeleteStatus
+ * @apiGroup Status
+ *
+ * @apiHeader {String}      accept           Accept value i.e application/json
+ * @apiHeader {String}      authorization    Authorization token
+ * @apiHeader {String}      content-type     Content type i.e application/json
+ *
+ * @apiParam {ObjectId}     id               Status unique ID.
+ *
+ * @apiSuccess {String}     name             Status Name
+ * @apiSuccess {Number}     weight           Weight of the status to help in ordering service request(issue) based on status
+ * @apiSuccess {String}     color            A color code used to differentiate a service request status visually.
+ * @apiSuccess {ObjectId}   _id              Status Id
+ * @apiSuccess {Timestamp}  createdAt        Status creation date
+ * @apiSuccess {Timestamp}  updatedAt        Status updated date
+ * @apiSuccess {String}     uri              Status URI
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *    HTTP/1.1 200 OK
+ *    {
+ *       "name": "Resolved",
+ *       "weight": -5,
+ *       "color": "#0D47A1",
+ *       "_id": "592029e5e8dd8e00048c180d",
+ *       "createdAt": "2017-05-20T11:35:01.059Z",
+ *       "updatedAt": "2017-05-20T11:35:01.059Z",
+ *       "uri": "https://dawasco.herokuapp.com/statuses/592029e5e8dd8e00048c180d"
+ *     }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
+ *
  */
 router.delete('/statuses/:id', function (request, response, next) {
   controller.destroy(request, response, next);
