@@ -286,7 +286,6 @@ router.put('/priorities/:id', function (request, response, next) {
  *
  * @apiHeader {String}      accept           Accept value i.e application/json
  * @apiHeader {String}      authorization    Authorization token
- * @apiHeader {String}      content-type     Content type i.e application/json
  *
  * @apiParam   {ObjectId}   id               Priority unique ID.
  * @apiParam   {String}     name             Unique Human readable name of the priority e.g High, Low, Medium.
