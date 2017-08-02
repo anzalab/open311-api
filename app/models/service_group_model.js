@@ -6,9 +6,9 @@
  * @name ServiceGroup
  * @description Provide ability to group service offered by a jurisdiction(s)
  *              into meaningful categories e.g Sanitation
- *              
+ *
  *              It provides a way to group several service request types
- *              (issues) under meaningful categories such as Sanitation, 
+ *              (issues) under meaningful categories such as Sanitation,
  *              Commercial, Billing, Non-Commercial etc.
  *
  * @see {@link Jurisdiction}
@@ -38,11 +38,11 @@ const ServiceGroupSchema = new Schema({
 
   /**
    * @name jurisdiction
-   * @description A jurisdiction undewhich a service group is applicable.
+   * @description A jurisdiction under which a service group is applicable.
    *
-   *              If not available a service group is applicable to all 
+   *              If not available a service group is applicable to all
    *              jurisdictions.
-   *               
+   *
    * @type {Object}
    * @see {@link Jurisdiction}
    * @private
@@ -63,12 +63,12 @@ const ServiceGroupSchema = new Schema({
 
   /**
    * @name code
-   * @description A unique identifier of the service group. 
-   *              
-   *              Used in deriving code of the service request(issue) and 
-   *              internal jurisdiction usage i.e act as an issue 
+   * @description A unique identifier of the service group.
+   *
+   *              Used in deriving code of the service request(issue) and
+   *              internal jurisdiction usage i.e act as an issue
    *              identifier.
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -76,7 +76,7 @@ const ServiceGroupSchema = new Schema({
    */
   code: {
     type: String,
-    // unique: true, see index section below for compound index 
+    // unique: true, see index section below for compound index
     // used to enforce uniqueness
     required: true,
     trim: true,
@@ -89,7 +89,7 @@ const ServiceGroupSchema = new Schema({
    * @name name
    * @description A unique human readable name of the service group
    *              e.g Sanitation
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -97,7 +97,7 @@ const ServiceGroupSchema = new Schema({
    */
   name: {
     type: String,
-    // unique: true, see index section below for compound index 
+    // unique: true, see index section below for compound index
     // used to enforce uniqueness
     required: true,
     trim: true,
@@ -110,7 +110,7 @@ const ServiceGroupSchema = new Schema({
    * @name description
    * @description A detailed human readable explanation about the service
    *              group.
-   *               
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -125,13 +125,13 @@ const ServiceGroupSchema = new Schema({
 
   /**
    * @name color
-   * @description A color code(in hexdecimal format) eg. #363636 used to
+   * @description A color code(in hexadecimal format) eg. #363636 used to
    *              differentiate a service group visually from other service
    *              group.
    *
    *              If not provided it will randomly generated, but it is not
    *              guarantee its visual appeal.
-   *               
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -143,7 +143,10 @@ const ServiceGroupSchema = new Schema({
     trim: true
   }
 
-}, { timestamps: true, emitIndexErrors: true });
+}, {
+  timestamps: true,
+  emitIndexErrors: true
+});
 
 
 //-----------------------------------------------------------------------------
@@ -154,7 +157,13 @@ const ServiceGroupSchema = new Schema({
 //ensure `unique` compound index on jurisdiction, name and code
 //to fix unique indexes on code and name in case they are used in more than
 //one jurisdiction with different administration
-ServiceGroupSchema.index({ jurisdiction: 1, name: 1, code: 1 }, { unique: true });
+ServiceGroupSchema.index({
+  jurisdiction: 1,
+  name: 1,
+  code: 1
+}, {
+  unique: true
+});
 
 
 //-----------------------------------------------------------------------------
