@@ -51,8 +51,8 @@ router.all('/servicerequests*', jwtAuth);
  * @apiSuccess {Array}        attachments         Associated file(s) with service request(issue)
  * @apiSuccess {Duration}     ttr                 A time taken to resolve the issue(service request) in duration format.  Used to calculate Mean Time To Resolve(MTTR) KPI.  It calculated as time taken since the issue reported to the  time when issue resolved.
  * @apiSuccess {ObjectId}     _id           		  Unique ServiceRequest Id
- * @apiSuccess {Timestamp}    createdAt       	  Service creation date
- * @apiSuccess {Timestamp}    updatedAt           Service last updated date
+ * @apiSuccess {Timestamp}    createdAt       	  Service request creation date
+ * @apiSuccess {Timestamp}    updatedAt           Service request last updated date
  * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
  * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
  * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
@@ -309,8 +309,8 @@ router.get('/servicerequests', function (request, response, next) {
  * @apiSuccess {Array}        attachments         Associated file(s) with service request(issue)
  * @apiSuccess {Duration}     ttr                 A time taken to resolve the issue(service request) in duration format.  Used to calculate Mean Time To Resolve(MTTR) KPI.  It calculated as time taken since the issue reported to the  time when issue resolved.
  * @apiSuccess {ObjectId}     _id           		  Unique ServiceRequest Id
- * @apiSuccess {Timestamp}    createdAt       	  Service creation date
- * @apiSuccess {Timestamp}    updatedAt           Service last updated date
+ * @apiSuccess {Timestamp}    createdAt       	  Service request creation date
+ * @apiSuccess {Timestamp}    updatedAt           Service request last updated date
  * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
  * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
  * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
@@ -437,7 +437,7 @@ router.post('/servicerequests', function (request, response, next) {
 
 
 /**
- * @api {get} /servicesrequests/:id Request Service Request information
+ * @api {get} /servicerequests/:id Request Service Request information
  * @apiName GetServiceRequest
  * @apiGroup ServiceRequest
  *
@@ -463,8 +463,8 @@ router.post('/servicerequests', function (request, response, next) {
  * @apiSuccess {Array}        attachments         Associated file(s) with service request(issue)
  * @apiSuccess {Duration}     ttr                 A time taken to resolve the issue(service request) in duration format.  Used to calculate Mean Time To Resolve(MTTR) KPI.  It calculated as time taken since the issue reported to the  time when issue resolved.
  * @apiSuccess {ObjectId}     _id           		  Unique ServiceRequest Id
- * @apiSuccess {Timestamp}    createdAt       	  Service creation date
- * @apiSuccess {Timestamp}    updatedAt           Service last updated date
+ * @apiSuccess {Timestamp}    createdAt       	  Service request creation date
+ * @apiSuccess {Timestamp}    updatedAt           Service request last updated date
  * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
  * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
  * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
@@ -591,7 +591,7 @@ router.get('/servicerequests/:id', function (request, response, next) {
 
 
 /**
- * @api {put} /servicesrequests/:id Update Service Request information
+ * @api {put} /servicerequests/:id Update Service Request information
  * @apiName PutServiceRequest
  * @apiGroup ServiceRequest
  *
@@ -631,8 +631,8 @@ router.get('/servicerequests/:id', function (request, response, next) {
  * @apiSuccess {Array}        attachments         Associated file(s) with service request(issue)
  * @apiSuccess {Duration}     ttr                 A time taken to resolve the issue(service request) in duration format.  Used to calculate Mean Time To Resolve(MTTR) KPI.  It calculated as time taken since the issue reported to the  time when issue resolved.
  * @apiSuccess {ObjectId}     _id           		  Unique ServiceRequest Id
- * @apiSuccess {Timestamp}    createdAt       	  Service creation date
- * @apiSuccess {Timestamp}    updatedAt           Service last updated date
+ * @apiSuccess {Timestamp}    createdAt       	  Service request creation date
+ * @apiSuccess {Timestamp}    updatedAt           Service request last updated date
  * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
  * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
  * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
@@ -759,7 +759,7 @@ router.put('/servicerequests/:id', function (request, response, next) {
 
 
 /**
- * @api {patch} /servicesrequests/:id Update Service Request information
+ * @api {patch} /servicerequests/:id Update Service Request information
  * @apiName PatchServiceRequest
  * @apiGroup ServiceRequest
  *
@@ -799,8 +799,8 @@ router.put('/servicerequests/:id', function (request, response, next) {
  * @apiSuccess {Array}        attachments         Associated file(s) with service request(issue)
  * @apiSuccess {Duration}     ttr                 A time taken to resolve the issue(service request) in duration format.  Used to calculate Mean Time To Resolve(MTTR) KPI.  It calculated as time taken since the issue reported to the  time when issue resolved.
  * @apiSuccess {ObjectId}     _id           		  Unique ServiceRequest Id
- * @apiSuccess {Timestamp}    createdAt       	  Service creation date
- * @apiSuccess {Timestamp}    updatedAt           Service last updated date
+ * @apiSuccess {Timestamp}    createdAt       	  Service request creation date
+ * @apiSuccess {Timestamp}    updatedAt           Service request last updated date
  * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
  * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
  * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
@@ -927,7 +927,7 @@ router.patch('/servicerequests/:id', function (request, response, next) {
 
 
 /**
- * @api {delete} /servicesrequests/:id Delete Service Request information
+ * @api {delete} /servicerequests/:id Delete Service Request information
  * @apiName DeleteServiceRequest
  * @apiGroup ServiceRequest
  *
@@ -952,8 +952,8 @@ router.patch('/servicerequests/:id', function (request, response, next) {
  * @apiSuccess {Array}        attachments         Associated file(s) with service request(issue)
  * @apiSuccess {Duration}     ttr                 A time taken to resolve the issue(service request) in duration format.  Used to calculate Mean Time To Resolve(MTTR) KPI.  It calculated as time taken since the issue reported to the  time when issue resolved.
  * @apiSuccess {ObjectId}     _id           		  Unique ServiceRequest Id
- * @apiSuccess {Timestamp}    createdAt       	  Service creation date
- * @apiSuccess {Timestamp}    updatedAt           Service last updated date
+ * @apiSuccess {Timestamp}    createdAt       	  Service request creation date
+ * @apiSuccess {Timestamp}    updatedAt           Service request last updated date
  * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
  * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
  * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
