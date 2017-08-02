@@ -25,7 +25,7 @@ router.all('/servicerequests*', jwtAuth);
 
 /**
  * @api {get} /servicerequests Get all ServiceRequests
- * @apiName GetServicesRequest
+ * @apiName GetServiceRequests
  * @apiGroup ServiceRequest
  *
  * @apiHeader {String}      accept         Accept value i.e application/json
@@ -437,7 +437,7 @@ router.post('/servicerequests', function (request, response, next) {
 
 
 /**
- * @api {get} /servicesrequests/:id Request Service information
+ * @api {get} /servicesrequests/:id Request Service Request information
  * @apiName GetServiceRequest
  * @apiGroup ServiceRequest
  *
@@ -927,7 +927,7 @@ router.patch('/servicerequests/:id', function (request, response, next) {
 
 
 /**
- * @api {delete} /servicesrequests/:id Delete Service information
+ * @api {delete} /servicesrequests/:id Delete Service Request information
  * @apiName DeleteServiceRequest
  * @apiGroup ServiceRequest
  *
