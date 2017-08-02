@@ -147,12 +147,12 @@ router.get('/services', function (request, response, next) {
  * @apiHeader {String}        authorization       Authorization token
  * @apiHeader {String}        content-type        Sent content type
  *
- * @apiParams {ObjectId}      jurisdiction        A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
- * @apiParams {ObjectId}      group       		    A service group under which a service belongs to
- * @apiParams {String}        code        		 	  A unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
- * @apiParams {String}        name           		  A unique human readable name of the service (request type) e.g Water Leakage
- * @apiParams {String}        description         A detailed human readable explanation about the service(request type)
- * @apiParams {String}        color           		A color (hexadecimal format) used to differentiate service request type visually from other service
+ * @apiParam {ObjectId}      jurisdiction        A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
+ * @apiParam {ObjectId}      group       		    A service group under which a service belongs to
+ * @apiParam {String}        code        		 	  A unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
+ * @apiParam {String}        name           		  A unique human readable name of the service (request type) e.g Water Leakage
+ * @apiParam {String}        description         A detailed human readable explanation about the service(request type)
+ * @apiParam {String}        color           		A color (hexadecimal format) used to differentiate service request type visually from other service
  *
  *
  * @apiSuccess {Object}       jurisdiction        A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
@@ -315,12 +315,12 @@ router.get('/services/:id', function (request, response, next) {
  * @apiHeader {String}      content-type     Content type i.e application/json
  *
  * @apiParam   {ObjectId}     id                  Unique service Id.
- * @apiParams  {ObjectId}     [jurisdiction]      A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
- * @apiParams  {ObjectId}     [group]       		  A service group under which a service belongs to
- * @apiParams  {String}       [code]        		  Unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
- * @apiParams  {String}       [name]           	  A unique human readable name of the service (request type) e.g Water Leakage
- * @apiParams  {String}       [description]       A detailed human readable explanation about the service(request type)
- * @apiParams  {String}       [color]             A color (hexadecimal format) used to differentiate service request type visually from other service
+ * @apiParam  {ObjectId}     [jurisdiction]      A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
+ * @apiParam  {ObjectId}     [group]       		  A service group under which a service belongs to
+ * @apiParam  {String}       [code]        		  Unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
+ * @apiParam  {String}       [name]           	  A unique human readable name of the service (request type) e.g Water Leakage
+ * @apiParam  {String}       [description]       A detailed human readable explanation about the service(request type)
+ * @apiParam  {String}       [color]             A color (hexadecimal format) used to differentiate service request type visually from other service
  *
  * @apiSuccess {Object}       jurisdiction        A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
  * @apiSuccess {Object}       group       		    A service group under which a service belongs to
@@ -403,12 +403,12 @@ router.put('/services/:id', function (request, response, next) {
  * @apiHeader {String}      content-type     Content type i.e application/json
  *
  * @apiParam   {ObjectId}     id                  Unique Service Id.
- * @apiParams  {ObjectId}     [jurisdiction]      A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
- * @apiParams  {ObjectId}     [group]       		  A service group under which a service belongs to
- * @apiParams  {String}       [code]        		  Unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
- * @apiParams  {String}       [name]           	  A unique human readable name of the service (request type) e.g Water Leakage
- * @apiParams  {String}       [description]       A detailed human readable explanation about the service(request type)
- * @apiParams  {String}       [color]             A color (hexadecimal format) used to differentiate service request type visually from other service
+ * @apiParam  {ObjectId}     [jurisdiction]      A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
+ * @apiParam  {ObjectId}     [group]       		  A service group under which a service belongs to
+ * @apiParam  {String}       [code]        		  Unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
+ * @apiParam  {String}       [name]           	  A unique human readable name of the service (request type) e.g Water Leakage
+ * @apiParam  {String}       [description]       A detailed human readable explanation about the service(request type)
+ * @apiParam  {String}       [color]             A color (hexadecimal format) used to differentiate service request type visually from other service
  *
  * @apiSuccess {Object}       jurisdiction        A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
  * @apiSuccess {Object}       group       		    A service group under which a service belongs to
