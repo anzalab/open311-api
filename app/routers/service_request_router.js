@@ -927,7 +927,7 @@ router.patch('/servicerequests/:id', function (request, response, next) {
 
 
 /**
- * @api {delete} /servicerequests/:id Delete Service Request information
+ * @api {delete} /servicerequests/:id Delete Specific Service Request information
  * @apiName DeleteServiceRequest
  * @apiGroup ServiceRequest
  *
