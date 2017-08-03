@@ -56,8 +56,8 @@ router.all('/servicerequests*', jwtAuth);
  * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
  * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
  * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
- * @apiSuccess {Number}       longitude           Obtain service request(issue) longitude
- * @apiSuccess {Number}       latitude            Obtain service request(issue) latitude
+ * @apiSuccess {Number}       longitude           Service request(issue) longitude
+ * @apiSuccess {Number}       latitude            Service request(issue) latitude
  * @apiSuccess {String}       uri          		    ServiceRequest URI
  * @apiSuccess {Number}       pages       		    Number of results pages
  * @apiSuccess {Number}       count       		    Number of ServiceRequest results  in the current json response
@@ -314,8 +314,8 @@ router.get('/servicerequests', function (request, response, next) {
  * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
  * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
  * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
- * @apiSuccess {Number}       longitude           Obtain service request(issue) longitude
- * @apiSuccess {Number}       latitude            Obtain service request(issue) latitude
+ * @apiSuccess {Number}       longitude           Service request(issue) longitude
+ * @apiSuccess {Number}       latitude            Service request(issue) latitude
  * @apiSuccess {String}       uri          		    ServiceRequest URI
  * @apiSuccess {Number}       pages       		    Number of results pages
  * @apiSuccess {Number}       count       		    Number of ServiceRequest results  in the current json response
@@ -468,8 +468,8 @@ router.post('/servicerequests', function (request, response, next) {
  * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
  * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
  * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
- * @apiSuccess {Number}       longitude           Obtain service request(issue) longitude
- * @apiSuccess {Number}       latitude            Obtain service request(issue) latitude
+ * @apiSuccess {Number}       longitude           Service request(issue) longitude
+ * @apiSuccess {Number}       latitude            Service request(issue) latitude
  * @apiSuccess {String}       uri          		    ServiceRequest URI
  * @apiSuccess {Number}       pages       		    Number of results pages
  * @apiSuccess {Number}       count       		    Number of ServiceRequest results  in the current json response
@@ -636,8 +636,8 @@ router.get('/servicerequests/:id', function (request, response, next) {
  * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
  * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
  * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
- * @apiSuccess {Number}       longitude           Obtain service request(issue) longitude
- * @apiSuccess {Number}       latitude            Obtain service request(issue) latitude
+ * @apiSuccess {Number}       longitude           Service request(issue) longitude
+ * @apiSuccess {Number}       latitude            Service request(issue) latitude
  * @apiSuccess {String}       uri          		    ServiceRequest URI
  * @apiSuccess {Number}       pages       		    Number of results pages
  * @apiSuccess {Number}       count       		    Number of ServiceRequest results  in the current json response
@@ -804,8 +804,8 @@ router.put('/servicerequests/:id', function (request, response, next) {
  * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
  * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
  * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
- * @apiSuccess {Number}       longitude           Obtain service request(issue) longitude
- * @apiSuccess {Number}       latitude            Obtain service request(issue) latitude
+ * @apiSuccess {Number}       longitude           Service request(issue) longitude
+ * @apiSuccess {Number}       latitude            Service request(issue) latitude
  * @apiSuccess {String}       uri          		    ServiceRequest URI
  * @apiSuccess {Number}       pages       		    Number of results pages
  * @apiSuccess {Number}       count       		    Number of ServiceRequest results  in the current json response
@@ -957,8 +957,8 @@ router.patch('/servicerequests/:id', function (request, response, next) {
  * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
  * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
  * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
- * @apiSuccess {Number}       longitude           Obtain service request(issue) longitude
- * @apiSuccess {Number}       latitude            Obtain service request(issue) latitude
+ * @apiSuccess {Number}       longitude           Service request(issue) longitude
+ * @apiSuccess {Number}       latitude            Service request(issue) latitude
  * @apiSuccess {String}       uri          		    ServiceRequest URI
  * @apiSuccess {Number}       pages       		    Number of results pages
  * @apiSuccess {Number}       count       		    Number of ServiceRequest results  in the current json response
