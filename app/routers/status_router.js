@@ -299,7 +299,6 @@ router.patch('/statuses/:id', function (request, response, next) {
  *
  * @apiHeader {String}      accept           Accept value i.e application/json
  * @apiHeader {String}      authorization    Authorization token
- * @apiHeader {String}      content-type     Content type i.e application/json
  *
  * @apiParam {ObjectId}     id               Status unique ID.
  *

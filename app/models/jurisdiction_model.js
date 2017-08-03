@@ -4,7 +4,7 @@
 /**
  * @module Jurisdiction
  * @name Jurisdiction
- * @description An entity (e.g minicipal) responsible for addressing 
+ * @description An entity (e.g minicipal) responsible for addressing
  *              service request(issue).
  *
  *              It may be a self managed entity or division within another
@@ -44,15 +44,15 @@ const GeoJSON = require(path.join(__dirname, 'schemas', 'geojson_schema'));
 const JurisdictionSchema = new Schema({
   /**
    * @name jurisdiction
-   * @description Top jurisdiction under which this jurisdiction derived. 
-   *              
-   *              This is applicable where a large jurisdiction delegates 
+   * @description Top jurisdiction under which this jurisdiction derived.
+   *
+   *              This is applicable where a large jurisdiction delegates
    *              its power to its division(s).
    *
    *              If not set the jurisdiction will be treated as a top
    *              jurisdiction and will be affected by any logics implemented
    *              accordingly.
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -72,9 +72,9 @@ const JurisdictionSchema = new Schema({
 
   /**
    * @name code
-   * @description Human readable coded name of the jurisdiction. 
+   * @description Human readable coded name of the jurisdiction.
    *              Used in deriving service request code.
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -147,12 +147,12 @@ const JurisdictionSchema = new Schema({
 
   /**
    * @name domain
-   * @description Unique reserved domain name of the jurisdiction 
-   *              e.g example.go.tz. 
-   *              
+   * @description Unique reserved domain name of the jurisdiction
+   *              e.g example.go.tz.
+   *
    *              It used as jurisdiction_id in open311 api specification and
    *              whenever applicable
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -170,9 +170,9 @@ const JurisdictionSchema = new Schema({
 
   /**
    * @name about
-   * @description A brief summary about jurusdiction if available i.e
+   * @description A brief summary about jurisdiction if available i.e
    *              additional details that clarify what a jurisdiction do.
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -191,7 +191,7 @@ const JurisdictionSchema = new Schema({
    * @description Human readable physical address of jurisdiction office.
    *              Used when a party what to physical go or visit the jurisdiction
    *              office.
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -217,11 +217,11 @@ const JurisdictionSchema = new Schema({
 
   /**
    * @name boundaries
-   * @description jurisdiction boundaries. 
+   * @description jurisdiction boundaries.
    *
-   *              It mailnly used when geo lookup for service request 
+   *              Its mainly used when geo lookup for service request
    *              jurisdiction based on geo coordinates
-   *              
+   *
    * @since  0.1.0
    * @version 0.1.0
    * @type {Object}
@@ -231,13 +231,13 @@ const JurisdictionSchema = new Schema({
 
   /**
    * @name color
-   * @description A color code(in hexdecimal format) eg. #363636 used to
+   * @description A color code(in hexadecimal format) eg. #363636 used to
    *              differentiate jurisdiction visually from other service
    *              group.
    *
    *              If not provided it will randomly generated, but it is not
    *              guarantee its visual appeal.
-   *               
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -249,7 +249,10 @@ const JurisdictionSchema = new Schema({
     trim: true
   }
 
-}, { timestamps: true, emitIndexErrors: true });
+}, {
+  timestamps: true,
+  emitIndexErrors: true
+});
 
 
 //-----------------------------------------------------------------------------
@@ -289,8 +292,12 @@ JurisdictionSchema.virtual('latitude').get(function () {
 
 
 //ensure `2dsphere` on jurisdiction location and boundaries
-JurisdictionSchema.index({ location: '2dsphere' });
-JurisdictionSchema.index({ boundaries: '2dsphere' });
+JurisdictionSchema.index({
+  location: '2dsphere'
+});
+JurisdictionSchema.index({
+  boundaries: '2dsphere'
+});
 
 
 
@@ -332,8 +339,8 @@ JurisdictionSchema.pre('validate', function (next) {
  * @param  {Number}   options.maxDistance max distance in meters
  * @param  {[Number]}   options.coordinates coordinates of the location
  * @param  {Function} done        a callback to invoke on success or error
- * @return {[Object]}             collection  of jurisdiction near by 
- *                                specified coordinates  
+ * @return {[Object]}             collection  of jurisdiction near by
+ *                                specified coordinates
  * @see {@link https://docs.mongodb.com/manual/reference/operator/query/nearSphere/#op._S_nearSphere}
  * @since 0.1.0
  * @version 0.1.0

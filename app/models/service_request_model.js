@@ -94,7 +94,7 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name group
-   * @description A service group undewhich request(issue) belongs to
+   * @description A service group under which request(issue) belongs to
    * @type {Object}
    * @see {@link Service}
    * @private
@@ -116,7 +116,7 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name service
-   * @description A service undewhich request(issue) belongs to
+   * @description A service under which request(issue) belongs to
    * @type {Object}
    * @see {@link Service}
    * @private
@@ -168,7 +168,7 @@ const ServiceRequestSchema = new Schema({
    *              It also a party that is answerable for the progress and
    *              status of the service request(issue) to a reporter.
    *
-   *              For jurisdiction that own a call center, then operator is 
+   *              For jurisdiction that own a call center, then operator is
    *              a person who received a call.
    *
    * @type {Object}
@@ -394,9 +394,9 @@ const ServiceRequestSchema = new Schema({
    * @name expectedAt
    * @description A time when the issue is expected to be resolved.
    *
-   *              Computed by adding expected hours to resolve issue to the 
+   *              Computed by adding expected hours to resolve issue to the
    *              reporting time of the issue i.e (createdAt + service.sla.ttr in hours).
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -426,7 +426,7 @@ const ServiceRequestSchema = new Schema({
    * @name ttr
    * @description A time taken to resolve the issue(service request) in duration format.
    *
-   *              Used to calculcate Mean Time To Resolve(MTTR) KPI.
+   *              Used to calculate Mean Time To Resolve(MTTR) KPI.
    *
    *              It calculated as time taken since the issue reported to the
    *              time when issue resolved.
@@ -442,7 +442,7 @@ const ServiceRequestSchema = new Schema({
 
   /**
    * @name wasTicketSent
-   * @description tells whether a ticket number was sent to a 
+   * @description tells whether a ticket number was sent to a
    *              service request(issue) reporter using sms, email etc.
    * @type {Object}
    * @private
@@ -454,7 +454,10 @@ const ServiceRequestSchema = new Schema({
     default: false
   }
 
-}, { timestamps: true, emitIndexErrors: true });
+}, {
+  timestamps: true,
+  emitIndexErrors: true
+});
 
 
 //-----------------------------------------------------------------------------
@@ -463,7 +466,9 @@ const ServiceRequestSchema = new Schema({
 
 
 //ensure `2dsphere` on service request location
-ServiceRequestSchema.index({ location: '2dsphere' });
+ServiceRequestSchema.index({
+  location: '2dsphere'
+});
 
 
 //-----------------------------------------------------------------------------
@@ -602,7 +607,7 @@ ServiceRequestSchema.pre('validate', function (next) {
     //obtain sla expected time ttr
     const ttr = _.get(this.service, 'sla.ttr');
     if (ttr) {
-      //compute time to when a service request(issue) 
+      //compute time to when a service request(issue)
       //is expected to be resolve
       this.expectedAt =
         moment(this.createdAt).add(ttr, 'hours').toDate(); //or h
@@ -612,7 +617,9 @@ ServiceRequestSchema.pre('validate', function (next) {
   //compute time to resolve (ttr) in milliseconds
   if (this.resolvedAt) {
     const ttr = this.resolvedAt.getTime() - this.createdAt.getTime();
-    this.ttr = { milliseconds: ttr };
+    this.ttr = {
+      milliseconds: ttr
+    };
   }
 
   //ensure jurisdiction from service
@@ -801,7 +808,9 @@ ServiceRequestSchema.statics.createFromOpen311Client =
 
         // find service by request code
         Service
-          .findOne({ code: serviceRequest.service_code })
+          .findOne({
+            code: serviceRequest.service_code
+          })
           .exec(function (error, service) {
             if (!service) {
               error = new Error('Service Not Found');
@@ -884,7 +893,11 @@ ServiceRequestSchema.statics.countResolved = function (done) {
 
   //count total resolved issue so far
   ServiceRequest
-    .count({ resolvedAt: { $ne: null } })
+    .count({
+      resolvedAt: {
+        $ne: null
+      }
+    })
     .exec(done);
 
 };
@@ -908,7 +921,9 @@ ServiceRequestSchema.statics.countUnResolved = function (done) {
 
   //count total un resolved issue so far
   ServiceRequest
-    .count({ resolvedAt: null })
+    .count({
+      resolvedAt: null
+    })
     .exec(done);
 
 };
@@ -940,12 +955,29 @@ ServiceRequestSchema.statics.countPerJurisdiction = function (done) {
     .unwind('$jurisdiction')
     .group({
       _id: '$jurisdiction.name',
-      code: { $first: '$jurisdiction.code' },
-      color: { $first: '$jurisdiction.color' },
-      count: { $sum: 1 }
+      code: {
+        $first: '$jurisdiction.code'
+      },
+      color: {
+        $first: '$jurisdiction.color'
+      },
+      count: {
+        $sum: 1
+      }
     })
-    .project({ jurisdiction: '$_id', code: '$code', color: '$color', count: '$count' })
-    .project({ _id: 0, jurisdiction: 1, code: 1, color: 1, count: 1 })
+    .project({
+      jurisdiction: '$_id',
+      code: '$code',
+      color: '$color',
+      count: '$count'
+    })
+    .project({
+      _id: 0,
+      jurisdiction: 1,
+      code: 1,
+      color: 1,
+      count: 1
+    })
     .exec(function (error, countPerJurisdiction) {
 
       done(error, countPerJurisdiction);
@@ -974,10 +1006,19 @@ ServiceRequestSchema.statics.countPerMethod = function (done) {
     .aggregate()
     .group({
       _id: '$method',
-      count: { $sum: 1 }
+      count: {
+        $sum: 1
+      }
     })
-    .project({ method: '$_id', count: '$count' })
-    .project({ _id: 0, method: 1, count: 1 })
+    .project({
+      method: '$_id',
+      count: '$count'
+    })
+    .project({
+      _id: 0,
+      method: 1,
+      count: 1
+    })
     .exec(function (error, countPerMethod) {
 
       done(error, countPerMethod);
@@ -1013,11 +1054,24 @@ ServiceRequestSchema.statics.countPerGroup = function (done) {
     .unwind('$group')
     .group({
       _id: '$group.name',
-      color: { $first: '$group.color' },
-      count: { $sum: 1 }
+      color: {
+        $first: '$group.color'
+      },
+      count: {
+        $sum: 1
+      }
     })
-    .project({ group: '$_id', color: '$color', count: '$count' })
-    .project({ _id: 0, group: 1, color: 1, count: 1 })
+    .project({
+      group: '$_id',
+      color: '$color',
+      count: '$count'
+    })
+    .project({
+      _id: 0,
+      group: 1,
+      color: 1,
+      count: 1
+    })
     .exec(function (error, countPerGroup) {
 
       done(error, countPerGroup);
@@ -1053,11 +1107,24 @@ ServiceRequestSchema.statics.countPerService = function (done) {
     .unwind('$service')
     .group({
       _id: '$service.name',
-      color: { $first: '$service.color' },
-      count: { $sum: 1 }
+      color: {
+        $first: '$service.color'
+      },
+      count: {
+        $sum: 1
+      }
     })
-    .project({ service: '$_id', color: '$color', count: '$count' })
-    .project({ _id: 0, service: 1, color: 1, count: 1 })
+    .project({
+      service: '$_id',
+      color: '$color',
+      count: '$count'
+    })
+    .project({
+      _id: 0,
+      service: 1,
+      color: 1,
+      count: 1
+    })
     .exec(function (error, countPerGroup) {
 
       done(error, countPerGroup);
@@ -1093,10 +1160,19 @@ ServiceRequestSchema.statics.countPerOperator = function (done) {
     .unwind('$operator')
     .group({
       _id: '$operator.name',
-      count: { $sum: 1 }
+      count: {
+        $sum: 1
+      }
     })
-    .project({ operator: '$_id', count: '$count' })
-    .project({ _id: 0, operator: 1, count: 1 })
+    .project({
+      operator: '$_id',
+      count: '$count'
+    })
+    .project({
+      _id: 0,
+      operator: 1,
+      count: 1
+    })
     .exec(function (error, countPerOperator) {
 
       done(error, countPerOperator);
@@ -1132,11 +1208,24 @@ ServiceRequestSchema.statics.countPerStatus = function (done) {
     .unwind('$status')
     .group({
       _id: '$status.name',
-      color: { $first: '$status.color' },
-      count: { $sum: 1 }
+      color: {
+        $first: '$status.color'
+      },
+      count: {
+        $sum: 1
+      }
     })
-    .project({ status: '$_id', color: '$color', count: '$count' })
-    .project({ _id: 0, status: 1, color: 1, count: 1 })
+    .project({
+      status: '$_id',
+      color: '$color',
+      count: '$count'
+    })
+    .project({
+      _id: 0,
+      status: 1,
+      color: 1,
+      count: 1
+    })
     .exec(function (error, countPerStatus) {
 
       done(error, countPerStatus);
@@ -1172,11 +1261,24 @@ ServiceRequestSchema.statics.countPerPriority = function (done) {
     .unwind('$priority')
     .group({
       _id: '$priority.name',
-      color: { $first: '$priority.color' },
-      count: { $sum: 1 }
+      color: {
+        $first: '$priority.color'
+      },
+      count: {
+        $sum: 1
+      }
     })
-    .project({ priority: '$_id', color: '$color', count: '$count' })
-    .project({ _id: 0, priority: 1, color: 1, count: 1 })
+    .project({
+      priority: '$_id',
+      color: '$color',
+      count: '$count'
+    })
+    .project({
+      _id: 0,
+      priority: 1,
+      color: 1,
+      count: 1
+    })
     .exec(function (error, countPerPriority) {
 
       done(error, countPerPriority);
@@ -1206,9 +1308,14 @@ ServiceRequestSchema.statics.calculateAverageCallDuration = function (done) {
     .aggregate()
     .group({
       _id: null,
-      duration: { $avg: '$call.duration.milliseconds' }
+      duration: {
+        $avg: '$call.duration.milliseconds'
+      }
     })
-    .project({ _id: 0, duration: 1 })
+    .project({
+      _id: 0,
+      duration: 1
+    })
     .exec(function (error, durations) {
 
       //obtain average duration
@@ -1326,7 +1433,10 @@ ServiceRequestSchema.statics.summary = function (done) {
             _.forEach(services, function (service) {
               works[service._id] = function (then) {
                 ServiceRequest
-                  .count({ service: service._id, resolvedAt: null })
+                  .count({
+                    service: service._id,
+                    resolvedAt: null
+                  })
                   .exec(then);
               };
             });
@@ -1346,7 +1456,10 @@ ServiceRequestSchema.statics.summary = function (done) {
             _.forEach(statuses, function (status) {
               works[status._id] = function (then) {
                 ServiceRequest
-                  .count({ status: status._id, resolvedAt: null })
+                  .count({
+                    status: status._id,
+                    resolvedAt: null
+                  })
                   .exec(then);
               };
             });
@@ -1366,7 +1479,10 @@ ServiceRequestSchema.statics.summary = function (done) {
             _.forEach(priorities, function (priority) {
               works[priority._id] = function (then) {
                 ServiceRequest
-                  .count({ priority: priority._id, resolvedAt: null })
+                  .count({
+                    priority: priority._id,
+                    resolvedAt: null
+                  })
                   .exec(then);
               };
             });
