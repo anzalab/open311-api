@@ -59,6 +59,14 @@ $ npm test
 - [geojson-second-bite](http://www.macwright.org/2015/03/23/geojson-second-bite.html)
 - [introduction-to-mongodb-geospatial](http://tugdualgrall.blogspot.com/2014/08/introduction-to-mongodb-geospatial.html)
 - [create-an-auto-incrementing-field](https://docs.mongodb.com/v3.0/tutorial/create-an-auto-incrementing-field/)
+- [http://thecodebarbarian.com/a-nodejs-perspective-on-mongodb-34-facet](http://thecodebarbarian.com/a-nodejs-perspective-on-mongodb-34-facet)
+
+```js
+$project: [
+              { service: '$_id', color: '$color', count: '$count' },
+              { _id: 0, service: 1, color: 1, count: 1 }
+            ]
+```
 
 ## Contribute
 

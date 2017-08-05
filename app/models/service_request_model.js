@@ -1151,6 +1151,25 @@ ServiceRequestSchema.statics.summary = function (done) {
 
   //TODO use aggregation
   async.parallel({
+    // all: function (next) { //will only count existing
+    //   ServiceRequest
+    //     .aggregated()
+    //     .match({ resolvedAt: { $ne: null } })
+    //     .facet({
+    //       services: [{ // sort by service alphabetically
+    //         $group: {
+    //           _id: '$service.name',
+    //           sid: { $first: '$service._id' },
+    //           color: { $first: '$service.color' },
+    //           count: { $sum: 1 }
+    //         }
+    //       }]
+    //     })
+    //     .exec(function (error, summaries) {
+    //       console.log(JSON.stringify(summaries));
+    //       next(error, summaries);
+    //     });
+    // },
     services: function (next) {
       Service
         .find({})
@@ -1233,7 +1252,10 @@ ServiceRequestSchema.statics.summary = function (done) {
           }
         });
     }
-  }, done);
+  }, function (error, results) {
+    // console.log(results.services);
+    done(error, results);
+  });
 
 };
 

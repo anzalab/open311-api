@@ -40,6 +40,7 @@ const ReporterSchema = new Schema({
     type: String,
     trim: true,
     index: true,
+    // required:true,
     searchable: true
   },
 
