@@ -2,9 +2,13 @@
 
 
 /**
- * Jurisdiction Router
+ * @apiDefine Jurisdiction  Jurisdiction
  *
- * @description :: Server-side router for managing Jurisdiction.
+ * An entity (e.g minicipal) responsible for addressing
+ * service request(issue).
+ *
+ * It may be a self managed entity or division within another
+ * entity(jurisdiction) in case there is hierarchy.
  */
 
 
