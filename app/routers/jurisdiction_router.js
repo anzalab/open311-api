@@ -26,12 +26,13 @@ const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
 router.all('/jurisdictions*', jwtAuth);
 
 /**
- * @api {get} /jurisdictions Get all Jurisdictions
- * @apiName GetJurisdictions
+ * @api {get} /jurisdictions Get Jurisdictions
  * @apiGroup Jurisdiction
+ * @apiName GetJurisdictions
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept         Accept value i.e application/json
- * @apiHeader {String}      authorization  Authorization token
+ * @apiHeader {String}      Accept='application/json'         Accept value i.e application/json
+ * @apiHeader {String}      Authorization  Authorization token
  *
  * @apiExample Example Usage
  * curl -i http://dawasco.herokuapp.com/jurisdictions
@@ -116,45 +117,12 @@ router.all('/jurisdictions*', jwtAuth);
  *            "longitude": 0,
  *           "latitude": 0,
  *           "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e6e8dd8e00048c1850"
- *       },
- *       {
- *           "jurisdiction": {
- *               "code": "H",
- *               "name": "HQ",
- *               "phone": "255714999888",
- *               "email": "N/A",
- *               "domain": "dawasco.org",
- *               "_id": "592029e5e8dd8e00048c184b",
- *               "longitude": 0,
- *               "latitude": 0,
- *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e5e8dd8e00048c184b"
- *           },
- *           "code": "T",
- *           "name": "Temeke",
- *           "phone": "255714999886",
- *           "email": "N/A",
- *           "domain": "temeke.dawasco.org",
- *           "about": "Temeke Area Office for Dar es salaam Water Supply Company(DAWASCO)",
- *           "address": "N/A",
- *           "location": {
- *               "type": "Point",
- *               "coordinates": [
- *                   0,
- *                   0
- *               ]
- *           },
- *           "color": "#ECB7F7",
- *           "_id": "592029e6e8dd8e00048c1851",
- *           "createdAt": "2017-05-20T11:35:02.263Z",
- *           "updatedAt": "2017-06-16T12:04:37.645Z",
- *           "longitude": 0,
- *           "latitude": 0,
- *           "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e6e8dd8e00048c1851"
  *       }
  *      ],
  *      "pages": 1,
- *      "count": 3
+ *      "count": 2
  *   }
+ *
  *
  * @apiError  AuthorizationHeaderRequired  Authorization header is required
  *
@@ -183,13 +151,14 @@ router.get('/jurisdictions', function (request, response, next) {
 
 
 /**
- * @api {post} /jurisdictions Create a new Jurisdictions
- * @apiName PostJurisdiction
+ * @api {post} /jurisdictions Create Jurisdictions
  * @apiGroup Jurisdiction
+ * @apiName CreateJurisdiction
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}        accept              Accept value i.e application/json
- * @apiHeader {String}        authorization       Authorization token
- * @apiHeader {String}        content-type        Sent content type
+ * @apiHeader {String}        Accept              Accept value i.e application/json
+ * @apiHeader {String}        Authorization       Authorization token
+ * @apiHeader {String}        Content-type        Sent content type
  *
  * @apiParam {ObjectId}       [jurisdiction]      Top jurisdiction under which this jurisdiction derived.  This is applicable where a large jurisdiction delegates its power to its division(s). If not set the jurisdiction will be treated as a top jurisdiction and will be affected by any logics implemented  accordingly.
  * @apiParam {String}         code                Human readable coded name of the jurisdiction. Used in deriving service request code.
@@ -273,12 +242,13 @@ router.post('/jurisdictions', function (request, response, next) {
 
 
 /**
- * @api {get} /jurisdictions/:id Request Specific Jurisdiction information
- * @apiName GetJurisdictions
+ * @api {get} /jurisdictions/:id Get Jurisdiction
  * @apiGroup Jurisdiction
+ * @apiName GetJurisdiction
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept         Accept value i.e application/json
- * @apiHeader {String}      authorization  Authorization token
+ * @apiHeader {String}      Accept         Accept value i.e application/json
+ * @apiHeader {String}      Authorization  Authorization token
 
  *
  * @apiParam {ObjectId}       id                  Unique jurisdiction Id.
@@ -353,13 +323,14 @@ router.get('/jurisdictions/:id', function (request, response, next) {
 
 
 /**
- * @api {put} /jurisdictions/:id Update specific jurisdiction information
- * @apiName PutJurisdiction
+ * @api {put} /jurisdictions/:id Update(PUT) Jurisdiction
  * @apiGroup Jurisdiction
+ * @apiName PutJurisdiction
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}        accept              Accept value i.e application/json
- * @apiHeader {String}        authorization       Authorization token
- * @apiHeader {String}        content-type        Sent content type
+ * @apiHeader {String}        Accept              Accept value i.e application/json
+ * @apiHeader {String}        Authorization       Authorization token
+ * @apiHeader {String}        Content-Type        Sent content type
  *
  * @apiParam {ObjectId}       id                  Unique jurisdiction Id.
  *
@@ -445,13 +416,14 @@ router.put('/jurisdictions/:id', function (request, response, next) {
 
 
 /**
- * @api {patch} /jurisdictions/:id Update specific jurisdiction information
- * @apiName PatchJurisdiction
+ * @api {patch} /jurisdictions/:id Update(PATCH)  Jurisdiction
  * @apiGroup Jurisdiction
+ * @apiName PatchJurisdiction
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}        accept              Accept value i.e application/json
- * @apiHeader {String}        authorization       Authorization token
- * @apiHeader {String}        content-type        Sent content type
+ * @apiHeader {String}        Accept              Accept value i.e application/json
+ * @apiHeader {String}        Authorization       Authorization token
+ * @apiHeader {String}        Content-Type        Sent content type
  *
  * @apiParam {ObjectId}       id                  Unique jurisdiction Id.
  *
@@ -537,12 +509,13 @@ router.patch('/jurisdictions/:id', function (request, response, next) {
 
 
 /**
- * @api {delete} /jurisdictions/:id Delete specific jurisdiction information
- * @apiName DeleteJurisdiction
+ * @api {delete} /jurisdictions/:id Delete Jurisdiction
  * @apiGroup Jurisdiction
+ * @apiName DeleteJurisdiction
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}        accept              Accept value i.e application/json
- * @apiHeader {String}        authorization       Authorization token
+ * @apiHeader {String}        Accept              Accept value i.e application/json
+ * @apiHeader {String}        Authorization       Authorization token
  *
  * @apiParam {ObjectId}       id                  Unique jurisdiction Id.
  *
