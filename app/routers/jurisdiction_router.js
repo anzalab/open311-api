@@ -158,9 +158,13 @@ router.get('/jurisdictions', function (request, response, next) {
  *
  * @apiHeader {String}        Accept              Accept value i.e application/json
  * @apiHeader {String}        Authorization       Authorization token
- * @apiHeader {String}        Content-type        Sent content type
+ * @apiHeader {String}        Content-Type        Sent content type
  *
- * @apiParam {ObjectId}       [jurisdiction]      Top jurisdiction under which this jurisdiction derived.  This is applicable where a large jurisdiction delegates its power to its division(s). If not set the jurisdiction will be treated as a top jurisdiction and will be affected by any logics implemented  accordingly.
+ * @apiParam {ObjectId}       [jurisdiction]
+ *    Top jurisdiction under which this jurisdiction derived.
+ *    This is applicable where a large jurisdiction delegates its power to its division(s).
+ *    If not set the jurisdiction will be treated as a top jurisdiction and will be affected by any logics implemented  accordingly.
+ *
  * @apiParam {String}         code                Human readable coded name of the jurisdiction. Used in deriving service request code.
  * @apiParam {String}         name                Human readable name of the jurisdiction
  * @apiParam {String}         phone               Primary mobile phone number used to contact jurisdiction. Used when a party want to send an SMS or call the jurisdiction
