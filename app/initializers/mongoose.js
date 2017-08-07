@@ -3,6 +3,7 @@
 
 //dependencies
 const path = require('path');
+const _ = require('lodash');
 const environment = require('execution-environment');
 const conf = require('config');
 const winston = require('winston');
@@ -105,7 +106,10 @@ require('require-all')({
  * @description establish database connection.
  */
 mongoose.connect(uristring, mongoOptions, function () {
-  if (!environment.isTest()) {
+  //check if seeding is enabled
+  const shouldSeed = _.get(config, 'seed.enable', false);
+
+  if (!environment.isTest() && shouldSeed) {
     require('seed-mongoose')({
       suffix: '_seed',
       logger: winston,
@@ -124,6 +128,7 @@ mongoose.connect(uristring, mongoOptions, function () {
       }
     });
   }
+
 });
 
 /**

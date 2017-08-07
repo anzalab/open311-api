@@ -55,6 +55,9 @@ module.exports = {
           keepAlive: 1
         }
       }
+    },
+    seed:{
+      enable:false
     }
   },
 
