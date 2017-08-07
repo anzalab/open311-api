@@ -2,9 +2,12 @@
 
 
 /**
- * ServiceGroup Router
- *
- * @description :: Server-side router for managing ServiceGroup.
+ * @apiDefine ServiceGroup ServiceGroup
+ * Provide ability to group service offered by a jurisdiction(s)
+ * into meaningful categories e.g Sanitation
+ * It provides a way to group several service request types (issues)
+ * under meaningful categories such as Sanitation, Commercial, Billing,
+ * Non-Commercial etc.
  */
 
 
@@ -22,28 +25,49 @@ const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
 router.all('/servicegroups*', jwtAuth);
 
 /**
- * @api {get} /servicegroups Get all ServiceGroups
- * @apiName GetServiceGroups
+ * @api {get} /servicegroups Get Service Groups
  * @apiGroup ServiceGroup
+ * @apiName GetServiceGroups
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept         Accept value i.e application/json
- * @apiHeader {String}      authorization  Authorization token
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ *
  *
  * @apiExample Example Usage
  * curl -i http://dawasco.herokuapp.com/servicegroups
  *
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction under which a service group is applicable. If not available a service group is applicable to all  jurisdictions.
- * @apiSuccess {String}       code                A unique identifier of the service group.Used in deriving code of the service request(issue) and internal jurisdiction usage i.e act as an issue identifier.
- * @apiSuccess {String}       name                A unique human readable name of the service group e.g Sanitation
- * @apiSuccess {String}       description         A detailed human readable explanation about the service group.
- * @apiSuccess {String}       color           		A color code(in hexadecimal format) eg. #363636 used to differentiate a service group visually from other service group.  If not provided it will randomly generated, but it is not guarantee its visual appeal.
- * @apiSuccess {ObjectId}     _id           		  Unique Service Group Id
- * @apiSuccess {Timestamp}    createdAt       	  Service group creation date
- * @apiSuccess {Timestamp}    updatedAt           Service group last updated date
- * @apiSuccess {String}       uri          		    Service group URI
- * @apiSuccess {Number}       pages       		    Number of results pages
- * @apiSuccess {Number}       count       		    Number of Service groups results  in the current json response
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service group.
+ *        Used in deriving code of the service request(issue)
+ *        and internal jurisdiction usage i.e act as an issue identifier.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiSuccess {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided
+ *        it will randomly generated, but it is not guarantee its visual appeal.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Group Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service group creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service group last updated date
+ * @apiSuccess {String}       uri
+ *        Service group URI
+ * @apiSuccess {Number}       pages
+ *        Number of results pages
+ * @apiSuccess {Number}       count
+ *        Number of Service groups results  in the current json response
+ *
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -144,30 +168,60 @@ router.get('/servicegroups', function (request, response, next) {
 
 
 /**
- * @api {post} /servicegroups Create a new service group
- * @apiName PostServiceGroup
+ * @api {post} /servicegroups Create Service Group
  * @apiGroup ServiceGroup
+ * @apiName PostServiceGroup
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
- * @apiHeader {String}      content-type     Sent content type i.e application/json
- *
- * @apiParam {ObjectId}     jurisdiction        A jurisdiction under which a service group is applicable. If not available a service group is applicable to all  jurisdictions.
- * @apiParam {String}       code                A unique identifier of the service group.Used in deriving code of the service request(issue) and internal jurisdiction usage i.e act as an issue identifier.
- * @apiParam {String}       name                A unique human readable name of the service group e.g Sanitation
- * @apiParam {String}       description         A detailed human readable explanation about the service group.
- * @apiParam {String}       color           		A color code(in hexadecimal format) eg. #363636 used to differentiate a service group visually from other service group.  If not provided it will randomly generated, but it is not guarantee its visual appeal.
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Sent content type i.e application/json
  *
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction under which a service group is applicable. If not available a service group is applicable to all  jurisdictions.
- * @apiSuccess {String}       code                A unique identifier of the service group.Used in deriving code of the service request(issue) and internal jurisdiction usage i.e act as an issue identifier.
- * @apiSuccess {String}       name                A unique human readable name of the service group e.g Sanitation
- * @apiSuccess {String}       description         A detailed human readable explanation about the service group.
- * @apiSuccess {String}       color           		A color code(in hexadecimal format) eg. #363636 used to differentiate a service group visually from other service group.  If not provided it will randomly generated, but it is not guarantee its visual appeal.
- * @apiSuccess {ObjectId}     _id           		  Unique Service Group Id
- * @apiSuccess {Timestamp}    createdAt       	  Service group creation date
- * @apiSuccess {Timestamp}    updatedAt           Service group last updated date
- * @apiSuccess {String}       uri          		    Service group URI
+ * @apiParam {ObjectId}     jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiParam {String}       code
+ *        A unique identifier of the service group.Used in deriving code of
+ *        the service request(issue) and internal jurisdiction usage i.e act
+ *        as an issue identifier.
+ * @apiParam {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiParam {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiParam {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided it
+ *        will randomly generated, but it is not guarantee its visual appeal.
+ *
+ *
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service group.
+ *        Used in deriving code of the service request(issue)
+ *        and internal jurisdiction usage i.e act as an issue identifier.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiSuccess {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided
+ *        it will randomly generated, but it is not guarantee its visual appeal.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Group Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service group creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service group last updated date
+ * @apiSuccess {String}       uri
+ *        Service group URI
+ *
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 201 Created
@@ -221,25 +275,43 @@ router.post('/servicegroups', function (request, response, next) {
 
 
 /**
- * @api {get} /servicegroups/:id Request Service Group information
- * @apiName GetServiceGroup
+ * @api {get} /servicegroups/:id Get Service Group
  * @apiGroup ServiceGroup
+ * @apiName GetServiceGroup
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept         Accept value i.e application/json
- * @apiHeader {String}      authorization  Authorization token
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
 
  *
- * @apiParam {ObjectId}       id                  Unique Service Group  Id.
+ * @apiParam {ObjectId}       id
+ *        Unique Service Group  Id.
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction under which a service group is applicable. If not available a service group is applicable to all  jurisdictions.
- * @apiSuccess {String}       code                A unique identifier of the service group.Used in deriving code of the service request(issue) and internal jurisdiction usage i.e act as an issue identifier.
- * @apiSuccess {String}       name                A unique human readable name of the service group e.g Sanitation
- * @apiSuccess {String}       description         A detailed human readable explanation about the service group.
- * @apiSuccess {String}       color           		A color code(in hexadecimal format) eg. #363636 used to differentiate a service group visually from other service group.  If not provided it will randomly generated, but it is not guarantee its visual appeal.
- * @apiSuccess {ObjectId}     _id           		  Unique Service Group Id
- * @apiSuccess {Timestamp}    createdAt       	  Service group creation date
- * @apiSuccess {Timestamp}    updatedAt           Service group last updated date
- * @apiSuccess {String}       uri          		    Service group URI
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service group.
+ *        Used in deriving code of the service request(issue)
+ *        and internal jurisdiction usage i.e act as an issue identifier.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiSuccess {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided
+ *        it will randomly generated, but it is not guarantee its visual appeal.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Group Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service group creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service group last updated date
+ * @apiSuccess {String}       uri
+ *        Service group URI
  *
  *
  * @apiSuccessExample {json} Success-Response:
@@ -293,30 +365,59 @@ router.get('/servicegroups/:id', function (request, response, next) {
 
 
 /**
- * @api {put} /servicegroups/:id Update specific service group information
- * @apiName PutServiceGroup
+ * @api {put} /servicegroups/:id Update(PUT) Service Group
  * @apiGroup ServiceGroup
+ * @apiName PutServiceGroup
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
- * @apiHeader {String}      content-type     Sent content type i.e application/json
- *
- * @apiParam {ObjectId}     jurisdiction        A jurisdiction under which a service group is applicable. If not available a service group is applicable to all  jurisdictions.
- * @apiParam {String}       code                A unique identifier of the service group.Used in deriving code of the service request(issue) and internal jurisdiction usage i.e act as an issue identifier.
- * @apiParam {String}       name                A unique human readable name of the service group e.g Sanitation
- * @apiParam {String}       description         A detailed human readable explanation about the service group.
- * @apiParam {String}       color           		A color code(in hexadecimal format) eg. #363636 used to differentiate a service group visually from other service group.  If not provided it will randomly generated, but it is not guarantee its visual appeal.
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Sent content type i.e application/json
  *
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction under which a service group is applicable. If not available a service group is applicable to all  jurisdictions.
- * @apiSuccess {String}       code                A unique identifier of the service group.Used in deriving code of the service request(issue) and internal jurisdiction usage i.e act as an issue identifier.
- * @apiSuccess {String}       name                A unique human readable name of the service group e.g Sanitation
- * @apiSuccess {String}       description         A detailed human readable explanation about the service group.
- * @apiSuccess {String}       color           		A color code(in hexadecimal format) eg. #363636 used to differentiate a service group visually from other service group.  If not provided it will randomly generated, but it is not guarantee its visual appeal.
- * @apiSuccess {ObjectId}     _id           		  Unique Service Group Id
- * @apiSuccess {Timestamp}    createdAt       	  Service group creation date
- * @apiSuccess {Timestamp}    updatedAt           Service group last updated date
- * @apiSuccess {String}       uri          		    Service group URI
+ * @apiParam {ObjectId}     jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiParam {String}       code
+ *        A unique identifier of the service group.Used in deriving code of
+ *        the service request(issue) and internal jurisdiction usage i.e act
+ *        as an issue identifier.
+ * @apiParam {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiParam {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiParam {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided it
+ *        will randomly generated, but it is not guarantee its visual appeal.
+ *
+ *
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service group.
+ *        Used in deriving code of the service request(issue)
+ *        and internal jurisdiction usage i.e act as an issue identifier.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiSuccess {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided
+ *        it will randomly generated, but it is not guarantee its visual appeal.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Group Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service group creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service group last updated date
+ * @apiSuccess {String}       uri
+ *        Service group URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -370,30 +471,60 @@ router.put('/servicegroups/:id', function (request, response, next) {
 
 
 /**
- * @api {patch} /servicegroups/:id Update specific service group information
- * @apiName PatchServiceGroup
+ * @api {patch} /servicegroups/:id Update(PATCH) Service Group
  * @apiGroup ServiceGroup
+ * @apiName PatchServiceGroup
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
- * @apiHeader {String}      content-type     Sent content type i.e application/json
- *
- * @apiParam {ObjectId}     jurisdiction        A jurisdiction under which a service group is applicable. If not available a service group is applicable to all  jurisdictions.
- * @apiParam {String}       code                A unique identifier of the service group.Used in deriving code of the service request(issue) and internal jurisdiction usage i.e act as an issue identifier.
- * @apiParam {String}       name                A unique human readable name of the service group e.g Sanitation
- * @apiParam {String}       description         A detailed human readable explanation about the service group.
- * @apiParam {String}       color           		A color code(in hexadecimal format) eg. #363636 used to differentiate a service group visually from other service group.  If not provided it will randomly generated, but it is not guarantee its visual appeal.
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Sent content type i.e application/json
  *
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction under which a service group is applicable. If not available a service group is applicable to all  jurisdictions.
- * @apiSuccess {String}       code                A unique identifier of the service group.Used in deriving code of the service request(issue) and internal jurisdiction usage i.e act as an issue identifier.
- * @apiSuccess {String}       name                A unique human readable name of the service group e.g Sanitation
- * @apiSuccess {String}       description         A detailed human readable explanation about the service group.
- * @apiSuccess {String}       color           		A color code(in hexadecimal format) eg. #363636 used to differentiate a service group visually from other service group.  If not provided it will randomly generated, but it is not guarantee its visual appeal.
- * @apiSuccess {ObjectId}     _id           		  Unique Service Group Id
- * @apiSuccess {Timestamp}    createdAt       	  Service group creation date
- * @apiSuccess {Timestamp}    updatedAt           Service group last updated date
- * @apiSuccess {String}       uri          		    Service group URI
+ * @apiParam {ObjectId}     jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiParam {String}       code
+ *        A unique identifier of the service group.Used in deriving code of
+ *        the service request(issue) and internal jurisdiction usage i.e act
+ *        as an issue identifier.
+ * @apiParam {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiParam {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiParam {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided it
+ *        will randomly generated, but it is not guarantee its visual appeal.
+ *
+ *
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service group.
+ *        Used in deriving code of the service request(issue)
+ *        and internal jurisdiction usage i.e act as an issue identifier.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiSuccess {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided
+ *        it will randomly generated, but it is not guarantee its visual appeal.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Group Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service group creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service group last updated date
+ * @apiSuccess {String}       uri
+ *        Service group URI
+ *
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -447,24 +578,44 @@ router.patch('/servicegroups/:id', function (request, response, next) {
 
 
 /**
- * @api {delete} /servicegroups/:id Delete specific service group information
- * @apiName DeleteServiceGroup
+ * @api {delete} /servicegroups/:id Delete Service Group
  * @apiGroup ServiceGroup
+ * @apiName DeleteServiceGroup
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
  *
- * @apiParam {ObjectId}       id                  Unique Service Group  Id.
+ * @apiParam {ObjectId}       id
+ *        Unique Service Group  Id.
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction under which a service group is applicable. If not available a service group is applicable to all  jurisdictions.
- * @apiSuccess {String}       code                A unique identifier of the service group.Used in deriving code of the service request(issue) and internal jurisdiction usage i.e act as an issue identifier.
- * @apiSuccess {String}       name                A unique human readable name of the service group e.g Sanitation
- * @apiSuccess {String}       description         A detailed human readable explanation about the service group.
- * @apiSuccess {String}       color           		A color code(in hexadecimal format) eg. #363636 used to differentiate a service group visually from other service group.  If not provided it will randomly generated, but it is not guarantee its visual appeal.
- * @apiSuccess {ObjectId}     _id           		  Unique Service Group Id
- * @apiSuccess {Timestamp}    createdAt       	  Service group creation date
- * @apiSuccess {Timestamp}    updatedAt           Service group last updated date
- * @apiSuccess {String}       uri          		    Service group URI
+ *
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service group.
+ *        Used in deriving code of the service request(issue)
+ *        and internal jurisdiction usage i.e act as an issue identifier.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiSuccess {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided
+ *        it will randomly generated, but it is not guarantee its visual appeal.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Group Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service group creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service group last updated date
+ * @apiSuccess {String}       uri
+ *        Service group URI
+ *
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK

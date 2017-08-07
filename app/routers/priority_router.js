@@ -1,10 +1,10 @@
 'use strict';
 
-
 /**
- * Priority Router
- *
- * @description :: Server-side router for managing Priority.
+ * @apiDefine Priority Priority
+ * Manage entity(i.e service & service request(issue)) priority.
+ * Provides a way to prioritize service and service request
+ * types (issues) in order of their importance.
  */
 
 
@@ -22,26 +22,39 @@ const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
 router.all('/priorities*', jwtAuth);
 
 /**
- * @api {get} /priorities Get all priorities
- * @apiName GetPriorities
+ * @api {get} /priorities Get Priorities
  * @apiGroup Priority
+ * @apiName GetPriorities
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept         Accept value
- * @apiHeader {String}      authorization  Authorization token
+ * @apiHeader {String}      Accept
+ *        Accept value
+ * @apiHeader {String}      Authorization
+ *        Authorization token
  *
  * @apiExample Example Usage
  * curl -i http://dawasco.herokuapp.com/priorities
  *
  *
- * @apiSuccess {String}     name          Unique Human readable name of the priority e.g High, Low, Medium.
- * @apiSuccess {Number}     weight        Weight of the priority to help in ordering service request(issue) based on priority.
- * @apiSuccess {String}     color         A color code used to differentiate a service request priority visually.
- * @apiSuccess {ObjectId}   _id           Priority Id
- * @apiSuccess {Timestamp}  createdAt     Priority creation date
- * @apiSuccess {Timestamp}  updatedAt     Priority updated date
- * @apiSuccess {String}     uri           Priority URI
- * @apiSuccess {Number}     pages         Number of results pages
- * @apiSuccess {Number}     count         Number of priority results in the current json response
+ * @apiSuccess {String}     name
+ *        Unique Human readable name of the priority e.g High, Low, Medium.
+ * @apiSuccess {Number}     weight
+ *        Weight of the priority to help in ordering service request(issue)
+ *        based on priority.
+ * @apiSuccess {String}     color
+ *        A color code used to differentiate a service request priority visually.
+ * @apiSuccess {ObjectId}   _id
+ *        Priority Id
+ * @apiSuccess {Timestamp}  createdAt
+ *        Priority creation date
+ * @apiSuccess {Timestamp}  updatedAt
+ *        Priority updated date
+ * @apiSuccess {String}     uri
+ *        Priority URI
+ * @apiSuccess {Number}     pages
+ *        Number of results pages
+ * @apiSuccess {Number}     count
+ *        Number of priority results in the current json response
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -123,26 +136,42 @@ router.get('/priorities', function (request, response, next) {
 
 
 /**
- * @api {post} /priorities Create a new priority
- * @apiName PostPriority
+ * @api {post} /priorities Create Priority
  * @apiGroup Priority
+ * @apiName PostPriority
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value
- * @apiHeader {String}      authorization    Authorization token
- * @apiHeader {String}      content-type     Sent content type
+ * @apiHeader {String}      Accept
+ *        Accept value
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Sent content type
  *
- * @apiParam   {String}     name             Unique Human readable name of the priority e.g High, Low, Medium.
- * @apiParam   {Number}     weight           Weight of the priority to help in ordering service request(issue) based on priority.
- * @apiParam   {String}     color            A color code used to differentiate a service request priority visually.
+ * @apiParam   {String}     name
+ *        Unique Human readable name of the priority e.g High, Low, Medium.
+ * @apiParam   {Number}     weight
+ *        Weight of the priority to help in ordering service request(issue)
+ *        based on priority.
+ * @apiParam   {String}     color
+ *        A color code used to differentiate a service request priority visually.
  *
  *
- * @apiSuccess {String}     name             Unique Human readable name of the priority e.g High, Low, Medium.
- * @apiSuccess {Number}     weight           Weight of the priority to help in ordering service request(issue) based on priority.
- * @apiSuccess {String}     color            A color code used to differentiate a service request priority visually.
- * @apiSuccess {ObjectId}   _id              Priority Id
- * @apiSuccess {Timestamp}  createdAt        Priority creation date
- * @apiSuccess {Timestamp}  updatedAt        Priority updated date
- * @apiSuccess {String}     uri              Priority URI
+ * @apiSuccess {String}     name
+ *        Unique Human readable name of the priority e.g High, Low, Medium.
+ * @apiSuccess {Number}     weight
+ *        Weight of the priority to help in ordering service request(issue)
+ *        based on priority.
+ * @apiSuccess {String}     color
+ *        A color code used to differentiate a service request priority visually.
+ * @apiSuccess {ObjectId}   _id
+ *        Priority Id
+ * @apiSuccess {Timestamp}  createdAt
+ *        Priority creation date
+ * @apiSuccess {Timestamp}  updatedAt
+ *        Priority updated date
+ * @apiSuccess {String}     uri
+ *        Priority URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 201 Created
@@ -183,23 +212,34 @@ router.post('/priorities', function (request, response, next) {
 
 
 /**
- * @api {get}   /priorities/:id   Request Priority information
- * @apiName GetPriority
+ * @api {get}   /priorities/:id   Get Priority
  * @apiGroup Priority
+ * @apiName GetPriority
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept         Accept value i.e application/json
- * @apiHeader {String}      authorization  Authorization token
-
+ * @apiHeader {String}      Accept
+ *        Accept value
+ * @apiHeader {String}      Authorization
+ *        Authorization token
  *
- * @apiParam {ObjectId}     id             Priority unique ID.
+ * @apiParam {ObjectId}     id
+ *        Priority unique ID.
  *
- * @apiSuccess {String}     name           Unique Human readable name of the priority e.g High, Low, Medium.
- * @apiSuccess {Number}     weight         Weight of the priority to help in ordering service request(issue) based on priority.
- * @apiSuccess {String}     color          A color code used to differentiate a service request priority visually.
- * @apiSuccess {ObjectId}   _id            Priority Id
- * @apiSuccess {Timestamp}  createdAt      Priority creation date
- * @apiSuccess {Timestamp}  updatedAt      Priority updated date
- * @apiSuccess {String}     uri            Priority URI
+ * @apiSuccess {String}     name
+ *        Unique Human readable name of the priority e.g High, Low, Medium.
+ * @apiSuccess {Number}     weight
+ *        Weight of the priority to help in ordering service request(issue)
+ *        based on priority.
+ * @apiSuccess {String}     color
+ *        A color code used to differentiate a service request priority visually.
+ * @apiSuccess {ObjectId}   _id
+ *        Priority Id
+ * @apiSuccess {Timestamp}  createdAt
+ *        Priority creation date
+ * @apiSuccess {Timestamp}  updatedAt
+ *        Priority updated date
+ * @apiSuccess {String}     uri
+ *        Priority URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -230,26 +270,43 @@ router.get('/priorities/:id', function (request, response, next) {
 
 
 /**
- * @api {put}   /priorities/:id   Update Priority information
- * @apiName  PutPriority
+ * @api {put}   /priorities/:id   Update(PUT) Priority
  * @apiGroup Priority
+ * @apiName  PutPriority
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
- * @apiHeader {String}      content-type     Content type i.e application/json
+ * @apiHeader {String}      Accept
+ *        Accept value
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Sent content type
  *
- * @apiParam   {ObjectId}   id               Priority unique ID.
- * @apiParam   {String}     name             Unique Human readable name of the priority e.g High, Low, Medium.
- * @apiParam   {Number}     weight           Weight of the priority to help in ordering service request(issue) based on priority.
- * @apiParam   {String}     color            A color code used to differentiate a service request priority visually.
+ * @apiParam   {ObjectId}   id
+ *        Priority unique ID.
+ * @apiParam   {String}     name
+ *        Unique Human readable name of the priority e.g High, Low, Medium.
+ * @apiParam   {Number}     weight
+ *        Weight of the priority to help in ordering service request(issue)
+ *        based on priority.
+ * @apiParam   {String}     color
+ *        A color code used to differentiate a service request priority visually.
  *
- * @apiSuccess {String}     name             Unique Human readable name of the priority e.g High, Low, Medium.
- * @apiSuccess {Number}     weight           Weight of the priority to help in ordering service request(issue) based on priority.
- * @apiSuccess {String}     color            A color code used to differentiate a service request priority visually.
- * @apiSuccess {ObjectId}   _id              Priority Id
- * @apiSuccess {Timestamp}  createdAt        Priority creation date
- * @apiSuccess {Timestamp}  updatedAt        Priority updated date
- * @apiSuccess {String}     uri              Priority URI
+ * @apiSuccess {String}     name
+ *        Unique Human readable name of the priority e.g High, Low, Medium.
+ * @apiSuccess {Number}     weight
+ *        Weight of the priority to help in ordering service request(issue)
+ *        based on priority.
+ * @apiSuccess {String}     color
+ *        A color code used to differentiate a service request priority visually.
+ * @apiSuccess {ObjectId}   _id
+ *        Priority Id
+ * @apiSuccess {Timestamp}  createdAt
+ *        Priority creation date
+ * @apiSuccess {Timestamp}  updatedAt
+ *        Priority updated date
+ * @apiSuccess {String}     uri
+ *        Priority URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -280,25 +337,43 @@ router.put('/priorities/:id', function (request, response, next) {
 
 
 /**
- * @api {patch}   /priorities/:id   Update Priority information
- * @apiName  PatchPriority
+ * @api {patch}   /priorities/:id   Update(PATCH) Priority
  * @apiGroup Priority
+ * @apiName  PatchPriority
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
+ * @apiHeader {String}      Accept
+ *        Accept value
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Sent content type
  *
- * @apiParam   {ObjectId}   id               Priority unique ID.
- * @apiParam   {String}     name             Unique Human readable name of the priority e.g High, Low, Medium.
- * @apiParam   {Number}     weight           Weight of the priority to help in ordering service request(issue) based on priority.
- * @apiParam   {String}     color            A color code used to differentiate a service request priority visually.
+ * @apiParam   {ObjectId}   id
+ *        Priority unique ID.
+ * @apiParam   {String}     name
+ *        Unique Human readable name of the priority e.g High, Low, Medium.
+ * @apiParam   {Number}     weight
+ *        Weight of the priority to help in ordering service request(issue)
+ *        based on priority.
+ * @apiParam   {String}     color
+ *        A color code used to differentiate a service request priority visually.
  *
- * @apiSuccess {String}     name             Unique Human readable name of the priority e.g High, Low, Medium.
- * @apiSuccess {Number}     weight           Weight of the priority to help in ordering service request(issue) based on priority.
- * @apiSuccess {String}     color            A color code used to differentiate a service request priority visually.
- * @apiSuccess {ObjectId}   _id              Priority Id
- * @apiSuccess {Timestamp}  createdAt        Priority creation date
- * @apiSuccess {Timestamp}  updatedAt        Priority updated date
- * @apiSuccess {String}     uri              Priority URI
+ * @apiSuccess {String}     name
+ *        Unique Human readable name of the priority e.g High, Low, Medium.
+ * @apiSuccess {Number}     weight
+ *        Weight of the priority to help in ordering service request(issue)
+ *        based on priority.
+ * @apiSuccess {String}     color
+ *        A color code used to differentiate a service request priority visually.
+ * @apiSuccess {ObjectId}   _id
+ *        Priority Id
+ * @apiSuccess {Timestamp}  createdAt
+ *        Priority creation date
+ * @apiSuccess {Timestamp}  updatedAt
+ *        Priority updated date
+ * @apiSuccess {String}     uri
+ *        Priority URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -330,21 +405,34 @@ router.patch('/priorities/:id', function (request, response, next) {
 
 /**
  * @api {delete}  /priorities/:id  Delete Priority
- * @apiName  DeletePriority
  * @apiGroup Priority
+ * @apiName  DeletePriority
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
+ * @apiHeader {String}      Accept
+ *        Accept value
+ * @apiHeader {String}      Authorization
+ *        Authorization token
  *
- * @apiParam {ObjectId}     id               Priority unique ID.
+ * @apiParam {ObjectId}     id
+ *          Priority unique ID.
  *
- * @apiSuccess {String}     name             Unique Human readable name of the priority e.g High, Low, Medium.
- * @apiSuccess {Number}     weight           Weight of the priority to help in ordering service request(issue) based on priority.
- * @apiSuccess {String}     color            A color code used to differentiate a service request priority visually.
- * @apiSuccess {ObjectId}   _id              Priority Id
- * @apiSuccess {Timestamp}  createdAt        Priority creation date
- * @apiSuccess {Timestamp}  updatedAt        Priority updated date
- * @apiSuccess {String}     uri              Priority URI
+ * @apiSuccess {String}     name
+ *        Unique Human readable name of the priority e.g High, Low, Medium.
+ * @apiSuccess {Number}     weight
+ *        Weight of the priority to help in ordering service request(issue)
+ *        based on priority.
+ * @apiSuccess {String}     color
+ *        A color code used to differentiate a service request priority visually.
+ * @apiSuccess {ObjectId}   _id
+ *        Priority Id
+ * @apiSuccess {Timestamp}  createdAt
+ *        Priority creation date
+ * @apiSuccess {Timestamp}  updatedAt
+ *        Priority updated date
+ * @apiSuccess {String}     uri
+ *        Priority URI
+ *
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK

@@ -2,11 +2,10 @@
 
 
 /**
- * ServiceRequest Router
- *
- * @description :: Server-side router for managing ServiceRequest.
+ * @apiDefine ServiceRequest ServiceRequest
+ * An issue(or service request) reported by civilian(or customer)
+ * e.g Water Leakage occur at a particular area
  */
-
 
 //dependencies
 const path = require('path');
@@ -24,43 +23,82 @@ router.all('/servicerequests*', jwtAuth);
 
 
 /**
- * @api {get} /servicerequests Get all ServiceRequests
- * @apiName GetServiceRequests
+ * @api {get} /servicerequests Get Service Requests
  * @apiGroup ServiceRequest
+ * @apiName GetServiceRequests
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept         Accept value i.e application/json
- * @apiHeader {String}      authorization  Authorization token
+ * @apiHeader {String}      Accept
+ *        Accept value
+ * @apiHeader {String}      Authorization
+ *        Authorization token
  *
  * @apiExample Example Usage
  * curl -i http://dawasco.herokuapp.com/servicerequests
  *
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction responsible in handling service request(issue)
- * @apiSuccess {Object}       group       		    A service group under which request(issue) belongs to
- * @apiSuccess {Object}       Service       		  A service under which request(issue) belongs to
- * @apiSuccess {Object}       Call       		      Log operator call details at a call center
- * @apiSuccess {Object}       Reporter        		A party i.e civilian, customer etc which reported an issue(service request)
- * @apiSuccess {Object}       Operator        		A party oversee the work on the service request(issue).It also a party that is answerable for the progress and status of the service request(issue) to a reporter. For jurisdiction that own a call center, then operator is a person who received a call.
- * @apiSuccess {Object}       assignee            A party assigned to work on the service request(issue). It also a party that is answerable for the progress and status of the service request(issue) to operator and overall jurisdiction administrative structure.
- * @apiSuccess {String}       code                A unique human readable identifier of the service request(issue). It mainly used by reporter to query for status and progress of the reported issue.
- * @apiSuccess {String}       description         A detailed human readable explanation about the service request(issue).
- * @apiSuccess {String}       address             A human entered address or description of location where service request(issue) happened.
- * @apiSuccess {String}       method           		A communication(contact) method(mechanism) used by a reporter to report the issue.
- * @apiSuccess {Object}       status             	A current status of the service request(issue)
- * @apiSuccess {Object}       priority            A priority of the service request(issue).  It used to weight a service request(issue) relative  to other(s).
- * @apiSuccess {Array}        attachments         Associated file(s) with service request(issue)
- * @apiSuccess {Duration}     ttr                 A time taken to resolve the issue(service request) in duration format.  Used to calculate Mean Time To Resolve(MTTR) KPI.  It calculated as time taken since the issue reported to the  time when issue resolved.
- * @apiSuccess {ObjectId}     _id           		  Unique ServiceRequest Id
- * @apiSuccess {Timestamp}    createdAt       	  Service request creation date
- * @apiSuccess {Timestamp}    updatedAt           Service request last updated date
- * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
- * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
- * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
- * @apiSuccess {Number}       longitude           Service request(issue) longitude
- * @apiSuccess {Number}       latitude            Service request(issue) latitude
- * @apiSuccess {String}       uri          		    ServiceRequest URI
- * @apiSuccess {Number}       pages       		    Number of results pages
- * @apiSuccess {Number}       count       		    Number of ServiceRequest results  in the current json response
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction responsible in handling service request(issue)
+ * @apiSuccess {Object}       group
+ *        A service group under which request(issue) belongs to
+ * @apiSuccess {Object}       Service
+ *        A service under which request(issue) belongs to
+ * @apiSuccess {Object}       Call
+ *        Log operator call details at a call center
+ * @apiSuccess {Object}       Reporter
+ *        A party i.e civilian, customer etc which reported an issue(service request)
+ * @apiSuccess {Object}       Operator
+ *        A party oversee the work on the service request(issue).
+ *        It also a party that is answerable for the progress and status of the
+ *        service request(issue) to a reporter. For jurisdiction that own a call
+ *        center, then operator is a person who received a call.
+ * @apiSuccess {Object}       assignee
+ *        A party assigned to work on the service request(issue).
+ *        It also a party that is answerable for the progress and status of
+ *        the service request(issue) to operator and overall jurisdiction
+ *        administrative structure.
+ * @apiSuccess {String}       code
+ *        A unique human readable identifier of the service request(issue).
+ *        It mainly used by reporter to query for status and progress of the reported issue.
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service request(issue).
+ * @apiSuccess {String}       address
+ *        A human entered address or description of location where service request(issue) happened.
+ * @apiSuccess {String}       method
+ *        A communication(contact) method(mechanism) used by a reporter to report the issue.
+ * @apiSuccess {Object}       status
+ *        A current status of the service request(issue)
+ * @apiSuccess {Object}       priority
+ *        A priority of the service request(issue).
+ *        It used to weight a service request(issue) relative  to other(s).
+ * @apiSuccess {Array}        attachments
+ *        Associated file(s) with service request(issue)
+ * @apiSuccess {Duration}     ttr
+ *        A time taken to resolve the issue(service request) in duration format.
+ *        Used to calculate Mean Time To Resolve(MTTR) KPI.
+ *        It calculated as time taken since the issue reported to the  time when issue resolved.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique ServiceRequest Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service request creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service request last updated date
+ * @apiSuccess {Number}       ttrSeconds
+ *        A time taken to resolve the issue(service request) in seconds
+ * @apiSuccess {Number}       ttrMinutes
+ *        A time taken to resolve the issue(service request) in minutes
+ * @apiSuccess {Number}       ttrHours
+ *        A time taken to resolve the issue(service request) in hours
+ * @apiSuccess {Number}       longitude
+ *        Service request(issue) longitude
+ * @apiSuccess {Number}       latitude
+ *        Service request(issue) latitude
+ * @apiSuccess {String}       uri
+ *        ServiceRequest URI
+ * @apiSuccess {Number}       pages
+ *        Number of results pages
+ * @apiSuccess {Number}       count
+ *        Number of ServiceRequest results  in the current json response
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -270,55 +308,115 @@ router.get('/servicerequests', function (request, response, next) {
 
 
 /**
- * @api {post} /servicerequests Create a new service request
- * @apiName PostServiceRequest
+ * @api {post} /servicerequests Create Service Request
  * @apiGroup ServiceRequest
+ * @apiName PostServiceRequest
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
- * @apiHeader {String}      content-type     Sent content type i.e application/json
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Sent content type i.e application/json
  *
- * @apiParam {ObjectId}       jurisdiction        A jurisdiction responsible in handling service request(issue)
- * @apiParam {ObjectId}       group       		    A service group under which request(issue) belongs to
- * @apiParam {ObjectId}       Service       		  A service under which request(issue) belongs to
- * @apiParam {Object}         Call       		      Log operator call details at a call center
- * @apiParam {ObjectId}       Reporter        		A party i.e civilian, customer etc which reported an issue(service request)
- * @apiParam {ObjectId}       Operator        		A party oversee the work on the service request(issue).It also a party that is answerable for the progress and status of the service request(issue) to a reporter. For jurisdiction that own a call center, then operator is a person who received a call.
- * @apiParam {ObjectId}       assignee            A party assigned to work on the service request(issue). It also a party that is answerable for the progress and status of the service request(issue) to operator and overall jurisdiction administrative structure.
- * @apiParam {String}         code                A unique human readable identifier of the service request(issue). It mainly used by reporter to query for status and progress of the reported issue.
- * @apiParam {String}         description         A detailed human readable explanation about the service request(issue).
- * @apiParam {String}         address             A human entered address or description of location where service request(issue) happened.
- * @apiParam {String}         method           		A communication(contact) method(mechanism) used by a reporter to report the issue.
- * @apiParam {ObjectId}       status             	A current status of the service request(issue)
- * @apiParam {ObjectId}       priority            A priority of the service request(issue).  It used to weight a service request(issue) relative  to other(s).
- * @apiParam {Array}          attachments         Associated file(s) with service request(issue)
+ * @apiParam {ObjectId}       jurisdiction
+ *        A jurisdiction responsible in handling service request(issue)
+ * @apiParam {ObjectId}       group
+ *        A service group under which request(issue) belongs to
+ * @apiParam {ObjectId}       service
+ *        A service under which request(issue) belongs to
+ * @apiParam {Object}         call
+ *        Log operator call details at a call center
+ * @apiParam {ObjectId}       reporter
+ *        A party i.e civilian, customer etc which reported an issue(service request)
+ * @apiParam {ObjectId}       Operator
+ *        A party oversee the work on the service request(issue).It also a party
+ *        that is answerable for the progress and status of the service request(issue)
+ *        to a reporter. For jurisdiction that own a call center, then operator is a
+ *        person who received a call.
+ * @apiParam {ObjectId}       assignee
+ *        A party assigned to work on the service request(issue). It also a party that
+ *        is answerable for the progress and status of the service request(issue)
+ *        to operator and overall jurisdiction administrative structure.
+ * @apiParam {String}         code
+ *        A unique human readable identifier of the service request(issue). It
+ *        mainly used by reporter to query for status and progress of the reported issue.
+ * @apiParam {String}         description
+ *        A detailed human readable explanation about the service request(issue).
+ * @apiParam {String}         address
+ *        A human entered address or description of location where service
+ *        request(issue) happened.
+ * @apiParam {String}         method
+ *        A communication(contact) method(mechanism) used by a reporter to
+ *        report the issue.
+ * @apiParam {ObjectId}       status
+ *        A current status of the service request(issue)
+ * @apiParam {ObjectId}       priority
+ *        A priority of the service request(issue).  It used to weight a service
+ *        request(issue) relative  to other(s).
+ * @apiParam {Array}          attachments
+ *        Associated file(s) with service request(issue)
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction responsible in handling service request(issue)
- * @apiSuccess {Object}       group       		    A service group under which request(issue) belongs to
- * @apiSuccess {Object}       Service       		  A service under which request(issue) belongs to
- * @apiSuccess {Object}       Call       		      Log operator call details at a call center
- * @apiSuccess {Object}       Reporter        		A party i.e civilian, customer etc which reported an issue(service request)
- * @apiSuccess {Object}       Operator        		A party oversee the work on the service request(issue).It also a party that is answerable for the progress and status of the service request(issue) to a reporter. For jurisdiction that own a call center, then operator is a person who received a call.
- * @apiSuccess {Object}       assignee            A party assigned to work on the service request(issue). It also a party that is answerable for the progress and status of the service request(issue) to operator and overall jurisdiction administrative structure.
- * @apiSuccess {String}       code                A unique human readable identifier of the service request(issue). It mainly used by reporter to query for status and progress of the reported issue.
- * @apiSuccess {String}       description         A detailed human readable explanation about the service request(issue).
- * @apiSuccess {String}       address             A human entered address or description of location where service request(issue) happened.
- * @apiSuccess {String}       method           		A communication(contact) method(mechanism) used by a reporter to report the issue.
- * @apiSuccess {Object}       status             	A current status of the service request(issue)
- * @apiSuccess {Object}       priority            A priority of the service request(issue).  It used to weight a service request(issue) relative  to other(s).
- * @apiSuccess {Array}        attachments         Associated file(s) with service request(issue)
- * @apiSuccess {Duration}     ttr                 A time taken to resolve the issue(service request) in duration format.  Used to calculate Mean Time To Resolve(MTTR) KPI.  It calculated as time taken since the issue reported to the  time when issue resolved.
- * @apiSuccess {ObjectId}     _id           		  Unique ServiceRequest Id
- * @apiSuccess {Timestamp}    createdAt       	  Service request creation date
- * @apiSuccess {Timestamp}    updatedAt           Service request last updated date
- * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
- * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
- * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
- * @apiSuccess {Number}       longitude           Service request(issue) longitude
- * @apiSuccess {Number}       latitude            Service request(issue) latitude
- * @apiSuccess {String}       uri          		    ServiceRequest URI
- * @apiSuccess {Number}       pages       		    Number of results pages
- * @apiSuccess {Number}       count       		    Number of ServiceRequest results  in the current json response
+ *
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction responsible in handling service request(issue)
+ * @apiSuccess {Object}       group
+ *        A service group under which request(issue) belongs to
+ * @apiSuccess {Object}       Service
+ *        A service under which request(issue) belongs to
+ * @apiSuccess {Object}       Call
+ *        Log operator call details at a call center
+ * @apiSuccess {Object}       Reporter
+ *        A party i.e civilian, customer etc which reported an issue(service request)
+ * @apiSuccess {Object}       Operator
+ *        A party oversee the work on the service request(issue).
+ *        It also a party that is answerable for the progress and status of the
+ *        service request(issue) to a reporter. For jurisdiction that own a call
+ *        center, then operator is a person who received a call.
+ * @apiSuccess {Object}       assignee
+ *        A party assigned to work on the service request(issue).
+ *        It also a party that is answerable for the progress and status of
+ *        the service request(issue) to operator and overall jurisdiction
+ *        administrative structure.
+ * @apiSuccess {String}       code
+ *        A unique human readable identifier of the service request(issue).
+ *        It mainly used by reporter to query for status and progress of the reported issue.
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service request(issue).
+ * @apiSuccess {String}       address
+ *        A human entered address or description of location where service request(issue) happened.
+ * @apiSuccess {String}       method
+ *        A communication(contact) method(mechanism) used by a reporter to report the issue.
+ * @apiSuccess {Object}       status
+ *        A current status of the service request(issue)
+ * @apiSuccess {Object}       priority
+ *        A priority of the service request(issue).
+ *        It used to weight a service request(issue) relative  to other(s).
+ * @apiSuccess {Array}        attachments
+ *        Associated file(s) with service request(issue)
+ * @apiSuccess {Duration}     ttr
+ *        A time taken to resolve the issue(service request) in duration format.
+ *        Used to calculate Mean Time To Resolve(MTTR) KPI.
+ *        It calculated as time taken since the issue reported to the  time when issue resolved.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique ServiceRequest Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service request creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service request last updated date
+ * @apiSuccess {Number}       ttrSeconds
+ *        A time taken to resolve the issue(service request) in seconds
+ * @apiSuccess {Number}       ttrMinutes
+ *        A time taken to resolve the issue(service request) in minutes
+ * @apiSuccess {Number}       ttrHours
+ *        A time taken to resolve the issue(service request) in hours
+ * @apiSuccess {Number}       longitude
+ *        Service request(issue) longitude
+ * @apiSuccess {Number}       latitude
+ *        Service request(issue) latitude
+ * @apiSuccess {String}       uri
+ *        ServiceRequest URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 201 Created
@@ -437,42 +535,77 @@ router.post('/servicerequests', function (request, response, next) {
 
 
 /**
- * @api {get} /servicerequests/:id Request Service Request information
- * @apiName GetServiceRequest
+ * @api {get} /servicerequests/:id Get Service Request
  * @apiGroup ServiceRequest
+ * @apiName GetServiceRequest
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept         Accept value i.e application/json
- * @apiHeader {String}      authorization  Authorization token
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
 
  *
  * @apiParam {ObjectId}       id                  Unique Service Request  Id.
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction responsible in handling service request(issue)
- * @apiSuccess {Object}       group       		    A service group under which request(issue) belongs to
- * @apiSuccess {Object}       Service       		  A service under which request(issue) belongs to
- * @apiSuccess {Object}       Call       		      Log operator call details at a call center
- * @apiSuccess {Object}       Reporter        		A party i.e civilian, customer etc which reported an issue(service request)
- * @apiSuccess {Object}       Operator        		A party oversee the work on the service request(issue).It also a party that is answerable for the progress and status of the service request(issue) to a reporter. For jurisdiction that own a call center, then operator is a person who received a call.
- * @apiSuccess {Object}       assignee            A party assigned to work on the service request(issue). It also a party that is answerable for the progress and status of the service request(issue) to operator and overall jurisdiction administrative structure.
- * @apiSuccess {String}       code                A unique human readable identifier of the service request(issue). It mainly used by reporter to query for status and progress of the reported issue.
- * @apiSuccess {String}       description         A detailed human readable explanation about the service request(issue).
- * @apiSuccess {String}       address             A human entered address or description of location where service request(issue) happened.
- * @apiSuccess {String}       method           		A communication(contact) method(mechanism) used by a reporter to report the issue.
- * @apiSuccess {Object}       status             	A current status of the service request(issue)
- * @apiSuccess {Object}       priority            A priority of the service request(issue).  It used to weight a service request(issue) relative  to other(s).
- * @apiSuccess {Array}        attachments         Associated file(s) with service request(issue)
- * @apiSuccess {Duration}     ttr                 A time taken to resolve the issue(service request) in duration format.  Used to calculate Mean Time To Resolve(MTTR) KPI.  It calculated as time taken since the issue reported to the  time when issue resolved.
- * @apiSuccess {ObjectId}     _id           		  Unique ServiceRequest Id
- * @apiSuccess {Timestamp}    createdAt       	  Service request creation date
- * @apiSuccess {Timestamp}    updatedAt           Service request last updated date
- * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
- * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
- * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
- * @apiSuccess {Number}       longitude           Service request(issue) longitude
- * @apiSuccess {Number}       latitude            Service request(issue) latitude
- * @apiSuccess {String}       uri          		    ServiceRequest URI
- * @apiSuccess {Number}       pages       		    Number of results pages
- * @apiSuccess {Number}       count       		    Number of ServiceRequest results  in the current json response
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction responsible in handling service request(issue)
+ * @apiSuccess {Object}       group
+ *        A service group under which request(issue) belongs to
+ * @apiSuccess {Object}       Service
+ *        A service under which request(issue) belongs to
+ * @apiSuccess {Object}       Call
+ *        Log operator call details at a call center
+ * @apiSuccess {Object}       Reporter
+ *        A party i.e civilian, customer etc which reported an issue(service request)
+ * @apiSuccess {Object}       Operator
+ *        A party oversee the work on the service request(issue).
+ *        It also a party that is answerable for the progress and status of the
+ *        service request(issue) to a reporter. For jurisdiction that own a call
+ *        center, then operator is a person who received a call.
+ * @apiSuccess {Object}       assignee
+ *        A party assigned to work on the service request(issue).
+ *        It also a party that is answerable for the progress and status of
+ *        the service request(issue) to operator and overall jurisdiction
+ *        administrative structure.
+ * @apiSuccess {String}       code
+ *        A unique human readable identifier of the service request(issue).
+ *        It mainly used by reporter to query for status and progress of the reported issue.
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service request(issue).
+ * @apiSuccess {String}       address
+ *        A human entered address or description of location where service request(issue) happened.
+ * @apiSuccess {String}       method
+ *        A communication(contact) method(mechanism) used by a reporter to report the issue.
+ * @apiSuccess {Object}       status
+ *        A current status of the service request(issue)
+ * @apiSuccess {Object}       priority
+ *        A priority of the service request(issue).
+ *        It used to weight a service request(issue) relative  to other(s).
+ * @apiSuccess {Array}        attachments
+ *        Associated file(s) with service request(issue)
+ * @apiSuccess {Duration}     ttr
+ *        A time taken to resolve the issue(service request) in duration format.
+ *        Used to calculate Mean Time To Resolve(MTTR) KPI.
+ *        It calculated as time taken since the issue reported to the  time when issue resolved.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique ServiceRequest Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service request creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service request last updated date
+ * @apiSuccess {Number}       ttrSeconds
+ *        A time taken to resolve the issue(service request) in seconds
+ * @apiSuccess {Number}       ttrMinutes
+ *        A time taken to resolve the issue(service request) in minutes
+ * @apiSuccess {Number}       ttrHours
+ *        A time taken to resolve the issue(service request) in hours
+ * @apiSuccess {Number}       longitude
+ *        Service request(issue) longitude
+ * @apiSuccess {Number}       latitude
+ *        Service request(issue) latitude
+ * @apiSuccess {String}       uri
+ *        ServiceRequest URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -591,56 +724,116 @@ router.get('/servicerequests/:id', function (request, response, next) {
 
 
 /**
- * @api {put} /servicerequests/:id Update Service Request information
- * @apiName PutServiceRequest
+ * @api {put} /servicerequests/:id Update(PUT) Service Request
  * @apiGroup ServiceRequest
+ * @apiName PutServiceRequest
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
- * @apiHeader {String}      content-type     Content type i.e application/json
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Sent content type i.e application/json
  *
- * @apiParam {ObjectId}       id                    Unique Service Request Id.
- * @apiParam {ObjectId}       [jurisdiction]        A jurisdiction responsible in handling service request(issue)
- * @apiParam {ObjectId}       [group]       		    A service group under which request(issue) belongs to
- * @apiParam {ObjectId}       [service]       		  A service under which request(issue) belongs to
- * @apiParam {Object}         [call]       		      Log operator call details at a call center
- * @apiParam {ObjectId}       [reporter]        		A party i.e civilian, customer etc which reported an issue(service request)
- * @apiParam {ObjectId}       [operator]        		A party oversee the work on the service request(issue).It also a party that is answerable for the progress and status of the service request(issue) to a reporter. For jurisdiction that own a call center, then operator is a person who received a call.
- * @apiParam {ObjectId}       [assignee]            A party assigned to work on the service request(issue). It also a party that is answerable for the progress and status of the service request(issue) to operator and overall jurisdiction administrative structure.
- * @apiParam {String}         [code]                A unique human readable identifier of the service request(issue). It mainly used by reporter to query for status and progress of the reported issue.
- * @apiParam {String}         [description]         A detailed human readable explanation about the service request(issue).
- * @apiParam {String}         [address]             A human entered address or description of location where service request(issue) happened.
- * @apiParam {String}         [method]           		A communication(contact) method(mechanism) used by a reporter to report the issue.
- * @apiParam {ObjectId}       [status]             	A current status of the service request(issue)
- * @apiParam {ObjectId}       [priority]            A priority of the service request(issue).  It used to weight a service request(issue) relative  to other(s).
- * @apiParam {Array}          [attachments]         Associated file(s) with service request(issue)
+ * @apiParam {ObjectId}       id
+ *        Unique Service Request Id.
+ * @apiParam {ObjectId}       [jurisdiction]
+ *        A jurisdiction responsible in handling service request(issue)
+ * @apiParam {ObjectId}       [group]
+ *        A service group under which request(issue) belongs to
+ * @apiParam {ObjectId}       [service]
+ *        A service under which request(issue) belongs to
+ * @apiParam {Object}         [call]
+ *        Log operator call details at a call center
+ * @apiParam {ObjectId}       [reporter]
+ *        A party i.e civilian, customer etc which reported an issue(service request)
+ * @apiParam {ObjectId}       [operator]
+ *        A party oversee the work on the service request(issue).It also a party
+ *        that is answerable for the progress and status of the service request(issue)
+ *        to a reporter. For jurisdiction that own a call center, then operator is a
+ *        person who received a call.
+ * @apiParam {ObjectId}       [assignee]
+ *        A party assigned to work on the service request(issue). It also a party that
+ *        is answerable for the progress and status of the service request(issue)
+ *        to operator and overall jurisdiction administrative structure.
+ * @apiParam {String}         [code]
+ *        A unique human readable identifier of the service request(issue). It
+ *        mainly used by reporter to query for status and progress of the reported issue.
+ * @apiParam {String}         [description]
+ *        A detailed human readable explanation about the service request(issue).
+ * @apiParam {String}         [address]
+ *        A human entered address or description of location where service
+ *        request(issue) happened.
+ * @apiParam {String}         [method]
+ *        A communication(contact) method(mechanism) used by a reporter to
+ *        report the issue.
+ * @apiParam {ObjectId}       [status]
+ *        A current status of the service request(issue)
+ * @apiParam {ObjectId}       [priority]
+ *        A priority of the service request(issue).  It used to weight a service
+ *        request(issue) relative  to other(s).
+ * @apiParam {Array}          [attachments]
+ *        Associated file(s) with service request(issue)
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction responsible in handling service request(issue)
- * @apiSuccess {Object}       group       		    A service group under which request(issue) belongs to
- * @apiSuccess {Object}       Service       		  A service under which request(issue) belongs to
- * @apiSuccess {Object}       Call       		      Log operator call details at a call center
- * @apiSuccess {Object}       Reporter        		A party i.e civilian, customer etc which reported an issue(service request)
- * @apiSuccess {Object}       Operator        		A party oversee the work on the service request(issue).It also a party that is answerable for the progress and status of the service request(issue) to a reporter. For jurisdiction that own a call center, then operator is a person who received a call.
- * @apiSuccess {Object}       assignee            A party assigned to work on the service request(issue). It also a party that is answerable for the progress and status of the service request(issue) to operator and overall jurisdiction administrative structure.
- * @apiSuccess {String}       code                A unique human readable identifier of the service request(issue). It mainly used by reporter to query for status and progress of the reported issue.
- * @apiSuccess {String}       description         A detailed human readable explanation about the service request(issue).
- * @apiSuccess {String}       address             A human entered address or description of location where service request(issue) happened.
- * @apiSuccess {String}       method           		A communication(contact) method(mechanism) used by a reporter to report the issue.
- * @apiSuccess {Object}       status             	A current status of the service request(issue)
- * @apiSuccess {Object}       priority            A priority of the service request(issue).  It used to weight a service request(issue) relative  to other(s).
- * @apiSuccess {Array}        attachments         Associated file(s) with service request(issue)
- * @apiSuccess {Duration}     ttr                 A time taken to resolve the issue(service request) in duration format.  Used to calculate Mean Time To Resolve(MTTR) KPI.  It calculated as time taken since the issue reported to the  time when issue resolved.
- * @apiSuccess {ObjectId}     _id           		  Unique ServiceRequest Id
- * @apiSuccess {Timestamp}    createdAt       	  Service request creation date
- * @apiSuccess {Timestamp}    updatedAt           Service request last updated date
- * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
- * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
- * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
- * @apiSuccess {Number}       longitude           Service request(issue) longitude
- * @apiSuccess {Number}       latitude            Service request(issue) latitude
- * @apiSuccess {String}       uri          		    ServiceRequest URI
- * @apiSuccess {Number}       pages       		    Number of results pages
- * @apiSuccess {Number}       count       		    Number of ServiceRequest results  in the current json response
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction responsible in handling service request(issue)
+ * @apiSuccess {Object}       group
+ *        A service group under which request(issue) belongs to
+ * @apiSuccess {Object}       Service
+ *        A service under which request(issue) belongs to
+ * @apiSuccess {Object}       Call
+ *        Log operator call details at a call center
+ * @apiSuccess {Object}       Reporter
+ *        A party i.e civilian, customer etc which reported an issue(service request)
+ * @apiSuccess {Object}       Operator
+ *        A party oversee the work on the service request(issue).
+ *        It also a party that is answerable for the progress and status of the
+ *        service request(issue) to a reporter. For jurisdiction that own a call
+ *        center, then operator is a person who received a call.
+ * @apiSuccess {Object}       assignee
+ *        A party assigned to work on the service request(issue).
+ *        It also a party that is answerable for the progress and status of
+ *        the service request(issue) to operator and overall jurisdiction
+ *        administrative structure.
+ * @apiSuccess {String}       code
+ *        A unique human readable identifier of the service request(issue).
+ *        It mainly used by reporter to query for status and progress of the reported issue.
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service request(issue).
+ * @apiSuccess {String}       address
+ *        A human entered address or description of location where service request(issue) happened.
+ * @apiSuccess {String}       method
+ *        A communication(contact) method(mechanism) used by a reporter to report the issue.
+ * @apiSuccess {Object}       status
+ *        A current status of the service request(issue)
+ * @apiSuccess {Object}       priority
+ *        A priority of the service request(issue).
+ *        It used to weight a service request(issue) relative  to other(s).
+ * @apiSuccess {Array}        attachments
+ *        Associated file(s) with service request(issue)
+ * @apiSuccess {Duration}     ttr
+ *        A time taken to resolve the issue(service request) in duration format.
+ *        Used to calculate Mean Time To Resolve(MTTR) KPI.
+ *        It calculated as time taken since the issue reported to the  time when issue resolved.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique ServiceRequest Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service request creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service request last updated date
+ * @apiSuccess {Number}       ttrSeconds
+ *        A time taken to resolve the issue(service request) in seconds
+ * @apiSuccess {Number}       ttrMinutes
+ *        A time taken to resolve the issue(service request) in minutes
+ * @apiSuccess {Number}       ttrHours
+ *        A time taken to resolve the issue(service request) in hours
+ * @apiSuccess {Number}       longitude
+ *        Service request(issue) longitude
+ * @apiSuccess {Number}       latitude
+ *        Service request(issue) latitude
+ * @apiSuccess {String}       uri
+ *        ServiceRequest URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -759,56 +952,116 @@ router.put('/servicerequests/:id', function (request, response, next) {
 
 
 /**
- * @api {patch} /servicerequests/:id Update Service Request information
- * @apiName PatchServiceRequest
+ * @api {patch} /servicerequests/:id Update(PATCH) Service Request
  * @apiGroup ServiceRequest
+ * @apiName PatchServiceRequest
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
- * @apiHeader {String}      content-type     Content type i.e application/json
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Sent content type i.e application/json
  *
- * @apiParam {ObjectId}       id                    Unique Service Request Id.
- * @apiParam {ObjectId}       [jurisdiction]        A jurisdiction responsible in handling service request(issue)
- * @apiParam {ObjectId}       [group]       		    A service group under which request(issue) belongs to
- * @apiParam {ObjectId}       [service]       		  A service under which request(issue) belongs to
- * @apiParam {Object}         [call]       		      Log operator call details at a call center
- * @apiParam {ObjectId}       [reporter]        		A party i.e civilian, customer etc which reported an issue(service request)
- * @apiParam {ObjectId}       [operator]        		A party oversee the work on the service request(issue).It also a party that is answerable for the progress and status of the service request(issue) to a reporter. For jurisdiction that own a call center, then operator is a person who received a call.
- * @apiParam {ObjectId}       [assignee]            A party assigned to work on the service request(issue). It also a party that is answerable for the progress and status of the service request(issue) to operator and overall jurisdiction administrative structure.
- * @apiParam {String}         [code]                A unique human readable identifier of the service request(issue). It mainly used by reporter to query for status and progress of the reported issue.
- * @apiParam {String}         [description]         A detailed human readable explanation about the service request(issue).
- * @apiParam {String}         [address]             A human entered address or description of location where service request(issue) happened.
- * @apiParam {String}         [method]           		A communication(contact) method(mechanism) used by a reporter to report the issue.
- * @apiParam {ObjectId}       [status]             	A current status of the service request(issue)
- * @apiParam {ObjectId}       [priority]            A priority of the service request(issue).  It used to weight a service request(issue) relative  to other(s).
- * @apiParam {Array}          [attachments]         Associated file(s) with service request(issue)
+ * @apiParam {ObjectId}       id
+ *        Unique Service Request Id.
+ * @apiParam {ObjectId}       [jurisdiction]
+ *        A jurisdiction responsible in handling service request(issue)
+ * @apiParam {ObjectId}       [group]
+ *        A service group under which request(issue) belongs to
+ * @apiParam {ObjectId}       [service]
+ *        A service under which request(issue) belongs to
+ * @apiParam {Object}         [call]
+ *        Log operator call details at a call center
+ * @apiParam {ObjectId}       [reporter]
+ *        A party i.e civilian, customer etc which reported an issue(service request)
+ * @apiParam {ObjectId}       [operator]
+ *        A party oversee the work on the service request(issue).It also a party
+ *        that is answerable for the progress and status of the service request(issue)
+ *        to a reporter. For jurisdiction that own a call center, then operator is a
+ *        person who received a call.
+ * @apiParam {ObjectId}       [assignee]
+ *        A party assigned to work on the service request(issue). It also a party that
+ *        is answerable for the progress and status of the service request(issue)
+ *        to operator and overall jurisdiction administrative structure.
+ * @apiParam {String}         [code]
+ *        A unique human readable identifier of the service request(issue). It
+ *        mainly used by reporter to query for status and progress of the reported issue.
+ * @apiParam {String}         [description]
+ *        A detailed human readable explanation about the service request(issue).
+ * @apiParam {String}         [address]
+ *        A human entered address or description of location where service
+ *        request(issue) happened.
+ * @apiParam {String}         [method]
+ *        A communication(contact) method(mechanism) used by a reporter to
+ *        report the issue.
+ * @apiParam {ObjectId}       [status]
+ *        A current status of the service request(issue)
+ * @apiParam {ObjectId}       [priority]
+ *        A priority of the service request(issue).  It used to weight a service
+ *        request(issue) relative  to other(s).
+ * @apiParam {Array}          [attachments]
+ *        Associated file(s) with service request(issue)
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction responsible in handling service request(issue)
- * @apiSuccess {Object}       group       		    A service group under which request(issue) belongs to
- * @apiSuccess {Object}       Service       		  A service under which request(issue) belongs to
- * @apiSuccess {Object}       Call       		      Log operator call details at a call center
- * @apiSuccess {Object}       Reporter        		A party i.e civilian, customer etc which reported an issue(service request)
- * @apiSuccess {Object}       Operator        		A party oversee the work on the service request(issue).It also a party that is answerable for the progress and status of the service request(issue) to a reporter. For jurisdiction that own a call center, then operator is a person who received a call.
- * @apiSuccess {Object}       assignee            A party assigned to work on the service request(issue). It also a party that is answerable for the progress and status of the service request(issue) to operator and overall jurisdiction administrative structure.
- * @apiSuccess {String}       code                A unique human readable identifier of the service request(issue). It mainly used by reporter to query for status and progress of the reported issue.
- * @apiSuccess {String}       description         A detailed human readable explanation about the service request(issue).
- * @apiSuccess {String}       address             A human entered address or description of location where service request(issue) happened.
- * @apiSuccess {String}       method           		A communication(contact) method(mechanism) used by a reporter to report the issue.
- * @apiSuccess {Object}       status             	A current status of the service request(issue)
- * @apiSuccess {Object}       priority            A priority of the service request(issue).  It used to weight a service request(issue) relative  to other(s).
- * @apiSuccess {Array}        attachments         Associated file(s) with service request(issue)
- * @apiSuccess {Duration}     ttr                 A time taken to resolve the issue(service request) in duration format.  Used to calculate Mean Time To Resolve(MTTR) KPI.  It calculated as time taken since the issue reported to the  time when issue resolved.
- * @apiSuccess {ObjectId}     _id           		  Unique ServiceRequest Id
- * @apiSuccess {Timestamp}    createdAt       	  Service request creation date
- * @apiSuccess {Timestamp}    updatedAt           Service request last updated date
- * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
- * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
- * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
- * @apiSuccess {Number}       longitude           Service request(issue) longitude
- * @apiSuccess {Number}       latitude            Service request(issue) latitude
- * @apiSuccess {String}       uri          		    ServiceRequest URI
- * @apiSuccess {Number}       pages       		    Number of results pages
- * @apiSuccess {Number}       count       		    Number of ServiceRequest results  in the current json response
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction responsible in handling service request(issue)
+ * @apiSuccess {Object}       group
+ *        A service group under which request(issue) belongs to
+ * @apiSuccess {Object}       Service
+ *        A service under which request(issue) belongs to
+ * @apiSuccess {Object}       Call
+ *        Log operator call details at a call center
+ * @apiSuccess {Object}       Reporter
+ *        A party i.e civilian, customer etc which reported an issue(service request)
+ * @apiSuccess {Object}       Operator
+ *        A party oversee the work on the service request(issue).
+ *        It also a party that is answerable for the progress and status of the
+ *        service request(issue) to a reporter. For jurisdiction that own a call
+ *        center, then operator is a person who received a call.
+ * @apiSuccess {Object}       assignee
+ *        A party assigned to work on the service request(issue).
+ *        It also a party that is answerable for the progress and status of
+ *        the service request(issue) to operator and overall jurisdiction
+ *        administrative structure.
+ * @apiSuccess {String}       code
+ *        A unique human readable identifier of the service request(issue).
+ *        It mainly used by reporter to query for status and progress of the reported issue.
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service request(issue).
+ * @apiSuccess {String}       address
+ *        A human entered address or description of location where service request(issue) happened.
+ * @apiSuccess {String}       method
+ *        A communication(contact) method(mechanism) used by a reporter to report the issue.
+ * @apiSuccess {Object}       status
+ *        A current status of the service request(issue)
+ * @apiSuccess {Object}       priority
+ *        A priority of the service request(issue).
+ *        It used to weight a service request(issue) relative  to other(s).
+ * @apiSuccess {Array}        attachments
+ *        Associated file(s) with service request(issue)
+ * @apiSuccess {Duration}     ttr
+ *        A time taken to resolve the issue(service request) in duration format.
+ *        Used to calculate Mean Time To Resolve(MTTR) KPI.
+ *        It calculated as time taken since the issue reported to the  time when issue resolved.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique ServiceRequest Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service request creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service request last updated date
+ * @apiSuccess {Number}       ttrSeconds
+ *        A time taken to resolve the issue(service request) in seconds
+ * @apiSuccess {Number}       ttrMinutes
+ *        A time taken to resolve the issue(service request) in minutes
+ * @apiSuccess {Number}       ttrHours
+ *        A time taken to resolve the issue(service request) in hours
+ * @apiSuccess {Number}       longitude
+ *        Service request(issue) longitude
+ * @apiSuccess {Number}       latitude
+ *        Service request(issue) latitude
+ * @apiSuccess {String}       uri
+ *        ServiceRequest URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -927,41 +1180,77 @@ router.patch('/servicerequests/:id', function (request, response, next) {
 
 
 /**
- * @api {delete} /servicerequests/:id Delete Specific Service Request information
- * @apiName DeleteServiceRequest
+ * @api {delete} /servicerequests/:id Delete Service Request
  * @apiGroup ServiceRequest
+ * @apiName DeleteServiceRequest
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
  *
- * @apiParam {ObjectId}       id               Unique Service Request Id.
+ * @apiParam {ObjectId}       id
+ *        Unique Service Request Id.
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction responsible in handling service request(issue)
- * @apiSuccess {Object}       group       		    A service group under which request(issue) belongs to
- * @apiSuccess {Object}       Service       		  A service under which request(issue) belongs to
- * @apiSuccess {Object}       Call       		      Log operator call details at a call center
- * @apiSuccess {Object}       Reporter        		A party i.e civilian, customer etc which reported an issue(service request)
- * @apiSuccess {Object}       Operator        		A party oversee the work on the service request(issue).It also a party that is answerable for the progress and status of the service request(issue) to a reporter. For jurisdiction that own a call center, then operator is a person who received a call.
- * @apiSuccess {Object}       assignee            A party assigned to work on the service request(issue). It also a party that is answerable for the progress and status of the service request(issue) to operator and overall jurisdiction administrative structure.
- * @apiSuccess {String}       code                A unique human readable identifier of the service request(issue). It mainly used by reporter to query for status and progress of the reported issue.
- * @apiSuccess {String}       description         A detailed human readable explanation about the service request(issue).
- * @apiSuccess {String}       address             A human entered address or description of location where service request(issue) happened.
- * @apiSuccess {String}       method           		A communication(contact) method(mechanism) used by a reporter to report the issue.
- * @apiSuccess {Object}       status             	A current status of the service request(issue)
- * @apiSuccess {Object}       priority            A priority of the service request(issue).  It used to weight a service request(issue) relative  to other(s).
- * @apiSuccess {Array}        attachments         Associated file(s) with service request(issue)
- * @apiSuccess {Duration}     ttr                 A time taken to resolve the issue(service request) in duration format.  Used to calculate Mean Time To Resolve(MTTR) KPI.  It calculated as time taken since the issue reported to the  time when issue resolved.
- * @apiSuccess {ObjectId}     _id           		  Unique ServiceRequest Id
- * @apiSuccess {Timestamp}    createdAt       	  Service request creation date
- * @apiSuccess {Timestamp}    updatedAt           Service request last updated date
- * @apiSuccess {Number}       ttrSeconds          A time taken to resolve the issue(service request) in seconds
- * @apiSuccess {Number}       ttrMinutes          A time taken to resolve the issue(service request) in minutes
- * @apiSuccess {Number}       ttrHours            A time taken to resolve the issue(service request) in hours
- * @apiSuccess {Number}       longitude           Service request(issue) longitude
- * @apiSuccess {Number}       latitude            Service request(issue) latitude
- * @apiSuccess {String}       uri          		    ServiceRequest URI
- * @apiSuccess {Number}       pages       		    Number of results pages
- * @apiSuccess {Number}       count       		    Number of ServiceRequest results  in the current json response
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction responsible in handling service request(issue)
+ * @apiSuccess {Object}       group
+ *        A service group under which request(issue) belongs to
+ * @apiSuccess {Object}       Service
+ *        A service under which request(issue) belongs to
+ * @apiSuccess {Object}       Call
+ *        Log operator call details at a call center
+ * @apiSuccess {Object}       Reporter
+ *        A party i.e civilian, customer etc which reported an issue(service request)
+ * @apiSuccess {Object}       Operator
+ *        A party oversee the work on the service request(issue).
+ *        It also a party that is answerable for the progress and status of the
+ *        service request(issue) to a reporter. For jurisdiction that own a call
+ *        center, then operator is a person who received a call.
+ * @apiSuccess {Object}       assignee
+ *        A party assigned to work on the service request(issue).
+ *        It also a party that is answerable for the progress and status of
+ *        the service request(issue) to operator and overall jurisdiction
+ *        administrative structure.
+ * @apiSuccess {String}       code
+ *        A unique human readable identifier of the service request(issue).
+ *        It mainly used by reporter to query for status and progress of the reported issue.
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service request(issue).
+ * @apiSuccess {String}       address
+ *        A human entered address or description of location where service request(issue) happened.
+ * @apiSuccess {String}       method
+ *        A communication(contact) method(mechanism) used by a reporter to report the issue.
+ * @apiSuccess {Object}       status
+ *        A current status of the service request(issue)
+ * @apiSuccess {Object}       priority
+ *        A priority of the service request(issue).
+ *        It used to weight a service request(issue) relative  to other(s).
+ * @apiSuccess {Array}        attachments
+ *        Associated file(s) with service request(issue)
+ * @apiSuccess {Duration}     ttr
+ *        A time taken to resolve the issue(service request) in duration format.
+ *        Used to calculate Mean Time To Resolve(MTTR) KPI.
+ *        It calculated as time taken since the issue reported to the  time when issue resolved.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique ServiceRequest Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service request creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service request last updated date
+ * @apiSuccess {Number}       ttrSeconds
+ *        A time taken to resolve the issue(service request) in seconds
+ * @apiSuccess {Number}       ttrMinutes
+ *        A time taken to resolve the issue(service request) in minutes
+ * @apiSuccess {Number}       ttrHours
+ *        A time taken to resolve the issue(service request) in hours
+ * @apiSuccess {Number}       longitude
+ *        Service request(issue) longitude
+ * @apiSuccess {Number}       latitude
+ *        Service request(issue) latitude
+ * @apiSuccess {String}       uri
+ *        ServiceRequest URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
