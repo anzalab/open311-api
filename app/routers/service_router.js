@@ -1,10 +1,9 @@
 'use strict';
 
-
 /**
- * Service Router
- *
- * @description :: Server-side router for managing Service.
+ * @apiDefine Service Service
+ * An acceptable service (request types) e.g Water Leakage
+ * offered or handled by a specific jurisdiction.
  */
 
 
@@ -23,29 +22,47 @@ router.all('/services*', jwtAuth);
 
 
 /**
- * @api {get} /services Get all Services
- * @apiName GetServices
+ * @api {get} /services Get Services
  * @apiGroup Service
+ * @apiName GetServices
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept         Accept value i.e application/json
- * @apiHeader {String}      authorization  Authorization token
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
  *
  * @apiExample Example Usage
  * curl -i http://dawasco.herokuapp.com/services
  *
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
- * @apiSuccess {Object}       group       		    A service group under which a service belongs to
- * @apiSuccess {String}       code        		 	  A unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
- * @apiSuccess {String}       name           		  A unique human readable name of the service (request type) e.g Water Leakage
- * @apiSuccess {String}       description         A detailed human readable explanation about the service(request type)
- * @apiSuccess {String}       color           		A color (hexadecimal format) used to differentiate service request type visually from other service
- * @apiSuccess {ObjectId}     _id           		  Unique Service Id
- * @apiSuccess {Timestamp}    createdAt       	  Service creation date
- * @apiSuccess {Timestamp}    updatedAt           Service last updated date
- * @apiSuccess {String}       uri          		    Service URI
- * @apiSuccess {Number}       pages       		    Number of results pages
- * @apiSuccess {Number}       count       		    Number of Service results  in the current json response
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service (request type) is applicable.
+ *        If not available a service is applicable to all jurisdictions.
+ * @apiSuccess {Object}       group
+ *        A service group under which a service belongs to
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service.Used in deriving code of the
+ *        service request(issue) and internal usage.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service (request type) e.g Water Leakage
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service(request type)
+ * @apiSuccess {String}       color
+ *        A color (hexadecimal format) used to differentiate service request
+ *        type visually from other service
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service last updated date
+ * @apiSuccess {String}       uri
+ *        Service URI
+ * @apiSuccess {Number}       pages
+ *        Number of results pages
+ * @apiSuccess {Number}       count
+ *        Number of Service results  in the current json response
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -139,32 +156,56 @@ router.get('/services', function (request, response, next) {
 
 
 /**
- * @api {post} /services Create a new Service
- * @apiName PostService
+ * @api {post} /services Create Service
  * @apiGroup Service
+ * @apiName PostService
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}        accept              Accept value i.e application/json
- * @apiHeader {String}        authorization       Authorization token
- * @apiHeader {String}        content-type        Sent content type
+ * @apiHeader {String}        Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}        Authorization
+ *        Authorization token
+ * @apiHeader {String}        Content-Type
+ *        Sent content type
  *
- * @apiParam {ObjectId}      jurisdiction        A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
- * @apiParam {ObjectId}      group       		     A service group under which a service belongs to
- * @apiParam {String}        code        		 	   A unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
- * @apiParam {String}        name           		 A unique human readable name of the service (request type) e.g Water Leakage
- * @apiParam {String}        description         A detailed human readable explanation about the service(request type)
- * @apiParam {String}        color           		 A color (hexadecimal format) used to differentiate service request type visually from other service
+ * @apiParam {ObjectId}       jurisdiction
+ *        A jurisdiction under which a service (request type) is applicable.
+ *        If not available a service is applicable to all jurisdictions.
+ * @apiParam {ObjectId}       group
+ *        A service group under which a service belongs to.
+ * @apiParam {String}         code
+ *        A unique identifier of the service.Used in deriving code of
+ *        the service request(issue) and internal usage.
+ * @apiParam {String}         name
+ *        A unique human readable name of the service (request type) e.g Water Leakage
+ * @apiParam {String}         description
+ *        A detailed human readable explanation about the service(request type)
+ * @apiParam {String}         color
+ *        A color (hexadecimal format) used to differentiate service request type visually from other service
  *
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
- * @apiSuccess {Object}       group       		    A service group under which a service belongs to
- * @apiSuccess {String}       code        		 	  A unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
- * @apiSuccess {String}       name           		  A unique human readable name of the service (request type) e.g Water Leakage
- * @apiSuccess {String}       description         A detailed human readable explanation about the service(request type)
- * @apiSuccess {String}       color           		A color (hexadecimal format) used to differentiate service request type visually from other service
- * @apiSuccess {ObjectId}     _id           		  Unique Service Id
- * @apiSuccess {Timestamp}    createdAt       	  Service creation date
- * @apiSuccess {Timestamp}    updatedAt           Service last updated date
- * @apiSuccess {String}       uri          		    Service URI
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service (request type) is applicable.
+ *        If not available a service is applicable to all jurisdictions.
+ * @apiSuccess {Object}       group
+ *        A service group under which a service belongs to
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service (request type) e.g Water Leakage
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service(request type)
+ * @apiSuccess {String}       color
+ *        A color (hexadecimal format) used to differentiate service request
+ *        type visually from other service
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service last updated date
+ * @apiSuccess {String}       uri
+ *        Service URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 201 Created
@@ -224,28 +265,46 @@ router.post('/services', function (request, response, next) {
 
 
 /**
- * @api {get} /services/:id Request Service information
- * @apiName GetService
+ * @api {get} /services/:id Get Service
  * @apiGroup Service
+ * @apiName GetService
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept         Accept value i.e application/json
- * @apiHeader {String}      authorization  Authorization token
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
 
  *
- * @apiParam {ObjectId}       id                  Unique service Id.
+ * @apiParam {ObjectId}       id
+ *        Unique service Id.
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
- * @apiSuccess {Object}       group       		    A service group under which a service belongs to
- * @apiSuccess {String}       code        		 	  A unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
- * @apiSuccess {String}       name           		  A unique human readable name of the service (request type) e.g Water Leakage
- * @apiSuccess {String}       description         A detailed human readable explanation about the service(request type)
- * @apiSuccess {String}       color           		A color (hexadecimal format) used to differentiate service request type visually from other service
- * @apiSuccess {ObjectId}     _id           		  Unique Service Id
- * @apiSuccess {Timestamp}    createdAt       	  Service creation date
- * @apiSuccess {Timestamp}    updatedAt           Service last updated date
- * @apiSuccess {String}       uri          		    Service URI
- * @apiSuccess {Number}       pages       		    Number of results pages
- * @apiSuccess {Number}       count       		    Number of Service results  in the current json response
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service (request type) is applicable.
+ *        If not available a service is applicable to all jurisdictions.
+ * @apiSuccess {Object}       group
+ *        A service group under which a service belongs to
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service.
+ *        Used in deriving code of the service request(issue) and internal usage.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service (request type) e.g Water Leakage
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service(request type)
+ * @apiSuccess {String}       color
+ *        A color (hexadecimal format) used to differentiate service request type visually from other service
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service last updated date
+ * @apiSuccess {String}       uri
+ *        Service URI
+ * @apiSuccess {Number}       pages
+ *        Number of results pages
+ * @apiSuccess {Number}       count
+ *        Number of Service results  in the current json response
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -306,34 +365,61 @@ router.get('/services/:id', function (request, response, next) {
 
 
 /**
- * @api {put} /services/:id Update Service information
- * @apiName PutService
+ * @api {put} /services/:id Update(PUT) Service
  * @apiGroup Service
+ * @apiName PutService
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
- * @apiHeader {String}      content-type     Content type i.e application/json
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Content type i.e application/json
  *
- * @apiParam   {ObjectId}     id                  Unique service Id.
- * @apiParam  {ObjectId}     [jurisdiction]       A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
- * @apiParam  {ObjectId}     [group]       		    A service group under which a service belongs to
- * @apiParam  {String}       [code]        		    Unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
- * @apiParam  {String}       [name]           	  A unique human readable name of the service (request type) e.g Water Leakage
- * @apiParam  {String}       [description]        A detailed human readable explanation about the service(request type)
- * @apiParam  {String}       [color]              A color (hexadecimal format) used to differentiate service request type visually from other service
+ * @apiParam  {ObjectId}     id
+ *        Unique service Id.
+ * @apiParam  {ObjectId}     [jurisdiction]
+ *        A jurisdiction under which a service (request type) is applicable.
+ *        If not available a service is applicable to all jurisdictions.
+ * @apiParam  {ObjectId}     [group]
+ *        A service group under which a service belongs to
+ * @apiParam  {String}       [code]
+ *        Unique identifier of the service.Used in deriving code of the
+ *        service request(issue) and internal usage.
+ * @apiParam  {String}       [name]
+ *        A unique human readable name of the
+ *        service (request type) e.g Water Leakage
+ * @apiParam  {String}       [description]
+ *        A detailed human readable explanation about the service(request type)
+ * @apiParam  {String}       [color]
+ *        A color (hexadecimal format) used to differentiate service
+ *        request type visually from other service
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
- * @apiSuccess {Object}       group       		    A service group under which a service belongs to
- * @apiSuccess {String}       code        		 	  A unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
- * @apiSuccess {String}       name           		  A unique human readable name of the service (request type) e.g Water Leakage
- * @apiSuccess {String}       description         A detailed human readable explanation about the service(request type)
- * @apiSuccess {String}       color           		A color (hexadecimal format) used to differentiate service request type visually from other service
- * @apiSuccess {ObjectId}     _id           		  Unique Service Id
- * @apiSuccess {Timestamp}    createdAt       	  Service creation date
- * @apiSuccess {Timestamp}    updatedAt           Service last updated date
- * @apiSuccess {String}       uri          		    Service URI
- * @apiSuccess {Number}       pages       		    Number of results pages
- * @apiSuccess {Number}       count       		    Number of Service results  in the current json response
+ *
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service (request type) is applicable.
+ *        If not available a service is applicable to all jurisdictions.
+ * @apiSuccess {Object}       group
+ *        A service group under which a service belongs to
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service.Used in deriving code of the service
+ *        request(issue) and internal usage.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service (request type) e.g Water Leakage
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service(request type)
+ * @apiSuccess {String}       color
+ *        A color (hexadecimal format) used to differentiate service
+ *        request type visually from other service
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service last updated date
+ * @apiSuccess {String}       uri
+ *        Service URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -394,34 +480,61 @@ router.put('/services/:id', function (request, response, next) {
 
 
 /**
- * @api {patch} /services/:id Update Service information
- * @apiName  PatchService
+ * @api {patch} /services/:id Update(PATCH) Service
  * @apiGroup Service
+ * @apiName  PatchService
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
- * @apiHeader {String}      content-type     Content type i.e application/json
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Content type i.e application/json
  *
- * @apiParam   {ObjectId}     id                  Unique Service Id.
- * @apiParam  {ObjectId}     [jurisdiction]       A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
- * @apiParam  {ObjectId}     [group]       		    A service group under which a service belongs to
- * @apiParam  {String}       [code]        		    Unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
- * @apiParam  {String}       [name]           	  A unique human readable name of the service (request type) e.g Water Leakage
- * @apiParam  {String}       [description]        A detailed human readable explanation about the service(request type)
- * @apiParam  {String}       [color]              A color (hexadecimal format) used to differentiate service request type visually from other service
+ * @apiParam  {ObjectId}     id
+ *        Unique service Id.
+ * @apiParam  {ObjectId}     [jurisdiction]
+ *        A jurisdiction under which a service (request type) is applicable.
+ *        If not available a service is applicable to all jurisdictions.
+ * @apiParam  {ObjectId}     [group]
+ *        A service group under which a service belongs to
+ * @apiParam  {String}       [code]
+ *        Unique identifier of the service.Used in deriving code of the
+ *        service request(issue) and internal usage.
+ * @apiParam  {String}       [name]
+ *        A unique human readable name of the
+ *        service (request type) e.g Water Leakage
+ * @apiParam  {String}       [description]
+ *        A detailed human readable explanation about the service(request type)
+ * @apiParam  {String}       [color]
+ *        A color (hexadecimal format) used to differentiate service
+ *        request type visually from other service
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
- * @apiSuccess {Object}       group       		    A service group under which a service belongs to
- * @apiSuccess {String}       code        		 	  A unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
- * @apiSuccess {String}       name           		  A unique human readable name of the service (request type) e.g Water Leakage
- * @apiSuccess {String}       description         A detailed human readable explanation about the service(request type)
- * @apiSuccess {String}       color           		A color (hexadecimal format) used to differentiate service request type visually from other service
- * @apiSuccess {ObjectId}     _id           		  Unique Service Id
- * @apiSuccess {Timestamp}    createdAt       	  Service creation date
- * @apiSuccess {Timestamp}    updatedAt           Service last updated date
- * @apiSuccess {String}       uri          		    Service URI
- * @apiSuccess {Number}       pages       		    Number of results pages
- * @apiSuccess {Number}       count       		    Number of Service results  in the current json response
+ *
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service (request type) is applicable.
+ *        If not available a service is applicable to all jurisdictions.
+ * @apiSuccess {Object}       group
+ *        A service group under which a service belongs to
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service.Used in deriving code of the service
+ *        request(issue) and internal usage.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service (request type) e.g Water Leakage
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service(request type)
+ * @apiSuccess {String}       color
+ *        A color (hexadecimal format) used to differentiate service
+ *        request type visually from other service
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service last updated date
+ * @apiSuccess {String}       uri
+ *        Service URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -482,27 +595,43 @@ router.patch('/services/:id', function (request, response, next) {
 
 
 /**
- * @api {delete} /services/:id Delete Service information
- * @apiName DeleteService
+ * @api {delete} /services/:id Delete Service
  * @apiGroup Service
+ * @apiName DeleteService
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
  *
- * @apiParam {ObjectId}     id               Unique Service Id.
+ * @apiParam {ObjectId}       id
+ *        Unique Service Id.
  *
- * @apiSuccess {Object}       jurisdiction        A jurisdiction under which a service (request type) is applicable.If not available a service is applicable to all jurisdictions.
- * @apiSuccess {Object}       group       		    A service group under which a service belongs to
- * @apiSuccess {String}       code        		 	  A unique identifier of the service.Used in deriving code of the service request(issue) and internal usage.
- * @apiSuccess {String}       name           		  A unique human readable name of the service (request type) e.g Water Leakage
- * @apiSuccess {String}       description         A detailed human readable explanation about the service(request type)
- * @apiSuccess {String}       color           		A color (hexadecimal format) used to differentiate service request type visually from other service
- * @apiSuccess {ObjectId}     _id           		  Unique Service Id
- * @apiSuccess {Timestamp}    createdAt       	  Service creation date
- * @apiSuccess {Timestamp}    updatedAt           Service last updated date
- * @apiSuccess {String}       uri          		    Service URI
- * @apiSuccess {Number}       pages       		    Number of results pages
- * @apiSuccess {Number}       count       		    Number of Service results  in the current json response
+ *
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service (request type) is applicable.
+ *        If not available a service is applicable to all jurisdictions.
+ * @apiSuccess {Object}       group
+ *        A service group under which a service belongs to
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service.Used in deriving code of the service
+ *        request(issue) and internal usage.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service (request type) e.g Water Leakage
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service(request type)
+ * @apiSuccess {String}       color
+ *        A color (hexadecimal format) used to differentiate service
+ *        request type visually from other service
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service last updated date
+ * @apiSuccess {String}       uri
+ *        Service URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
