@@ -2,11 +2,12 @@
 
 
 /**
- * Status Router
+ * @apiDefine Status Status
+ * Manage entity(i.e service & service request(issue)) status.
+ * Provides a way set status of service and service request
+ * types (issues) in order to track their progress.
  *
- * @description :: Server-side router for managing Status.
  */
-
 
 //dependencies
 const path = require('path');
@@ -22,26 +23,39 @@ const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
 router.all('/statuses*', jwtAuth);
 
 /**
- * @api {get} /statuses Get all statuses
- * @apiName GetStatutes
+ * @api {get} /statuses Get Statutes
  * @apiGroup Status
+ * @apiName GetStatutes
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept         Accept value
- * @apiHeader {String}      authorization  Authorization token
+ * @apiHeader {String}      Accept
+ *        Accept value
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ *
  *
  * @apiExample Example Usage
  * curl -i http://dawasco.herokuapp.com/statuses
  *
  *
- * @apiSuccess {String}     name          Status Name
- * @apiSuccess {Number}     weight        Weight of the status to help in ordering service request(issue) based on status
- * @apiSuccess {String}     color         A color code used to differentiate a service request status visually.
- * @apiSuccess {ObjectId}   _id           Status Id
- * @apiSuccess {Timestamp}  createdAt     Status creation date
- * @apiSuccess {Timestamp}  updatedAt     Status updated date
- * @apiSuccess {String}     uri           Status URI
- * @apiSuccess {Number}     pages         Number of results pages
- * @apiSuccess {Number}     count         Number of status results  in the current json response
+ * @apiSuccess {String}     name
+ *        Status Name
+ * @apiSuccess {Number}     weight
+ *        Weight of the status to help in ordering service request(issue) based on status
+ * @apiSuccess {String}     color
+ *        A color code used to differentiate a service request status visually.
+ * @apiSuccess {ObjectId}   _id
+ *        Status Id
+ * @apiSuccess {Timestamp}  createdAt
+ *        Status creation date
+ * @apiSuccess {Timestamp}  updatedAt
+ *        Status updated date
+ * @apiSuccess {String}     uri
+ *        Status URI
+ * @apiSuccess {Number}     pages
+ *        Number of results pages
+ * @apiSuccess {Number}     count
+ *        Number of status results  in the current json response
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -79,14 +93,24 @@ router.all('/statuses*', jwtAuth);
  *      "count": 3
  *   }
  *
- * @apiError  AuthorizationHeaderRequired  Authorization header is required
  *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
  *
  * @apiErrorExample   {json} Error-Response:
  *    HTTP/1.1 403 Forbidden
  *    {
  *      "success":false,
  *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
  *      "error":{}
  *    }
  */
@@ -96,26 +120,45 @@ router.get('/statuses', function (request, response, next) {
 
 
 /**
- * @api {post} /statuses Create a new status
- * @apiName PostStatus
+ * @api {post} /statuses Create Status
  * @apiGroup Status
+ * @apiName PostStatus
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value
- * @apiHeader {String}      authorization    Authorization token
- * @apiHeader {String}      content-type     Sent content type
+ * @apiHeader {String}      Accept
+ *        Accept value
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Sent content type
  *
- * @apiParam   {String}     name             Human readable name of the status e.g Open, In Progress, Resolved.
- * @apiParam   {Number}     weight           Weight of the status to help in ordering service request(issue) based on status
- * @apiParam   {String}     [color]          A color code used to differentiate a service request status visually.
+ *
+ * @apiParam  {String}      name
+ *        Human readable name of the status e.g Open, In Progress, Resolved.
+ * @apiParam  {Number}      weight
+ *        Weight of the status to help in ordering service request(issue) based on status
+ * @apiParam  {String}      [color]
+ *        A color code used to differentiate a service request status visually.
  *
  *
- * @apiSuccess {String}     name             Status Name
- * @apiSuccess {Number}     weight           Weight of the status to help in ordering service request(issue) based on status
- * @apiSuccess {String}     color            A color code used to differentiate a service request status visually.
- * @apiSuccess {ObjectId}   _id              Status Id
- * @apiSuccess {Timestamp}  createdAt        Status creation date
- * @apiSuccess {Timestamp}  updatedAt        Status updated date
- * @apiSuccess {String}     uri              Status URI
+ * @apiSuccess {String}     name
+ *        Status Name
+ * @apiSuccess {Number}     weight
+ *        Weight of the status to help in ordering service request(issue) based on status
+ * @apiSuccess {String}     color
+ *        A color code used to differentiate a service request status visually.
+ * @apiSuccess {ObjectId}   _id
+ *        Status Id
+ * @apiSuccess {Timestamp}  createdAt
+ *        Status creation date
+ * @apiSuccess {Timestamp}  updatedAt
+ *        Status updated date
+ * @apiSuccess {String}     uri
+ *        Status URI
+ * @apiSuccess {Number}     pages
+ *        Number of results pages
+ * @apiSuccess {Number}     count
+ *        Number of status results  in the current json response
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 201 Created
@@ -129,14 +172,24 @@ router.get('/statuses', function (request, response, next) {
  *        "uri": "https://dawasco.herokuapp.com/statuses/597acd4932494800041ed7b2"
  *     }
  *
- * @apiError  AuthorizationHeaderRequired  Authorization header is required
  *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
  *
  * @apiErrorExample   {json} Error-Response:
  *    HTTP/1.1 403 Forbidden
  *    {
  *      "success":false,
  *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
  *      "error":{}
  *    }
  */
@@ -146,23 +199,35 @@ router.post('/statuses', function (request, response, next) {
 
 
 /**
- * @api {get} /statuses/:id Request Status information
- * @apiName GetStatus
+ * @api {get} /statuses/:id Get Status
  * @apiGroup Status
+ * @apiName GetStatus
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept         Accept value i.e application/json
- * @apiHeader {String}      authorization  Authorization token
-
+ * @apiHeader {String}      Accept
+ *        Accept value
+ * @apiHeader {String}      Authorization
+ *        Authorization token
  *
- * @apiParam {ObjectId}     id               Status unique ID.
  *
- * @apiSuccess {String}     name             Status Name
- * @apiSuccess {Number}     weight           Weight of the status to help in ordering service request(issue) based on status
- * @apiSuccess {String}     color            A color code used to differentiate a service request status visually.
- * @apiSuccess {ObjectId}   _id              Status Id
- * @apiSuccess {Timestamp}  createdAt        Status creation date
- * @apiSuccess {Timestamp}  updatedAt        Status updated date
- * @apiSuccess {String}     uri              Status URI
+ * @apiParam {ObjectId}     id
+ *        Status unique ID.
+ *
+ *
+ * @apiSuccess {String}     name
+ *        Status Name
+ * @apiSuccess {Number}     weight
+ *        Weight of the status to help in ordering service request(issue) based on status
+ * @apiSuccess {String}     color
+ *        A color code used to differentiate a service request status visually.
+ * @apiSuccess {ObjectId}   _id
+ *        Status Id
+ * @apiSuccess {Timestamp}  createdAt
+ *        Status creation date
+ * @apiSuccess {Timestamp}  updatedAt
+ *        Status updated date
+ * @apiSuccess {String}     uri
+ *        Status URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -176,6 +241,16 @@ router.post('/statuses', function (request, response, next) {
  *       "uri": "https://dawasco.herokuapp.com/statuses/592029e5e8dd8e00048c180d"
  *     }
  *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
  * @apiError JWTExpired     Authorization token has expired
  *
  * @apiErrorExample  {json}   Error-Response:
@@ -193,26 +268,44 @@ router.get('/statuses/:id', function (request, response, next) {
 
 
 /**
- * @api {put} /statuses/:id Update Status information
- * @apiName PutStatus
+ * @api {put} /statuses/:id Update(PUT) Status
  * @apiGroup Status
+ * @apiName PutStatus
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
- * @apiHeader {String}      content-type     Content type i.e application/json
+ * @apiHeader {String}      Accept
+ *        Accept value
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Sent content type
  *
- * @apiParam {ObjectId}     id               Status unique ID.
- * @apiParam   {String}     [name]           Human readable name of the status e.g Open, In Progress, Resolved.
- * @apiParam   {Number}     [weight]         Weight of the status to help in ordering service request(issue) based on status
- * @apiParam   {String}     [color]          A color code used to differentiate a service request status visually.
  *
- * @apiSuccess {String}     name             Status Name
- * @apiSuccess {Number}     weight           Weight of the status to help in ordering service request(issue) based on status
- * @apiSuccess {String}     color            A color code used to differentiate a service request status visually.
- * @apiSuccess {ObjectId}   _id              Status Id
- * @apiSuccess {Timestamp}  createdAt        Status creation date
- * @apiSuccess {Timestamp}  updatedAt        Status updated date
- * @apiSuccess {String}     uri              Status URI
+ * @apiParam   {ObjectId}   id
+ *        Status unique ID.
+ *
+ * @apiParam  {String}      [name]
+ *        Human readable name of the status e.g Open, In Progress, Resolved.
+ * @apiParam  {Number}      [weight]
+ *        Weight of the status to help in ordering service request(issue) based on status
+ * @apiParam  {String}      [color]
+ *        A color code used to differentiate a service request status visually.
+ *
+ *
+ * @apiSuccess {String}     name
+ *        Status Name
+ * @apiSuccess {Number}     weight
+ *        Weight of the status to help in ordering service request(issue) based on status
+ * @apiSuccess {String}     color
+ *        A color code used to differentiate a service request status visually.
+ * @apiSuccess {ObjectId}   _id
+ *        Status Id
+ * @apiSuccess {Timestamp}  createdAt
+ *        Status creation date
+ * @apiSuccess {Timestamp}  updatedAt
+ *        Status updated date
+ * @apiSuccess {String}     uri
+ *        Status URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -225,6 +318,18 @@ router.get('/statuses/:id', function (request, response, next) {
  *       "updatedAt": "2017-05-20T11:35:01.059Z",
  *       "uri": "https://dawasco.herokuapp.com/statuses/592029e5e8dd8e00048c180d"
  *     }
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
  *
  * @apiError JWTExpired     Authorization token has expired
  *
@@ -243,26 +348,44 @@ router.put('/statuses/:id', function (request, response, next) {
 
 
 /**
- * @api {patch} /statuses/:id Update Status information
- * @apiName PatchStatus
+ * @api {patch} /statuses/:id Update(PATCH) Status
  * @apiGroup Status
+ * @apiName PatchStatus
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
- * @apiHeader {String}      content-type     Content type i.e application/json
+ * @apiHeader {String}      Accept
+ *        Accept value
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Sent content type
  *
- * @apiParam {ObjectId}     id               Status unique ID.
- * @apiParam   {String}     [name]           Human readable name of the status e.g Open, In Progress, Resolved.
- * @apiParam   {Number}     [weight]         Weight of the status to help in ordering service request(issue) based on status
- * @apiParam   {String}     [color]          A color code used to differentiate a service request status visually.
  *
- * @apiSuccess {String}     name             Status Name
- * @apiSuccess {Number}     weight           Weight of the status to help in ordering service request(issue) based on status
- * @apiSuccess {String}     color            A color code used to differentiate a service request status visually.
- * @apiSuccess {ObjectId}   _id              Status Id
- * @apiSuccess {Timestamp}  createdAt        Status creation date
- * @apiSuccess {Timestamp}  updatedAt        Status updated date
- * @apiSuccess {String}     uri              Status URI
+ * @apiParam {ObjectId}     id
+ *        Status unique ID.
+ *
+ * @apiParam  {String}      [name]
+ *        Human readable name of the status e.g Open, In Progress, Resolved.
+ * @apiParam  {Number}      [weight]
+ *        Weight of the status to help in ordering service request(issue) based on status
+ * @apiParam  {String}      [color]
+ *        A color code used to differentiate a service request status visually.
+ *
+ *
+ * @apiSuccess {String}     name
+ *        Status Name
+ * @apiSuccess {Number}     weight
+ *        Weight of the status to help in ordering service request(issue) based on status
+ * @apiSuccess {String}     color
+ *        A color code used to differentiate a service request status visually.
+ * @apiSuccess {ObjectId}   _id
+ *        Status Id
+ * @apiSuccess {Timestamp}  createdAt
+ *        Status creation date
+ * @apiSuccess {Timestamp}  updatedAt
+ *        Status updated date
+ * @apiSuccess {String}     uri
+ *        Status URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -275,6 +398,18 @@ router.put('/statuses/:id', function (request, response, next) {
  *       "updatedAt": "2017-05-20T11:35:01.059Z",
  *       "uri": "https://dawasco.herokuapp.com/statuses/592029e5e8dd8e00048c180d"
  *     }
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
  *
  * @apiError JWTExpired     Authorization token has expired
  *
@@ -293,22 +428,35 @@ router.patch('/statuses/:id', function (request, response, next) {
 
 
 /**
- * @api {delete} /statuses/:id Delete Status information
- * @apiName DeleteStatus
+ * @api {delete} /statuses/:id Delete Status
  * @apiGroup Status
+ * @apiName DeleteStatus
+ * @apiVersion 0.1.0
  *
- * @apiHeader {String}      accept           Accept value i.e application/json
- * @apiHeader {String}      authorization    Authorization token
+ * @apiHeader {String}      Accept
+ *        Accept value
+ * @apiHeader {String}      Authorization
+ *        Authorization token
  *
- * @apiParam {ObjectId}     id               Status unique ID.
  *
- * @apiSuccess {String}     name             Status Name
- * @apiSuccess {Number}     weight           Weight of the status to help in ordering service request(issue) based on status
- * @apiSuccess {String}     color            A color code used to differentiate a service request status visually.
- * @apiSuccess {ObjectId}   _id              Status Id
- * @apiSuccess {Timestamp}  createdAt        Status creation date
- * @apiSuccess {Timestamp}  updatedAt        Status updated date
- * @apiSuccess {String}     uri              Status URI
+ * @apiParam {ObjectId}     id
+ *        Status unique ID.
+ *
+ *
+ * @apiSuccess {String}     name
+ *        Status Name
+ * @apiSuccess {Number}     weight
+ *        Weight of the status to help in ordering service request(issue) based on status
+ * @apiSuccess {String}     color
+ *        A color code used to differentiate a service request status visually.
+ * @apiSuccess {ObjectId}   _id
+ *        Status Id
+ * @apiSuccess {Timestamp}  createdAt
+ *        Status creation date
+ * @apiSuccess {Timestamp}  updatedAt
+ *        Status updated date
+ * @apiSuccess {String}     uri
+ *        Status URI
  *
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 200 OK
@@ -321,6 +469,16 @@ router.patch('/statuses/:id', function (request, response, next) {
  *       "updatedAt": "2017-05-20T11:35:01.059Z",
  *       "uri": "https://dawasco.herokuapp.com/statuses/592029e5e8dd8e00048c180d"
  *     }
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
  *
  * @apiError JWTExpired     Authorization token has expired
  *
