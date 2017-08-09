@@ -18,6 +18,7 @@ const controller = require(path.join(__dirname, '..', 'controllers',
 //enable token authentication
 const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
 
+//TODO refactor out reports to report router
 
 /**
  * Handle Http POST on /signup

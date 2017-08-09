@@ -20,6 +20,8 @@ const Priority = mongoose.model('Priority');
 const Status = mongoose.model('Status');
 const JWT = require(path.join(__dirname, '..', 'libs', 'jwt'));
 
+//TODO refactor out reports to report controller
+
 module.exports = {
   /**
    * @description register provided party details

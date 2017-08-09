@@ -1057,6 +1057,77 @@ ServiceRequestSchema.statics.calculateAverageCallDuration = function (done) {
 
 
 /**
+ * @name standings
+ * @description count issue reported per jurisdiction, per group, per service,
+ *              per status, per priority
+ * @param  {Function} done a callback to be invoked on success or failure
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.statics.standings = function (done) {
+
+  //refs
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //count issue per service
+  ServiceRequest
+    .aggregated()
+    .group({ //1 stage: count per jurisdiction, group, service, status and priority
+      _id: {
+        jurisdiction: '$jurisdiction.name',
+        group: '$group.name',
+        service: '$service.name',
+        status: '$status.name',
+        priority: '$priority.name'
+      },
+
+      //selected jurisdiction fields
+      _jurisdiction: { $first: '$jurisdiction' },
+
+      //select service group fields
+      _group: { $first: '$group' },
+
+      //select service fields
+      _service: { $first: '$service' },
+
+      //select status fields
+      _status: { $first: '$status' },
+
+      //select priority fields
+      _priority: { $first: '$priority' },
+
+      count: { $sum: 1 }
+    })
+    .project({ //2 stage: project only required fields
+      _id: 1,
+      count: 1,
+      _jurisdiction: { name: 1, code: 1, color: 1 },
+      _group: { name: 1, code: 1, color: 1 },
+      _service: { name: 1, code: 1, color: 1 },
+      _status: { name: 1, color: 1 },
+      _priority: { name: 1, color: 1 }
+    })
+    .project({ //3 stage: project full grouped by documents
+      _id: 0,
+      count: 1,
+      jurisdiction: '$_jurisdiction',
+      group: '$_group',
+      service: '$_service',
+      status: '$_status',
+      priority: '$_priority'
+    })
+    .exec(function (error, standings) {
+
+      done(error, standings);
+
+    });
+
+};
+
+
+/**
  * @name overviews
  * @description compute current issue overview/pipeline
  * @param  {Function} done a callback to be invoked on success or failure
