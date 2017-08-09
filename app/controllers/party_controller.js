@@ -64,7 +64,7 @@ module.exports = {
    */
   show: function (request, response, next) {
     Party
-      .findById(request.params.id, function (error, party) {
+      .show(request, function (error, party) {
         if (error) {
           next(error);
         } else {

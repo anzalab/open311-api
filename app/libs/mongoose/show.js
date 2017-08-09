@@ -35,7 +35,17 @@ module.exports = exports = function (schema) {
 
     //if callback execute
     if (done && _.isFunction(done)) {
-      return query.exec(done);
+      return query.exec(function (error, instance) {
+
+        //ensure instance exists
+        if (!error && !instance) {
+          error = new Error('Not Found');
+          error.status = 404;
+        }
+
+        done(error, instance);
+
+      });
     }
 
     //else return query

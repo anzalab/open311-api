@@ -60,7 +60,7 @@ module.exports = {
    */
   show: function (request, response, next) {
     Setting
-      .findById(request.params.id, function (error, setting) {
+      .show(request, function (error, setting) {
         if (error) {
           next(error);
         } else {

@@ -21,7 +21,7 @@ module.exports = {
    * @version 0.1.0
    * @public
    */
-  standings: function (request, response) {
+  standings: function (request, response, next) {
     //TODO pass request options(i.e query params to extras)
     //TODO support mongodb aggregation pipelines from request(express-mquery)
     ServiceRequest

@@ -54,7 +54,7 @@ module.exports = {
    */
   show: function (request, response, next) {
     Permission
-      .findById(request.params.id, function (error, permission) {
+      .show(request, function (error, permission) {
         if (error) {
           next(error);
         } else {
