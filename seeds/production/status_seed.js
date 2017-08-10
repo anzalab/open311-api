@@ -18,7 +18,7 @@ const statuses = [{
 }, {
   name: 'Escalated',
   weight: 0,
-  color: '#EF6C00' //material amber-800
+  color: '#EF6C00' //material orange-800
 }, {
   name: 'In Progress',
   weight: 5,
