@@ -84,8 +84,6 @@ const PartyRelation = new Schema({
 //Party Schema
 const PartySchema = new Schema({
 
-  //TODO add avatar
-
   /**
    * @name jurisdiction
    * @description A jurisdiction underwhich a party serving
@@ -121,6 +119,22 @@ const PartySchema = new Schema({
     index: true,
     trim: true,
     searchable: true
+  },
+
+
+  /**
+   * @name avatar
+   * @description A base64 encode party avatar content.
+   *
+   *              It may be a person photo, company logo etc.
+   *              
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  avatar: {
+    type: String
   },
 
 
