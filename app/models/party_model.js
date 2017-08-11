@@ -23,11 +23,13 @@ const RELATION_NAME_INTERNAL = 'Internal';
 const RELATION_NAME_CUSTOMER = 'Customer';
 const RELATION_NAME_CIVILIAN = 'Civilian';
 const RELATION_NAME_AGENCY = 'Agency';
+const RELATION_NAME_APP = 'App';
 
 //relation types
 const RELATION_TYPE_WORKER = 'Worker';
 const RELATION_TYPE_INDIVIDUAL = 'Individual';
 const RELATION_TYPE_ORGANIZATION = 'Organization';
+const RELATION_TYPE_APP = 'App';
 
 //PartyRelation Schema
 const PartyRelation = new Schema({
@@ -48,7 +50,8 @@ const PartyRelation = new Schema({
       RELATION_NAME_INTERNAL,
       RELATION_NAME_CUSTOMER,
       RELATION_NAME_CIVILIAN,
-      RELATION_NAME_AGENCY
+      RELATION_NAME_AGENCY,
+      RELATION_NAME_APP
     ],
     searchable: true
   },
@@ -69,7 +72,8 @@ const PartyRelation = new Schema({
     enum: [
       RELATION_TYPE_WORKER,
       RELATION_TYPE_INDIVIDUAL,
-      RELATION_TYPE_ORGANIZATION
+      RELATION_TYPE_ORGANIZATION,
+      RELATION_TYPE_APP
     ],
     searchable: true
   }
