@@ -40,10 +40,14 @@ module.exports = {
   create: function (request, response, next) {
     //set operator if not exists
     let body = request.body;
-    if (!body.operator) {
+
+    //ensure current party exists and is not an app
+    const shouldSetOperator =
+      (!body.operator && request.party && !request.party.isApp);
+
+    if (shouldSetOperator) {
       body.operator = request.party;
     }
-
 
     ServiceRequest.create(body, function (error, serviceRequest) {
       if (error) {

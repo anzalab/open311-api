@@ -17,7 +17,7 @@ module.exports = function (request, response, next) {
       if (error) {
 
         error.status = 403;
-        error.message = error.message || 'Not authenticated';
+        error.message = error.message || 'Authorization Header Required';
         next(error);
 
       } else {

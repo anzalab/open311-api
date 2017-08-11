@@ -144,7 +144,7 @@ exports = module.exports = {
       function (error, results) {
         var token = results.headerToken || results.urlToken;
         if (!token) {
-          callback(new Error('Authorization header required'));
+          callback(new Error('Authorization Header Required'));
         } else {
           exports.decode(token, callback);
         }

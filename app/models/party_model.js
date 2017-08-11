@@ -16,7 +16,6 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Schema.ObjectId;
 const irina = require('irina');
-// const Mail = require('byteskode-mailer');
 
 //relation name
 const RELATION_NAME_INTERNAL = 'Internal';
@@ -265,6 +264,28 @@ PartySchema.virtual('permissions').get(function () {
 });
 
 
+/**
+ * @name isApp
+ * @description check if current party is an application
+ * @type {Boolean}
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+PartySchema.virtual('isApp').get(function () {
+
+  //obtain party relation
+  const relation = party.relation || {};
+
+  //ensure RELATION_NAME_APP and RELATION_TYPE_APP
+  const isApp = (relation && relation.name && relation.type) &&
+    (relation.name === RELATION_NAME_APP) &&
+    (relation.type === RELATION_TYPE_APP);
+
+  return isApp;
+
+});
+
+
 //-----------------------------------------------------------------------------
 // PartySchema Plugins
 //-----------------------------------------------------------------------------
@@ -370,21 +391,25 @@ PartySchema.statics.RELATION_NAME_INTERNAL = RELATION_NAME_INTERNAL;
 PartySchema.statics.RELATION_NAME_CUSTOMER = RELATION_NAME_CUSTOMER;
 PartySchema.statics.RELATION_NAME_CIVILIAN = RELATION_NAME_CIVILIAN;
 PartySchema.statics.RELATION_NAME_AGENCY = RELATION_NAME_AGENCY;
+PartySchema.statics.RELATION_NAME_APP = RELATION_NAME_APP;
 PartySchema.statics.RELATION_NAMES = [
   RELATION_NAME_INTERNAL,
   RELATION_NAME_CUSTOMER,
   RELATION_NAME_CIVILIAN,
-  RELATION_NAME_AGENCY
+  RELATION_NAME_AGENCY,
+  RELATION_NAME_APP
 ];
 
 //expose Party Relation Types
 PartySchema.statics.RELATION_TYPE_WORKER = RELATION_TYPE_WORKER;
 PartySchema.statics.RELATION_TYPE_INDIVIDUAL = RELATION_TYPE_INDIVIDUAL;
 PartySchema.statics.RELATION_TYPE_ORGANIZATION = RELATION_TYPE_ORGANIZATION;
+PartySchema.statics.RELATION_TYPE_APP = RELATION_TYPE_APP;
 PartySchema.statics.RELATION_TYPES = [
   RELATION_TYPE_WORKER,
   RELATION_TYPE_INDIVIDUAL,
-  RELATION_TYPE_ORGANIZATION
+  RELATION_TYPE_ORGANIZATION,
+  RELATION_TYPE_APP
 ];
 
 
