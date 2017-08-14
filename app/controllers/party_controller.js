@@ -39,6 +39,7 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   create: function (request, response, next) {
+
     //extend party with default pasword
     if (request.body && !request.body.password) {
       request.body.password = request.settings.defaultPassword;

@@ -118,6 +118,19 @@ module.exports = {
 
 
   /**
+   * @description api token configuration
+   * @type {Object}
+   */
+  token: {
+    /**
+     * @description lifespan of api token
+     * @type {String}
+     */
+    expiresIn: '1000y',
+  },
+
+
+  /**
    *@description logger configurations
    */
   logger: {

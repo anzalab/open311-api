@@ -11,7 +11,9 @@
  */
 
 //dependencies
+const path = require('path');
 const _ = require('lodash');
+const config = require('config');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Schema.ObjectId;
@@ -225,7 +227,24 @@ const PartySchema = new Schema({
   relation: {
     type: PartyRelation,
     index: true
-  }
+  },
+
+  /**
+   * @name token
+   * @description valid api token for the party. 
+   * 
+   *              Mainly used for parties that operate as client 
+   *              i.e mobile apps etc
+   *              
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  token: {
+    type: String,
+    trim: true
+  },
 
 }, { timestamps: true, emitIndexErrors: true });
 
@@ -274,7 +293,7 @@ PartySchema.virtual('permissions').get(function () {
 PartySchema.virtual('isApp').get(function () {
 
   //obtain party relation
-  const relation = party.relation || {};
+  const relation = this.relation || {};
 
   //ensure RELATION_NAME_APP and RELATION_TYPE_APP
   const isApp = (relation && relation.name && relation.type) &&
@@ -302,6 +321,15 @@ PartySchema.plugin(irina, {
 // PartySchema Hooks
 //-----------------------------------------------------------------------------
 
+
+/**
+ * @type {Function}
+ * @description ensure default party details
+ * @param  {Function} done a callback to invoke on success or error
+ * @private
+ * @since 0.1.0
+ * @version 0.1.0
+ */
 PartySchema.pre('validate', function (next) {
 
   //default relation
@@ -318,6 +346,41 @@ PartySchema.pre('validate', function (next) {
   }
 
   next();
+
+});
+
+
+/**
+ * @type {Function}
+ * @description ensure API token for app parties
+ * @param  {Function} done a callback to invoke on success or error
+ * @private
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+PartySchema.pre('save', function (next) {
+
+  //import jwt helpers
+  const JWT = require(path.join(__dirname, '..', 'libs', 'jwt'));
+
+  //obtain api token options
+  const options = config.get('token') || {};
+
+  if (this.isApp) {
+    JWT
+      .encode(this, options, function (error, jwtToken) {
+        if (error || !jwtToken) {
+          error = error ? error : new Error('Fail To Generate API Token');
+          error.status = 500;
+          next(error);
+        } else {
+          this.token = jwtToken;
+          next(null, this);
+        }
+      }.bind(this)); //ensure party instance context
+  } else {
+    next();
+  }
 
 });
 

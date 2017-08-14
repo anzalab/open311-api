@@ -17,6 +17,8 @@
 //TODO extract analysis to plugin/module to free service request from
 //analysis boilerplates and improve their spec
 
+//TODO add source party that will be acting as a collector of the service request
+//i.e Call Center Operator, Apps etc
 
 //dependencies
 const path = require('path');

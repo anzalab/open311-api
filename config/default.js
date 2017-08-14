@@ -56,8 +56,8 @@ module.exports = {
         }
       }
     },
-    seed:{
-      enable:false
+    seed: {
+      enable: false
     }
   },
 
@@ -90,6 +90,19 @@ module.exports = {
      * @type {String}
      */
     audience: 'open311'
+  },
+
+
+  /**
+   * @description api token configuration
+   * @type {Object}
+   */
+  token: {
+    /**
+     * @description lifespan of api token
+     * @type {String}
+     */
+    expiresIn: '1000y',
   },
 
 

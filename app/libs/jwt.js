@@ -17,22 +17,39 @@ exports = module.exports = {
    * @description encode the given party model to json web token and include
    *              party into the response too
    * @param  {Object}   party    instance of party model
+   * @param  {Object}   options  jwt options to be merged on default ones
    * @param  {Function} callback a callback to be invoked on result
    */
-  encode: function (party, callback) {
+  encode: function (party, options, callback) {
+
+    //normalize arguments
+    if (options && _.isFunction(options)) {
+      callback = options;
+      options = {};
+    }
+
     //try to encode party
     //to jwt
     try {
+
+      //ensure party object id
+      if (!party || !party.id) {
+        throw new Error('Invalid Party Details');
+      }
+
       //payload to put on jwt
       const payload = {
         id: party.id //TODO encrypt id
       };
 
+      //prepare jwt sing options
+      options = _.merge({}, _.omit(config.get('jwt'), 'secret'), options);
+
       //generate jwt
       const token = jwt.sign(
         payload,
         config.get('jwt.secret'),
-        _.omit(config.get('jwt'), 'secret')
+        options
       );
 
       callback(null, token);
@@ -72,7 +89,7 @@ exports = module.exports = {
 
       function checkIfPartyExists(party, next) {
         if (!party) {
-          var error = new Error('Invalid authorization token');
+          var error = new Error('Invalid Authorization Token');
           error.status = 403;
           next(error);
         } else {
