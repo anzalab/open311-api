@@ -1,10 +1,7 @@
 'use strict';
 
-
 /**
- * Message Router
- *
- * @description :: Server-side router for managing Message.
+ * @apiDefine Message Message
  */
 
 
@@ -21,66 +18,237 @@ const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
 //add specific middlewares to messages router
 router.all('/messages*', jwtAuth);
 
-/**
- * Handle Http GET on /messages
- * @description display a list of all messages
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+/*
+ * @api {get} /messages Get Messages
+ * @apiGroup Message
+ * @apiName GetMessages
+ * @apiVersion 0.1.0
+ *
+ *
+ * @apiHeader {String}        Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}        Authorization
+ *        Authorization token
+ *
+ * @apiExample Example Usage
+ * curl -i http://dawasco.herokuapp.com/messages
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.get('/messages', function (request, response, next) {
   controller.index(request, response, next);
 });
 
 
-/**
- * Handle Http POST on /messages
- * @description create a new message
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+/*
+ * @api {post} /messages Create Message
+ * @apiGroup Message
+ * @apiName PostMessage
+ * @apiVersion 0.1.0
+ *
+ *
+ * @apiHeader {String}        Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}        Authorization
+ *        Authorization token
+ * @apiHeader {String}        Content-Type
+ *        Sent content type
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.post('/messages', function (request, response, next) {
   controller.create(request, response, next);
 });
 
 
-/**
- * Handle Http GET on /messages/:id
- * @description display a specific message
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+/*
+ * @api {get} /messages:/id Get Message
+ * @apiGroup Message
+ * @apiName GetMessage
+ * @apiVersion 0.1.0
+ *
+ *
+ * @apiHeader {String}        Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}        Authorization
+ *        Authorization token
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.get('/messages/:id', function (request, response, next) {
   controller.show(request, response, next);
 });
 
 
-/**
- * Handle Http PUT on /messages/:id
- * @description update a specific message
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+/*
+ * @api {put} /messages:/id Update(PUT) Message
+ * @apiGroup Message
+ * @apiName PutMessage
+ * @apiVersion 0.1.0
+ *
+ *
+ * @apiHeader {String}        Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}        Authorization
+ *        Authorization token
+ * @apiHeader {String}        Content-Type
+ *        Sent content type
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.put('/messages/:id', function (request, response, next) {
   controller.update(request, response, next);
 });
 
 
-/**
- * Handle Http PATCH on /messages/:id
- * @description update a specific message
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+/*
+ * @api {patch} /messages:/id Update(PATCH) Message
+ * @apiGroup Message
+ * @apiName PatchMessage
+ * @apiVersion 0.1.0
+ *
+ *
+ * @apiHeader {String}        Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}        Authorization
+ *        Authorization token
+ * @apiHeader {String}        Content-Type
+ *        Sent content type
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.patch('/messages/:id', function (request, response, next) {
   controller.update(request, response, next);
 });
 
 
-/**
- * Handle Http DELETE on /messages/:id
- * @description delete a specific message
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+/*
+ * @api {delete} /messages:/id Delete Message
+ * @apiGroup Message
+ * @apiName DeleteMessage
+ * @apiVersion 0.1.0
+ *
+ *
+ * @apiHeader {String}        Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}        Authorization
+ *        Authorization token
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.delete('/messages/:id', function (request, response, next) {
   controller.destroy(request, response, next);

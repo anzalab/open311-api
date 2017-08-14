@@ -1,10 +1,7 @@
 'use strict';
 
-
 /**
- * Application Router
- *
- * @description :: Server-side application router.
+ * @apiDefine Application Application
  */
 
 
