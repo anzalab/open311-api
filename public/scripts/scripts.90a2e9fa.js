@@ -1450,8 +1450,6 @@ angular
 
     //servicerequests in the scope
     $scope.spin = false;
-    $scope.busy = false;
-    $scope.paginating = true;
     $scope.servicerequests = [];
     $scope.comments = [];
     $scope.servicerequest = new ServiceRequest({
@@ -1460,7 +1458,6 @@ angular
       }
     });
     $scope.page = 1;
-    $scope.pages = 1;
     $scope.limit = 10;
     $scope.total = 0;
     $scope.note = {};
@@ -1734,7 +1731,6 @@ angular
      * @return {[type]} [description]
      */
     $scope.onSearch = function () {
-      console.log($scope.search.q);
       if ($scope.search.q && $scope.search.q.length >= 2) {
         $scope.q = $scope.search.q;
         $scope.find();
@@ -1806,22 +1802,25 @@ angular
      * @description load servicerequests
      */
     $scope.find = function (query) {
+      //ensure query
+      query = _.merge({ resolvedAt: null }, query);
+
       //start sho spinner
       $scope.spin = true;
-      $scope.busy = true;
 
       //reset pagination
       if (query && query.resetPage) {
         $scope.page = 1;
-        $scope.paginating = true;
         delete query.resetPage;
       }
 
       //track active ui based on query
-      $scope.query = query;
-      var defaultQuery = { resolvedAt: null };
-
-      query = _.merge({}, defaultQuery, query);
+      if (query.reset) {
+        delete query.reset;
+        $scope.query = query;
+      } else {
+        $scope.query = _.merge({}, $scope.query, query);
+      }
 
       ServiceRequest.find({
         page: $scope.page,
@@ -1829,48 +1828,29 @@ angular
         sort: {
           createdAt: -1
         },
-        query: query,
+        query: $scope.query,
         q: $scope.q
       }).then(function (response) {
         //update scope with servicerequests when done loading
-        if (!$scope.paginating) {
-          $scope.servicerequests =
-            $scope.servicerequests.concat(response.servicerequests);
-        } else {
-          $scope.servicerequests = response.servicerequests;
-        }
+        $scope.servicerequests = response.servicerequests;
         if ($scope.updated) {
           $scope.updated = false;
         } else {
           $scope.select(_.first($scope.servicerequests));
         }
         $scope.total = response.total;
-        $scope.pages = response.pages;
         $scope.spin = false;
-        $scope.busy = false;
-        $scope.paginating = !$scope.willPaginate();
       }).catch(function (error) {
         $scope.spin = false;
-        $scope.busy = false;
       });
     };
 
 
     //check whether servicerequests will paginate
     $scope.willPaginate = function () {
-      var willPaginate = $scope.pages > $scope.page;
+      var willPaginate =
+        ($scope.servicerequests && $scope.total && $scope.total > $scope.limit);
       return willPaginate;
-    };
-
-    $scope.paginate = function () {
-
-      if (!$scope.paginating && $scope.willPaginate()) {
-        //increment page
-        $scope.page = $scope.page + 1;
-        //load next page
-        $scope.find(($scope.query || {}));
-      }
-
     };
 
     //export current filtered issues
@@ -5321,6 +5301,11 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   );
 
 
+  $templateCache.put('views/servicerequests/_partials/_list.html',
+    " <div class=\"row-col lt\"> <div class=\"p-a b-b list-search\"> <form> <div class=\"input-group\"> <input type=\"text\" ng-enter=\"onSearch()\" ng-model=\"search.q\" class=\"form-control form-control-sm\" placeholder=\"Search Issues ...\"> <span class=\"input-group-btn\"> <button ng-click=\"onSearch()\" class=\"btn btn-default btn-sm no-shadow\" type=\"button\"> <i class=\"ti-search\"></i> </button> </span> </div> </form> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\" id=\"scrollable-servicerequest-list\"> <div class=\"list\" data-ui-list=\"info\"> <div infinite-scroll=\"paginate()\" infinite-scroll-disabled=\"paginating\" infinite-scroll-distance=\"1\" infinite-scroll-container='\"#scrollable-servicerequest-list\"'> <div ng-click=\"select(servicerequest)\" class=\"list-item list-item-padded\" ng-repeat=\"servicerequest in servicerequests\" title=\"{{servicerequest.description}}\" style=\"border-left: 2px solid {{servicerequest.priority.color || '#f3c111'}}\"> <div class=\"list-left\"> <span class=\"w-40 avatar circle\"> <letter-avatar title=\"Status & Area\" data=\"{{servicerequest.jurisdiction.name}}\" height=\"60\" width=\"60\" shape=\"round\" color=\"{{servicerequest.status.color}}\"> </letter-avatar> </span> </div> <div class=\"list-body\"> <span title=\"Issue Report Date\" class=\"pull-right text-xs text-muted\"> {{servicerequest.createdAt | date:'dd MMM yyyy HH:mm'}} </span> <div class=\"item-title\"> <a href=\"#\" class=\"_500\">{{servicerequest.service.name}} <br><span title=\"Issue Number\" class=\"font-size-12\"> #{{servicerequest.code}}</span></a> </div> <small class=\"block text-xs text-muted text-ellipsis\"> <span title=\"Reporter Name\"> <i class=\"icon-user\"></i>&nbsp;&nbsp;{{(servicerequest.reporter.name) || 'NA'}} </span> <span class=\"pull-right\" title=\"Reporter Phone Number\"> <i class=\"icon-phone\"></i>&nbsp;&nbsp;{{(servicerequest.reporter.phone) ||'NA'}} </span> </small> </div> </div> </div> </div> </div> </div> </div> <div class=\"p-x-md p-y\"> <div class=\"btn-group pull-right list-pager\" uib-pager ng-show=\"willPaginate()\" total-items=\"total\" ng-model=\"page\" items-per-page=\"limit\" ng-change=\"find()\" template-url=\"views/_partials/list_pager.html\" style=\"padding-left: 12px\"> </div> <div class=\"btn-group pull-right\"> <a title=\"Click To Refresh Issues\" ng-click=\"load({ resolvedAt: null, operator: { $ne: null }, resetPage:true}, false)\" class=\"btn btn-default btn-xs\"> <i class=\"icon-reload\"></i> </a> <a title=\"Click To Export Issues\" class=\"btn btn-default btn-xs\" ng-csv=\"export\" csv-header=\"['Issue Number','Reported Date','Call Start Time', 'Call End Time','Call Duration(Minutes)', 'Call Duration(Seconds)', 'Reporter Name', 'Reporter Phone', 'Reporter Account', 'Operator', 'Area', 'Service Group', 'Service', 'Assignee', 'Description', 'Address', 'Status', 'Priority', 'Resolved Date', 'Time Taken(days)', 'Time Taken(hrs)', 'Time Taken(mins)', 'Time Taken(secs)']\" filename=\"issues.csv\"> <i class=\"icon-cloud-download\"></i> </a> </div> <span class=\"text-sm text-muted\">Total: {{total}}</span> </div> </div> "
+  );
+
+
   $templateCache.put('views/servicerequests/_partials/action_bar.html',
     " <ul class=\"nav navbar-nav\"> <li class=\"nav-item\"> <a ng-if=\"mailTo\" href=\"{{mailTo}}\" class=\"nav-link text-muted\" title=\"Send Issue to Area\"> <span class=\"nav-text\"> <i class=\"icon-action-redo\"></i> </span> </a> </li> <li ng-if=\"!servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ng-click=\"onClose()\" class=\"nav-link text-muted no-border\" title=\"Click To Signal Feedback Provided To Reporter\"> <span class=\"nav-text\"> <i class=\"icon-call-out\"></i> </span> </a> </li> <li ng-if=\"servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ng-click=\"onReOpen()\" class=\"nav-link text-muted no-border\" title=\"Click To Re-Open The Issue\"> <span class=\"nav-text\"> <i class=\"icon-call-in\"></i> </span> </a> </li> <li class=\"nav-item b-l p-l\"> <a ng-click=\"onCopy()\" class=\"nav-link text-muted no-border\" title=\"Click To Copy Reporter Information & Create New Issue\"> <span class=\"nav-text\"> <i class=\"ti-cut\"></i> </span> </a> </li> <li class=\"nav-item b-l p-l p-r\"> <a print-btn class=\"nav-link text-muted no-border\" title=\"Click To Print Issue\"> <span class=\"nav-text\"> <i class=\"icon-printer\"></i> </span> </a> </li> </ul> "
   );
@@ -5344,12 +5329,12 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/servicerequests/_partials/list.html',
-    " <div class=\"row-col lt\"> <div class=\"p-a b-b list-search\"> <form> <div class=\"input-group\"> <input type=\"text\" ng-enter=\"onSearch()\" ng-model=\"search.q\" class=\"form-control form-control-sm\" placeholder=\"Search Issues ...\"> <span class=\"input-group-btn\"> <button ng-click=\"onSearch()\" class=\"btn btn-default btn-sm no-shadow\" type=\"button\"> <i class=\"ti-search\"></i> </button> </span> </div> </form> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\" id=\"scrollable-servicerequest-list\"> <div class=\"list\" data-ui-list=\"info\"> <div infinite-scroll=\"paginate()\" infinite-scroll-disabled=\"paginating\" infinite-scroll-distance=\"1\" infinite-scroll-container='\"#scrollable-servicerequest-list\"'> <div ng-click=\"select(servicerequest)\" class=\"list-item list-item-padded\" ng-repeat=\"servicerequest in servicerequests\" title=\"{{servicerequest.description}}\" style=\"border-left: 2px solid {{servicerequest.priority.color || '#f3c111'}}\"> <div class=\"list-left\"> <span class=\"w-40 avatar circle\"> <letter-avatar title=\"Status & Area\" data=\"{{servicerequest.jurisdiction.name}}\" height=\"60\" width=\"60\" shape=\"round\" color=\"{{servicerequest.status.color}}\"> </letter-avatar> </span> </div> <div class=\"list-body\"> <span title=\"Issue Report Date\" class=\"pull-right text-xs text-muted\"> {{servicerequest.createdAt | date:'dd MMM yyyy HH:mm'}} </span> <div class=\"item-title\"> <a href=\"#\" class=\"_500\">{{servicerequest.service.name}} <br><span title=\"Issue Number\" class=\"font-size-12\"> #{{servicerequest.code}}</span></a> </div> <small class=\"block text-xs text-muted text-ellipsis\"> <span title=\"Reporter Name\"> <i class=\"icon-user\"></i>&nbsp;&nbsp;{{(servicerequest.reporter.name) || 'NA'}} </span> <span class=\"pull-right\" title=\"Reporter Phone Number\"> <i class=\"icon-phone\"></i>&nbsp;&nbsp;{{(servicerequest.reporter.phone) ||'NA'}} </span> </small> </div> </div> </div> </div> </div> </div> </div> <div class=\"p-x-md p-y\"> <div class=\"btn-group pull-right\"> <a title=\"Click To Refresh Issues\" ng-click=\"load({ resolvedAt: null, operator: { $ne: null }, resetPage:true}, false)\" class=\"btn btn-default btn-xs\"> <i class=\"icon-reload\"></i> </a> <a title=\"Click To Export Issues\" class=\"btn btn-default btn-xs\" ng-csv=\"export\" csv-header=\"['Issue Number','Reported Date','Call Start Time', 'Call End Time','Call Duration(Minutes)', 'Call Duration(Seconds)', 'Reporter Name', 'Reporter Phone', 'Reporter Account', 'Operator', 'Area', 'Service Group', 'Service', 'Assignee', 'Description', 'Address', 'Status', 'Priority', 'Resolved Date', 'Time Taken(days)', 'Time Taken(hrs)', 'Time Taken(mins)', 'Time Taken(secs)']\" filename=\"issues.csv\"> <i class=\"icon-cloud-download\"></i> </a> </div> <span class=\"text-sm text-muted\">Total: {{total}}</span> </div> </div> "
+    " <div class=\"row-col lt\"> <div class=\"p-a b-b list-search\"> <form> <div class=\"input-group\"> <input type=\"text\" ng-enter=\"onSearch()\" ng-model=\"search.q\" class=\"form-control form-control-sm\" placeholder=\"Search Issues ...\"> <span class=\"input-group-btn\"> <button ng-click=\"onSearch()\" class=\"btn btn-default btn-sm no-shadow\" type=\"button\"> <i class=\"ti-search\"></i> </button> </span> </div> </form> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\" id=\"scrollable-servicerequest-list\"> <div class=\"list\" data-ui-list=\"info\"> <div ng-click=\"select(servicerequest)\" class=\"list-item list-item-padded\" ng-repeat=\"servicerequest in servicerequests\" title=\"{{servicerequest.description}}\" style=\"border-left: 2px solid {{servicerequest.priority.color || '#f3c111'}}\"> <div class=\"list-left\"> <span class=\"w-40 avatar circle\"> <letter-avatar title=\"Status & Area\" data=\"{{servicerequest.jurisdiction.name}}\" height=\"60\" width=\"60\" shape=\"round\" color=\"{{servicerequest.status.color}}\"> </letter-avatar> </span> </div> <div class=\"list-body\"> <span title=\"Issue Report Date\" class=\"pull-right text-xs text-muted\"> {{servicerequest.createdAt | date:'dd MMM yyyy HH:mm'}} </span> <div class=\"item-title\"> <a href=\"#\" class=\"_500\">{{servicerequest.service.name}} <br><span title=\"Issue Number\" class=\"font-size-12\"> #{{servicerequest.code}}</span></a> </div> <small class=\"block text-xs text-muted text-ellipsis\"> <span title=\"Reporter Name\"> <i class=\"icon-user\"></i>&nbsp;&nbsp;{{(servicerequest.reporter.name) || 'NA'}} </span> <span class=\"pull-right\" title=\"Reporter Phone Number\"> <i class=\"icon-phone\"></i>&nbsp;&nbsp;{{(servicerequest.reporter.phone) ||'NA'}} </span> </small> </div> </div> </div> </div> </div> </div> <div class=\"p-x-md p-y\"> <div class=\"btn-group pull-right list-pager\" uib-pager ng-show=\"willPaginate()\" total-items=\"$parent.total\" ng-model=\"$parent.page\" items-per-page=\"$parent.limit\" ng-change=\"find()\" template-url=\"views/_partials/list_pager.html\" style=\"padding-left: 12px\"> </div> <div class=\"btn-group pull-right\"> <a title=\"Click To Refresh Issues\" ng-click=\"load({ resolvedAt: null, operator: { $ne: null }, resetPage:true, reset:true}, false)\" class=\"btn btn-default btn-xs\"> <i class=\"icon-reload\"></i> </a> <a title=\"Click To Export Issues\" class=\"btn btn-default btn-xs\" ng-csv=\"export\" csv-header=\"['Issue Number','Reported Date','Call Start Time', 'Call End Time','Call Duration(Minutes)', 'Call Duration(Seconds)', 'Reporter Name', 'Reporter Phone', 'Reporter Account', 'Operator', 'Area', 'Service Group', 'Service', 'Assignee', 'Description', 'Address', 'Status', 'Priority', 'Resolved Date', 'Time Taken(days)', 'Time Taken(hrs)', 'Time Taken(mins)', 'Time Taken(secs)']\" filename=\"issues.csv\"> <i class=\"icon-cloud-download\"></i> </a> </div> <span class=\"text-sm text-muted\">Total: {{total}}</span> </div> </div> "
   );
 
 
   $templateCache.put('views/servicerequests/_partials/side_subnav.html',
-    " <div class=\"row-col bg b-r\"> <div class=\"b-b\"> <div class=\"navbar\"> <ul class=\"nav navbar-nav\"> <li class=\"nav-item\"> <span class=\"navbar-item text-md\"> Issues </span> </li> </ul> </div> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\"> <div class=\"p-a-md\"> <div class=\"m-b text-muted text-xs\">Miscellaneous</div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li ng-class=\"{active:query.$or != null && query.resolvedAt == null}\" class=\"nav-item m-b-xs\"> <a ng-click=\"load({$or:[{operator: party._id},{assignee:party._id}], resolvedAt:null , resetPage:true})\" class=\"nav-link text-muted block\" title=\"Issue Received or Assigned To You\"> Inbox </a> </li> <li ng-class=\"{active:query.operator == null && query.$or == null && query.resolvedAt == null && !query.service && !query.status && !query.priority && !query.jurisdiction}\" class=\"nav-item m-b-xs\"> <a ng-click=\"load({operator:null, resolvedAt:null, resetPage:true})\" class=\"nav-link text-muted block\" title=\"Reported Issues Using Other Method Than Call Center\"> Un-Attended </a> </li> <li ng-class=\"{active:query.operator != null && query.resolvedAt == null}\" class=\"nav-item m-b-xs\"> <a ng-click=\"load({resolvedAt:null, operator:{$ne:null}, resetPage:true})\" class=\"nav-link text-muted block\" title=\"Reported Issues Currently Not Resolved\"> Un-Resolved </a> </li> <li ng-class=\"{active:query.resolvedAt != null}\" class=\"nav-item m-b-xs\"> <a ng-click=\"load({resolvedAt:{$ne:null}, resetPage:true})\" class=\"nav-link text-muted block\" title=\"Reported Issues That Have Been Resolved\"> Resolved </a> </li> </ul> </div> </div> <div class=\"p-a-md\"> <div class=\"m-b text-muted text-xs\">Status</div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li ng-class=\"{active:query.status == status._id}\" class=\"nav-item m-b-xs\" ng-repeat=\"status in statuses\"> <a ng-click=\"load({'status':status._id, resetPage:true})\" class=\"nav-link text-muted block\"> <span class=\"pull-right text-sm label danger rounded\" style=\"background-color: {{status.color}}\"> {{summaries.statuses[status._id]}} </span>{{status.name}}</a> </li> </ul> </div> </div> <div class=\"p-a-md\"> <div class=\"m-b text-muted text-xs\">Priorities</div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li ng-class=\"{active:query.priority == priority._id}\" class=\"nav-item m-b-xs\" ng-repeat=\"priority in priorities\"> <a ng-click=\"load({'priority':priority._id, resetPage:true})\" class=\"nav-link text-muted block\"> <span class=\"pull-right text-sm label danger rounded\" style=\"background-color: {{priority.color}}\"> {{summaries.priorities[priority._id]}} </span>{{priority.name}}</a> </li> </ul> </div> </div> <div class=\"p-a-md\"> <div class=\"m-b text-muted text-xs\">Services</div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li ng-class=\"{active:query.service == service._id}\" class=\"nav-item m-b-xs\" ng-repeat=\"service in services\"> <a ng-click=\"load({service:service._id, resetPage:true})\" class=\"nav-link text-muted block\"> <span class=\"pull-right text-sm label danger rounded\" style=\"background-color: {{service.color}}\"> {{summaries.services[service._id]}} </span> {{service.name}} </a> </li> </ul> </div> </div> <div class=\"p-a-md\"> <div class=\"m-b text-muted text-xs\">Areas</div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li ng-class=\"{active:query.jurisdiction == jurisdiction._id}\" class=\"nav-item m-b-xs\" ng-repeat=\"jurisdiction in jurisdictions\"> <a ng-click=\"load({'jurisdiction':jurisdiction._id, resetPage:true})\" class=\"nav-link text-muted block\"> <span class=\"pull-right text-sm label danger rounded\" style=\"background-color: {{jurisdiction.color}}\"> {{summaries.jurisdictions[jurisdiction._id]}} </span>{{jurisdiction.name}}</a> </li> </ul> </div> </div> </div> </div> </div> </div> "
+    " <div class=\"row-col bg b-r\"> <div class=\"b-b\"> <div class=\"navbar\"> <ul class=\"nav navbar-nav\"> <li class=\"nav-item\"> <span class=\"navbar-item text-md\"> Issues </span> </li> </ul> </div> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\"> <div class=\"p-a-md\"> <div class=\"m-b text-muted text-xs\">Miscellaneous</div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li ng-class=\"{active:query.$or != null && query.resolvedAt == null}\" class=\"nav-item m-b-xs\"> <a ng-click=\"load({$or:[{operator: party._id},{assignee:party._id}], resolvedAt:null , resetPage:true,reset:true})\" class=\"nav-link text-muted block\" title=\"Issue Received or Assigned To You\"> Inbox </a> </li> <li ng-class=\"{active:query.operator == null && query.$or == null && query.resolvedAt == null}\" class=\"nav-item m-b-xs\"> <a ng-click=\"load({operator:null, resolvedAt:null, resetPage:true,reset:true})\" class=\"nav-link text-muted block\" title=\"Reported Issues Using Other Method Than Call Center\"> Un-Attended </a> </li> <li ng-class=\"{active:query.operator != null && query.resolvedAt == null}\" class=\"nav-item m-b-xs\"> <a ng-click=\"load({resolvedAt:null, operator:{$ne:null}, resetPage:true, reset:true})\" class=\"nav-link text-muted block\" title=\"Reported Issues Currently Not Resolved\"> Un-Resolved </a> </li> <li ng-class=\"{active:query.resolvedAt != null}\" class=\"nav-item m-b-xs\"> <a ng-click=\"load({resolvedAt:{$ne:null}, resetPage:true,reset:true})\" class=\"nav-link text-muted block\" title=\"Reported Issues That Have Been Resolved\"> Resolved </a> </li> </ul> </div> </div> <div class=\"p-a-md\"> <div class=\"m-b text-muted text-xs\">Status</div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li ng-class=\"{active:query.status == status._id}\" class=\"nav-item m-b-xs\" ng-repeat=\"status in statuses\"> <a ng-click=\"load({'status':status._id, resetPage:true})\" class=\"nav-link text-muted block\"> <span class=\"pull-right text-sm label danger rounded\" style=\"background-color: {{status.color}}\"> {{summaries.statuses[status._id]}} </span>{{status.name}}</a> </li> </ul> </div> </div> <div class=\"p-a-md\"> <div class=\"m-b text-muted text-xs\">Priorities</div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li ng-class=\"{active:query.priority == priority._id}\" class=\"nav-item m-b-xs\" ng-repeat=\"priority in priorities\"> <a ng-click=\"load({'priority':priority._id, resetPage:true})\" class=\"nav-link text-muted block\"> <span class=\"pull-right text-sm label danger rounded\" style=\"background-color: {{priority.color}}\"> {{summaries.priorities[priority._id]}} </span>{{priority.name}}</a> </li> </ul> </div> </div> <div class=\"p-a-md\"> <div class=\"m-b text-muted text-xs\">Services</div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li ng-class=\"{active:query.service == service._id}\" class=\"nav-item m-b-xs\" ng-repeat=\"service in services\"> <a ng-click=\"load({service:service._id, resetPage:true})\" class=\"nav-link text-muted block\"> <span class=\"pull-right text-sm label danger rounded\" style=\"background-color: {{service.color}}\"> {{summaries.services[service._id]}} </span> {{service.name}} </a> </li> </ul> </div> </div> <div class=\"p-a-md\"> <div class=\"m-b text-muted text-xs\">Areas</div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li ng-class=\"{active:query.jurisdiction == jurisdiction._id}\" class=\"nav-item m-b-xs\" ng-repeat=\"jurisdiction in jurisdictions\"> <a ng-click=\"load({'jurisdiction':jurisdiction._id, resetPage:true})\" class=\"nav-link text-muted block\"> <span class=\"pull-right text-sm label danger rounded\" style=\"background-color: {{jurisdiction.color}}\"> {{summaries.jurisdictions[jurisdiction._id]}} </span>{{jurisdiction.name}}</a> </li> </ul> </div> </div> </div> </div> </div> </div> "
   );
 
 
