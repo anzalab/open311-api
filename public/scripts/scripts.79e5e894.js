@@ -1797,6 +1797,15 @@ angular
       }
     };
 
+    /**
+     * Load all service request based on current filters
+     * @return {[type]} [description]
+     */
+    $scope.all = function () {
+      $scope.page = 1;
+      $scope.limit = $scope.total;
+      $scope.find();
+    };
 
     /**
      * @description load servicerequests
@@ -1854,7 +1863,6 @@ angular
     };
 
     //export current filtered issues
-    //TODO if no filter export all
     $scope.export = function () {
       var _exports =
         _.map($scope.servicerequests, function (servicerequest) {
@@ -5158,7 +5166,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/_partials/list_pager.html',
-    "<span ng-class=\"{disabled: noPrevious()||ngDisabled, previous: align}\"> <a href ng-click=\"selectPage(page - 1, $event)\" ng-disabled=\"noPrevious()||ngDisabled\" uib-tabindex-toggle class=\"btn btn-default btn-xs\"> <i class=\"fa fa-fw fa-angle-left\"></i> </a> </span> <span ng-class=\"{disabled: noNext()||ngDisabled, next: align}\"> <a href ng-click=\"selectPage(page + 1, $event)\" ng-disabled=\"noNext()||ngDisabled\" uib-tabindex-toggle class=\"btn btn-default btn-xs\"> <i class=\"fa fa-fw fa-angle-right\"></i> </a> </span> "
+    "<span ng-class=\"{disabled: noPrevious()||ngDisabled, previous: align}\"> <a href ng-click=\"selectPage(page - 1, $event)\" ng-disabled=\"noPrevious()||ngDisabled\" uib-tabindex-toggle class=\"btn btn-default btn-xs\"> <i class=\"fa fa-fw fa-angle-left\"></i> </a> </span> <span> <a href ng-click=\"$parent.all()\" class=\"btn btn-default btn-xs\"> <i class=\"fa fa-fw fa-sort-amount-desc\"></i> </a> </span> <span ng-class=\"{disabled: noNext()||ngDisabled, next: align}\"> <a href ng-click=\"selectPage(page + 1, $event)\" ng-disabled=\"noNext()||ngDisabled\" uib-tabindex-toggle class=\"btn btn-default btn-xs\"> <i class=\"fa fa-fw fa-angle-right\"></i> </a> </span> "
   );
 
 
@@ -5329,7 +5337,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/servicerequests/_partials/list.html',
-    " <div class=\"row-col lt\"> <div class=\"p-a b-b list-search\"> <form> <div class=\"input-group\"> <input type=\"text\" ng-enter=\"onSearch()\" ng-model=\"search.q\" class=\"form-control form-control-sm\" placeholder=\"Search Issues ...\"> <span class=\"input-group-btn\"> <button ng-click=\"onSearch()\" class=\"btn btn-default btn-sm no-shadow\" type=\"button\"> <i class=\"ti-search\"></i> </button> </span> </div> </form> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\" id=\"scrollable-servicerequest-list\"> <div class=\"list\" data-ui-list=\"info\"> <div ng-click=\"select(servicerequest)\" class=\"list-item list-item-padded\" ng-repeat=\"servicerequest in servicerequests\" title=\"{{servicerequest.description}}\" style=\"border-left: 2px solid {{servicerequest.priority.color || '#f3c111'}}\"> <div class=\"list-left\"> <span class=\"w-40 avatar circle\"> <letter-avatar title=\"Status & Area\" data=\"{{servicerequest.jurisdiction.name}}\" height=\"60\" width=\"60\" shape=\"round\" color=\"{{servicerequest.status.color}}\"> </letter-avatar> </span> </div> <div class=\"list-body\"> <span title=\"Issue Report Date\" class=\"pull-right text-xs text-muted\"> {{servicerequest.createdAt | date:'dd MMM yyyy HH:mm'}} </span> <div class=\"item-title\"> <a href=\"#\" class=\"_500\">{{servicerequest.service.name}} <br><span title=\"Issue Number\" class=\"font-size-12\"> #{{servicerequest.code}}</span></a> </div> <small class=\"block text-xs text-muted text-ellipsis\"> <span title=\"Reporter Name\"> <i class=\"icon-user\"></i>&nbsp;&nbsp;{{(servicerequest.reporter.name) || 'NA'}} </span> <span class=\"pull-right\" title=\"Reporter Phone Number\"> <i class=\"icon-phone\"></i>&nbsp;&nbsp;{{(servicerequest.reporter.phone) ||'NA'}} </span> </small> </div> </div> </div> </div> </div> </div> <div class=\"p-x-md p-y\"> <div class=\"btn-group pull-right list-pager\" uib-pager ng-show=\"willPaginate()\" total-items=\"$parent.total\" ng-model=\"$parent.page\" items-per-page=\"$parent.limit\" ng-change=\"find()\" template-url=\"views/_partials/list_pager.html\" style=\"padding-left: 12px\"> </div> <div class=\"btn-group pull-right\"> <a title=\"Click To Refresh Issues\" ng-click=\"load({ resolvedAt: null, operator: { $ne: null }, resetPage:true, reset:true}, false)\" class=\"btn btn-default btn-xs\"> <i class=\"icon-reload\"></i> </a> <a title=\"Click To Export Issues\" class=\"btn btn-default btn-xs\" ng-csv=\"export\" csv-header=\"['Issue Number','Reported Date','Call Start Time', 'Call End Time','Call Duration(Minutes)', 'Call Duration(Seconds)', 'Reporter Name', 'Reporter Phone', 'Reporter Account', 'Operator', 'Area', 'Service Group', 'Service', 'Assignee', 'Description', 'Address', 'Status', 'Priority', 'Resolved Date', 'Time Taken(days)', 'Time Taken(hrs)', 'Time Taken(mins)', 'Time Taken(secs)']\" filename=\"issues.csv\"> <i class=\"icon-cloud-download\"></i> </a> </div> <span class=\"text-sm text-muted\">Total: {{total}}</span> </div> </div> "
+    " <div class=\"row-col lt\"> <div class=\"p-a b-b list-search\"> <form> <div class=\"input-group\"> <input type=\"text\" ng-enter=\"onSearch()\" ng-model=\"search.q\" class=\"form-control form-control-sm\" placeholder=\"Search Issues ...\"> <span class=\"input-group-btn\"> <button ng-click=\"onSearch()\" class=\"btn btn-default btn-sm no-shadow\" type=\"button\"> <i class=\"ti-search\"></i> </button> </span> </div> </form> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\" id=\"scrollable-servicerequest-list\"> <div class=\"list\" data-ui-list=\"info\"> <div ng-click=\"select(servicerequest)\" class=\"list-item list-item-padded\" ng-repeat=\"servicerequest in servicerequests\" title=\"{{servicerequest.description}}\" style=\"border-left: 2px solid {{servicerequest.priority.color || '#f3c111'}}\"> <div class=\"list-left\"> <span class=\"w-40 avatar circle\"> <letter-avatar title=\"Status & Area\" data=\"{{servicerequest.jurisdiction.name}}\" height=\"60\" width=\"60\" shape=\"round\" color=\"{{servicerequest.status.color}}\"> </letter-avatar> </span> </div> <div class=\"list-body\"> <span title=\"Issue Report Date\" class=\"pull-right text-xs text-muted\"> {{servicerequest.createdAt | date:'dd MMM yyyy HH:mm'}} </span> <div class=\"item-title\"> <a href=\"#\" class=\"_500\">{{servicerequest.service.name}} <br><span title=\"Issue Number\" class=\"font-size-12\"> #{{servicerequest.code}}</span></a> </div> <small class=\"block text-xs text-muted text-ellipsis\"> <span title=\"Reporter Name\"> <i class=\"icon-user\"></i>&nbsp;&nbsp;{{(servicerequest.reporter.name) || 'NA'}} </span> <span class=\"pull-right\" title=\"Reporter Phone Number\"> <i class=\"icon-phone\"></i>&nbsp;&nbsp;{{(servicerequest.reporter.phone) ||'NA'}} </span> </small> </div> </div> </div> </div> </div> </div> <div class=\"p-x-md p-y\"> <div class=\"btn-group pull-right list-pager\" uib-pager ng-show=\"willPaginate()\" total-items=\"$parent.total\" ng-model=\"$parent.page\" items-per-page=\"$parent.limit\" ng-change=\"find()\" template-url=\"views/_partials/list_pager.html\" style=\"padding-left: 12px\" role=\"group\"> </div> <div class=\"btn-group pull-right\"> <a title=\"Click To Refresh Issues\" ng-click=\"load({ resolvedAt: null, operator: { $ne: null }, resetPage:true, reset:true}, false)\" class=\"btn btn-default btn-xs\"> <i class=\"icon-reload\"></i> </a> <a title=\"Click To Export Issues\" class=\"btn btn-default btn-xs\" ng-csv=\"export\" csv-header=\"['Issue Number','Reported Date','Call Start Time', 'Call End Time','Call Duration(Minutes)', 'Call Duration(Seconds)', 'Reporter Name', 'Reporter Phone', 'Reporter Account', 'Operator', 'Area', 'Service Group', 'Service', 'Assignee', 'Description', 'Address', 'Status', 'Priority', 'Resolved Date', 'Time Taken(days)', 'Time Taken(hrs)', 'Time Taken(mins)', 'Time Taken(secs)']\" filename=\"issues.csv\"> <i class=\"icon-cloud-download\"></i> </a> </div> <span class=\"text-sm text-muted\">Total: {{total}}</span> </div> </div> "
   );
 
 
