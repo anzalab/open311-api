@@ -120,7 +120,7 @@ app.use(methodOverride('_method'));
 
 
 //setup mongoose express pagination middleware
-app.use(require('express-mquery').middleware());
+app.use(require('express-mquery').middleware({ limit: 10, maxLimit: 1000 }));
 
 
 //setup application request logger
