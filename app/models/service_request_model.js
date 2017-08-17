@@ -1068,14 +1068,20 @@ ServiceRequestSchema.statics.calculateAverageCallDuration = function (done) {
  * @public
  * @type {Function}
  */
-ServiceRequestSchema.statics.standings = function (done) {
+ServiceRequestSchema.statics.standings = function (criteria, done) {
+
+  //normalize arguments
+  if (_.isFunction(criteria)) {
+    done = criteria;
+    criteria = {};
+  }
 
   //refs
   const ServiceRequest = mongoose.model('ServiceRequest');
 
   //count issue per service
   ServiceRequest
-    .aggregated()
+    .aggregated(criteria)
     .group({ //1 stage: count per jurisdiction, group, service, status and priority
       _id: {
         jurisdiction: '$jurisdiction.name',

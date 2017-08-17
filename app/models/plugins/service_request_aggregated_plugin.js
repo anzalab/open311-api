@@ -22,12 +22,18 @@
 
 module.exports = exports = function aggregated(schema /*, options*/ ) {
 
-  schema.statics.aggregated = function aggregated() {
+  schema.statics.aggregated = function aggregated(criteria) {
     //this refer to service request static context
 
 
     //initialize service request aggregate query
     let aggregate = this.aggregate();
+
+    //pass match criteria
+    //TODO improve with use of other criteria/stages
+    if (criteria) {
+      aggregate.match(criteria);
+    }
 
 
     /**

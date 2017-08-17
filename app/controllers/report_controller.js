@@ -7,6 +7,7 @@
  */
 
 //dependencies
+const _ = require('lodash');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
 
@@ -24,8 +25,19 @@ module.exports = {
   standings: function (request, response, next) {
     //TODO pass request options(i.e query params to extras)
     //TODO support mongodb aggregation pipelines from request(express-mquery)
+    const criteria = _.merge({}, (request.mquery || {}).query);
+
+    if (criteria.createdAt && criteria.createdAt.$gte) {
+      if (criteria.createdAt.$gte) {
+        criteria.createdAt.$gte = new Date(criteria.createdAt.$gte);
+      }
+      if (criteria.createdAt.$lte) {
+        criteria.createdAt.$lte = new Date(criteria.createdAt.$lte);
+      }
+    }
+
     ServiceRequest
-      .standings(function (error, standings) {
+      .standings(criteria, function (error, standings) {
         if (error) {
           error.status = 500;
           next(error);
