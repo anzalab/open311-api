@@ -445,6 +445,44 @@ PartySchema.methods.send = function (type, authenticable, done) {
 };
 
 
+/**
+ * @name jurisdictions
+ * @type {Function}
+ * @description load party jurusdictions
+ * @param  {Function} done a callback to invoke on success or error
+ * @private
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+PartySchema.methods.jurisdictions = function (done) {
+  //refs
+  const Jurisdiction = mongoose.model('Jurisdiction');
+
+  //does party have jurisdiction
+  const hasJurisdiction = (this.jurisdiction && this.jurisdiction._id);
+
+  if (hasJurisdiction) {
+    //fetch all party jurisdictions
+    const criteria = {
+      $or: [{ //fetch party assigned jurisdiction
+        _id: this.jurisdiction._id
+      }, { //fetch party assigned jurisdiction children
+        jurisdiction: this.jurisdiction._id
+      }]
+    };
+
+    //query party jurisdictions
+    Jurisdiction
+      .find(criteria, function (error, jurisdictions) {
+        done(error, jurisdictions);
+      });
+
+  } else {
+    done(null, []);
+  }
+};
+
+
 //-----------------------------------------------------------------------------
 // PartySchema Static Methods & Properties
 //-----------------------------------------------------------------------------

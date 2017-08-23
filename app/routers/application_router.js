@@ -17,6 +17,8 @@ const controller = require(path.join(__dirname, '..', 'controllers',
 
 //enable token authentication
 const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
+const jurisdiction =
+  require(path.join(__dirname, '..', 'middlewares', 'jurisdiction'));
 
 //TODO refactor out reports to report router
 
@@ -139,9 +141,10 @@ router.get('/summaries', jwtAuth, function (request, response, next) {
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
-router.get('/endpoints', jwtAuth, function (request, response, next) {
-  controller.endpoints(request, response, next);
-});
+router.get('/endpoints', jwtAuth, jurisdiction,
+  function (request, response, next) {
+    controller.endpoints(request, response, next);
+  });
 
 
 //exports site router

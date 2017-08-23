@@ -323,11 +323,22 @@ module.exports = {
    * @param  {HttpResponse} response http response
    */
   endpoints: function (request, response, next) {
+    //TODO fix jurisdiction criteria filter
+    const criteria = _.merge({}, _.get(request, 'mquery.query', {}));
+
+    delete request.mquery.query.jurisdiction;
+
     async.parallel({
 
       jurisdictions: function (next) { //fetch jurisdiction
         request.query.limit = 100;
-        Jurisdiction.list(request, next);
+        if (request.party) {
+          request.party.jurisdictions(function (error, jurisdictions) {
+            next(error, { jurisdictions });
+          });
+        } else {
+          Jurisdiction.list(request, next);
+        }
       },
 
       servicegroups: function (next) { //fetch service groups
@@ -349,7 +360,7 @@ module.exports = {
       },
 
       summaries: function (next) { //fetch issue summaries
-        ServiceRequest.summary(next);
+        ServiceRequest.summary(criteria, next);
       }
 
     }, function (error, endpoints) {

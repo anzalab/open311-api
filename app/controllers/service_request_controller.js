@@ -19,6 +19,7 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   index: function (request, response, next) {
+
     ServiceRequest
       .list(request, function (error, results) {
         if (error) {
@@ -27,6 +28,7 @@ module.exports = {
           response.ok(results);
         }
       });
+
   },
 
 

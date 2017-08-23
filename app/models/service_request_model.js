@@ -1219,7 +1219,14 @@ ServiceRequestSchema.statics.overviews = function (done) {
  * @public
  * @type {Function}
  */
-ServiceRequestSchema.statics.summary = function (done) {
+ServiceRequestSchema.statics.summary = function (criteria, done) {
+
+  //normalize arguments
+  if (_.isFunction(criteria)) {
+    done = criteria;
+    criteria = {};
+  }
+  criteria = _.merge({}, _.pick(criteria, 'jurisdiction')); //clone criteria
 
   //references
   const Service = mongoose.model('Service');
@@ -1230,38 +1237,23 @@ ServiceRequestSchema.statics.summary = function (done) {
 
   //TODO use aggregation
   async.parallel({
-    // all: function (next) { //will only count existing
-    //   ServiceRequest
-    //     .aggregated()
-    //     .match({ resolvedAt: { $ne: null } })
-    //     .facet({
-    //       services: [{ // sort by service alphabetically
-    //         $group: {
-    //           _id: '$service.name',
-    //           sid: { $first: '$service._id' },
-    //           color: { $first: '$service.color' },
-    //           count: { $sum: 1 }
-    //         }
-    //       }]
-    //     })
-    //     .exec(function (error, summaries) {
-    //       console.log(JSON.stringify(summaries));
-    //       next(error, summaries);
-    //     });
-    // },
     services: function (next) {
       Service
-        .find({})
+        .find({}) //TODO select for specific jurisdiction
         .exec(function (error, services) {
           if (error) {
-            done(null, {});
+            next(null, {});
           } else {
             const works = {};
             _.forEach(services, function (service) {
               works[service._id] = function (then) {
                 ServiceRequest
-                  .count({ service: service._id, resolvedAt: null })
-                  .exec(then);
+                  .count(
+                    _.merge({}, criteria, {
+                      service: service._id,
+                      resolvedAt: null
+                    })
+                  ).exec(then);
               };
             });
             async.parallel(works, next);
@@ -1274,14 +1266,18 @@ ServiceRequestSchema.statics.summary = function (done) {
         .find({})
         .exec(function (error, statuses) {
           if (error) {
-            done(null, {});
+            next(null, {});
           } else {
             const works = {};
             _.forEach(statuses, function (status) {
               works[status._id] = function (then) {
                 ServiceRequest
-                  .count({ status: status._id, resolvedAt: null })
-                  .exec(then);
+                  .count(
+                    _.merge({}, criteria, {
+                      status: status._id,
+                      resolvedAt: null
+                    })
+                  ).exec(then);
               };
             });
             async.parallel(works, next);
@@ -1294,14 +1290,18 @@ ServiceRequestSchema.statics.summary = function (done) {
         .find({})
         .exec(function (error, priorities) {
           if (error) {
-            done(null, {});
+            next(null, {});
           } else {
             const works = {};
             _.forEach(priorities, function (priority) {
               works[priority._id] = function (then) {
                 ServiceRequest
-                  .count({ priority: priority._id, resolvedAt: null })
-                  .exec(then);
+                  .count(
+                    _.merge({}, criteria, {
+                      priority: priority._id,
+                      resolvedAt: null
+                    })
+                  ).exec(then);
               };
             });
             async.parallel(works, next);
@@ -1314,17 +1314,18 @@ ServiceRequestSchema.statics.summary = function (done) {
         .find({})
         .exec(function (error, jurisdictions) {
           if (error) {
-            done(null, {});
+            next(null, {});
           } else {
             const works = {};
             _.forEach(jurisdictions, function (jurisdiction) {
               works[jurisdiction._id] = function (then) {
                 ServiceRequest
-                  .count({
-                    jurisdiction: jurisdiction._id,
-                    resolvedAt: null
-                  })
-                  .exec(then);
+                  .count(
+                    _.merge({}, criteria, {
+                      jurisdiction: jurisdiction._id,
+                      resolvedAt: null
+                    })
+                  ).exec(then);
               };
             });
             async.parallel(works, next);
@@ -1332,7 +1333,6 @@ ServiceRequestSchema.statics.summary = function (done) {
         });
     }
   }, function (error, results) {
-    // console.log(results.services);
     done(error, results);
   });
 

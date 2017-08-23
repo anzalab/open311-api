@@ -18,6 +18,8 @@ const controller =
 
 // enable token authentication
 const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
+const jurisdiction =
+  require(path.join(__dirname, '..', 'middlewares', 'jurisdiction'));
 
 // add specific middlewares to servicerequests router
 router.all('/servicerequests*', jwtAuth);
@@ -28,7 +30,7 @@ router.all('/servicerequests*', jwtAuth);
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
-router.get('/servicerequests', function (request, response, next) {
+router.get('/servicerequests', jurisdiction, function (request, response, next) {
   controller.index(request, response, next);
 });
 
