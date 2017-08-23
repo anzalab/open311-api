@@ -334,7 +334,11 @@ module.exports = {
         request.query.limit = 100;
         if (request.party) {
           request.party.jurisdictions(function (error, jurisdictions) {
-            next(error, { jurisdictions });
+            if (_.isEmpty(jurisdictions)) {
+              Jurisdiction.list(request, next);
+            } else {
+              next(error, { jurisdictions });
+            }
           });
         } else {
           Jurisdiction.list(request, next);
