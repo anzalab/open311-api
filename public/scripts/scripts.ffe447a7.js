@@ -17,10 +17,9 @@ angular
     'ui.bootstrap',
     'ngNotify',
     'ngToast',
-    'angucomplete-alt',
     'cgPrompt',
     'checklist-model',
-    'ui-listView',
+    // 'ui-listView',
     'ngCsv',
     'monospaced.elastic',
     'oi.select',
@@ -30,7 +29,7 @@ angular
     'angular-echarts',
     'btford.socket-io',
     'focus-if',
-    'infinite-scroll'
+    'pickadate'
   ])
   .config(function (
     $stateProvider, $urlRouterProvider,
@@ -96,7 +95,14 @@ angular
         },
         resolve: {
           standings: function (Summary) {
-            return Summary.standings();
+            return Summary.standings({
+              query: {
+                createdAt: {
+                  $gte: moment().utc().startOf('month').toDate(), //start of today
+                  $lte: moment().utc().endOf('month').toDate() //end of today
+                }
+              }
+            });
           }
         }
       });
@@ -470,19 +476,14 @@ angular
  */
 angular
   .module('ng311')
-  .controller('MainCtrl', function ($rootScope, $scope, $state, ngNotify,
-    ngToast, socket) {
+  .controller('MainCtrl', function ($rootScope, $scope, $state,
+    ngNotify, ngToast, socket) {
+
     //TODO show signin progress
 
     $scope.onAllIssues = function () {
       $rootScope.$broadcast('servicerequest:list');
     };
-
-    //replace browser scroll with richer scroller
-    // angular.element('html').niceScroll({
-    //   cursorcolor: '#A3AFB7',
-    //   cursorwidth: '6px'
-    // });
 
     //show app aside
     $rootScope.showAside = true;
@@ -3916,6 +3917,7 @@ angular
             resolve: {
               jurisdictions: function (Jurisdiction) {
                 return Jurisdiction.find({
+                  limit: 1000,
                   query: {
                     deletedAt: {
                       $eq: null
@@ -4558,6 +4560,52 @@ angular
     //initialize standings
     $scope.standings = standings;
 
+    //initialize scope attributes
+    $scope.startedAt;
+    $scope.endedAt;
+    $scope.maxDate = new Date();
+    $scope.params = {
+      query: {
+        createdAt: {
+          $gte: $scope.startedAt || moment().utc().startOf('month').toDate(),
+          $lte: $scope.endedAt || moment().utc().endOf('month').toDate()
+        }
+      }
+    };
+
+    /**
+     * Handle start date changed
+     */
+    $scope.onStartedAtChange = function (startedAt) {
+      //update start date filter and reload
+      if (startedAt) {
+        $scope.params.query.createdAt.$gte =
+          moment(new Date(startedAt)).utc().startOf('date').toDate();
+        $scope.params.query.createdAt.$lte =
+          moment(new Date(startedAt)).utc().endOf('date').toDate();
+        $scope.reload();
+      }
+    };
+
+    /**
+     * Handle ended date changed
+     */
+    $scope.onEndedAtChange = function (endedAt) {
+      //update end date filter and reload
+      if (!$scope.startedAt) {
+        $scope.params.query.createdAt.$gte =
+          moment(new Date(endedAt)).utc().startOf('date').toDate();
+      }
+
+      if (endedAt) {
+        $scope.params.query.createdAt.$lte =
+          moment(new Date(endedAt)).utc().endOf('date').toDate();
+        $scope.reload();
+      }
+
+    };
+
+
     $scope.prepare = function () {
 
       //TODO add date filter default to today
@@ -4620,7 +4668,7 @@ angular
       //prepare chart config
       $scope.perJurisdictionConfig = {
         height: 400,
-        width: 1200
+        width: 990
       };
 
       //prepare chart options
@@ -4747,7 +4795,7 @@ angular
       //prepare chart config
       $scope.perJurisdictionPerServiceGroupConfig = {
         height: 400,
-        width: 1200
+        width: 990
       };
 
       //prepare chart options
@@ -4815,7 +4863,7 @@ angular
       //prepare chart config
       $scope.perJurisdictionPerServiceConfig = {
         height: 400,
-        width: 1200
+        width: 990
       };
       //prepare chart options
       $scope.perJurisdictionPerServiceOptions = [];
@@ -4987,7 +5035,7 @@ angular
       //prepare chart config
       $scope.perJurisdictionPerStatusConfig = {
         height: 400,
-        width: 1200
+        width: 990
       };
 
       //prepare chart options
@@ -5098,7 +5146,7 @@ angular
       //prepare chart config
       $scope.perJurisdictionPerPriorityConfig = {
         height: 400,
-        width: 1200
+        width: 990
       };
 
       //prepare chart options
@@ -5140,13 +5188,20 @@ angular
 
     };
 
+    /**
+     * Reload standing reports
+     */
+    $scope.reload = function () {
+      var shouldLoad =
+        Summary.standings($scope.params).then(function (standings) {
+          $scope.standings = standings;
+          $scope.prepare();
+        });
+    };
 
     //listen for events and reload overview accordingly
     $rootScope.$on('app:servicerequests:reload', function () {
-      Summary.standings().then(function (standings) {
-        $scope.standings = standings;
-        $scope.prepare();
-      });
+      $scope.reload();
     });
 
 
@@ -5166,7 +5221,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/_partials/list_pager.html',
-    "<span ng-class=\"{disabled: noPrevious()||ngDisabled, previous: align}\"> <a href ng-click=\"selectPage(page - 1, $event)\" ng-disabled=\"noPrevious()||ngDisabled\" uib-tabindex-toggle class=\"btn btn-default btn-xs\"> <i class=\"fa fa-fw fa-angle-left\"></i> </a> </span> <span> <a href ng-click=\"$parent.all()\" class=\"btn btn-default btn-xs\"> <i class=\"fa fa-fw fa-sort-amount-desc\"></i> </a> </span> <span ng-class=\"{disabled: noNext()||ngDisabled, next: align}\"> <a href ng-click=\"selectPage(page + 1, $event)\" ng-disabled=\"noNext()||ngDisabled\" uib-tabindex-toggle class=\"btn btn-default btn-xs\"> <i class=\"fa fa-fw fa-angle-right\"></i> </a> </span> "
+    "<span ng-class=\"{disabled: noPrevious()||ngDisabled, previous: align}\"> <a href ng-click=\"selectPage(page - 1, $event)\" ng-disabled=\"noPrevious()||ngDisabled\" uib-tabindex-toggle class=\"btn btn-default btn-xs\" title=\"Previous\"> <i class=\"fa fa-fw fa-angle-left\" title=\"Previous\"></i> </a> </span> <span> <a href ng-click=\"$parent.all()\" class=\"btn btn-default btn-xs\" title=\"Load All\"> <i class=\"fa fa-fw fa-sort-amount-desc text-muted\" title=\"All\"></i> </a> </span> <span ng-class=\"{disabled: noNext()||ngDisabled, next: align}\"> <a href ng-click=\"selectPage(page + 1, $event)\" ng-disabled=\"noNext()||ngDisabled\" uib-tabindex-toggle class=\"btn btn-default btn-xs\" title=\"Next\"> <i class=\"fa fa-fw fa-angle-right\" title=\"Next\"></i> </a> </span> "
   );
 
 
@@ -5206,7 +5261,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/auth/signin.html',
-    " <div class=\"page-login-v3 layout-full\"> <div class=\"page animsition vertical-align text-center\"> <div class=\"page-content vertical-align-middle\"> <div class=\"panel\"> <div class=\"panel-body\"> <div class=\"brand margin-top-80 margin-bottom-60\"> <img src=\"images/logo_md.7144376c.png\" alt=\".\" width=\"84\"> </div> <form ng-submit=\"signin()\" name=\"signinForm\" role=\"form\" autocomplete=\"off\"> <div class=\"form-group form-material floating\"> <input type=\"email\" class=\"form-control\" name=\"email\" ng-model=\"user.email\" focus-if=\"!user.email\" ng-required> <label class=\"floating-label\">Email</label> </div> <div class=\"form-group form-material floating\"> <input type=\"password\" class=\"form-control\" name=\"password\" ng-model=\"user.password\" ng-required> <label class=\"floating-label\">Password</label> </div> <div class=\"form-group clearfix\"> <a class=\"pull-right text-blue-600\" ui-sref=\"forgot\" title=\"Click to request reset password\"> Forgot Password? </a> </div> <button ng-disabled=\"signinForm.$invalid || !user.email || !user.password\" type=\"submit\" class=\"btn btn-primary btn-block btn-lg margin-top-40\">Sign in</button> </form> </div> </div> </div> </div> </div> "
+    " <div class=\"page-login-v3 layout-full\"> <div class=\"page animsition vertical-align text-center\"> <div class=\"page-content vertical-align-middle\"> <div class=\"panel\"> <div class=\"panel-body\"> <div class=\"brand margin-top-80 margin-bottom-60\"> <img src=\"images/logo_md.7144376c.png\" alt=\".\" width=\"84\"> </div> <form ng-submit=\"signin()\" name=\"signinForm\" role=\"form\" autocomplete=\"off\"> <div class=\"form-group form-material floating\"> <input type=\"email\" class=\"form-control\" name=\"email\" ng-model=\"user.email\" focus-if=\"!user.email\" ng-required> <label class=\"floating-label\">Email</label> </div> <div class=\"form-group form-material floating\"> <input type=\"password\" class=\"form-control\" name=\"password\" ng-model=\"user.password\" ng-required> <label class=\"floating-label\">Password</label> </div> <div class=\"form-group clearfix\"> <a class=\"pull-right text-blue-600\" href title=\"Click to request reset password\"> Forgot Password? </a> </div> <button ng-disabled=\"signinForm.$invalid || !user.email || !user.password\" type=\"submit\" class=\"btn btn-primary btn-block btn-lg\">Sign in</button> </form> </div> </div> </div> </div> </div> "
   );
 
 
@@ -5216,7 +5271,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/dashboards/standings.html',
-    " <div class=\"app-header bg b-b\" style=\"background-color: white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Standing - Reports </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a class=\"nav-link\" data-toggle=\"dropdown\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <div class=\"row-col\"> <div class=\"col-lg b-r\"> <div class=\"padding\"> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area - Work Load</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area </small> </div> <div class=\"box-body\"> <echart config=\"perJurisdictionConfig\" options=\"perJurisdictionOptions\"></echart> </div> </div> </div> </div> </div> <div class=\"padding\"> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Service Group - Affected Business Units(Divisions)</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Service Group </small> </div> <div class=\"box-body\"> <echart config=\"perJurisdictionPerServiceGroupConfig\" options=\"perJurisdictionPerServiceGroupOptions\"></echart> </div> </div> </div> </div> </div> <div class=\"padding\"> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Service - Impacted Business Services</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Service </small> </div> <div class=\"box-body\"> <echart ng-repeat=\"options in perJurisdictionPerServiceOptions\" config=\"perJurisdictionPerServiceConfig\" options=\"options\"></echart> </div> </div> </div> </div> </div> <div class=\"padding\"> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Priority - Work Severity</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Priority </small> </div> <div class=\"box-body\"> <echart config=\"perJurisdictionPerPriorityConfig\" options=\"perJurisdictionPerPriorityOptions\"></echart> </div> </div> </div> </div> </div> <div class=\"padding\"> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Status - Work Progress</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Status </small> </div> <div class=\"box-body\"> <echart config=\"perJurisdictionPerStatusConfig\" options=\"perJurisdictionPerStatusOptions\"></echart> </div> </div> </div> </div> </div> </div> </div> </div> </div> "
+    " <div class=\"app-header bg b-b\" style=\"background-color: white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Standing - Reports </div> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <div class=\"row-col\"> <div class=\"col-lg b-r\"> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area - Work Load</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perJurisdictionConfig\" options=\"perJurisdictionOptions\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Service Group - Affected Business Units(Divisions)</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Service Group </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perJurisdictionPerServiceGroupConfig\" options=\"perJurisdictionPerServiceGroupOptions\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Service - Impacted Business Services</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Service </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart ng-repeat=\"options in perJurisdictionPerServiceOptions\" config=\"perJurisdictionPerServiceConfig\" options=\"options\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Priority - Work Severity</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Priority </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perJurisdictionPerPriorityConfig\" options=\"perJurisdictionPerPriorityOptions\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Status - Work Progress</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Status </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perJurisdictionPerStatusConfig\" options=\"perJurisdictionPerStatusOptions\"></echart> </div> </div> </div> </div> </div> </div> <div class=\"col-lg w-lg w-auto-md bg\"> <div> <div class=\"p-a b-b\"> <h6 class=\"text-muted m-a-0\"> Start Date </h6> </div> <div pickadate ng-model=\"startedAt\" max-date=\"maxDate\" on-change=\"onStartedAtChange(startedAt)\" class=\"p-a\"></div> <div class=\"p-a b-t b-b m-t-md\"> <h6 class=\"text-muted m-a-0\"> End Date </h6> </div> <div pickadate ng-model=\"endedAt\" max-date=\"maxDate\" on-change=\"onEndedAtChange(endedAt)\" class=\"p-a\"></div> </div> </div> </div> </div> </div> "
   );
 
 
@@ -5309,11 +5364,6 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   );
 
 
-  $templateCache.put('views/servicerequests/_partials/_list.html',
-    " <div class=\"row-col lt\"> <div class=\"p-a b-b list-search\"> <form> <div class=\"input-group\"> <input type=\"text\" ng-enter=\"onSearch()\" ng-model=\"search.q\" class=\"form-control form-control-sm\" placeholder=\"Search Issues ...\"> <span class=\"input-group-btn\"> <button ng-click=\"onSearch()\" class=\"btn btn-default btn-sm no-shadow\" type=\"button\"> <i class=\"ti-search\"></i> </button> </span> </div> </form> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\" id=\"scrollable-servicerequest-list\"> <div class=\"list\" data-ui-list=\"info\"> <div infinite-scroll=\"paginate()\" infinite-scroll-disabled=\"paginating\" infinite-scroll-distance=\"1\" infinite-scroll-container='\"#scrollable-servicerequest-list\"'> <div ng-click=\"select(servicerequest)\" class=\"list-item list-item-padded\" ng-repeat=\"servicerequest in servicerequests\" title=\"{{servicerequest.description}}\" style=\"border-left: 2px solid {{servicerequest.priority.color || '#f3c111'}}\"> <div class=\"list-left\"> <span class=\"w-40 avatar circle\"> <letter-avatar title=\"Status & Area\" data=\"{{servicerequest.jurisdiction.name}}\" height=\"60\" width=\"60\" shape=\"round\" color=\"{{servicerequest.status.color}}\"> </letter-avatar> </span> </div> <div class=\"list-body\"> <span title=\"Issue Report Date\" class=\"pull-right text-xs text-muted\"> {{servicerequest.createdAt | date:'dd MMM yyyy HH:mm'}} </span> <div class=\"item-title\"> <a href=\"#\" class=\"_500\">{{servicerequest.service.name}} <br><span title=\"Issue Number\" class=\"font-size-12\"> #{{servicerequest.code}}</span></a> </div> <small class=\"block text-xs text-muted text-ellipsis\"> <span title=\"Reporter Name\"> <i class=\"icon-user\"></i>&nbsp;&nbsp;{{(servicerequest.reporter.name) || 'NA'}} </span> <span class=\"pull-right\" title=\"Reporter Phone Number\"> <i class=\"icon-phone\"></i>&nbsp;&nbsp;{{(servicerequest.reporter.phone) ||'NA'}} </span> </small> </div> </div> </div> </div> </div> </div> </div> <div class=\"p-x-md p-y\"> <div class=\"btn-group pull-right list-pager\" uib-pager ng-show=\"willPaginate()\" total-items=\"total\" ng-model=\"page\" items-per-page=\"limit\" ng-change=\"find()\" template-url=\"views/_partials/list_pager.html\" style=\"padding-left: 12px\"> </div> <div class=\"btn-group pull-right\"> <a title=\"Click To Refresh Issues\" ng-click=\"load({ resolvedAt: null, operator: { $ne: null }, resetPage:true}, false)\" class=\"btn btn-default btn-xs\"> <i class=\"icon-reload\"></i> </a> <a title=\"Click To Export Issues\" class=\"btn btn-default btn-xs\" ng-csv=\"export\" csv-header=\"['Issue Number','Reported Date','Call Start Time', 'Call End Time','Call Duration(Minutes)', 'Call Duration(Seconds)', 'Reporter Name', 'Reporter Phone', 'Reporter Account', 'Operator', 'Area', 'Service Group', 'Service', 'Assignee', 'Description', 'Address', 'Status', 'Priority', 'Resolved Date', 'Time Taken(days)', 'Time Taken(hrs)', 'Time Taken(mins)', 'Time Taken(secs)']\" filename=\"issues.csv\"> <i class=\"icon-cloud-download\"></i> </a> </div> <span class=\"text-sm text-muted\">Total: {{total}}</span> </div> </div> "
-  );
-
-
   $templateCache.put('views/servicerequests/_partials/action_bar.html',
     " <ul class=\"nav navbar-nav\"> <li class=\"nav-item\"> <a ng-if=\"mailTo\" href=\"{{mailTo}}\" class=\"nav-link text-muted\" title=\"Send Issue to Area\"> <span class=\"nav-text\"> <i class=\"icon-action-redo\"></i> </span> </a> </li> <li ng-if=\"!servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ng-click=\"onClose()\" class=\"nav-link text-muted no-border\" title=\"Click To Signal Feedback Provided To Reporter\"> <span class=\"nav-text\"> <i class=\"icon-call-out\"></i> </span> </a> </li> <li ng-if=\"servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ng-click=\"onReOpen()\" class=\"nav-link text-muted no-border\" title=\"Click To Re-Open The Issue\"> <span class=\"nav-text\"> <i class=\"icon-call-in\"></i> </span> </a> </li> <li class=\"nav-item b-l p-l\"> <a ng-click=\"onCopy()\" class=\"nav-link text-muted no-border\" title=\"Click To Copy Reporter Information & Create New Issue\"> <span class=\"nav-text\"> <i class=\"ti-cut\"></i> </span> </a> </li> <li class=\"nav-item b-l p-l p-r\"> <a print-btn class=\"nav-link text-muted no-border\" title=\"Click To Print Issue\"> <span class=\"nav-text\"> <i class=\"icon-printer\"></i> </span> </a> </li> </ul> "
   );
@@ -5325,9 +5375,9 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/servicerequests/_partials/create.html',
-    " <div class=\"row-col\"> <div class=\"b-b bg\"> <div class=\"box-header\" style=\"padding:1.2rem\"> <h2>Report New Issue</h2> </div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"servicerequestForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-header\"> <h6>Reporter Details</h6> </div> <div class=\"box-body\"> <div class=\"row m-b\"> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <input ng-model=\"servicerequest.reporter.phone\" ng-required ng-minlength=\"2\" focus-if=\"!servicerequest.reporter.phone\" type=\"text\" name=\"phone\" class=\"form-control\"> <label class=\"floating-label\">Phone</label> </div> </div> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <input ng-model=\"servicerequest.reporter.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> <label class=\"floating-label\">Name</label> </div> </div> </div> <div class=\"row m-b\"> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <input ng-model=\"servicerequest.reporter.account\" ng-required ng-minlength=\"2\" type=\"text\" name=\"account\" class=\"form-control\"> <label class=\"floating-label\">Account</label> </div> </div> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <input ng-model=\"servicerequest.reporter.email\" ng-required ng-minlength=\"2\" type=\"text\" name=\"email\" class=\"form-control\"> <label class=\"floating-label\">Email</label> </div> </div> </div> <div class=\"p-t p-b m-t\" style=\"margin-top: 4rem\"> <h6> Issue Details </h6> </div> <div class=\"row m-b\"> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <oi-select oi-options=\"item.name for item in services track by item.id\" ng-model=\"servicerequest.service\" placeholder=\"Select Service\" class=\"form-control\"></oi-select> </div> </div> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <oi-select oi-options=\"item.name for item in jurisdictions track by item.id\" ng-model=\"servicerequest.jurisdiction\" placeholder=\"Select Area\" class=\"form-control\"></oi-select> </div> </div> </div> <div class=\"form-group form-material floating\"> <textarea ng-model=\"servicerequest.address\" msd-elastic name=\"address\" class=\"form-control\" rows=\"2\">\n" +
-    "                                    </textarea> <label class=\"floating-label\">Address</label> </div> <div class=\"form-group form-material floating\"> <textarea ng-model=\"servicerequest.description\" msd-elastic name=\"description\" class=\"form-control\" rows=\"3\">\n" +
-    "                                    </textarea> <label class=\"floating-label\">Description</label> </div> </div> <div class=\"p-a text-right\"> <button ui-sref=\"app.servicerequests.list\" type=\"button\" ng-click=\"cancel()\" class=\"btn\">Cancel</button> <button ng-disabled=\"servicerequest.$invalid || !servicerequest.reporter.phone\" type=\"submit\" class=\"btn info\">Submit</button> </div> </div> </form> </div> </div> </div> </div> </div> "
+    " <div class=\"row-col\"> <div class=\"b-b bg\"> <div class=\"box-header\" style=\"padding:1.2rem\"> <h2>Report New Issue</h2> </div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"servicerequestForm\" role=\"form\" autocomplete=\"off\"> <div class=\"box\"> <div class=\"box-header\"> <h6>Reporter Details</h6> </div> <div class=\"box-body\"> <div class=\"row m-b\"> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <input ng-model=\"servicerequest.reporter.phone\" ng-required ng-minlength=\"2\" focus-if=\"!servicerequest.reporter.phone\" type=\"text\" name=\"phone\" class=\"form-control\"> <label class=\"floating-label\">Phone</label> </div> </div> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <input ng-model=\"servicerequest.reporter.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> <label class=\"floating-label\">Name</label> </div> </div> </div> <div class=\"row m-b\"> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <input ng-model=\"servicerequest.reporter.account\" type=\"text\" name=\"account\" class=\"form-control\"> <label class=\"floating-label\">Account</label> </div> </div> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <input ng-model=\"servicerequest.reporter.email\" type=\"email\" name=\"email\" class=\"form-control\"> <label class=\"floating-label\">Email</label> </div> </div> </div> <div class=\"p-t p-b m-t\" style=\"margin-top: 4rem\"> <h6> Issue Details </h6> </div> <div class=\"row m-b\"> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <oi-select oi-options=\"item.name for item in services track by item.id\" ng-model=\"servicerequest.service\" ng-required placeholder=\"Select Service\" class=\"form-control\"></oi-select> </div> </div> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <oi-select oi-options=\"item.name for item in jurisdictions track by item.id\" ng-model=\"servicerequest.jurisdiction\" ng-required placeholder=\"Select Area\" class=\"form-control\"></oi-select> </div> </div> </div> <div class=\"form-group form-material floating\"> <textarea ng-model=\"servicerequest.address\" ng-required msd-elastic name=\"address\" class=\"form-control\" rows=\"2\">\n" +
+    "                                    </textarea> <label class=\"floating-label\">Address</label> </div> <div class=\"form-group form-material floating\"> <textarea ng-model=\"servicerequest.description\" ng-required msd-elastic name=\"description\" class=\"form-control\" rows=\"3\">\n" +
+    "                                    </textarea> <label class=\"floating-label\">Description</label> </div> </div> <div class=\"p-a text-right\"> <button ui-sref=\"app.servicerequests.list\" type=\"button\" ng-click=\"cancel()\" class=\"btn\">Cancel</button> <button ng-disabled=\"servicerequestForm.$invalid || !servicerequest.reporter.phone || !servicerequest.reporter.name || !servicerequest.service || !servicerequest.jurisdiction || !servicerequest.address || !servicerequest.description\" type=\"submit\" class=\"btn info\">Submit</button> </div> </div> </form> </div> </div> </div> </div> </div> "
   );
 
 

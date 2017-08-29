@@ -1,5 +1,5 @@
-open311-api(WIP)
-================
+open311-api
+===========
 
 [![Build Status](https://travis-ci.org/CodeTanzania/open311-api.svg?branch=develop)](https://travis-ci.org/CodeTanzania/open311-api)
 [![Dependencies Status](https://david-dm.org/CodeTanzania/open311-api/status.svg?style=flat-square)](https://david-dm.org/CodeTanzania/open311-api)
@@ -20,22 +20,6 @@ open311-api is partial implementation of [open311 GeoReport v2](http://wiki.open
 - NodeJS 7.2.1+
 - MongoDB 3.4.1+
 - Redis Server 3.2.6+
-
-## TODO
-- [ ] ensure default priority
-- [ ] improve developer doc
-- [ ] improve api doc
-- [ ] add sla per service per area
-- [ ] add a flag to make a service request under a specified service to be public
-- [ ] add a flag to make a service request public visible
-- [ ] on service request get neaby area and add it to request if request has no area
-- [ ] set jurisdiction based on service request (long, lat)
-- [ ] improve routers and controller test coverage
-
-### Open311
-- [ ] Review compliance
-- [ ] Add filtering capability as per 
-
 
 
 ## Testing
@@ -61,12 +45,6 @@ $ npm test
 - [create-an-auto-incrementing-field](https://docs.mongodb.com/v3.0/tutorial/create-an-auto-incrementing-field/)
 - [http://thecodebarbarian.com/a-nodejs-perspective-on-mongodb-34-facet](http://thecodebarbarian.com/a-nodejs-perspective-on-mongodb-34-facet)
 
-```js
-$project: [
-              { service: '$_id', color: '$color', count: '$count' },
-              { _id: 0, service: 1, color: 1, count: 1 }
-            ]
-```
 
 ## Contribute
 
