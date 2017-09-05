@@ -307,8 +307,13 @@ module.exports = {
    * @param  {HttpResponse} response http response
    */
   summaries: function (request, response) {
+    //TODO fix jurisdiction criteria filter
+    const criteria = _.merge({}, _.get(request, 'mquery.query', {}));
+
+    delete request.mquery.query.jurisdiction;
+
     ServiceRequest
-      .summary(function (error, summaries) {
+      .summary(criteria, function (error, summaries) {
         if (error) {
           summaries = {};
         }

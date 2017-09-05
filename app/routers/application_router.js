@@ -130,9 +130,10 @@ router.get('/overviews', function (request, response, next) {
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
-router.get('/summaries', jwtAuth, function (request, response, next) {
-  controller.summaries(request, response, next);
-});
+router.get('/summaries', jwtAuth, jurisdiction,
+  function (request, response, next) {
+    controller.summaries(request, response, next);
+  });
 
 
 /**
