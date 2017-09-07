@@ -72,6 +72,7 @@ exports.sms = function (message, done) {
 
   //obtain sms configuration
   const options = config.get('infobip');
+  infobip.options = options;
   const shouldSendSynchronously = options.sync;
 
 
