@@ -3,8 +3,8 @@
 /**
  * @module Party
  * @name Party
- * @description manage entity interaction (i.e Internal Worker, Customer 
- *              and Civilian) and their relaionship
+ * @description manage entity interaction (i.e Internal Worker, Customer
+ *              and Civilian) and their relationship
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
  * @version 0.1.0
@@ -36,7 +36,7 @@ const RELATION_TYPE_APP = 'App';
 const PartyRelation = new Schema({
   /**
    * @name name
-   * @description name of relationship established 
+   * @description name of relationship established
    *              e.g Customer, Employee, Civilian etc
    * @type {Object}
    * @private
@@ -87,7 +87,7 @@ const PartySchema = new Schema({
 
   /**
    * @name jurisdiction
-   * @description A jurisdiction underwhich a party serving
+   * @description A jurisdiction under which a party serving
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -106,9 +106,9 @@ const PartySchema = new Schema({
   /**
    * @name name
    * @description human readable name used to identify a party
-   * 
+   *
    *              It may be a person full name, company name etc.
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -146,7 +146,7 @@ const PartySchema = new Schema({
    *              It is currently provided by irina module
    *              @see {@link https://github.com/lykmapipo/irina}
    *              //TODO handle alternate email
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -157,10 +157,10 @@ const PartySchema = new Schema({
 
   /**
    * @name phone
-   * @description valid existing phone number that can be used to contact 
+   * @description valid existing phone number that can be used to contact
    *              a party directly
    *              //TODO handle alternate phone
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -179,7 +179,7 @@ const PartySchema = new Schema({
    * @name sipNumber
    * @description valid soft phone number for the party. Mainly used for
    *              parties that operate a call center
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -197,10 +197,10 @@ const PartySchema = new Schema({
   /**
    * @name roles
    * @description roles that played by this party
-   * 
+   *
    *              Mainly used internal in an organization that use open311 to
    *              differentiate different roles played by employees and others
-   *              
+   *
    * @type {Array}
    * @private
    * @since 0.1.0
@@ -246,7 +246,10 @@ const PartySchema = new Schema({
     trim: true
   },
 
-}, { timestamps: true, emitIndexErrors: true });
+}, {
+  timestamps: true,
+  emitIndexErrors: true
+});
 
 
 //-----------------------------------------------------------------------------
