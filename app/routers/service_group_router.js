@@ -2,9 +2,12 @@
 
 
 /**
- * ServiceGroup Router
- *
- * @description :: Server-side router for managing ServiceGroup.
+ * @apiDefine ServiceGroup ServiceGroup
+ * Provide ability to group service offered by a jurisdiction(s)
+ * into meaningful categories e.g Sanitation
+ * It provides a way to group several service request types (issues)
+ * under meaningful categories such as Sanitation, Commercial, Billing,
+ * Non-Commercial etc.
  */
 
 
@@ -22,10 +25,142 @@ const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
 router.all('/servicegroups*', jwtAuth);
 
 /**
- * Handle Http GET on /servicegroups
- * @description display a list of all servicegroups
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+ * @api {get} /servicegroups Get Service Groups
+ * @apiGroup ServiceGroup
+ * @apiName GetServiceGroups
+ * @apiVersion 0.1.0
+ *
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ *
+ *
+ * @apiExample Example Usage
+ * curl -i http://dawasco.herokuapp.com/servicegroups
+ *
+ *
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service group.
+ *        Used in deriving code of the service request(issue)
+ *        and internal jurisdiction usage i.e act as an issue identifier.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiSuccess {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided
+ *        it will randomly generated, but it is not guarantee its visual appeal.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Group Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service group creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service group last updated date
+ * @apiSuccess {String}       uri
+ *        Service group URI
+ * @apiSuccess {Number}       pages
+ *        Number of results pages
+ * @apiSuccess {Number}       count
+ *        Number of Service groups results  in the current json response
+ *
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *    HTTP/1.1 200 OK
+ *    {
+ *     "servicegroups": [
+ *       {
+ *           "jurisdiction": {
+ *               "code": "H",
+ *               "name": "HQ",
+ *               "phone": "255714999888",
+ *               "email": "N/A",
+ *               "domain": "dawasco.org",
+ *               "_id": "592029e5e8dd8e00048c184b",
+ *               "longitude": 0,
+ *               "latitude": 0,
+ *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e5e8dd8e00048c184b"
+ *           },
+ *           "code": "C",
+ *           "name": "Commercial",
+ *           "description": "Commercial related service request(issue)",
+ *           "color": "#06C947",
+ *           "_id": "592029e6e8dd8e00048c184c",
+ *           "createdAt": "2017-05-20T11:35:02.033Z",
+ *           "updatedAt": "2017-05-20T11:35:02.033Z",
+ *           "uri": "https://dawasco.herokuapp.com/servicegroups/592029e6e8dd8e00048c184c"
+ *       },
+ *       {
+ *           "jurisdiction": {
+ *               "code": "H",
+ *               "name": "HQ",
+ *               "phone": "255714999888",
+ *               "email": "N/A",
+ *               "domain": "dawasco.org",
+ *               "_id": "592029e5e8dd8e00048c184b",
+ *               "longitude": 0,
+ *               "latitude": 0,
+ *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e5e8dd8e00048c184b"
+ *           },
+ *           "code": "N",
+ *           "name": "Non Commercial",
+ *           "description": "Non commercial related service request(issue)",
+ *           "color": "#960F1E",
+ *           "_id": "592029e6e8dd8e00048c184d",
+ *           "createdAt": "2017-05-20T11:35:02.054Z",
+ *           "updatedAt": "2017-05-20T11:35:02.054Z",
+ *           "uri": "https://dawasco.herokuapp.com/servicegroups/592029e6e8dd8e00048c184d"
+ *       },
+ *       {
+ *           "jurisdiction": {
+ *               "code": "H",
+ *               "name": "HQ",
+ *               "phone": "255714999888",
+ *               "email": "N/A",
+ *               "domain": "dawasco.org",
+ *               "_id": "592029e5e8dd8e00048c184b",
+ *               "longitude": 0,
+ *               "latitude": 0,
+ *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e5e8dd8e00048c184b"
+ *           },
+ *           "code": "O",
+ *           "name": "Other",
+ *           "description": "Other related service request(issue)",
+ *           "color": "#C8B1EF",
+ *           "_id": "592029e6e8dd8e00048c184e",
+ *           "createdAt": "2017-05-20T11:35:02.066Z",
+ *           "updatedAt": "2017-05-20T11:35:02.066Z",
+ *           "uri": "https://dawasco.herokuapp.com/servicegroups/592029e6e8dd8e00048c184e"
+ *       }
+ *    ],
+ *    "pages": 1,
+ *    "count": 3
+ *   }
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
+ *
  */
 router.get('/servicegroups', function (request, response, next) {
   controller.index(request, response, next);
@@ -33,10 +168,106 @@ router.get('/servicegroups', function (request, response, next) {
 
 
 /**
- * Handle Http POST on /servicegroups
- * @description create a new servicegroup
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+ * @api {post} /servicegroups Create Service Group
+ * @apiGroup ServiceGroup
+ * @apiName PostServiceGroup
+ * @apiVersion 0.1.0
+ *
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Sent content type i.e application/json
+ *
+ *
+ * @apiParam {ObjectId}     jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiParam {String}       code
+ *        A unique identifier of the service group.Used in deriving code of
+ *        the service request(issue) and internal jurisdiction usage i.e act
+ *        as an issue identifier.
+ * @apiParam {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiParam {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiParam {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided it
+ *        will randomly generated, but it is not guarantee its visual appeal.
+ *
+ *
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service group.
+ *        Used in deriving code of the service request(issue)
+ *        and internal jurisdiction usage i.e act as an issue identifier.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiSuccess {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided
+ *        it will randomly generated, but it is not guarantee its visual appeal.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Group Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service group creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service group last updated date
+ * @apiSuccess {String}       uri
+ *        Service group URI
+ *
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *    HTTP/1.1 201 Created
+ *    {
+ *           "jurisdiction": {
+ *               "code": "H",
+ *               "name": "HQ",
+ *               "phone": "255714999888",
+ *               "email": "N/A",
+ *               "domain": "dawasco.org",
+ *               "_id": "592029e5e8dd8e00048c184b",
+ *               "longitude": 0,
+ *               "latitude": 0,
+ *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e5e8dd8e00048c184b"
+ *           },
+ *           "code": "C",
+ *           "name": "Commercial",
+ *           "description": "Commercial related service request(issue)",
+ *           "color": "#06C947",
+ *           "_id": "592029e6e8dd8e00048c184c",
+ *           "createdAt": "2017-05-20T11:35:02.033Z",
+ *           "updatedAt": "2017-05-20T11:35:02.033Z",
+ *           "uri": "https://dawasco.herokuapp.com/servicegroups/592029e6e8dd8e00048c184c"
+ *    }
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError  JWTExpired                   Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.post('/servicegroups', function (request, response, next) {
   controller.create(request, response, next);
@@ -44,10 +275,89 @@ router.post('/servicegroups', function (request, response, next) {
 
 
 /**
- * Handle Http GET on /servicegroups/:id
- * @description display a specific servicegroup
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+ * @api {get} /servicegroups/:id Get Service Group
+ * @apiGroup ServiceGroup
+ * @apiName GetServiceGroup
+ * @apiVersion 0.1.0
+ *
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+
+ *
+ * @apiParam {ObjectId}       id
+ *        Unique Service Group  Id.
+ *
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service group.
+ *        Used in deriving code of the service request(issue)
+ *        and internal jurisdiction usage i.e act as an issue identifier.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiSuccess {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided
+ *        it will randomly generated, but it is not guarantee its visual appeal.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Group Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service group creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service group last updated date
+ * @apiSuccess {String}       uri
+ *        Service group URI
+ *
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *    HTTP/1.1 200 OK
+ *    {
+ *           "jurisdiction": {
+ *               "code": "H",
+ *               "name": "HQ",
+ *               "phone": "255714999888",
+ *               "email": "N/A",
+ *               "domain": "dawasco.org",
+ *               "_id": "592029e5e8dd8e00048c184b",
+ *               "longitude": 0,
+ *               "latitude": 0,
+ *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e5e8dd8e00048c184b"
+ *           },
+ *           "code": "C",
+ *           "name": "Commercial",
+ *           "description": "Commercial related service request(issue)",
+ *           "color": "#06C947",
+ *           "_id": "592029e6e8dd8e00048c184c",
+ *           "createdAt": "2017-05-20T11:35:02.033Z",
+ *           "updatedAt": "2017-05-20T11:35:02.033Z",
+ *           "uri": "https://dawasco.herokuapp.com/servicegroups/592029e6e8dd8e00048c184c"
+ *    }
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError  JWTExpired                   Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.get('/servicegroups/:id', function (request, response, next) {
   controller.show(request, response, next);
@@ -55,10 +365,105 @@ router.get('/servicegroups/:id', function (request, response, next) {
 
 
 /**
- * Handle Http PUT on /servicegroups/:id
- * @description update a specific servicegroup
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+ * @api {put} /servicegroups/:id Update(PUT) Service Group
+ * @apiGroup ServiceGroup
+ * @apiName PutServiceGroup
+ * @apiVersion 0.1.0
+ *
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Sent content type i.e application/json
+ *
+ *
+ * @apiParam {ObjectId}     jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiParam {String}       code
+ *        A unique identifier of the service group.Used in deriving code of
+ *        the service request(issue) and internal jurisdiction usage i.e act
+ *        as an issue identifier.
+ * @apiParam {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiParam {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiParam {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided it
+ *        will randomly generated, but it is not guarantee its visual appeal.
+ *
+ *
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service group.
+ *        Used in deriving code of the service request(issue)
+ *        and internal jurisdiction usage i.e act as an issue identifier.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiSuccess {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided
+ *        it will randomly generated, but it is not guarantee its visual appeal.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Group Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service group creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service group last updated date
+ * @apiSuccess {String}       uri
+ *        Service group URI
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *    HTTP/1.1 200 OK
+ *    {
+ *           "jurisdiction": {
+ *               "code": "H",
+ *               "name": "HQ",
+ *               "phone": "255714999888",
+ *               "email": "N/A",
+ *               "domain": "dawasco.org",
+ *               "_id": "592029e5e8dd8e00048c184b",
+ *               "longitude": 0,
+ *               "latitude": 0,
+ *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e5e8dd8e00048c184b"
+ *           },
+ *           "code": "C",
+ *           "name": "Commercial",
+ *           "description": "Commercial related service request(issue)",
+ *           "color": "#06C947",
+ *           "_id": "592029e6e8dd8e00048c184c",
+ *           "createdAt": "2017-05-20T11:35:02.033Z",
+ *           "updatedAt": "2017-05-20T11:35:02.033Z",
+ *           "uri": "https://dawasco.herokuapp.com/servicegroups/592029e6e8dd8e00048c184c"
+ *    }
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError  JWTExpired                   Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.put('/servicegroups/:id', function (request, response, next) {
   controller.update(request, response, next);
@@ -66,10 +471,106 @@ router.put('/servicegroups/:id', function (request, response, next) {
 
 
 /**
- * Handle Http PATCH on /servicegroups/:id
- * @description update a specific servicegroup
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+ * @api {patch} /servicegroups/:id Update(PATCH) Service Group
+ * @apiGroup ServiceGroup
+ * @apiName PatchServiceGroup
+ * @apiVersion 0.1.0
+ *
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ * @apiHeader {String}      Content-Type
+ *        Sent content type i.e application/json
+ *
+ *
+ * @apiParam {ObjectId}     jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiParam {String}       code
+ *        A unique identifier of the service group.Used in deriving code of
+ *        the service request(issue) and internal jurisdiction usage i.e act
+ *        as an issue identifier.
+ * @apiParam {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiParam {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiParam {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided it
+ *        will randomly generated, but it is not guarantee its visual appeal.
+ *
+ *
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service group.
+ *        Used in deriving code of the service request(issue)
+ *        and internal jurisdiction usage i.e act as an issue identifier.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiSuccess {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided
+ *        it will randomly generated, but it is not guarantee its visual appeal.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Group Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service group creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service group last updated date
+ * @apiSuccess {String}       uri
+ *        Service group URI
+ *
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *    HTTP/1.1 200 OK
+ *    {
+ *           "jurisdiction": {
+ *               "code": "H",
+ *               "name": "HQ",
+ *               "phone": "255714999888",
+ *               "email": "N/A",
+ *               "domain": "dawasco.org",
+ *               "_id": "592029e5e8dd8e00048c184b",
+ *               "longitude": 0,
+ *               "latitude": 0,
+ *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e5e8dd8e00048c184b"
+ *           },
+ *           "code": "C",
+ *           "name": "Commercial",
+ *           "description": "Commercial related service request(issue)",
+ *           "color": "#06C947",
+ *           "_id": "592029e6e8dd8e00048c184c",
+ *           "createdAt": "2017-05-20T11:35:02.033Z",
+ *           "updatedAt": "2017-05-20T11:35:02.033Z",
+ *           "uri": "https://dawasco.herokuapp.com/servicegroups/592029e6e8dd8e00048c184c"
+ *    }
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError  JWTExpired                   Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.patch('/servicegroups/:id', function (request, response, next) {
   controller.update(request, response, next);
@@ -77,10 +578,90 @@ router.patch('/servicegroups/:id', function (request, response, next) {
 
 
 /**
- * Handle Http DELETE on /servicegroups/:id
- * @description delete a specific servicegroup
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+ * @api {delete} /servicegroups/:id Delete Service Group
+ * @apiGroup ServiceGroup
+ * @apiName DeleteServiceGroup
+ * @apiVersion 0.1.0
+ *
+ * @apiHeader {String}      Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}      Authorization
+ *        Authorization token
+ *
+ * @apiParam {ObjectId}       id
+ *        Unique Service Group  Id.
+ *
+ *
+ * @apiSuccess {Object}       jurisdiction
+ *        A jurisdiction under which a service group is applicable.
+ *        If not available a service group is applicable to all  jurisdictions.
+ * @apiSuccess {String}       code
+ *        A unique identifier of the service group.
+ *        Used in deriving code of the service request(issue)
+ *        and internal jurisdiction usage i.e act as an issue identifier.
+ * @apiSuccess {String}       name
+ *        A unique human readable name of the service group e.g Sanitation
+ * @apiSuccess {String}       description
+ *        A detailed human readable explanation about the service group.
+ * @apiSuccess {String}       color
+ *        A color code(in hexadecimal format) eg. #363636 used to differentiate
+ *        a service group visually from other service group.  If not provided
+ *        it will randomly generated, but it is not guarantee its visual appeal.
+ * @apiSuccess {ObjectId}     _id
+ *        Unique Service Group Id
+ * @apiSuccess {Timestamp}    createdAt
+ *        Service group creation date
+ * @apiSuccess {Timestamp}    updatedAt
+ *        Service group last updated date
+ * @apiSuccess {String}       uri
+ *        Service group URI
+ *
+ *
+ * @apiSuccessExample {json} Success-Response:
+ *    HTTP/1.1 200 OK
+ *    {
+ *           "jurisdiction": {
+ *               "code": "H",
+ *               "name": "HQ",
+ *               "phone": "255714999888",
+ *               "email": "N/A",
+ *               "domain": "dawasco.org",
+ *               "_id": "592029e5e8dd8e00048c184b",
+ *               "longitude": 0,
+ *               "latitude": 0,
+ *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e5e8dd8e00048c184b"
+ *           },
+ *           "code": "C",
+ *           "name": "Commercial",
+ *           "description": "Commercial related service request(issue)",
+ *           "color": "#06C947",
+ *           "_id": "592029e6e8dd8e00048c184c",
+ *           "createdAt": "2017-05-20T11:35:02.033Z",
+ *           "updatedAt": "2017-05-20T11:35:02.033Z",
+ *           "uri": "https://dawasco.herokuapp.com/servicegroups/592029e6e8dd8e00048c184c"
+ *    }
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError  JWTExpired                   Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.delete('/servicegroups/:id', function (request, response, next) {
   controller.destroy(request, response, next);

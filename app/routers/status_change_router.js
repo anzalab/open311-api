@@ -1,12 +1,12 @@
 'use strict';
 
 
-/**
- * StatusChange Router
- *
- * @description :: Server-side router for managing StatusChange.
- */
 
+/**
+ * @apiDefine StatusChange StatusChange
+ * A record of a status change on a service request(issue)
+ * by a party.
+ */
 
 //dependencies
 const path = require('path');
@@ -21,66 +21,234 @@ const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
 //add specific middlewares to statuschanges router
 router.all('/statuschanges*', jwtAuth);
 
-/**
- * Handle Http GET on /statuschanges
- * @description display a list of all statuschanges
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+/*
+ * @api {get} /statuschanges Get Status Changes
+ * @apiGroup StatusChange
+ * @apiName GetStatusChanges
+ * @apiVersion 0.1.0
+ *
+ *
+ * @apiHeader {String}        Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}        Authorization
+ *        Authorization token
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.get('/statuschanges', function (request, response, next) {
   controller.index(request, response, next);
 });
 
 
-/**
- * Handle Http POST on /statuschanges
- * @description create a new statuschange
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+/*
+ * @api {post} /statuschanges Create Status Change
+ * @apiGroup StatusChange
+ * @apiName PostStatusChange
+ * @apiVersion 0.1.0
+ *
+ *
+ * @apiHeader {String}        Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}        Authorization
+ *        Authorization token
+ * @apiHeader {String}        Content-Type
+ *        Sent content type
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.post('/statuschanges', function (request, response, next) {
   controller.create(request, response, next);
 });
 
 
-/**
- * Handle Http GET on /statuschanges/:id
- * @description display a specific statuschange
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+/*
+ * @api {get} /statuschanges/:id Get Status Change
+ * @apiGroup StatusChange
+ * @apiName GetStatusChange
+ * @apiVersion 0.1.0
+ *
+ *
+ * @apiHeader {String}        Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}        Authorization
+ *        Authorization token
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.get('/statuschanges/:id', function (request, response, next) {
   controller.show(request, response, next);
 });
 
 
-/**
- * Handle Http PUT on /statuschanges/:id
- * @description update a specific statuschange
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+/*
+ * @api {put} /statuschanges/:id Update(PUT) Status Change
+ * @apiGroup StatusChange
+ * @apiName PutStatusChange
+ * @apiVersion 0.1.0
+ *
+ *
+ * @apiHeader {String}        Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}        Authorization
+ *        Authorization token
+ * @apiHeader {String}        Content-Type
+ *        Sent content type
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.put('/statuschanges/:id', function (request, response, next) {
   controller.update(request, response, next);
 });
 
 
-/**
- * Handle Http PATCH on /statuschanges/:id
- * @description update a specific statuschange
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+/*
+ * @api {patch} /statuschanges/:id Update(PATCH) Status Change
+ * @apiGroup StatusChange
+ * @apiName PatchStatusChange
+ * @apiVersion 0.1.0
+ *
+ *
+ * @apiHeader {String}        Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}        Authorization
+ *        Authorization token
+ * @apiHeader {String}        Content-Type
+ *        Sent content type
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.patch('/statuschanges/:id', function (request, response, next) {
   controller.update(request, response, next);
 });
 
 
-/**
- * Handle Http DELETE on /statuschanges/:id
- * @description delete a specific statuschange
- * @param  {HttpRequest} request  a http request
- * @param  {HttpResponse} response a http response
+/*
+ * @api {delete} /statuschanges/:id  Delete Status Change
+ * @apiGroup StatusChange
+ * @apiName DeleteStatusChange
+ * @apiVersion 0.1.0
+ *
+ *
+ * @apiHeader {String}        Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}        Authorization
+ *        Authorization token
+ *
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
  */
 router.delete('/statuschanges/:id', function (request, response, next) {
   controller.destroy(request, response, next);

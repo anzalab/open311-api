@@ -18,10 +18,10 @@ const Schema = mongoose.Schema;
 
 /**
  * @description enforce setting value as a string
- * @param {String} value 
+ * @param {String} value
  */
 function set(value) {
-  //chech if value is number
+  //check if value is number
   const isNumber = !!value && !isNaN(value);
 
   //convert value to string
@@ -39,7 +39,7 @@ function set(value) {
 const SettingSchema = new Schema({
   /**
    * @name key
-   * @description name of the setting 
+   * @description name of the setting
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -85,7 +85,10 @@ const SettingSchema = new Schema({
     searchable: true
   }
 
-}, { timestamps: true, emitIndexErrors: true });
+}, {
+  timestamps: true,
+  emitIndexErrors: true
+});
 
 
 //-----------------------------------------------------------------------------

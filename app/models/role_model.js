@@ -4,11 +4,11 @@
 /**
  * @module Role
  * @name Role
- * @description manage parties role(s). 
- *              
+ * @description manage parties role(s).
+ *
  *              It is a collection of permission(s) that are applicable to
  *              to a specific party(ies).
- *              
+ *
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
  * @version 0.1.0
@@ -51,7 +51,7 @@ const RoleSchema = new Schema({
 
   /**
    * @name description
-   * @description human readable additional explanation about this role 
+   * @description human readable additional explanation about this role
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -80,7 +80,10 @@ const RoleSchema = new Schema({
     }
   }]
 
-}, { timestamps: true, emitIndexErrors: true });
+}, {
+  timestamps: true,
+  emitIndexErrors: true
+});
 
 
 //-----------------------------------------------------------------------------
@@ -107,7 +110,8 @@ RoleSchema.virtual('_assigned').get(function () {
 });
 
 
-/* @name _permissions
+/**
+ * @name _permissions
  * @description obtain role permissions as concatenated string
  * @since 0.1.0
  * @version 0.1.0
