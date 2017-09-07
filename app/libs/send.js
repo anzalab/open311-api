@@ -91,7 +91,7 @@ exports.sms = function (message, done) {
 
   //queue message in production
   //or if is asynchronous send
-  if (isProduction || !shouldSendSynchronously) {
+  if (isProduction && !shouldSendSynchronously) {
     infobip.queue(message);
     done(null, message); //TODO listen to queue errors and notify
   }
