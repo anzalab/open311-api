@@ -92,7 +92,7 @@ mongoose.plugin(mongooseReload);
 mongoose.plugin(mongooseSearchable);
 
 //require external models
-require('open311-messages')(); //TODO pass configurations
+require('open311-messages')(conf.get('infobip')); //TODO pass configurations
 
 // load all models recursively
 require('require-all')({
