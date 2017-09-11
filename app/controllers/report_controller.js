@@ -27,15 +27,6 @@ module.exports = {
     //TODO support mongodb aggregation pipelines from request(express-mquery)
     const criteria = _.merge({}, (request.mquery || {}).query);
 
-    if (criteria.createdAt && criteria.createdAt.$gte) {
-      if (criteria.createdAt.$gte) {
-        criteria.createdAt.$gte = new Date(criteria.createdAt.$gte);
-      }
-      if (criteria.createdAt.$lte) {
-        criteria.createdAt.$lte = new Date(criteria.createdAt.$lte);
-      }
-    }
-
     ServiceRequest
       .standings(criteria, function (error, standings) {
         if (error) {

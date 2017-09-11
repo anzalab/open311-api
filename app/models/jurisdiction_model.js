@@ -22,6 +22,7 @@
 //TODO add service inverse relation mapping & use restrictive population
 //TODO add service group inverse relation mapping & use restrictive population
 //TODO add physical address
+//TODO update jurisdiction ui to support color updates
 
 
 //dependencies
