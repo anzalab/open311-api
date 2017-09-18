@@ -16,6 +16,8 @@ const controller =
 
 //enable token authentication
 const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
+const jurisdiction =
+  require(path.join(__dirname, '..', 'middlewares', 'jurisdiction'));
 
 //add specific middlewares to parties router
 router.all('/parties*', jwtAuth);
@@ -57,7 +59,7 @@ router.all('/parties*', jwtAuth);
  *      "error":{}
  *    }
  */
-router.get('/parties', function (request, response, next) {
+router.get('/parties', jurisdiction, function (request, response, next) {
   controller.index(request, response, next);
 });
 
