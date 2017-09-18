@@ -38,6 +38,7 @@ $ npm test
 ```
 
 ## References
+- [jsonapi](http://jsonapi.org/)
 - [2dsphere](https://docs.mongodb.com/manual/core/2dsphere/)
 - [geojson](https://docs.mongodb.com/manual/reference/geojson/)
 - [geojson-second-bite](http://www.macwright.org/2015/03/23/geojson-second-bite.html)
