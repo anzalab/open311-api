@@ -55,7 +55,8 @@ module.exports = exports = function open311(schema /*,options*/ ) {
 
     //The agency responsible for fulfilling or otherwise
     //addressing the service request.
-    as311.agency_responsible = '';
+    as311.agency_responsible =
+      (this.jurisdiction ? this.jurisdiction.name : '');
 
     // Information about the action expected to fulfill the request or
     // otherwise address the information reported.
@@ -70,7 +71,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
 
     //The date and time when the service request can be expected to be fulfilled.
     //This may be based on a service-specific service level agreement.
-    as311.expected_datetime = '';
+    as311.expected_datetime = this.expectedAt;
 
     //Human readable address or description of location.
     as311.address = this.address;
