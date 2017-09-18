@@ -37,6 +37,8 @@ const Send = require(path.join(__dirname, '..', 'libs', 'send'));
 
 //plugins
 const pluginsPath = path.join(__dirname, 'plugins');
+const notification =
+  require(path.join(pluginsPath, 'service_request_notifcation_plugin'));
 const aggregate =
   require(path.join(pluginsPath, 'service_request_aggregated_plugin'));
 const open311 =
@@ -718,6 +720,7 @@ ServiceRequestSchema.statics.CONTACT_METHODS = CONTACT_METHODS;
 //-----------------------------------------------------------------------------
 // ServiceRequestSchema Plugins
 //-----------------------------------------------------------------------------
+ServiceRequestSchema.plugin(notification);
 ServiceRequestSchema.plugin(aggregate);
 ServiceRequestSchema.plugin(open311);
 
