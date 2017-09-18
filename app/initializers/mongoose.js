@@ -123,7 +123,7 @@ mongoose.connect(uristring, mongoOptions, function () {
         //seed default user(s)
         require(path.join(__dirname, '..', '..', 'seeds'))
           (function (error /*, party*/ ) {
-            if (error && error.code !== 11000) {
+            if (1) {
               throw error;
             }
           });

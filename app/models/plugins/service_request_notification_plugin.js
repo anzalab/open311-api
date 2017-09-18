@@ -30,7 +30,7 @@ const config = require('config');
 
 
 //libs
-const Send = require(path.join(__dirname, '..', 'libs', 'send'));
+const Send = require(path.join(__dirname, '..', '..', 'libs', 'send'));
 
 
 module.exports = exports = function notification(schema /*, options*/ ) {
