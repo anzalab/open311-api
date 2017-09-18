@@ -38,7 +38,7 @@ const Send = require(path.join(__dirname, '..', 'libs', 'send'));
 //plugins
 const pluginsPath = path.join(__dirname, 'plugins');
 const notification =
-  require(path.join(pluginsPath, 'service_request_notifcation_plugin'));
+  require(path.join(pluginsPath, 'service_request_notification_plugin'));
 const aggregate =
   require(path.join(pluginsPath, 'service_request_aggregated_plugin'));
 const open311 =

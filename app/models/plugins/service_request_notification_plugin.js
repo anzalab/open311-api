@@ -24,7 +24,8 @@
 
 module.exports = exports = function notification(schema /*, options*/ ) {
 
-  //extend schema with sms fields
+  //extend schema with nitification fields
+
   schema.add({
     /**
      * @name wasOpenTicketSent
@@ -66,13 +67,20 @@ module.exports = exports = function notification(schema /*, options*/ ) {
    * @name restoreOpenTicket
    * @description restore open ticket state based on changed state of the
    *              opened service request
-   * @param  {Function} next a callback to invoke on success or failure
+   * @param  {Function} next next middleware
+   * @param  {Function} done a callback to invoke on success or failure
    * @private
    * @since 0.1.0
    * @version 0.1.0
    */
-  schema.pre('validate', true, function restoreOpenTicket(next) {
+  schema.pre('validate', true, function restoreOpenTicket(next, done) {
+
+    //kick next middleware in parallel
     next();
+
+    //finalize this middleware
+    done();
+
   });
 
 
@@ -80,13 +88,24 @@ module.exports = exports = function notification(schema /*, options*/ ) {
    * @name restoreResolveTicket
    * @description restore resolve ticket state based on changed state of the
    *              opened service request
-   * @param  {Function} next a callback to invoke on success or failure
+   * @param  {Function} next next middleware
+   * @param  {Function} done a callback to invoke on success or failure
    * @private
    * @since 0.1.0
    * @version 0.1.0
    */
-  schema.pre('validate', true, function restoreResolveTicket(next) {
+  schema.pre('validate', true, function restoreResolveTicket(next, done) {
+    //if re-opened void resolve ticket was sent
+    if (!this.resolvedAt) {
+      this.wasResolveTicketSent = false;
+    }
+
+    //kick next middleware in parallel
     next();
+
+    //finalize this middleware
+    done();
+
   });
 
 
@@ -102,8 +121,11 @@ module.exports = exports = function notification(schema /*, options*/ ) {
    * @since 0.1.0
    * @version 0.1.0
    */
-  schema.post('save', true, function sendOpenTicket(serviceRequest, next) {
+  schema.post('save', function sendOpenTicket(serviceRequest, next) {
+
+    //kick next middleware in parallel
     next();
+
   });
 
 
@@ -116,8 +138,11 @@ module.exports = exports = function notification(schema /*, options*/ ) {
    * @since 0.1.0
    * @version 0.1.0
    */
-  schema.post('save', true, function sendResolveTicket(serviceRequest, next) {
+  schema.post('save', function sendResolveTicket(serviceRequest, next) {
+
+    //kick next middleware in parallel
     next();
+
   });
 
 
