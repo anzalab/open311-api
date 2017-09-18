@@ -642,7 +642,6 @@ ServiceRequestSchema.post('save', function (serviceRequest, next) {
   const Message = mongoose.model('Message');
 
   //TODO notify customer details to update details based on the account id
-  //TODO send service request code to reporter(sms or email)
   //TODO send service request code to area(sms or email)
 
   //check if should sent ticket
@@ -650,13 +649,13 @@ ServiceRequestSchema.post('save', function (serviceRequest, next) {
     (serviceRequest && !serviceRequest.wasTicketSent) &&
     (serviceRequest.reporter && !_.isEmpty(serviceRequest.reporter.phone));
 
+  //TODO add support to send resolve sms
+
   //send ticket number to a reporter
   if (sendTicket) {
-    //TODO what about salutation to a reporter?
-    //TODO what about issue ticket number?
 
     //compile message to send to customer
-    const template = config.get('infobip').templates.ticket;
+    const template = config.get('infobip').templates.ticket.open;
     const body = parseTemplate(template, {
       ticket: serviceRequest.code,
       service: serviceRequest.service.name,

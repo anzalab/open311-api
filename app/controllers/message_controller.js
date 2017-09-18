@@ -60,7 +60,8 @@ module.exports = {
     //check for sms template to use
     if (message.template) {
       //compile message to send
-      const template = _.get(config.get('infobip').templates, message.template);
+      const template = _.get(config.get('infobip').templates, message.template) ||
+        _.get(config.get('infobip').templates.ticket, message.template);
       message.body = parseTemplate(template, message);
     }
 
@@ -85,7 +86,7 @@ module.exports = {
   show: function (request, response, next) {
     //lazy load Message model
     const Message = mongoose.model('Message');
-    
+
     Message
       .show(request, function (error, message) {
         if (error) {
