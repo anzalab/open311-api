@@ -659,7 +659,8 @@ ServiceRequestSchema.post('save', function (serviceRequest, next) {
     const template = config.get('infobip').templates.ticket;
     const body = parseTemplate(template, {
       ticket: serviceRequest.code,
-      service: serviceRequest.service.name
+      service: serviceRequest.service.name,
+      phone: config.get('phone')
     });
 
     //prepare sms message

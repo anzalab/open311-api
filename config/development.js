@@ -32,6 +32,13 @@ module.exports = {
 
 
   /**
+   * @description application phone number
+   * @type {String}
+   */
+  phone: '255714095061',
+
+
+  /**
    * @description mongoose database configurations
    * @type {Object}
    */
@@ -154,7 +161,7 @@ module.exports = {
     fake: false,
     sync: true,
     templates: {
-      ticket: 'Dear customer. Your ticket # is {ticket} for {service} you have reported. Thanks.'
+      ticket: 'Dear customer. Your ticket # is {ticket} for {service} you have reported. Call {phone} for more support. Thanks.'
     }
   }
 
