@@ -95,8 +95,9 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(cors());
 
 
-//use express respond
-app.use(respond());
+//use express respond to force 
+//response content type to json always
+app.use(respond({ types: 'json' }));
 
 
 //configure helmet
