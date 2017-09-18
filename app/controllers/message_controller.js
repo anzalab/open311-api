@@ -6,7 +6,6 @@ const path = require('path');
 const _ = require('lodash');
 const config = require('config');
 const mongoose = require('mongoose');
-const Message = mongoose.model('Message');
 const parseTemplate = require('string-template');
 
 //libs
@@ -27,6 +26,9 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   index: function (request, response, next) {
+    //lazy load Message model
+    const Message = mongoose.model('Message');
+
     Message
       .list(request, function (error, results) {
         if (error) {
@@ -47,6 +49,9 @@ module.exports = {
    */
   create: function (request, response, next) {
     //TODO handle message type i.e sms, email etc
+
+    //lazy load Message model
+    const Message = mongoose.model('Message');
 
     //send sms by default
     let message = request.body;
@@ -78,6 +83,9 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   show: function (request, response, next) {
+    //lazy load Message model
+    const Message = mongoose.model('Message');
+    
     Message
       .show(request, function (error, message) {
         if (error) {
