@@ -185,7 +185,7 @@ module.exports = {
     from: process.env.INFOBIP_FROM || 'DAWASCO',
     username: process.env.INFOBIP_USERNAME || 'DAWASCO311',
     password: process.env.INFOBIP_PASSWORD || 'DAWASCO311',
-    fake: true,
+    fake: false,
     sync: true,
     templates: {
       ticket: 'Dear customer. Your ticket # is {ticket} for {service} you have reported. Call {phone} for more support. Thanks.'
