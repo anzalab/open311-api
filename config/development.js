@@ -148,13 +148,13 @@ module.exports = {
    * @type {Object}
    */
   infobip: {
-    from: 'open311', //process.env.INFOBIP_FROM,
-    username: 'open311', //process.env.INFOBIP_USERNAME,
-    password: 'open311', //process.env.INFOBIP_PASSWORD,
-    fake: true,
+    from: process.env.INFOBIP_FROM || 'DAWASCO',
+    username: process.env.INFOBIP_USERNAME || 'DAWASCO311',
+    password: process.env.INFOBIP_PASSWORD || 'DAWASCO311',
+    fake: false,
     sync: true,
     templates: {
-      ticket: 'Your ticket # is {ticket} for {service} you have reported. Thanks.'
+      ticket: 'Dear customer. Your ticket # is {ticket} for {service} you have reported. Thanks.'
     }
   }
 
