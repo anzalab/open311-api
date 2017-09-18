@@ -553,6 +553,7 @@ ServiceRequestSchema.pre('validate', function (next) {
   }
 
   //ensure jurisdiction from service
+  console.log('sr jurisdiction', this.jurisdiction);
   const jurisdiction = _.get(this.service, 'jurisdiction');
   if (!this.jurisdiction && jurisdiction) {
     this.jurisdiction = jurisdiction;

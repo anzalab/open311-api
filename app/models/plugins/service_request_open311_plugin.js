@@ -143,6 +143,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
           //prepare service request
           serviceRequest = {
             service: service,
+            jurisdiction: serviceRequest.jurisdiction_id,
             reporter: {
               name: [serviceRequest.first_name,
                 serviceRequest.last_name
@@ -157,6 +158,8 @@ module.exports = exports = function open311(schema /*,options*/ ) {
             location: location ? location : undefined
           };
 
+          console.log('service request', serviceRequest);
+
           /*jshint camelcase:false*/
 
           ServiceRequest.create(serviceRequest, next);
@@ -166,7 +169,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
           /*jshint camelcase:false*/
           const open311Response = {
             service_request_id: serviceRequest.code,
-            service_notice: '' //TODO return acknowledge
+            service_notice: '', //TODO return acknowledge
             account_id: serviceRequest.reporter.account
           };
           /*jshint camelcase:true*/
