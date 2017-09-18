@@ -16,11 +16,22 @@
 
 //Note!: all plugin methods will be executed in parallel at their hook points
 
+//TODO notify customer details to update details based on the account id
+//TODO send service request ticket to area/agency/jurisdiction(sms or email)
+//TODO send service request ticket to assignee(sms or email)
+//TODO migrate to use queue than sync transport once everything works fine
+
 //global dependencies
-// const path = require('path');
+const path = require('path');
+const _ = require('lodash');
+const mongoose = require('mongoose');
+const parseTemplate = require('string-template');
+const config = require('config');
+
 
 //libs
-// const Send = require(path.join(__dirname, '..', 'libs', 'send'));
+const Send = require(path.join(__dirname, '..', 'libs', 'send'));
+
 
 module.exports = exports = function notification(schema /*, options*/ ) {
 
@@ -72,6 +83,7 @@ module.exports = exports = function notification(schema /*, options*/ ) {
    * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @type {Function}
    */
   schema.pre('validate', true, function restoreOpenTicket(next, done) {
 
@@ -93,6 +105,7 @@ module.exports = exports = function notification(schema /*, options*/ ) {
    * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @type {Function}
    */
   schema.pre('validate', true, function restoreResolveTicket(next, done) {
     //if re-opened void resolve ticket was sent
@@ -120,13 +133,64 @@ module.exports = exports = function notification(schema /*, options*/ ) {
    * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @type {Function}
    */
-  schema.post('save', function sendOpenTicket(serviceRequest, next) {
+  schema.post('save',
+    function sendOpenTicketToReporter(serviceRequest, next) {
 
-    //kick next middleware in parallel
-    next();
+      //refs
+      const Message = mongoose.model('Message');
 
-  });
+      //check if should send open ticket notification to reporter
+      const sendTicket =
+        (!serviceRequest.wasOpenTicketSent &&
+          !_.isEmpty(serviceRequest.reporter.phone));
+
+      //send open notification to a reporter
+      if (sendTicket) {
+
+        //compile message to send to reporter
+        const template = config.get('infobip').templates.ticket.open;
+        const body = parseTemplate(template, {
+          ticket: serviceRequest.code,
+          service: serviceRequest.service.name,
+          phone: config.get('phone')
+        });
+
+        //TODO send email
+        //TODO send push
+
+        //prepare sms message
+        const message = {
+          type: Message.TYPE_SMS,
+          to: serviceRequest.reporter.phone,
+          body: body
+        };
+
+        //send message
+        Send.sms(message, function (error /*, result*/ ) {
+
+          //error, back-off
+          if (error) {
+            next(error);
+          }
+
+          //set open ticket notification was sent
+          else {
+            serviceRequest.wasOpenTicketSent = true;
+            serviceRequest.save(next);
+          }
+
+        });
+
+      }
+
+      //continue without sending open ticket notification
+      else {
+        next();
+      }
+
+    });
 
 
   /**
@@ -137,13 +201,64 @@ module.exports = exports = function notification(schema /*, options*/ ) {
    * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @type {Function}
    */
-  schema.post('save', function sendResolveTicket(serviceRequest, next) {
+  schema.post('save',
+    function sendResolveTicketToReporter(serviceRequest, next) {
 
-    //kick next middleware in parallel
-    next();
+      //refs
+      const Message = mongoose.model('Message');
 
-  });
+      //check if should send resolve ticket to reporter
+      const sendTicket =
+        (serviceRequest.resolvedAt && !serviceRequest.wasResolveTicketSent &&
+          !_.isEmpty(serviceRequest.reporter.phone));
+
+      //send resolve nofitication to a reporter
+      if (sendTicket) {
+
+        //compile message to send to reporter
+        const template = config.get('infobip').templates.ticket.resolve;
+        const body = parseTemplate(template, {
+          ticket: serviceRequest.code,
+          service: serviceRequest.service.name,
+          phone: config.get('phone')
+        });
+
+        //TODO send email
+        //TODO send push
+
+        //prepare sms message
+        const message = {
+          type: Message.TYPE_SMS,
+          to: serviceRequest.reporter.phone,
+          body: body
+        };
+
+        //send message
+        Send.sms(message, function (error /*, result*/ ) {
+
+          //error, back-off
+          if (error) {
+            next(error);
+          }
+
+          //set resolve notification was sent
+          else {
+            serviceRequest.wasResolveTicketSent = true;
+            serviceRequest.save(next);
+          }
+
+        });
+
+      }
+
+      //continue without sending resolve notification
+      else {
+        next();
+      }
+
+    });
 
 
 };

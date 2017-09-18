@@ -165,7 +165,7 @@ module.exports = {
     templates: {
       ticket: {
         open: 'Dear customer. Your ticket # is {ticket} for {service} you have reported. Call {phone} for more support. Thanks.',
-        resolved: 'Dear customer. Your issue # - {ticket} has been resolved. Call {phone} for confirmation. Thanks.'
+        resolve: 'Dear customer. Your issue # - {ticket} has been resolved. Call {phone} for confirmation. Thanks.'
       },
       test: 'Test # is {template}'
     }

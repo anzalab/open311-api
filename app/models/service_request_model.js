@@ -27,12 +27,6 @@ const async = require('async');
 const moment = require('moment');
 const mongoose = require('mongoose');
 const parseMs = require('parse-ms');
-const parseTemplate = require('string-template');
-const config = require('config');
-
-
-//libs
-const Send = require(path.join(__dirname, '..', 'libs', 'send'));
 
 
 //plugins
@@ -451,21 +445,7 @@ const ServiceRequestSchema = new Schema({
    * @version 0.1.0
    * @see {@link http://www.thinkhdi.com/~/media/HDICorp/Files/Library-Archive/Insider%20Articles/mean-time-to-resolve.pdf}
    */
-  ttr: Duration,
-
-  /**
-   * @name wasTicketSent
-   * @description tells whether a ticket number was sent to a 
-   *              service request(issue) reporter using sms, email etc.
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  wasTicketSent: {
-    type: Boolean,
-    default: false
-  }
+  ttr: Duration
 
 }, { timestamps: true, emitIndexErrors: true });
 
@@ -630,67 +610,6 @@ ServiceRequestSchema.pre('validate', function (next) {
   }
 
   //continue
-  else {
-    next();
-  }
-
-});
-
-
-ServiceRequestSchema.post('save', function (serviceRequest, next) {
-  //TODO refactor to a static method
-
-  //refs
-  const Message = mongoose.model('Message');
-
-  //TODO notify customer details to update details based on the account id
-  //TODO send service request code to area(sms or email)
-
-  //check if should sent ticket
-  const sendTicket =
-    (serviceRequest && !serviceRequest.wasTicketSent) &&
-    (serviceRequest.reporter && !_.isEmpty(serviceRequest.reporter.phone));
-
-  //TODO add support to send resolve sms
-
-  //send ticket number to a reporter
-  if (sendTicket) {
-
-    //compile message to send to customer
-    const template = config.get('infobip').templates.ticket.open;
-    const body = parseTemplate(template, {
-      ticket: serviceRequest.code,
-      service: serviceRequest.service.name,
-      phone: config.get('phone')
-    });
-
-    //prepare sms message
-    const message = {
-      type: Message.TYPE_SMS,
-      to: serviceRequest.reporter.phone,
-      body: body //TODO salute reporter
-    };
-
-    //send message
-    Send.sms(message, function (error /*, result*/ ) {
-
-      //error, back-off
-      if (error) {
-        next(error);
-      }
-
-      //set ticketNumber was sent
-      else {
-        //set ticket number was sent
-        serviceRequest.wasTicketSent = true;
-        serviceRequest.save(next);
-      }
-
-    });
-
-  }
-
-  //continue without sending ticket number
   else {
     next();
   }
