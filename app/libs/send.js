@@ -21,7 +21,6 @@ const environment = require('execution-environment');
 const infobip = require('open311-infobip');
 const phone = require('phone');
 const mongoose = require('mongoose');
-const Message = mongoose.model('Message');
 
 
 /**
@@ -66,6 +65,9 @@ exports.formatPhoneNumberToE164 = function (phoneNumber, countryCode) {
  * @public
  */
 exports.sms = function (message, done) {
+
+  //obtain Message model
+  const Message = mongoose.model('Message');
 
   //obtain current execution environment
   const isProduction = environment.isProd();
