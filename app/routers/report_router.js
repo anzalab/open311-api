@@ -41,5 +41,16 @@ router.get('/reports/overviews', jwtAuth, function (request, response, next) {
 });
 
 
+/**
+ * Handle Http GET on /reports/exports
+ * @description obtain issue(service request) exports
+ * @param  {HttpRequest} request  a http request
+ * @param  {HttpResponse} response a http response
+ */
+router.get('/reports/exports', jwtAuth, function (request, response, next) {
+  controller.export(request, response, next);
+});
+
+
 //exports site router
 module.exports = router;

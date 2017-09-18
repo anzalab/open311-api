@@ -60,6 +60,7 @@
     "body-parser": "^1.18.1",
     "config": "^1.26.2",
     "cors": "^2.8.4",
+    "csv": "^1.1.1",
     "ejs": "^2.5.7",
     "email-templates": "^2.7.1",
     "execution-environment": "^1.1.0",

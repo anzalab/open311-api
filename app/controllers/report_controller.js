@@ -8,6 +8,7 @@
 
 //dependencies
 const _ = require('lodash');
+const csv = require('csv');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
 
@@ -61,6 +62,63 @@ module.exports = {
           response.ok(overviews);
         }
       });
+  },
+
+  /**
+   * @name exports
+   * @description handle exports request
+   * @param  {HttpRequest} request  http request
+   * @param  {HttpResponse} response http response
+   * @since 0.1.0
+   * @version 0.1.0
+   * @public
+   */
+  export: function (request, response /*, next*/ ) {
+
+    //prepare criteria
+    const criteria = _.merge({}, (request.mquery || {}).query);
+
+    //prepare query stream
+    const serviceRequests =
+      ServiceRequest.find(criteria).sort({ createdAt: -1 }).stream();
+
+    //prepare file name
+    const fileName = 'service_requests_exports_' + Date.now() + '.csv';
+
+    // Set approrpiate download headers
+    response.attachment(fileName);
+    response.status(200);
+
+
+    //stream service requests as csv
+    serviceRequests
+      .pipe(csv.transform(function (serviceRequest) {
+        //TODO
+        // Call Start Time Call End Time Call Duration(Minutes)  Call Duration(Seconds)  
+        // Time Taken(days)  Time Taken(hrs) Time Taken(mins)  Time Taken(secs)
+
+        return {
+          'Ticket Number': serviceRequest.code,
+          'Reported Date': serviceRequest.createdAt,
+          'Reporter Name': serviceRequest.reporter.name,
+          'Reporter Phone': serviceRequest.reporter.phone,
+          'Reporter Account': serviceRequest.reporter.account,
+          'Operator': serviceRequest.operator.name,
+          'Area': serviceRequest.jurisdiction.name,
+          'Service Group': serviceRequest.group.name,
+          'Service': serviceRequest.service.name,
+          'Description': serviceRequest.description,
+          'Address': serviceRequest.address,
+          'Status': serviceRequest.status.name,
+          'Priority': serviceRequest.priority.name,
+          'Assignee': _.get(serviceRequest, 'assignee.name', ''),
+          'Resolved Date': serviceRequest.resolvedAt
+        };
+
+      }))
+      .pipe(csv.stringify({ header: true }))
+      .pipe(response);
+
   }
 
 };
