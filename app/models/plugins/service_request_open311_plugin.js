@@ -148,7 +148,8 @@ module.exports = exports = function open311(schema /*,options*/ ) {
                 serviceRequest.last_name
               ].join(''),
               phone: serviceRequest.phone,
-              email: serviceRequest.email
+              email: serviceRequest.email,
+              account: serviceRequest.account_id
             },
             description: serviceRequest.description,
             address: serviceRequest.address_string,
@@ -166,6 +167,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
           const open311Response = {
             service_request_id: serviceRequest.code,
             service_notice: '' //TODO return acknowledge
+            account_id: serviceRequest.reporter.account
           };
           /*jshint camelcase:true*/
           next(null, [open311Response], serviceRequest);

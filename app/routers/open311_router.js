@@ -67,7 +67,7 @@ router.get('/open311/requests\.:ext?', function (request, response, next) {
 
 
 /**
- * Handle Http GET on /requests/:id
+ * Handle Http GET on /requests/:id.json
  * @description display a specific service request in open 311 compliant format
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
