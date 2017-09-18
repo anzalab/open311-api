@@ -55,7 +55,8 @@ module.exports = exports = function open311(schema /*,options*/ ) {
 
     //The agency responsible for fulfilling or otherwise
     //addressing the service request.
-    as311.agency_responsible = '';
+    as311.agency_responsible =
+      (this.jurisdiction ? this.jurisdiction.name : '');
 
     // Information about the action expected to fulfill the request or
     // otherwise address the information reported.
@@ -70,7 +71,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
 
     //The date and time when the service request can be expected to be fulfilled.
     //This may be based on a service-specific service level agreement.
-    as311.expected_datetime = '';
+    as311.expected_datetime = this.expectedAt;
 
     //Human readable address or description of location.
     as311.address = this.address;
@@ -142,18 +143,22 @@ module.exports = exports = function open311(schema /*,options*/ ) {
           //prepare service request
           serviceRequest = {
             service: service,
+            jurisdiction: serviceRequest.jurisdiction_id,
             reporter: {
               name: [serviceRequest.first_name,
                 serviceRequest.last_name
               ].join(''),
               phone: serviceRequest.phone,
-              email: serviceRequest.email
+              email: serviceRequest.email,
+              account: serviceRequest.account_id
             },
             description: serviceRequest.description,
             address: serviceRequest.address_string,
             method: CONTACT_METHOD_MOBILE_APP,
             location: location ? location : undefined
           };
+
+          console.log('service request', serviceRequest);
 
           /*jshint camelcase:false*/
 
@@ -164,7 +169,8 @@ module.exports = exports = function open311(schema /*,options*/ ) {
           /*jshint camelcase:false*/
           const open311Response = {
             service_request_id: serviceRequest.code,
-            service_notice: '' //TODO return acknowledge
+            service_notice: '', //TODO return acknowledge
+            account_id: serviceRequest.reporter.account
           };
           /*jshint camelcase:true*/
           next(null, [open311Response], serviceRequest);

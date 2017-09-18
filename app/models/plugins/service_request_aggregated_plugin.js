@@ -29,9 +29,13 @@ module.exports = exports = function aggregated(schema /*, options*/ ) {
     //initialize service request aggregate query
     let aggregate = this.aggregate();
 
+
     //pass match criteria
-    //TODO improve with use of other criteria/stages
     if (criteria) {
+      //cast criteria to actual types
+      criteria = this.where(criteria).cast(this);
+
+      //pass criteria to match aggregation stage
       aggregate.match(criteria);
     }
 

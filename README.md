@@ -38,6 +38,9 @@ $ npm test
 ```
 
 ## References
+- [GeoReport_v2](http://wiki.open311.org/GeoReport_v2/)
+- [jsonapi](http://jsonapi.org/)
+- [Oauth2](https://oauth.net/2/)
 - [2dsphere](https://docs.mongodb.com/manual/core/2dsphere/)
 - [geojson](https://docs.mongodb.com/manual/reference/geojson/)
 - [geojson-second-bite](http://www.macwright.org/2015/03/23/geojson-second-bite.html)

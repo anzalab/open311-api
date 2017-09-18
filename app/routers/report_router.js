@@ -21,12 +21,23 @@ const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
 
 /**
  * Handle Http GET on /reports/standings
- * @description check client standings
+ * @description obtain issue(service request) standings
  * @param  {HttpRequest} request  a http request
  * @param  {HttpResponse} response a http response
  */
 router.get('/reports/standings', jwtAuth, function (request, response, next) {
   controller.standings(request, response, next);
+});
+
+
+/**
+ * Handle Http GET on /reports/overviews
+ * @description obtain issue(service request) overviews
+ * @param  {HttpRequest} request  a http request
+ * @param  {HttpResponse} response a http response
+ */
+router.get('/reports/overviews', jwtAuth, function (request, response, next) {
+  controller.overviews(request, response, next);
 });
 
 
