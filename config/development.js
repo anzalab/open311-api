@@ -36,7 +36,7 @@ module.exports = {
    * @type {Object}
    */
   mongoose: {
-    database: 'open311',
+    database: 'open311-dev',
     host: '127.0.0.1',
     user: '',
     password: '',
