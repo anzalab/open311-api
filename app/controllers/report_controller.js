@@ -9,6 +9,7 @@
 //dependencies
 const _ = require('lodash');
 const csv = require('csv');
+const moment = require('moment');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
 
@@ -78,9 +79,9 @@ module.exports = {
     //prepare criteria
     const criteria = _.merge({}, (request.mquery || {}).query);
 
-    //prepare query stream
+    //prepare query cursor/stream
     const serviceRequests =
-      ServiceRequest.find(criteria).sort({ createdAt: -1 }).stream();
+      ServiceRequest.find(criteria).sort({ createdAt: -1 }).cursor();
 
     //prepare file name
     const fileName = 'service_requests_exports_' + Date.now() + '.csv';
@@ -96,10 +97,9 @@ module.exports = {
         //TODO
         // Call Start Time Call End Time Call Duration(Minutes)  Call Duration(Seconds)  
         // Time Taken(days)  Time Taken(hrs) Time Taken(mins)  Time Taken(secs)
-
         return {
           'Ticket Number': serviceRequest.code,
-          'Reported Date': serviceRequest.createdAt,
+          'Reported Date': moment(serviceRequest.createdAt).toISOString(),
           'Reporter Name': serviceRequest.reporter.name,
           'Reporter Phone': serviceRequest.reporter.phone,
           'Reporter Account': serviceRequest.reporter.account,
@@ -112,7 +112,8 @@ module.exports = {
           'Status': serviceRequest.status.name,
           'Priority': serviceRequest.priority.name,
           'Assignee': _.get(serviceRequest, 'assignee.name', ''),
-          'Resolved Date': serviceRequest.resolvedAt
+          'Resolved Date': serviceRequest.resolvedAt ? moment(
+            serviceRequest.resolvedAt).toISOString() : ''
         };
 
       }))
