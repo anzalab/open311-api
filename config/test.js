@@ -163,7 +163,10 @@ module.exports = {
     fake: true,
     sync: true,
     templates: {
-      ticket: 'Dear customer. Your ticket # is {ticket} for {service} you have reported. Call {phone} for more support. Thanks.',
+      ticket: {
+        open: 'Dear customer. Your ticket # is {ticket} for {service} you have reported. Call {phone} for more support. Thanks.',
+        resolve: 'Dear customer. Your issue # - {ticket} has been resolved. Call {phone} for confirmation. Thanks.'
+      },
       test: 'Test # is {template}'
     }
   }

@@ -67,11 +67,11 @@ describe('Message Router', function () {
 
     });
 
-  it.only(
+  it(
     'should handle HTTP POST on /messages with specific template',
     function (done) {
 
-      message = {
+      let message = {
         type: Message.TYPE_SMS,
         to: '0714066066',
         template: 'test'
@@ -113,7 +113,6 @@ describe('Message Router', function () {
   it(
     'should handle HTTP GET on /messages/:id',
     function (done) {
-
       request(app)
         .get('/messages/' + message._id)
         .set('Accept', 'application/json')
@@ -122,6 +121,7 @@ describe('Message Router', function () {
         .expect('Content-Type', /json/)
         .end(function (error, response) {
 
+          console.log(error);
           expect(error).to.not.exist;
           expect(response).to.exist;
 
