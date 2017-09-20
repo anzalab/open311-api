@@ -75,6 +75,7 @@ module.exports = {
    * @public
    */
   export: function (request, response /*, next*/ ) {
+    //TODO implement plugin for other models(schemas)
 
     //prepare criteria
     const criteria = _.merge({}, (request.mquery || {}).query);
