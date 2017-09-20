@@ -9,6 +9,7 @@ before_script:
   - sudo apt-get install -y mongodb-org
   - sleep 15
   - sudo service mongodb start
+  - until nc -z localhost 27017; do echo Waiting for MongoDB; sleep 1; done
   - mongo --version
   - npm install -g grunt-cli
   - redis-cli config set notify-keyspace-events Ex
