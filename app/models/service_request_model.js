@@ -530,7 +530,9 @@ ServiceRequestSchema.pre('validate', function (next) {
 
   //compute time to resolve (ttr) in milliseconds
   if (this.resolvedAt) {
-    const ttr = this.resolvedAt.getTime() - this.createdAt.getTime();
+    //always ensure positive time diff
+    let ttr = this.resolvedAt.getTime() - this.createdAt.getTime();
+    ttr = ttr > 0 ? ttr : -(ttr);
     this.ttr = { milliseconds: ttr };
   }
 

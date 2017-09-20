@@ -200,7 +200,7 @@ describe('ServiceRequest', function () {
           expect(created.call.duration.human).to.exist;
 
           //assert ticket sending
-          expect(created.wasTicketSent).to.be.true;
+          expect(created.wasOpenTicketSent).to.be.true;
 
           //update serviceRequest reference
           serviceRequest = created;
