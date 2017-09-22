@@ -96,6 +96,13 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   update: function (request, response, next) {
+
+    //ensure service request contact method workspace
+    const workspace =
+      (_.get(request, 'body.method.workspace') ||
+        _.get(request, 'party.relation.workspace'));
+    request.body = _.merge({}, request.body, { method: { workspace: workspace } });
+
     ServiceRequest
       .edit(request, function (error, servicerequest) {
         if (error) {

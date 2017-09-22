@@ -340,11 +340,7 @@ const ServiceRequestSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  method: {
-    type: ContactMethod,
-    index: true,
-    searchable: true
-  },
+  method: ContactMethod,
 
 
   /**
