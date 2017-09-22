@@ -21,6 +21,7 @@ const Status = mongoose.model('Status');
 const JWT = require(path.join(__dirname, '..', 'libs', 'jwt'));
 
 //TODO refactor out reports to report controller
+//TODO export /me to be able to refresh current request party profile 
 
 module.exports = {
   /**
@@ -82,7 +83,7 @@ module.exports = {
           },
 
           function encodePartyToJWT(party, then) {
-
+            
             JWT
               .encode(party, function afterEncode(error, jwtToken) {
                 if (error) {
