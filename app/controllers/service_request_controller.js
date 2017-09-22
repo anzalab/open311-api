@@ -1,6 +1,7 @@
 'use strict';
 
 //dependencies
+const _ = require('lodash');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
 
@@ -46,6 +47,12 @@ module.exports = {
     //ensure current party exists and is not an app
     const shouldSetOperator =
       (!body.operator && request.party && !request.party.isApp);
+
+    //ensure service request contact method workspace
+    const workspace =
+      (_.get(body, 'method.workspace') ||
+        _.get(request, 'party.relation.workspace'));
+    body.method.workspace = workspace;
 
     if (shouldSetOperator) {
       body.operator = request.party;
