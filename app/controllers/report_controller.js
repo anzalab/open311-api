@@ -116,7 +116,9 @@ module.exports = {
           'Resolved Date': serviceRequest.resolvedAt ? moment(
             serviceRequest.resolvedAt).toISOString() : '',
           'Updated Date': serviceRequest.updatedAt ? moment(
-            serviceRequest.updatedAt).toISOString() : ''
+            serviceRequest.updatedAt).toISOString() : '',
+          'Contact Method': _.get(serviceRequest, 'method.name', ''),
+          'Workspace': _.get(serviceRequest, 'method.workspace', '')
         };
 
       }))
