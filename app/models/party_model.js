@@ -35,6 +35,7 @@ const RELATION_TYPE_APP = 'App';
 //relation workspace
 const RELATION_WORKSPACE_CALL_CENTER = 'Call Center';
 const RELATION_WORKSPACE_CUSTOMER_CARE = 'Customer Care';
+const RELATION_WORKSPACE_OTHER = 'Other';
 
 
 //PartyRelation Schema
@@ -95,7 +96,7 @@ const PartyRelation = new Schema({
   workspace: {
     type: String,
     index: true,
-    default: RELATION_WORKSPACE_CALL_CENTER,
+    default: RELATION_WORKSPACE_OTHER,
     searchable: true
   }
 
@@ -542,9 +543,12 @@ PartySchema.statics.RELATION_WORKSPACE_CALL_CENTER =
   RELATION_WORKSPACE_CALL_CENTER;
 PartySchema.statics.RELATION_WORKSPACE_CUSTOMER_CARE =
   RELATION_WORKSPACE_CUSTOMER_CARE;
+PartySchema.statics.RELATION_WORKSPACE_OTHER =
+  RELATION_WORKSPACE_OTHER;
 PartySchema.statics.RELATION_WORKSPACES = [
   RELATION_WORKSPACE_CALL_CENTER,
-  RELATION_WORKSPACE_CUSTOMER_CARE
+  RELATION_WORKSPACE_CUSTOMER_CARE,
+  RELATION_WORKSPACE_OTHER
 ];
 
 
