@@ -32,6 +32,10 @@ const RELATION_TYPE_INDIVIDUAL = 'Individual';
 const RELATION_TYPE_ORGANIZATION = 'Organization';
 const RELATION_TYPE_APP = 'App';
 
+//relation workspace
+const RELATION_WORKSPACE_CALL_CENTER = 'Call Center';
+
+
 //PartyRelation Schema
 const PartyRelation = new Schema({
   /**
@@ -76,6 +80,21 @@ const PartyRelation = new Schema({
       RELATION_TYPE_ORGANIZATION,
       RELATION_TYPE_APP
     ],
+    searchable: true
+  },
+
+  /**
+   * @name workspace
+   * @description workspace of relation formed
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  workspace: {
+    type: String,
+    index: true,
+    default: RELATION_WORKSPACE_CALL_CENTER,
     searchable: true
   }
 
