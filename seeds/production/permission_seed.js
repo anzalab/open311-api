@@ -101,6 +101,15 @@ _.forEach(additions, function (modelName) {
 });
 
 
+//additions
+permissions.push({
+  resource: 'ServiceRequest',
+  action: 'resolve',
+  description: 'Resolve servicerequest',
+  wildcard: ['servicerequest', 'resolve'].join(':')
+});
+
+
 /**
  * @description export permission seeder
  * @param  {Function} done [description]
