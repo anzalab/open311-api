@@ -18,5 +18,6 @@
 module.exports = function (request, response, next) {
   //TODO ensure default jurisdiction
   //TODO load defaults (priority, status) etc
+  //TODO load default workspace for current request party
   next();
 };
