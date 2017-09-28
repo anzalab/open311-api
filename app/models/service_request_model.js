@@ -67,6 +67,8 @@ const CONTACT_METHODS = [
 ];
 
 
+//TODO refactor contact method to independent schema
+
 /**
  * @name ContactMethod
  * @description schema for representing a method used by reporter and workspace
