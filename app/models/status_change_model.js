@@ -16,6 +16,8 @@
  * @public
  */
 
+//TODO rename to changelog
+//TODO add changelog type i.e status, service, assignement, comment etc
 
 //dependencies
 const path = require('path');
