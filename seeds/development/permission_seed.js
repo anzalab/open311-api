@@ -107,6 +107,11 @@ permissions.push({
   action: 'resolve',
   description: 'Resolve servicerequest',
   wildcard: ['servicerequest', 'resolve'].join(':')
+}, {
+  resource: 'ServiceRequest',
+  action: 'attend',
+  description: 'Attend servicerequest',
+  wildcard: ['servicerequest', 'attend'].join(':')
 });
 
 
