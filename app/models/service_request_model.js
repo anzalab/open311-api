@@ -592,6 +592,12 @@ ServiceRequestSchema.pre('validate', function (next) {
     this.group = group;
   }
 
+  //ensure priority from service
+  const priority = _.get(this.service, 'priority');
+  if (!this.priority && priority) {
+    this.priority = priority;
+  }
+
   //set default status & priority if not set
   //TODO preload default status & priority
   //TODO find nearby jurisdiction using request geo data
