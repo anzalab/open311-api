@@ -167,7 +167,28 @@ const ServiceSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  sla: SlaSchema
+  sla: SlaSchema,
+
+
+  /**
+   * @name priority
+   * @description A priority of the service.
+   *
+   *              It assigned to service request if no priority set.
+   *
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  priority: {
+    type: ObjectId,
+    ref: 'Priority',
+    autoset: true,
+    exists: true,
+    index: true,
+    autopopulate: true
+  }
 
 }, { timestamps: true, emitIndexErrors: true });
 

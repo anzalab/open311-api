@@ -67,6 +67,8 @@ const CONTACT_METHODS = [
 ];
 
 
+//TODO refactor contact method to independent schema
+
 /**
  * @name ContactMethod
  * @description schema for representing a method used by reporter and workspace
@@ -588,6 +590,12 @@ ServiceRequestSchema.pre('validate', function (next) {
   const group = _.get(this.service, 'group');
   if (!this.group && group) {
     this.group = group;
+  }
+
+  //ensure priority from service
+  const priority = _.get(this.service, 'priority');
+  if (!this.priority && priority) {
+    this.priority = priority;
   }
 
   //set default status & priority if not set

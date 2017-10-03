@@ -133,8 +133,6 @@ describe('Service', function () {
         expect(found.group.code).to.exist;
         expect(found.group.name).to.exist;
         expect(found.group.color).to.exist;
-        expect(found.group.description).to.not.exist;
-        expect(found.group.jurisdiction).to.not.exist;
 
         done(error, found);
 
