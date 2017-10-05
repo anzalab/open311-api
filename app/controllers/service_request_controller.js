@@ -44,6 +44,9 @@ module.exports = {
     //set operator if not exists
     let body = request.body;
 
+    //ensure service request method
+    body.method = body.method || {};
+
     //ensure current party exists and is not an app
     const shouldSetOperator =
       (!body.operator && request.party && !request.party.isApp);
