@@ -4804,6 +4804,9 @@ angular
 
         });
 
+      //sort data by their value
+      data = _.orderBy(data, 'value', 'desc');
+
       //prepare chart config
       $scope.perGroupConfig = {
         height: 400,
@@ -4879,6 +4882,7 @@ angular
       //prepare unique status for bar chart categories
       var categories = _.chain($scope.overviews)
         .map('status')
+        .sortBy('weight')
         .uniqBy('name')
         .value();
 
@@ -4982,6 +4986,7 @@ angular
       //prepare unique priority for bar chart categories
       var categories = _.chain($scope.overviews)
         .map('priority')
+        .sortBy('weight')
         .uniqBy('name')
         .value();
 
@@ -5390,6 +5395,7 @@ angular
       //prepare unique jurisdictions for bar chart categories
       var categories = _.chain($scope.standings)
         .map('jurisdiction')
+        .sortBy('name')
         .uniqBy('name')
         .value();
 
@@ -5498,7 +5504,9 @@ angular
 
       //prepare unique jurisdictions for bar chart categories
       var categories = _.chain($scope.standings)
-        .map('jurisdiction.name')
+        .map('jurisdiction')
+        .sortBy('name')
+        .map('name')
         .uniq()
         .value();
 
@@ -5608,7 +5616,9 @@ angular
 
       //prepare unique jurisdictions for bar chart categories
       var categories = _.chain($scope.standings)
-        .map('jurisdiction.name')
+        .map('jurisdiction')
+        .sortBy('name')
+        .map('name')
         .uniq()
         .value();
 
@@ -5736,13 +5746,16 @@ angular
 
       //prepare unique jurisdictions for bar chart categories
       var categories = _.chain($scope.standings)
-        .map('jurisdiction.name')
+        .map('jurisdiction')
+        .sortBy('name')
+        .map('name')
         .uniq()
         .value();
 
       //prepare unique status for bar chart series
       var statuses = _.chain($scope.standings)
         .map('status')
+        .sortBy('weight')
         .uniqBy('name')
         .value();
 
@@ -5847,13 +5860,16 @@ angular
 
       //prepare unique jurisdictions for bar chart categories
       var categories = _.chain($scope.standings)
-        .map('jurisdiction.name')
+        .map('jurisdiction')
+        .sortBy('name')
+        .map('name')
         .uniq()
         .value();
 
       //prepare unique priority for bar chart series
       var prioroties = _.chain($scope.standings)
         .map('priority')
+        .sortBy('weight')
         .uniqBy('name')
         .value();
 
@@ -6138,12 +6154,12 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/dashboards/overviews.html',
-    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Overview - Reports </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> <li class=\"nav-item\" ng-if=\"overviews && overviews.length > 0\"> <a title=\"Click To Export Reports\" class=\"nav-link\" ng-csv=\"export\" csv-header=\"exports.headers\" filename=\"exports.filename\"> <i class=\"icon-cloud-download w-24\" title=\"Click To Export Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <div class=\"padding\"> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Service Group</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Service Group </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perGroupConfig\" options=\"perGroupOptions\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Service</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Service </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart ng-repeat=\"options in perPerServiceOptions\" config=\"perPerServiceConfig\" options=\"options\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Status</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Status </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perStatusConfig\" options=\"perStatusOptions\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Priority</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Priorities </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perPriorityConfig\" options=\"perPriorityOptions\"></echart> </div> </div> </div> </div> </div> </div> </div> </div> "
+    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Overview - Reports </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> <li class=\"nav-item\" ng-if=\"overviews && overviews.length > 0\"> <a title=\"Click To Export Reports\" class=\"nav-link\" ng-csv=\"export\" csv-header=\"exports.headers\" filename=\"overviews.csv\"> <i class=\"icon-cloud-download w-24\" title=\"Click To Export Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <div class=\"padding\"> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Service Group</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Service Group </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perGroupConfig\" options=\"perGroupOptions\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Service</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Service </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart ng-repeat=\"options in perPerServiceOptions\" config=\"perPerServiceConfig\" options=\"options\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Status</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Status </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perStatusConfig\" options=\"perStatusOptions\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Priority</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Priorities </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perPriorityConfig\" options=\"perPriorityOptions\"></echart> </div> </div> </div> </div> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/standings.html',
-    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Standing - Reports </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> <li class=\"nav-item\" ng-if=\"standings && standings.length > 0\"> <a title=\"Click To Export Reports\" class=\"nav-link\" ng-csv=\"export\" csv-header=\"exports.headers\" filename=\"exports.filename\"> <i class=\"icon-cloud-download w-24\" title=\"Click To Export Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <div class=\"padding\"> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area - Work Load</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perJurisdictionConfig\" options=\"perJurisdictionOptions\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Service Group - Affected Business Units(Divisions)</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Service Group </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perJurisdictionPerServiceGroupConfig\" options=\"perJurisdictionPerServiceGroupOptions\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Service - Impacted Business Services</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Service </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart ng-repeat=\"options in perJurisdictionPerServiceOptions\" config=\"perJurisdictionPerServiceConfig\" options=\"options\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Priority - Work Severity</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Priority </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perJurisdictionPerPriorityConfig\" options=\"perJurisdictionPerPriorityOptions\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Status - Work Progress</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Status </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perJurisdictionPerStatusConfig\" options=\"perJurisdictionPerStatusOptions\"></echart> </div> </div> </div> </div> </div> </div> </div> </div> "
+    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Standing - Reports </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> <li class=\"nav-item\" ng-if=\"standings && standings.length > 0\"> <a title=\"Click To Export Reports\" class=\"nav-link\" ng-csv=\"export\" csv-header=\"exports.headers\" filename=\"standings.csv\"> <i class=\"icon-cloud-download w-24\" title=\"Click To Export Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <div class=\"padding\"> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area - Work Load</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perJurisdictionConfig\" options=\"perJurisdictionOptions\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Service Group - Affected Business Units(Divisions)</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Service Group </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perJurisdictionPerServiceGroupConfig\" options=\"perJurisdictionPerServiceGroupOptions\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Service - Impacted Business Services</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Service </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart ng-repeat=\"options in perJurisdictionPerServiceOptions\" config=\"perJurisdictionPerServiceConfig\" options=\"options\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Priority - Work Severity</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Priority </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perJurisdictionPerPriorityConfig\" options=\"perJurisdictionPerPriorityOptions\"></echart> </div> </div> </div> </div> </div> <div> <div class=\"row\"> <div class=\"col-sm-12\"> <div class=\"box\"> <div class=\"box-header\"> <h3>Issue per Area per Status - Work Progress</h3> <small class=\"block text-muted\"> Count of Reported Issues by Their Area and Status </small> </div> <div class=\"box-body p-l-none p-r-none\"> <echart config=\"perJurisdictionPerStatusConfig\" options=\"perJurisdictionPerStatusOptions\"></echart> </div> </div> </div> </div> </div> </div> </div> </div> "
   );
 
 
