@@ -112,6 +112,15 @@ module.exports = {
     expiresIn: '1000y',
   },
 
+  /**
+   * @description ticket number configuration
+   * @type {Object}
+   */
+  counter: {
+    prefix: '',
+    suffix: ''
+  },
+
 
   /**
    *@description logger configurations
