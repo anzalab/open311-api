@@ -1088,8 +1088,8 @@ ServiceRequestSchema.statics.standings = function (criteria, done) {
       _jurisdiction: { name: 1, code: 1, color: 1 },
       _group: { name: 1, code: 1, color: 1 },
       _service: { name: 1, code: 1, color: 1 },
-      _status: { name: 1, color: 1 },
-      _priority: { name: 1, color: 1 }
+      _status: { name: 1, color: 1, weight: 1 },
+      _priority: { name: 1, color: 1, weight: 1 }
     })
     .project({ //3 stage: project full grouped by documents
       _id: 0,
@@ -1159,8 +1159,8 @@ ServiceRequestSchema.statics.overview = function (criteria, done) {
       count: 1,
       _group: { name: 1, code: 1, color: 1 },
       _service: { name: 1, code: 1, color: 1 },
-      _status: { name: 1, color: 1 },
-      _priority: { name: 1, color: 1 }
+      _status: { name: 1, color: 1, weight: 1 },
+      _priority: { name: 1, color: 1, weight: 1 }
     })
     .project({ //3 stage: project full grouped by documents
       _id: 0,
