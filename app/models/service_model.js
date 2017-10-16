@@ -201,7 +201,7 @@ const ServiceSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  isExtenal: {
+  isExternal: {
     type: Boolean,
     default: false
   }
