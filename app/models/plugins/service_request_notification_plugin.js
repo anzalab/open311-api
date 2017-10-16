@@ -144,7 +144,8 @@ module.exports = exports = function notification(schema /*, options*/ ) {
       //check if should send open ticket notification to reporter
       const sendTicket =
         (!serviceRequest.wasOpenTicketSent &&
-          !_.isEmpty(serviceRequest.reporter.phone));
+          !_.isEmpty(serviceRequest.reporter.phone) &&
+          !serviceRequest.resolvedAt);
 
       //send open notification to a reporter
       if (sendTicket) {

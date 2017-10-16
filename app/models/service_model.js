@@ -195,6 +195,10 @@ const ServiceSchema = new Schema({
    * @name isExternal
    * @description Flag if a service can be reported by external channel
    *              i.e mobile app, USSD, public website, chat bot etc.
+   *
+   *              Its also applicable when a jurisdiction will want generic
+   *              service to be exposed to public while maintaining specific
+   *              services internally.
    *              
    * @type {Object}
    * @private
