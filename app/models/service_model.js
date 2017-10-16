@@ -188,6 +188,22 @@ const ServiceSchema = new Schema({
     exists: true,
     index: true,
     autopopulate: true
+  },
+
+
+  /**
+   * @name isExternal
+   * @description Flag if a service can be reported by external channel
+   *              i.e mobile app, USSD, public website, chat bot etc.
+   *              
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  isExtenal: {
+    type: Boolean,
+    default: false
   }
 
 }, { timestamps: true, emitIndexErrors: true });
