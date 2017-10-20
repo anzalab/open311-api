@@ -601,6 +601,7 @@ ServiceRequestSchema.pre('validate', function (next) {
   //set default status & priority if not set
   //TODO preload default status & priority
   //TODO find nearby jurisdiction using request geo data
+  //TODO refactor to plugins
   if (!this.status || !this.priority || !this.code || _.isEmpty(this.code)) {
     async.parallel({
 
@@ -628,6 +629,21 @@ ServiceRequestSchema.pre('validate', function (next) {
       if (error) {
         next(error);
       } else {
+
+        //ensure jurisdiction & service
+        if (!results.jurisdiction) {
+          error = new Error('Jurisdiction Not Found');
+          error.status = 400;
+          next(error);
+        }
+
+        //ensure service
+        if (!results.service) {
+          error = new Error('Service Not Found');
+          error.status = 400;
+          next(error);
+        }
+
         //set default status and priority
         this.status = (this.status || result.status || undefined);
         this.priority = (this.priority || result.priority || undefined);
