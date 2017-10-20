@@ -631,14 +631,14 @@ ServiceRequestSchema.pre('validate', function (next) {
       } else {
 
         //ensure jurisdiction & service
-        if (!results.jurisdiction) {
+        if (!result.jurisdiction) {
           error = new Error('Jurisdiction Not Found');
           error.status = 400;
           next(error);
         }
 
         //ensure service
-        if (!results.service) {
+        if (!result.service) {
           error = new Error('Service Not Found');
           error.status = 400;
           next(error);

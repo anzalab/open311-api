@@ -20,16 +20,14 @@
 
 
 //dependencies
-const path = require('path');
-const _ = require('lodash');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
 
 //constants
-const VISIBILITY_PUBLIC = 'Public';
-const VISIBILITY_PRIVATE = 'Private';
+// const VISIBILITY_PUBLIC = 'Public';
+// const VISIBILITY_PRIVATE = 'Private';
 
 
 /**
@@ -133,3 +131,14 @@ const ChangeLogSchema = new Schema({
   }
 
 }, { timestamps: true, emitIndexErrors: true });
+
+
+/**
+ * @name ChangeLogSchema
+ * @description exports duration schema
+ * @type {Schema}
+ * @since  0.1.0
+ * @version 0.1.0
+ * @public
+ */
+module.exports = exports = ChangeLogSchema;
