@@ -634,14 +634,14 @@ ServiceRequestSchema.pre('validate', function (next) {
         if (!result.jurisdiction) {
           error = new Error('Jurisdiction Not Found');
           error.status = 400;
-          next(error);
+          return next(error);
         }
 
         //ensure service
         if (!result.service) {
           error = new Error('Service Not Found');
           error.status = 400;
-          next(error);
+          return next(error);
         }
 
         //set default status and priority
