@@ -29,6 +29,8 @@ const ObjectId = Schema.Types.ObjectId;
 // const VISIBILITY_PUBLIC = 'Public';
 // const VISIBILITY_PRIVATE = 'Private';
 
+//TODO hook on pre validation
+//TODO hook on post save
 
 /**
  * @name ChangeLogSchema
