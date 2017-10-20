@@ -80,6 +80,28 @@ const ChangeLogSchema = new Schema({
 
 
   /**
+   * @name assignee
+   * @description A current assigned party to work on service request(issue)
+   * @type {Object}
+   * @see {@link Priority}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  assignee: {
+    type: ObjectId,
+    ref: 'Party',
+    required: true,
+    index: true,
+    autoset: true,
+    exists: true,
+    autopopulate: {
+      select: 'name email phone'
+    }
+  },
+
+
+  /**
    * @name changer
    * @description A party whose made changes
    * @type {Object}
@@ -116,6 +138,7 @@ const ChangeLogSchema = new Schema({
     searchable: true
   },
 
+  //TODO find best strategy for notifications
   /**
    * @name notify
    * @description Signal to send remarks to a service request(issue) reporter
@@ -126,6 +149,19 @@ const ChangeLogSchema = new Schema({
    * @version 0.1.0
    */
   notify: {
+    type: Boolean,
+    default: false
+  },
+
+  /**
+   * @name isPublic
+   * @description Signal if service request(issue) is public viewable.
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  isPublic: {
     type: Boolean,
     default: false
   }
