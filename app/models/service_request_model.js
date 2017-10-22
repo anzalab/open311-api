@@ -557,6 +557,104 @@ ServiceRequestSchema.virtual('latitude').get(function () {
 // ServiceSchema Instance Methods
 //-----------------------------------------------------------------------------
 
+/**
+ * @name changes
+ * @description compute internal changes of the service request(issue) 
+ *              for logging in changelogs
+ *              
+ * @param  {Object}   changelog latest changes to apply
+ * @param  {Function} done a callback to invoke on success or failure
+ * @return {ServiceRequest} an instance of modified service request
+ * @since  0.1.0
+ * @version 0.1.0
+ * @private
+ * @type {Function}
+ */
+ServiceRequestSchema.methods.changes = function (changelog) {
+
+  //ensure changelog
+  changelog = _.merge({ createdAt: new Date() }, changelog);
+
+  //ensure first status is logged(i.e open)
+  if (_.isEmpty(this.changelogs)) {
+    changelog = {
+      status: this.status,
+      priority: this.priority,
+      changer: this.operator,
+      visibility: ChangeLog.VISIBILITY_PUBLIC
+    };
+    return changelog;
+  }
+
+  //get latest changelog
+  const changelogs = _.filter(this.changelogs, function (change) {
+    return _.isDate(change.createdAt);
+  });
+  const latestChangeLog =
+    _.chain(changelogs).sortBy('createdAt').last().value();
+
+  //compute changes
+
+  //record status changes
+  const statusHasChanged = (this.status &&
+    this.status._id !== (latestChangeLog.status || {})._id);
+  if (statusHasChanged) {
+    changelog.status = this.status;
+  }
+
+  //record priority changes
+  const priorityHasChanged = (this.priority &&
+    this.priority._id !== (latestChangeLog.priority || {})._id);
+  if (priorityHasChanged) {
+    changelog.priority = this.priority;
+  }
+
+  //record assignee changes
+  const assigneeHasChanged = (this.assignee &&
+    this.assignee._id !== (latestChangeLog.assignee || {})._id);
+  if (assigneeHasChanged) {
+    changelog.assignee = this.assignee;
+  }
+
+  return changelog;
+
+};
+
+
+/**
+ * @name  comment
+ * @description log internal note(private comment) or public comment(message)
+ *              to service request(issue) reporter
+ * @param  {Object}   changelog applied changes
+ * @param  {Function} done a callback to invoke on success or failure
+ * @return {ServiceRequest} an instance of modified service request
+ * @since  0.1.0
+ * @version 0.1.0
+ * @private
+ * @type {Function}
+ */
+ServiceRequestSchema.methods.comment = function (changelog, done) {
+  //ensure changelog
+  changelog = _.merge({}, changelog);
+
+  //TODO ensure changer has been recorded
+
+  //compute changes
+  const changes = this.changes();
+
+  //merge changelog with latest changes
+  changelog = _.merge({}, changelog, changes);
+
+  //prepare changelog
+  //collect changelog
+
+  //save changes
+  this.save(function (error, saved) {
+    error.status = 400;
+    done(error, saved);
+  });
+
+};
 
 //-----------------------------------------------------------------------------
 // ServiceRequestSchema Hooks
@@ -569,6 +667,7 @@ ServiceRequestSchema.virtual('latitude').get(function () {
  * @since  0.1.0
  * @version 0.1.0
  * @private
+ * @type {Function}
  */
 ServiceRequestSchema.pre('validate', function (next) {
   //TODO refactor
@@ -704,46 +803,10 @@ ServiceRequestSchema.pre('validate', function (next) {
 });
 
 
-//TODO use prepare changes on service request instance
 ServiceRequestSchema.pre('save', function (next) {
-  //ensure first status is logged(i.e open)
-  if (_.isEmpty(this.changelogs)) {
-    const changelog = {
-      status: this.status,
-      priority: this.priority,
-      changer: this.operator,
-      visibility: ChangeLog.VISIBILITY_PUBLIC
-    };
-    this.changelogs = [changelog];
-  }
 
-  //get latest changelog
-  const latestChangeLog =
-    _.chain(this.changelogs).sortBy('createdAt').last().value();
-
-  //record changes
-  let changelog = { createdAt: new Date() };
-
-  //record status changes
-  const statusHasChanged = (this.status &&
-    this.status._id !== (latestChangeLog.status || {})._id);
-  if (statusHasChanged) {
-    changelog.status = this.status;
-  }
-
-  //record priority changes
-  const priorityHasChanged = (this.priority &&
-    this.priority._id !== (latestChangeLog.priority || {})._id);
-  if (priorityHasChanged) {
-    changelog.priority = this.priority;
-  }
-
-  //record assignee changes
-  const assigneeHasChanged = (this.assignee &&
-    this.assignee._id !== (latestChangeLog.assignee || {})._id);
-  if (assigneeHasChanged) {
-    changelog.assignee = this.assignee;
-  }
+  //compute changes
+  const changelog = this.changes;
 
   //collect changelog
   this.changelogs = [].concat(this.changelogs).concat(changelog);
