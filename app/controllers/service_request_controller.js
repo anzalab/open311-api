@@ -99,6 +99,7 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   update: function (request, response, next) {
+    //TODO handle changes made by different party i.e edit(body, {changer})
 
     //ensure service request contact method workspace
     const workspace =

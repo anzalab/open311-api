@@ -20,7 +20,9 @@
 //TODO add source party that will be acting as a collector of the service request
 //i.e Call Center Operator, Apps etc
 
-//dependencies
+//TODO count re-opens(i.e reopens)
+
+//global dependencies(or imports)
 const path = require('path');
 const _ = require('lodash');
 const async = require('async');
@@ -28,6 +30,8 @@ const moment = require('moment');
 const mongoose = require('mongoose');
 const parseMs = require('parse-ms');
 
+
+//local dependencies(or imports)
 
 //plugins
 const pluginsPath = path.join(__dirname, 'plugins');
@@ -48,6 +52,7 @@ const Media = require(path.join(schemaPath, 'media_schema'));
 const Duration = require(path.join(schemaPath, 'duration_schema'));
 const Call = require(path.join(schemaPath, 'call_schema'));
 const Reporter = require(path.join(schemaPath, 'reporter_schema'));
+const ChangeLog = require(path.join(schemaPath, 'changelog_schema'));
 
 
 //contact methods used for reporting the issue
@@ -489,7 +494,21 @@ const ServiceRequestSchema = new Schema({
    * @version 0.1.0
    * @see {@link http://www.thinkhdi.com/~/media/HDICorp/Files/Library-Archive/Insider%20Articles/mean-time-to-resolve.pdf}
    */
-  ttr: Duration
+  ttr: Duration,
+
+  /**
+   * @name changelogs
+   * @description Associated change(s) on service request(issue)
+   * @type {Array}
+   * @see {@link ChangeLogSchema}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  changelogs: {
+    type: [ChangeLog],
+    index: true
+  }
 
 }, { timestamps: true, emitIndexErrors: true });
 
@@ -684,6 +703,59 @@ ServiceRequestSchema.pre('validate', function (next) {
 
 });
 
+
+//TODO use prepare changes on service request instance
+ServiceRequestSchema.pre('save', function (next) {
+  //ensure first status is logged(i.e open)
+  if (_.isEmpty(this.changelogs)) {
+    const changelog = {
+      status: this.status,
+      priority: this.priority,
+      changer: this.operator,
+      visibility: ChangeLog.VISIBILITY_PUBLIC
+    };
+    this.changelogs = [changelog];
+  }
+
+  //get latest changelog
+  const latestChangeLog =
+    _.chain(this.changelogs).sortBy('createdAt').last().value();
+
+  //record changes
+  let changelog = { createdAt: new Date() };
+
+  //record status changes
+  const statusHasChanged = (this.status &&
+    this.status._id !== (latestChangeLog.status || {})._id);
+  if (statusHasChanged) {
+    changelog.status = this.status;
+  }
+
+  //record priority changes
+  const priorityHasChanged = (this.priority &&
+    this.priority._id !== (latestChangeLog.priority || {})._id);
+  if (priorityHasChanged) {
+    changelog.priority = this.priority;
+  }
+
+  //record assignee changes
+  const assigneeHasChanged = (this.assignee &&
+    this.assignee._id !== (latestChangeLog.assignee || {})._id);
+  if (assigneeHasChanged) {
+    changelog.assignee = this.assignee;
+  }
+
+  //collect changelog
+  this.changelogs = [].concat(this.changelogs).concat(changelog);
+
+  //ensure close status is logged(i.e closed)
+  //ensure resolve status is logged(i.e resolved)
+  //ensure re-open status is logged(i.e re-open)
+
+  //continue
+  next();
+
+});
 
 //-----------------------------------------------------------------------------
 // ServiceRequestSchema Static Properties & Methods

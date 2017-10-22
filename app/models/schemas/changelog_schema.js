@@ -35,6 +35,7 @@ const VISIBILITY_PRIVATE = 'Private';
 const VISIBILITIES = [VISIBILITY_PRIVATE, VISIBILITY_PUBLIC];
 
 //TODO hook on service request pre validation
+//TODO hook on service request pre save
 //TODO hook on service request post save
 //TODO ensure notification is sent once there are changes
 //TODO always sort them in order of update before send them

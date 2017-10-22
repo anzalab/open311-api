@@ -4,6 +4,8 @@
 const mongoose = require('mongoose');
 const Comment = mongoose.model('Comment');
 
+//TODO migrate to use servicerequest changelogs
+
 /**
  * Comment Controller
  *
