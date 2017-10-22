@@ -100,6 +100,7 @@ module.exports = {
    */
   update: function (request, response, next) {
     //TODO handle changes made by different party i.e edit(body, {changer})
+    //TODO ensure all dirty changelogs has all required details(i.e changer)
 
     //ensure service request contact method workspace
     const workspace =

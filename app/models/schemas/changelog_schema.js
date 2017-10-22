@@ -256,6 +256,7 @@ ChangeLogSchema.VISIBILITY_PUBLIC =
 
 //TODO post save send notification
 //TODO for public comment notify reporter
+//TODO do not notify private changes(?)
 
 
 /**

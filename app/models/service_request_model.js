@@ -20,6 +20,8 @@
 //TODO add source party that will be acting as a collector of the service request
 //i.e Call Center Operator, Apps etc
 
+//TODO if resolved and not assigned set assignee to current resolving party
+
 //TODO count re-opens(i.e reopens)
 
 //global dependencies(or imports)
@@ -562,9 +564,19 @@ ServiceRequestSchema.virtual('latitude').get(function () {
  * @description compute internal changes of the service request(issue) 
  *              for logging in changelogs
  *              
- * @param  {Object}   changelog latest changes to apply
+ * @param  {Object} changelog latest changes to apply
+ * @param  {Party} [changelog.changer] latest party to apply changes to service
+ *                                     sequest(issue)
+ *
+ * @param {String} [changelog.comment] comment(or note) to be added as a
+ *                                     descriptive of work performed so far or
+ *                                     reply to a reporter
+ *
+ * @param {Boolean} [changelog.shouldNotify] flag if notification should be send
+ *                                           when changes applied 
  * @param  {Function} done a callback to invoke on success or failure
- * @return {ServiceRequest} an instance of modified service request
+ * @return {Object|Object[]} latest changelog(s) to be applied to a 
+ *                           servicerequest(issue) instance
  * @since  0.1.0
  * @version 0.1.0
  * @private
@@ -572,18 +584,22 @@ ServiceRequestSchema.virtual('latitude').get(function () {
  */
 ServiceRequestSchema.methods.changes = function (changelog) {
 
-  //ensure changelog
-  changelog = _.merge({ createdAt: new Date() }, changelog);
+  //ensure changelog defaults
+  changelog = _.merge({
+    createdAt: new Date(),
+    changer: this.operator
+  }, changelog);
 
   //ensure first status is logged(i.e open)
   if (_.isEmpty(this.changelogs)) {
     changelog = {
+      createdAt: new Date(),
       status: this.status,
       priority: this.priority,
       changer: this.operator,
       visibility: ChangeLog.VISIBILITY_PUBLIC
     };
-    return changelog;
+    return [changelog];
   }
 
   //get latest changelog
@@ -592,6 +608,11 @@ ServiceRequestSchema.methods.changes = function (changelog) {
   });
   const latestChangeLog =
     _.chain(changelogs).sortBy('createdAt').last().value();
+
+  //get latest changes that have not been saved(dirty changes)
+  let dirtyChanges = _.filter(this.changelogs, function (change) {
+    return !change.createdAt;
+  });
 
   //compute changes
 
@@ -616,49 +637,34 @@ ServiceRequestSchema.methods.changes = function (changelog) {
     changelog.assignee = this.assignee;
   }
 
+  //update dirty changes
+  dirtyChanges = _.map(dirtyChanges, function (change) {
+    change = _.merge({}, {
+      changer: changelog.changer || this.operator
+    }, changelog, change);
+    return change;
+  }.bind(this));
+
+  //update changelogs
+  const isValid = (changelog.status || changelog.priority ||
+    changelog.assignee || changelog.comment);
+  changelog = isValid ? [].concat(changelog) : [];
+  changelog = [].concat(dirtyChanges).concat(changelog);
+
+  //TODO ensure close status is logged(i.e closed)
+  //TODO ensure resolve status is logged(i.e resolved)
+  //TODO ensure re-open status is logged(i.e re-open)
+  //TODO send changelog notification on changelog post save
+
   return changelog;
 
 };
 
 
-/**
- * @name  comment
- * @description log internal note(private comment) or public comment(message)
- *              to service request(issue) reporter
- * @param  {Object}   changelog applied changes
- * @param  {Function} done a callback to invoke on success or failure
- * @return {ServiceRequest} an instance of modified service request
- * @since  0.1.0
- * @version 0.1.0
- * @private
- * @type {Function}
- */
-ServiceRequestSchema.methods.comment = function (changelog, done) {
-  //ensure changelog
-  changelog = _.merge({}, changelog);
-
-  //TODO ensure changer has been recorded
-
-  //compute changes
-  const changes = this.changes();
-
-  //merge changelog with latest changes
-  changelog = _.merge({}, changelog, changes);
-
-  //prepare changelog
-  //collect changelog
-
-  //save changes
-  this.save(function (error, saved) {
-    error.status = 400;
-    done(error, saved);
-  });
-
-};
-
 //-----------------------------------------------------------------------------
 // ServiceRequestSchema Hooks
 //-----------------------------------------------------------------------------
+
 
 /**
  * @name  preValidate
@@ -716,6 +722,7 @@ ServiceRequestSchema.pre('validate', function (next) {
     this.priority = priority;
   }
 
+
   //set default status & priority if not set
   //TODO preload default status & priority
   //TODO find nearby jurisdiction using request geo data
@@ -766,6 +773,9 @@ ServiceRequestSchema.pre('validate', function (next) {
         this.status = (this.status || result.status || undefined);
         this.priority = (this.priority || result.priority || undefined);
 
+        //compute changes
+        this.changelogs = [].concat(this.changelogs).concat(this.changes());
+
         //set service request code
         //in format (Area Code Service Code Year Sequence)
         //i.e ILLK170001
@@ -797,28 +807,13 @@ ServiceRequestSchema.pre('validate', function (next) {
 
   //continue
   else {
+    //compute changes
+    this.changelogs = [].concat(this.changelogs).concat(this.changes());
     next();
   }
 
 });
 
-
-ServiceRequestSchema.pre('save', function (next) {
-
-  //compute changes
-  const changelog = this.changes;
-
-  //collect changelog
-  this.changelogs = [].concat(this.changelogs).concat(changelog);
-
-  //ensure close status is logged(i.e closed)
-  //ensure resolve status is logged(i.e resolved)
-  //ensure re-open status is logged(i.e re-open)
-
-  //continue
-  next();
-
-});
 
 //-----------------------------------------------------------------------------
 // ServiceRequestSchema Static Properties & Methods
