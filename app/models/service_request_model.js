@@ -43,6 +43,8 @@ const aggregate =
   require(path.join(pluginsPath, 'service_request_aggregated_plugin'));
 const open311 =
   require(path.join(pluginsPath, 'service_request_open311_plugin'));
+const pipeline =
+  require(path.join(pluginsPath, 'service_request_pipeline_plugin'));
 
 
 //schemas
@@ -661,25 +663,6 @@ ServiceRequestSchema.methods.changes = function (changelog) {
 };
 
 
-ServiceRequestSchema.methods.comment = function (changelog, done) {
-  //ensure changelog
-  changelog = _.merge({}, changelog);
-
-  //TODO validate comment
-
-  //collect changes
-  const changes = [].concat(this.changelogs).concat(changelog);
-  this.changelogs = changes;
-  // this.changelogs = [].concat(this.changelogs).concat(changelog);
-
-  //persist
-  this.save(function (error, saved) {
-    done(error, saved);
-  });
-
-};
-
-
 //-----------------------------------------------------------------------------
 // ServiceRequestSchema Hooks
 //-----------------------------------------------------------------------------
@@ -864,6 +847,7 @@ ServiceRequestSchema.statics.CONTACT_METHODS = CONTACT_METHODS;
 ServiceRequestSchema.plugin(notification);
 ServiceRequestSchema.plugin(aggregate);
 ServiceRequestSchema.plugin(open311);
+ServiceRequestSchema.plugin(pipeline);
 
 
 //-----------------------------------------------------------------------------
