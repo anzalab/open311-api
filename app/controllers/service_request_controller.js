@@ -44,6 +44,9 @@ module.exports = {
     //set operator if not exists
     let body = request.body;
 
+    //ensure service request method
+    body.method = body.method || {};
+
     //ensure current party exists and is not an app
     const shouldSetOperator =
       (!body.operator && request.party && !request.party.isApp);
@@ -96,6 +99,8 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   update: function (request, response, next) {
+    //TODO handle changes made by different party i.e edit(body, {changer})
+    //TODO ensure all dirty changelogs has all required details(i.e changer)
 
     //ensure service request contact method workspace
     const workspace =

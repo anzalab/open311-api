@@ -65,6 +65,35 @@ module.exports = {
       });
   },
 
+
+  /**
+   * @name overviews
+   * @description handle pipelines request
+   * @param  {HttpRequest} request  http request
+   * @param  {HttpResponse} response http response
+   * @since 0.1.0
+   * @version 0.1.0
+   * @public
+   */
+  pipelines: function (request, response, next) {
+    
+    //TODO pass request options(i.e query params to extras)
+    //TODO support mongodb aggregation pipelines from request(express-mquery)
+    const criteria = _.merge({}, (request.mquery || {}).query);
+
+    ServiceRequest
+      .pipeline(criteria, function (error, pipelines) {
+        if (error) {
+          error.status = 500;
+          next(error);
+        } else {
+          response.ok(pipelines);
+        }
+      });
+
+  },
+
+
   /**
    * @name exports
    * @description handle exports request

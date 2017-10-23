@@ -126,7 +126,7 @@ describe('ServiceRequest', function () {
         jurisdiction: jurisdiction,
         service: service,
         reporter: reporter,
-        assignee: assignee,
+        operator: assignee,
         description: faker.lorem.paragraph(),
         address: faker.address.streetAddress(),
         createdAt: faker.date.past(),
@@ -156,7 +156,7 @@ describe('ServiceRequest', function () {
           expect(created.jurisdiction).to.be.exist;
           expect(created.service).to.be.exist;
           expect(created.reporter).to.be.exist;
-          expect(created.assignee).to.be.exist;
+          expect(created.operator).to.be.exist;
           expect(created.code).to.be.exist;
           expect(created.description).to.be.exist;
           expect(created.location).to.exist;
@@ -200,7 +200,12 @@ describe('ServiceRequest', function () {
           expect(created.call.duration.human).to.exist;
 
           //assert ticket sending
-          expect(created.wasOpenTicketSent).to.be.true;
+
+          //assert changelog
+          expect(created.changelogs).to.exist;
+          expect(created.changelogs).to.have.length(1);
+
+          //TODO assert initial status
 
           //update serviceRequest reference
           serviceRequest = created;
@@ -226,7 +231,7 @@ describe('ServiceRequest', function () {
           expect(found.jurisdiction).to.be.exist;
           expect(found.service).to.be.exist;
           expect(found.reporter).to.be.exist;
-          expect(found.assignee).to.be.exist;
+          expect(found.operator).to.be.exist;
           expect(found.code).to.be.exist;
           expect(found.description).to.be.exist;
           expect(found.location).to.exist;
@@ -245,6 +250,11 @@ describe('ServiceRequest', function () {
           expect(found.jurisdiction.about).to.not.exist;
           expect(found.jurisdiction.jurisdiction).to.not.exist;
 
+
+          //assert changelog
+          expect(found.changelogs).to.exist;
+          expect(found.changelogs).to.have.length(1);
+
           //assert service
           //assert reporter
           //assert assignee
@@ -262,7 +272,8 @@ describe('ServiceRequest', function () {
     function (done) {
 
       const updates = {
-        description: faker.lorem.paragraph()
+        description: faker.lorem.paragraph(),
+        assignee: assignee
       };
 
       ServiceRequest
@@ -278,6 +289,7 @@ describe('ServiceRequest', function () {
           expect(updated.jurisdiction).to.be.exist;
           expect(updated.service).to.be.exist;
           expect(updated.reporter).to.be.exist;
+          expect(updated.operator).to.be.exist;
           expect(updated.assignee).to.be.exist;
           expect(updated.code).to.be.exist;
           expect(updated.description).to.be.exist;
@@ -288,6 +300,10 @@ describe('ServiceRequest', function () {
           expect(updated._id).to.be.eql(serviceRequest._id);
           expect(updated.code).to.be.equal(serviceRequest.code);
           expect(updated.description).to.be.equal(updates.description);
+
+          //assert changelog
+          // expect(found.changelogs).to.exist;
+          // expect(found.changelogs).to.have.length(2);
 
           //update serviceRequest references
           serviceRequest = updated;

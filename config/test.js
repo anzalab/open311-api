@@ -113,6 +113,16 @@ module.exports = {
 
 
   /**
+   * @description ticket number configuration
+   * @type {Object}
+   */
+  counter: {
+    prefix: '',
+    suffix: ''
+  },
+
+
+  /**
    *@description logger configurations
    */
   logger: {

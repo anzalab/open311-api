@@ -20,7 +20,11 @@
 //TODO add source party that will be acting as a collector of the service request
 //i.e Call Center Operator, Apps etc
 
-//dependencies
+//TODO if resolved and not assigned set assignee to current resolving party
+
+//TODO count re-opens(i.e reopens)
+
+//global dependencies(or imports)
 const path = require('path');
 const _ = require('lodash');
 const async = require('async');
@@ -28,6 +32,8 @@ const moment = require('moment');
 const mongoose = require('mongoose');
 const parseMs = require('parse-ms');
 
+
+//local dependencies(or imports)
 
 //plugins
 const pluginsPath = path.join(__dirname, 'plugins');
@@ -37,6 +43,8 @@ const aggregate =
   require(path.join(pluginsPath, 'service_request_aggregated_plugin'));
 const open311 =
   require(path.join(pluginsPath, 'service_request_open311_plugin'));
+const pipeline =
+  require(path.join(pluginsPath, 'service_request_pipeline_plugin'));
 
 
 //schemas
@@ -48,6 +56,7 @@ const Media = require(path.join(schemaPath, 'media_schema'));
 const Duration = require(path.join(schemaPath, 'duration_schema'));
 const Call = require(path.join(schemaPath, 'call_schema'));
 const Reporter = require(path.join(schemaPath, 'reporter_schema'));
+const ChangeLog = require(path.join(schemaPath, 'changelog_schema'));
 
 
 //contact methods used for reporting the issue
@@ -489,7 +498,18 @@ const ServiceRequestSchema = new Schema({
    * @version 0.1.0
    * @see {@link http://www.thinkhdi.com/~/media/HDICorp/Files/Library-Archive/Insider%20Articles/mean-time-to-resolve.pdf}
    */
-  ttr: Duration
+  ttr: Duration,
+
+  /**
+   * @name changelogs
+   * @description Associated change(s) on service request(issue)
+   * @type {Array}
+   * @see {@link ChangeLogSchema}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  changelogs: [ChangeLog]
 
 }, { timestamps: true, emitIndexErrors: true });
 
@@ -538,10 +558,115 @@ ServiceRequestSchema.virtual('latitude').get(function () {
 // ServiceSchema Instance Methods
 //-----------------------------------------------------------------------------
 
+/**
+ * @name changes
+ * @description compute internal changes of the service request(issue) 
+ *              for logging in changelogs
+ *              
+ * @param  {Object} changelog latest changes to apply
+ * @param  {Party} [changelog.changer] latest party to apply changes to service
+ *                                     sequest(issue)
+ *
+ * @param {String} [changelog.comment] comment(or note) to be added as a
+ *                                     descriptive of work performed so far or
+ *                                     reply to a reporter
+ *
+ * @param {Boolean} [changelog.shouldNotify] flag if notification should be send
+ *                                           when changes applied 
+ * @param  {Function} done a callback to invoke on success or failure
+ * @return {Object|Object[]} latest changelog(s) to be applied to a 
+ *                           servicerequest(issue) instance
+ * @since  0.1.0
+ * @version 0.1.0
+ * @private
+ * @type {Function}
+ */
+ServiceRequestSchema.methods.changes = function (changelog) {
+
+  //ensure changelog defaults
+  changelog = _.merge({}, {
+    createdAt: new Date(),
+    changer: this.operator
+  }, changelog);
+
+  //ensure first status is logged(i.e open)
+  if (_.isEmpty(this.changelogs)) {
+    changelog = {
+      createdAt: new Date(),
+      status: this.status,
+      priority: this.priority,
+      changer: this.operator,
+      visibility: ChangeLog.VISIBILITY_PUBLIC
+    };
+    return [changelog];
+  }
+
+  //continue computing changes
+  else {
+
+    //get latest changelog
+    const changelogs = _.filter(this.changelogs, function (change) {
+      return _.isDate(change.createdAt);
+    });
+    const latestChangeLog =
+      _.chain(changelogs).sortBy('createdAt').last().value();
+
+    //get latest changes that have not been saved(dirty changes)
+    let dirtyChanges = _.filter(this.changelogs, function (change) {
+      return !change._id;
+    });
+
+    //compute changes
+    
+    //record status changes
+    const statusHasChanged = (this.status &&
+      this.status._id !== (latestChangeLog.status || {})._id);
+    if (statusHasChanged) {
+      changelog.status = this.status;
+    }
+
+    //record priority changes
+    const priorityHasChanged = (this.priority &&
+      this.priority._id !== (latestChangeLog.priority || {})._id);
+    if (priorityHasChanged) {
+      changelog.priority = this.priority;
+    }
+
+    //record assignee changes
+    const assigneeHasChanged = (this.assignee &&
+      this.assignee._id !== (latestChangeLog.assignee || {})._id);
+    if (assigneeHasChanged) {
+      changelog.assignee = this.assignee;
+    }
+
+    //update dirty changes
+    dirtyChanges = _.map(dirtyChanges, function (change) {
+      change = _.merge({}, {
+        changer: changelog.changer || this.operator
+      }, changelog, change);
+      return change;
+    }.bind(this));
+
+    //update changelogs
+    const isValid = (changelog.status || changelog.priority ||
+      changelog.assignee || changelog.comment);
+    changelog = isValid ? [].concat(changelog) : [];
+    changelog = [].concat(dirtyChanges).concat(changelog);
+
+    //TODO ensure close status is logged(i.e closed)
+    //TODO ensure resolve status is logged(i.e resolved)
+    //TODO ensure re-open status is logged(i.e re-open)
+    //TODO send changelog notification on changelog post save
+    return changelog;
+  }
+
+};
+
 
 //-----------------------------------------------------------------------------
 // ServiceRequestSchema Hooks
 //-----------------------------------------------------------------------------
+
 
 /**
  * @name  preValidate
@@ -550,6 +675,7 @@ ServiceRequestSchema.virtual('latitude').get(function () {
  * @since  0.1.0
  * @version 0.1.0
  * @private
+ * @type {Function}
  */
 ServiceRequestSchema.pre('validate', function (next) {
   //TODO refactor
@@ -601,6 +727,7 @@ ServiceRequestSchema.pre('validate', function (next) {
   //set default status & priority if not set
   //TODO preload default status & priority
   //TODO find nearby jurisdiction using request geo data
+  //TODO refactor to plugins
   if (!this.status || !this.priority || !this.code || _.isEmpty(this.code)) {
     async.parallel({
 
@@ -628,9 +755,30 @@ ServiceRequestSchema.pre('validate', function (next) {
       if (error) {
         next(error);
       } else {
+
+        //ensure jurisdiction & service
+        if (!result.jurisdiction) {
+          error = new Error('Jurisdiction Not Found');
+          error.status = 400;
+          return next(error);
+        }
+
+        //ensure service
+        if (!result.service) {
+          error = new Error('Service Not Found');
+          error.status = 400;
+          return next(error);
+        }
+
         //set default status and priority
         this.status = (this.status || result.status || undefined);
         this.priority = (this.priority || result.priority || undefined);
+
+        //compute changes
+        let changes = this.changes();
+        changes = _.sortBy([].concat(this.changelogs).concat(changes),
+          'createdAt');
+        this.changelogs = changes;
 
         //set service request code
         //in format (Area Code Service Code Year Sequence)
@@ -643,9 +791,9 @@ ServiceRequestSchema.pre('validate', function (next) {
             }, function (error, ticketNumber) {
               if (!error && ticketNumber) {
                 this.code = ticketNumber;
-                next();
+                return next();
               } else {
-                next(error);
+                return next(error);
               }
             }.bind(this));
 
@@ -653,7 +801,7 @@ ServiceRequestSchema.pre('validate', function (next) {
 
         //continue
         else {
-          next();
+          next(null, this);
         }
 
       }
@@ -663,6 +811,11 @@ ServiceRequestSchema.pre('validate', function (next) {
 
   //continue
   else {
+    //compute changes
+    let changes = this.changes();
+    changes = _.sortBy([].concat(this.changelogs).concat(changes),
+      'createdAt');
+    this.changelogs = changes;
     next();
   }
 
@@ -694,6 +847,7 @@ ServiceRequestSchema.statics.CONTACT_METHODS = CONTACT_METHODS;
 ServiceRequestSchema.plugin(notification);
 ServiceRequestSchema.plugin(aggregate);
 ServiceRequestSchema.plugin(open311);
+ServiceRequestSchema.plugin(pipeline);
 
 
 //-----------------------------------------------------------------------------
@@ -1088,8 +1242,8 @@ ServiceRequestSchema.statics.standings = function (criteria, done) {
       _jurisdiction: { name: 1, code: 1, color: 1 },
       _group: { name: 1, code: 1, color: 1 },
       _service: { name: 1, code: 1, color: 1 },
-      _status: { name: 1, color: 1 },
-      _priority: { name: 1, color: 1 }
+      _status: { name: 1, color: 1, weight: 1 },
+      _priority: { name: 1, color: 1, weight: 1 }
     })
     .project({ //3 stage: project full grouped by documents
       _id: 0,
@@ -1159,8 +1313,8 @@ ServiceRequestSchema.statics.overview = function (criteria, done) {
       count: 1,
       _group: { name: 1, code: 1, color: 1 },
       _service: { name: 1, code: 1, color: 1 },
-      _status: { name: 1, color: 1 },
-      _priority: { name: 1, color: 1 }
+      _status: { name: 1, color: 1, weight: 1 },
+      _priority: { name: 1, color: 1, weight: 1 }
     })
     .project({ //3 stage: project full grouped by documents
       _id: 0,
