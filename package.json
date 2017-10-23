@@ -87,7 +87,7 @@
     "mongoose-hidden": "git+https://github.com/lykmapipo/mongoose-hidden.git",
     "mongoose-regex-search": "^0.4.0",
     "mongoose-valid8": "^0.1.1",
-    "nodemailer": "^4.2.0",
+    "nodemailer": "^4.3.0",
     "nodemailer-sendgrid-transport": "^0.2.0",
     "nodemailer-wellknown": "^0.2.3",
     "open311-infobip": "^0.2.3",

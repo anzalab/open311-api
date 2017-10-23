@@ -507,10 +507,7 @@ const ServiceRequestSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  changelogs: {
-    type: [ChangeLog],
-    index: true
-  }
+  changelogs: [ChangeLog]
 
 }, { timestamps: true, emitIndexErrors: true });
 
@@ -585,7 +582,7 @@ ServiceRequestSchema.virtual('latitude').get(function () {
 ServiceRequestSchema.methods.changes = function (changelog) {
 
   //ensure changelog defaults
-  changelog = _.merge({
+  changelog = _.merge({}, {
     createdAt: new Date(),
     changer: this.operator
   }, changelog);
@@ -602,61 +599,83 @@ ServiceRequestSchema.methods.changes = function (changelog) {
     return [changelog];
   }
 
-  //get latest changelog
-  const changelogs = _.filter(this.changelogs, function (change) {
-    return _.isDate(change.createdAt);
+  //continue computing changes
+  else {
+
+    //get latest changelog
+    const changelogs = _.filter(this.changelogs, function (change) {
+      return _.isDate(change.createdAt);
+    });
+    const latestChangeLog =
+      _.chain(changelogs).sortBy('createdAt').last().value();
+
+    //get latest changes that have not been saved(dirty changes)
+    let dirtyChanges = _.filter(this.changelogs, function (change) {
+      return !change._id;
+    });
+
+    //compute changes
+    
+    //record status changes
+    const statusHasChanged = (this.status &&
+      this.status._id !== (latestChangeLog.status || {})._id);
+    if (statusHasChanged) {
+      changelog.status = this.status;
+    }
+
+    //record priority changes
+    const priorityHasChanged = (this.priority &&
+      this.priority._id !== (latestChangeLog.priority || {})._id);
+    if (priorityHasChanged) {
+      changelog.priority = this.priority;
+    }
+
+    //record assignee changes
+    const assigneeHasChanged = (this.assignee &&
+      this.assignee._id !== (latestChangeLog.assignee || {})._id);
+    if (assigneeHasChanged) {
+      changelog.assignee = this.assignee;
+    }
+
+    //update dirty changes
+    dirtyChanges = _.map(dirtyChanges, function (change) {
+      change = _.merge({}, {
+        changer: changelog.changer || this.operator
+      }, changelog, change);
+      return change;
+    }.bind(this));
+
+    //update changelogs
+    const isValid = (changelog.status || changelog.priority ||
+      changelog.assignee || changelog.comment);
+    changelog = isValid ? [].concat(changelog) : [];
+    changelog = [].concat(dirtyChanges).concat(changelog);
+
+    //TODO ensure close status is logged(i.e closed)
+    //TODO ensure resolve status is logged(i.e resolved)
+    //TODO ensure re-open status is logged(i.e re-open)
+    //TODO send changelog notification on changelog post save
+    return changelog;
+  }
+
+};
+
+
+ServiceRequestSchema.methods.comment = function (changelog, done) {
+  //ensure changelog
+  changelog = _.merge({}, changelog);
+
+  //TODO validate comment
+
+  //collect changes
+  const changes = [].concat(this.changelogs).concat(changelog);
+  this.changelogs = changes;
+  // this.changelogs = [].concat(this.changelogs).concat(changelog);
+
+  //persist
+  this.save(function (error, saved) {
+    done(error, saved);
   });
-  const latestChangeLog =
-    _.chain(changelogs).sortBy('createdAt').last().value();
-
-  //get latest changes that have not been saved(dirty changes)
-  let dirtyChanges = _.filter(this.changelogs, function (change) {
-    return !change.createdAt;
-  });
-
-  //compute changes
-
-  //record status changes
-  const statusHasChanged = (this.status &&
-    this.status._id !== (latestChangeLog.status || {})._id);
-  if (statusHasChanged) {
-    changelog.status = this.status;
-  }
-
-  //record priority changes
-  const priorityHasChanged = (this.priority &&
-    this.priority._id !== (latestChangeLog.priority || {})._id);
-  if (priorityHasChanged) {
-    changelog.priority = this.priority;
-  }
-
-  //record assignee changes
-  const assigneeHasChanged = (this.assignee &&
-    this.assignee._id !== (latestChangeLog.assignee || {})._id);
-  if (assigneeHasChanged) {
-    changelog.assignee = this.assignee;
-  }
-
-  //update dirty changes
-  dirtyChanges = _.map(dirtyChanges, function (change) {
-    change = _.merge({}, {
-      changer: changelog.changer || this.operator
-    }, changelog, change);
-    return change;
-  }.bind(this));
-
-  //update changelogs
-  const isValid = (changelog.status || changelog.priority ||
-    changelog.assignee || changelog.comment);
-  changelog = isValid ? [].concat(changelog) : [];
-  changelog = [].concat(dirtyChanges).concat(changelog);
-
-  //TODO ensure close status is logged(i.e closed)
-  //TODO ensure resolve status is logged(i.e resolved)
-  //TODO ensure re-open status is logged(i.e re-open)
-  //TODO send changelog notification on changelog post save
-
-  return changelog;
 
 };
 
@@ -722,7 +741,6 @@ ServiceRequestSchema.pre('validate', function (next) {
     this.priority = priority;
   }
 
-
   //set default status & priority if not set
   //TODO preload default status & priority
   //TODO find nearby jurisdiction using request geo data
@@ -774,7 +792,10 @@ ServiceRequestSchema.pre('validate', function (next) {
         this.priority = (this.priority || result.priority || undefined);
 
         //compute changes
-        this.changelogs = [].concat(this.changelogs).concat(this.changes());
+        let changes = this.changes();
+        changes = _.sortBy([].concat(this.changelogs).concat(changes),
+          'createdAt');
+        this.changelogs = changes;
 
         //set service request code
         //in format (Area Code Service Code Year Sequence)
@@ -787,9 +808,9 @@ ServiceRequestSchema.pre('validate', function (next) {
             }, function (error, ticketNumber) {
               if (!error && ticketNumber) {
                 this.code = ticketNumber;
-                next();
+                return next();
               } else {
-                next(error);
+                return next(error);
               }
             }.bind(this));
 
@@ -797,7 +818,7 @@ ServiceRequestSchema.pre('validate', function (next) {
 
         //continue
         else {
-          next();
+          next(null, this);
         }
 
       }
@@ -808,7 +829,10 @@ ServiceRequestSchema.pre('validate', function (next) {
   //continue
   else {
     //compute changes
-    this.changelogs = [].concat(this.changelogs).concat(this.changes());
+    let changes = this.changes();
+    changes = _.sortBy([].concat(this.changelogs).concat(changes),
+      'createdAt');
+    this.changelogs = changes;
     next();
   }
 

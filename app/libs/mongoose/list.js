@@ -30,6 +30,7 @@ module.exports = exports = function (schema /*, options*/ ) {
       const limit = queryParams.limit || 10;
       const sort = request.mquery ? request.mquery.sort : undefined;
       const criteria = request.mquery ? request.mquery.query : undefined;
+      const select = request.mquery ? request.mquery.select : undefined;
 
       const query = this.search(queryParams.q);
 
@@ -39,6 +40,10 @@ module.exports = exports = function (schema /*, options*/ ) {
 
       if (sort) {
         query.sort(sort);
+      }
+
+      if (select) {
+        query.select(select);
       }
 
       query.skip(skip).limit(limit).exec(function (error, models) {

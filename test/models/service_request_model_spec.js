@@ -301,6 +301,10 @@ describe('ServiceRequest', function () {
           expect(updated.code).to.be.equal(serviceRequest.code);
           expect(updated.description).to.be.equal(updates.description);
 
+          //assert changelog
+          // expect(found.changelogs).to.exist;
+          // expect(found.changelogs).to.have.length(2);
+
           //update serviceRequest references
           serviceRequest = updated;
 

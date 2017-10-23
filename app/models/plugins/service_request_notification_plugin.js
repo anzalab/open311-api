@@ -126,7 +126,7 @@ module.exports = exports = function notification(schema /*, options*/ ) {
 
 
   /**
-   * @name sendOpenTicket
+   * @name sendOpenTicketToReporter
    * @description try sending opened service request ticket number to a
    *              reporter
    * @param  {Function} next a callback to invoke on success or failure
@@ -137,6 +137,7 @@ module.exports = exports = function notification(schema /*, options*/ ) {
    */
   schema.post('save',
     function sendOpenTicketToReporter(serviceRequest, next) {
+
 
       //refs
       const Message = mongoose.model('Message');
@@ -179,7 +180,9 @@ module.exports = exports = function notification(schema /*, options*/ ) {
           //set open ticket notification was sent
           else {
             serviceRequest.wasOpenTicketSent = true;
-            serviceRequest.save(next);
+            serviceRequest.save(function (error, saved) {
+              next(error, saved);
+            });
           }
 
         });
@@ -195,7 +198,7 @@ module.exports = exports = function notification(schema /*, options*/ ) {
 
 
   /**
-   * @name sendResolveTicket
+   * @name sendResolveTicketToReporter
    * @description try sending resolve ticket to customer once service request
    *              marked as resolved
    * @param  {Function} next a callback to invoke on success or failure
@@ -247,7 +250,9 @@ module.exports = exports = function notification(schema /*, options*/ ) {
           //set resolve notification was sent
           else {
             serviceRequest.wasResolveTicketSent = true;
-            serviceRequest.save(next);
+            serviceRequest.save(function (error, saved) {
+              next(error, saved);
+            });
           }
 
         });

@@ -211,7 +211,7 @@ const ChangeLogSchema = new Schema({
     default: VISIBILITY_PRIVATE
   }
 
-}, { _id: false, timestamps: true, emitIndexErrors: true });
+}, { timestamps: true, emitIndexErrors: true });
 
 
 //---------------------------------------------------------
@@ -252,6 +252,9 @@ ChangeLogSchema.VISIBILITY_PRIVATE =
 
 ChangeLogSchema.VISIBILITY_PUBLIC =
   ChangeLogSchema.statics.VISIBILITY_PUBLIC = VISIBILITY_PUBLIC;
+
+ChangeLogSchema.VISIBILITIES =
+  ChangeLogSchema.statics.VISIBILITIES = VISIBILITIES;
 
 
 //TODO post save send notification
