@@ -45,6 +45,8 @@ const open311 =
   require(path.join(pluginsPath, 'service_request_open311_plugin'));
 const pipeline =
   require(path.join(pluginsPath, 'service_request_pipeline_plugin'));
+const changelog =
+  require(path.join(pluginsPath, 'service_request_changelog_plugin'));
 
 
 //schemas
@@ -492,124 +494,6 @@ ServiceRequestSchema.virtual('latitude').get(function () {
 // ServiceSchema Instance Methods
 //-----------------------------------------------------------------------------
 
-/**
- * @name changes
- * @description compute internal changes of the service request(issue) 
- *              for logging in changelogs
- *              
- * @param  {Object} changelog latest changes to apply
- * @param  {Party} [changelog.changer] latest party to apply changes to service
- *                                     sequest(issue)
- *
- * @param {String} [changelog.comment] comment(or note) to be added as a
- *                                     descriptive of work performed so far or
- *                                     reply to a reporter
- *
- * @param {Boolean} [changelog.shouldNotify] flag if notification should be send
- *                                           when changes applied 
- * @param  {Function} done a callback to invoke on success or failure
- * @return {Object|Object[]} latest changelog(s) to be applied to a 
- *                           servicerequest(issue) instance
- * @since  0.1.0
- * @version 0.1.0
- * @private
- * @type {Function}
- */
-ServiceRequestSchema.methods.changes = function (changelog) {
-
-  //ensure changelog defaults
-  changelog = _.merge({}, {
-    createdAt: new Date(),
-    changer: this.operator
-  }, changelog);
-
-  //ensure first status is logged(i.e open)
-  if (_.isEmpty(this.changelogs)) {
-    changelog = {
-      createdAt: new Date(),
-      status: this.status,
-      priority: this.priority,
-      changer: this.operator, //TODO handle unattended issue
-      visibility: ChangeLog.VISIBILITY_PUBLIC
-    };
-    return [changelog];
-  }
-
-  //continue computing changes
-  else {
-
-    //get latest changelog
-    const changelogs = _.filter(this.changelogs, function (change) {
-      // return _.has(change, 'id');
-      return _.isDate(change.createdAt);
-    });
-
-    //get latest changes that have not been saved(dirty changes)
-    let dirtyChanges = _.filter(this.changelogs, function (change) {
-      return !change._id;
-    });
-
-    //compute changes
-
-    //record status changes
-    const latestStatusChangeLog =
-      _.chain(changelogs).orderBy('createdAt', 'desc')
-      .find(function (change) {
-        return !_.isEmpty(change.status);
-      }).value() || {};
-    const statusHasChanged =
-      (this.status && !this.status.equals(latestStatusChangeLog.status));
-    if (statusHasChanged) {
-      changelog.status = this.status;
-    }
-
-    //record priority changes
-    const latestPriorityChangeLog =
-      _.chain(changelogs).orderBy('createdAt', 'desc')
-      .find(function (change) {
-        return !_.isEmpty(change.priority);
-      }).value() || {};
-    const priorityHasChanged =
-      (this.priority && !this.priority.equals(latestPriorityChangeLog.priority));
-    if (priorityHasChanged) {
-      changelog.priority = this.priority;
-    }
-
-    //record assignee changes
-    const latestAssigneeChangeLog =
-      _.chain(changelogs).orderBy('createdAt', 'desc')
-      .find(function (change) {
-        return !_.isEmpty(change.assignee);
-      }).value() || {};
-    const assigneeHasChanged =
-      (this.assignee && !this.assignee.equals(latestAssigneeChangeLog.assignee));
-    if (assigneeHasChanged) {
-      changelog.assignee = this.assignee;
-    }
-
-    //update dirty changes
-    dirtyChanges = _.map(dirtyChanges, function (change) {
-      change = _.merge({}, {
-        changer: changelog.changer || this.operator
-      }, changelog, change); //TODO do we merge changelog or?
-      return change;
-    }.bind(this));
-
-    //update changelogs
-    const isValid = (changelog.status || changelog.priority ||
-      changelog.assignee || changelog.comment);
-    changelog = isValid ? [].concat(changelog) : [];
-    changelog = [].concat(dirtyChanges).concat(changelog);
-
-    //TODO ensure close status is logged(i.e closed)
-    //TODO ensure resolve status is logged(i.e resolved)
-    //TODO ensure re-open status is logged(i.e re-open)
-    //TODO send changelog notification on changelog post save
-    return changelog;
-  }
-
-
-};
 
 
 //-----------------------------------------------------------------------------
@@ -797,6 +681,7 @@ ServiceRequestSchema.plugin(notification);
 ServiceRequestSchema.plugin(aggregate);
 ServiceRequestSchema.plugin(open311);
 ServiceRequestSchema.plugin(pipeline);
+ServiceRequestSchema.plugin(changelog);
 
 
 //-----------------------------------------------------------------------------

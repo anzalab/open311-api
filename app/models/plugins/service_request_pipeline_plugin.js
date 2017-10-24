@@ -21,7 +21,7 @@
 const _ = require('lodash');
 const mongoose = require('mongoose');
 
-module.exports = exports = function aggregated(schema /*, options*/ ) {
+module.exports = exports = function pipelin(schema /*, options*/ ) {
 
   schema.statics.pipeline = function (criteria, done) {
 
