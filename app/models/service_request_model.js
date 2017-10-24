@@ -57,73 +57,7 @@ const Duration = require(path.join(schemaPath, 'duration_schema'));
 const Call = require(path.join(schemaPath, 'call_schema'));
 const Reporter = require(path.join(schemaPath, 'reporter_schema'));
 const ChangeLog = require(path.join(schemaPath, 'changelog_schema'));
-
-
-//contact methods used for reporting the issue
-const CONTACT_METHOD_PHONE_CALL = 'Call';
-const CONTACT_METHOD_EMAIL = 'Email';
-const CONTACT_METHOD_SMS = 'SMS';
-const CONTACT_METHOD_USSD = 'USSD';
-const CONTACT_METHOD_VISIT = 'Visit';
-const CONTACT_METHOD_LETTER = 'Letter';
-const CONTACT_METHOD_FAX = 'Fax';
-const CONTACT_METHOD_MOBILE_APP = 'Mobile';
-
-const CONTACT_METHODS = [
-  CONTACT_METHOD_PHONE_CALL, CONTACT_METHOD_EMAIL,
-  CONTACT_METHOD_SMS, CONTACT_METHOD_USSD, CONTACT_METHOD_VISIT,
-  CONTACT_METHOD_LETTER, CONTACT_METHOD_FAX, CONTACT_METHOD_MOBILE_APP
-];
-
-
-//TODO refactor contact method to independent schema
-
-/**
- * @name ContactMethod
- * @description schema for representing a method used by reporter and workspace
- *              used to receive the service request. Example a customer may
- *              call call center and operator log the service request, then
- *              a contact method is a call and workspace is call center.
- * @type {Schema}
- * @since 0.1.0
- * @version 0.1.0
- * @private
- */
-const ContactMethod = new Schema({
-  /**
-   * @name name
-   * @description A communication(contact) method(mechanism) used by a reporter
-   *              to report the issue
-   *
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  name: {
-    type: String,
-    index: true,
-    default: CONTACT_METHOD_PHONE_CALL,
-    enum: CONTACT_METHODS,
-    searchable: true
-  },
-
-
-  /**
-   * @name workspace
-   * @description workspace used be operator to receive service request
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  workspace: {
-    type: String,
-    index: true,
-    searchable: true
-  }
-
-}, { _id: false, id: false, timestamps: false });
+const ContactMethod = require(path.join(schemaPath, 'contact_method_schema'));
 
 
 /**
@@ -843,16 +777,16 @@ ServiceRequestSchema.pre('validate', function (next) {
 
 //contact methods constants
 ServiceRequestSchema.statics.CONTACT_METHOD_PHONE_CALL =
-  CONTACT_METHOD_PHONE_CALL;
-ServiceRequestSchema.statics.CONTACT_METHOD_FAX = CONTACT_METHOD_FAX;
-ServiceRequestSchema.statics.CONTACT_METHOD_LETTER = CONTACT_METHOD_LETTER;
-ServiceRequestSchema.statics.CONTACT_METHOD_VISIT = CONTACT_METHOD_VISIT;
-ServiceRequestSchema.statics.CONTACT_METHOD_SMS = CONTACT_METHOD_SMS;
-ServiceRequestSchema.statics.CONTACT_METHOD_USSD = CONTACT_METHOD_USSD;
-ServiceRequestSchema.statics.CONTACT_METHOD_EMAIL = CONTACT_METHOD_EMAIL;
+  ContactMethod.PHONE_CALL;
+ServiceRequestSchema.statics.CONTACT_METHOD_FAX = ContactMethod.FAX;
+ServiceRequestSchema.statics.CONTACT_METHOD_LETTER = ContactMethod.LETTER;
+ServiceRequestSchema.statics.CONTACT_METHOD_VISIT = ContactMethod.VISIT;
+ServiceRequestSchema.statics.CONTACT_METHOD_SMS = ContactMethod.SMS;
+ServiceRequestSchema.statics.CONTACT_METHOD_USSD = ContactMethod.USSD;
+ServiceRequestSchema.statics.CONTACT_METHOD_EMAIL = ContactMethod.EMAIL;
 ServiceRequestSchema.statics.CONTACT_METHOD_MOBILE_APP =
-  CONTACT_METHOD_MOBILE_APP;
-ServiceRequestSchema.statics.CONTACT_METHODS = CONTACT_METHODS;
+  ContactMethod.MOBILE_APP;
+ServiceRequestSchema.statics.CONTACT_METHODS = ContactMethod.METHODS;
 
 
 
