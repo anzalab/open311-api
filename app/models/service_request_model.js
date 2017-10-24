@@ -595,7 +595,7 @@ ServiceRequestSchema.methods.changes = function (changelog) {
       createdAt: new Date(),
       status: this.status,
       priority: this.priority,
-      changer: this.operator,
+      changer: this.operator, //TODO handle unattended issue
       visibility: ChangeLog.VISIBILITY_PUBLIC
     };
     return [changelog];
@@ -606,10 +606,9 @@ ServiceRequestSchema.methods.changes = function (changelog) {
 
     //get latest changelog
     const changelogs = _.filter(this.changelogs, function (change) {
+      // return _.has(change, 'id');
       return _.isDate(change.createdAt);
     });
-    const latestChangeLog =
-      _.chain(changelogs).sortBy('createdAt').last().value();
 
     //get latest changes that have not been saved(dirty changes)
     let dirtyChanges = _.filter(this.changelogs, function (change) {
@@ -617,24 +616,39 @@ ServiceRequestSchema.methods.changes = function (changelog) {
     });
 
     //compute changes
-    
+
     //record status changes
-    const statusHasChanged = (this.status &&
-      this.status._id !== (latestChangeLog.status || {})._id);
+    const latestStatusChangeLog =
+      _.chain(changelogs).orderBy('createdAt', 'desc')
+      .find(function (change) {
+        return !_.isEmpty(change.status);
+      }).value() || {};
+    const statusHasChanged =
+      (this.status && !this.status.equals(latestStatusChangeLog.status));
     if (statusHasChanged) {
       changelog.status = this.status;
     }
 
     //record priority changes
-    const priorityHasChanged = (this.priority &&
-      this.priority._id !== (latestChangeLog.priority || {})._id);
+    const latestPriorityChangeLog =
+      _.chain(changelogs).orderBy('createdAt', 'desc')
+      .find(function (change) {
+        return !_.isEmpty(change.priority);
+      }).value() || {};
+    const priorityHasChanged =
+      (this.priority && !this.priority.equals(latestPriorityChangeLog.priority));
     if (priorityHasChanged) {
       changelog.priority = this.priority;
     }
 
     //record assignee changes
-    const assigneeHasChanged = (this.assignee &&
-      this.assignee._id !== (latestChangeLog.assignee || {})._id);
+    const latestAssigneeChangeLog =
+      _.chain(changelogs).orderBy('createdAt', 'desc')
+      .find(function (change) {
+        return !_.isEmpty(change.assignee);
+      }).value() || {};
+    const assigneeHasChanged =
+      (this.assignee && !this.assignee.equals(latestAssigneeChangeLog.assignee));
     if (assigneeHasChanged) {
       changelog.assignee = this.assignee;
     }
@@ -643,7 +657,7 @@ ServiceRequestSchema.methods.changes = function (changelog) {
     dirtyChanges = _.map(dirtyChanges, function (change) {
       change = _.merge({}, {
         changer: changelog.changer || this.operator
-      }, changelog, change);
+      }, changelog, change); //TODO do we merge changelog or?
       return change;
     }.bind(this));
 
@@ -659,6 +673,7 @@ ServiceRequestSchema.methods.changes = function (changelog) {
     //TODO send changelog notification on changelog post save
     return changelog;
   }
+
 
 };
 
