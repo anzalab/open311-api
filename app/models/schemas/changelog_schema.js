@@ -126,7 +126,6 @@ const ChangeLogSchema = new Schema({
   changer: {
     type: ObjectId,
     ref: 'Party',
-    required: true,
     index: true,
     autoset: true,
     exists: true,
