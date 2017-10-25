@@ -31,13 +31,14 @@
 //dependencies
 const _ = require('lodash');
 const moment = require('moment');
+const conf = require('config');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 
 //default year digits to use
 const YEAR_FORMAT = 'YY'; //TODO move this to configurations
-
+const COUNTER_PREFIX = config.get('counter.prefix');
 
 /**
  * @name CounterSchema
@@ -210,6 +211,11 @@ CounterSchema.statics.generate = function (options, done) {
     error.status = 400;
     return done(error);
   }
+
+  //ensure prefix on ticket number
+  options.jurisdiction =
+    (!_.isEmpty(COUNTER_PREFIX) ? [COUNTER_PREFIX, options.jurisdiction].jion(
+      '') : options.jurisdiction);
 
   /**
    * 

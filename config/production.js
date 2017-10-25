@@ -142,7 +142,7 @@ module.exports = {
    * @type {Object}
    */
   counter: {
-    prefix: '',
+    prefix: 'P',
     suffix: ''
   },
 
