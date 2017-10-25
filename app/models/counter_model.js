@@ -214,7 +214,7 @@ CounterSchema.statics.generate = function (options, done) {
 
   //ensure prefix on ticket number
   options.jurisdiction =
-    (!_.isEmpty(COUNTER_PREFIX) ? [COUNTER_PREFIX, options.jurisdiction].jion(
+    (!_.isEmpty(COUNTER_PREFIX) ? [COUNTER_PREFIX, options.jurisdiction].join(
       '') : options.jurisdiction);
 
   /**
