@@ -31,7 +31,7 @@
 //dependencies
 const _ = require('lodash');
 const moment = require('moment');
-const conf = require('config');
+const config = require('config');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
