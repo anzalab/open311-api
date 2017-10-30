@@ -113,7 +113,7 @@ module.exports = exports = function pipeline(schema /*, options*/ ) {
           return {
             party: operator,
             label: {
-              name: 'Reported',
+              name: 'Total',
               weight: minStatusWeight * 10000
             },
             count: totalPerOperator
