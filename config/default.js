@@ -155,7 +155,7 @@ module.exports = {
     sender: 'The open311 Team',
     transport: {
       auth: {
-        api_key: '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',
+        api_key: process.env.SENDGRID_API_KEY || '',
       }
     }
   },
