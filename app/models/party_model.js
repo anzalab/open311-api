@@ -587,17 +587,28 @@ PartySchema.statics.performances = function (options, done) {
 
       //3.2 compute work durations
       durations: function (after) {
-        after(null, {});
+        //TODO compute day, week, month durations
+        ServiceRequest.duration({ operator: party._id }, after);
       },
 
       //3.3 compute service requests counts
       works: function (after) {
-        after(null, {});
+        //TODO compute day, week, month service request counts
+        ServiceRequest.work({ operator: party._id }, after);
       },
 
       //compute party workspace leaderboard
       leaderboard: function (after) {
-        after(null, {});
+
+        //TODO ensure are only of party workspace
+        ServiceRequest.work({
+          'method.workspace': party.relation.workspace
+        }, function (error, leaderboards) {
+          // order leader board desc
+          leaderboards = _.orderBy(leaderboards, 'count', 'desc');
+          after(error, leaderboards);
+        });
+
       }
     }, then);
 

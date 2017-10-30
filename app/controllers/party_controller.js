@@ -158,7 +158,7 @@ module.exports = {
     const party = (request.params.id || request.party);
 
     //prepare options
-    const options = _.merge({}, { party: party });
+    const options = _.merge({}, { party: party }, request.query);
 
     Party
       .performances(options, function (error, performances) {
