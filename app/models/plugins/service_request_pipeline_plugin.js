@@ -83,17 +83,24 @@ module.exports = exports = function pipeline(schema /*, options*/ ) {
 
         //calculate total reported per operator
         let operators = _.compact(_.map(pipelines, function (pipeline) {
-          return pipeline.operator ?
-            pipeline.operator._id.toString() : undefined;
+          return pipeline.party ?
+            pipeline.party._id.toString() : undefined;
         }));
         operators = _.uniq(operators);
         const totalReportedPerOperator = _.map(operators, function (_id) {
+          //obtain operator object
+          const operator = (_.find(pipelines, function (pipeline) {
+            if (pipeline.party) {
+              return (pipeline.party._id.toString() === _id);
+            }
+            return false;
+          }) || {}).party || {};
 
           //filter pipelines per operator
           const pipelinesPerOperator =
             _.filter(pipelines, function (pipeline) {
-              if (pipeline.operator) {
-                return (pipeline.operator._id.toString() === _id);
+              if (pipeline.party) {
+                return (pipeline.party._id.toString() === _id);
               }
               return false;
             });
@@ -104,6 +111,7 @@ module.exports = exports = function pipeline(schema /*, options*/ ) {
 
           //return total reported
           return {
+            party: operator,
             label: {
               name: 'Reported',
               weight: minStatusWeight * 10000
