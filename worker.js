@@ -23,13 +23,12 @@ if (!(process.env || {}).NODE_ENV) {
 process.env.SUPPRESS_NO_CONFIG_WARNING = true;
 
 
-const path = require('path');
-
 //dependencies
-require('config'); //load configurations
-// const config = require('config'); //load configurations
+const path = require('path');
+const config = require('config'); //load configurations
 const environment = require('execution-environment');
 const mkdir = require('mkdir-p');
+const kue = require('kue');
 
 
 //register environment variables
@@ -50,9 +49,13 @@ require(path.join(__dirname, 'app', 'initializers', 'mongoose'));
 //------------------------------------------------------------------------
 
 //initialize infobip sms transport
-// const infobip = require('open311-infobip');
-// infobip.options = config.get('infobip');
+const infobip = require('open311-infobip');
+infobip.options = config.get('infobip');
 
 
 //start
-// infobip.start();
+infobip.start();
+
+
+//open web interface to monitor jobs
+kue.app.listen(9000);

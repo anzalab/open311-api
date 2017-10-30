@@ -76,10 +76,12 @@ winston.level = 'silly';
 //setup application mongoose instance
 require(path.join(__dirname, 'initializers', 'mongoose'));
 
+
 //setup messages transports
 const infobip = require('open311-infobip');
 infobip.options = config.get('infobip');
 infobip.init();
+
 //finish initializers
 
 
