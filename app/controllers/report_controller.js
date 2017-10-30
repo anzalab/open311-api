@@ -67,7 +67,7 @@ module.exports = {
 
 
   /**
-   * @name overviews
+   * @name pipelines
    * @description handle pipelines request
    * @param  {HttpRequest} request  http request
    * @param  {HttpResponse} response http response
@@ -76,7 +76,7 @@ module.exports = {
    * @public
    */
   pipelines: function (request, response, next) {
-    
+
     //TODO pass request options(i.e query params to extras)
     //TODO support mongodb aggregation pipelines from request(express-mquery)
     const criteria = _.merge({}, (request.mquery || {}).query);
@@ -88,6 +88,62 @@ module.exports = {
           next(error);
         } else {
           response.ok(pipelines);
+        }
+      });
+
+  },
+
+
+  /**
+   * @name works
+   * @description handle works request
+   * @param  {HttpRequest} request  http request
+   * @param  {HttpResponse} response http response
+   * @since 0.1.0
+   * @version 0.1.0
+   * @public
+   */
+  works: function (request, response, next) {
+
+    //TODO pass request options(i.e query params to extras)
+    //TODO support mongodb aggregation works from request(express-mquery)
+    const criteria = _.merge({}, (request.mquery || {}).query);
+
+    ServiceRequest
+      .work(criteria, function (error, works) {
+        if (error) {
+          error.status = 500;
+          next(error);
+        } else {
+          response.ok(works);
+        }
+      });
+
+  },
+
+
+  /**
+   * @name durations
+   * @description handle durations request
+   * @param  {HttpRequest} request  http request
+   * @param  {HttpResponse} response http response
+   * @since 0.1.0
+   * @version 0.1.0
+   * @public
+   */
+  durations: function (request, response, next) {
+
+    //TODO pass request options(i.e query params to extras)
+    //TODO support mongodb aggregation durations from request(express-mquery)
+    const criteria = _.merge({}, (request.mquery || {}).query);
+
+    ServiceRequest
+      .duration(criteria, function (error, durations) {
+        if (error) {
+          error.status = 500;
+          next(error);
+        } else {
+          response.ok(durations);
         }
       });
 

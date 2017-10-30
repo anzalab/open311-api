@@ -53,6 +53,28 @@ router.get('/reports/pipelines', jwtAuth, function (request, response, next) {
 
 
 /**
+ * Handle Http GET on /reports/works
+ * @description obtain issue(service request) works
+ * @param  {HttpRequest} request  a http request
+ * @param  {HttpResponse} response a http response
+ */
+router.get('/reports/works', jwtAuth, function (request, response, next) {
+  controller.works(request, response, next);
+});
+
+
+/**
+ * Handle Http GET on /reports/durations
+ * @description obtain issue(service request) durations
+ * @param  {HttpRequest} request  a http request
+ * @param  {HttpResponse} response a http response
+ */
+router.get('/reports/durations', jwtAuth, function (request, response, next) {
+  controller.durations(request, response, next);
+});
+
+
+/**
  * Handle Http GET on /reports/exports
  * @description obtain issue(service request) exports
  * @param  {HttpRequest} request  a http request

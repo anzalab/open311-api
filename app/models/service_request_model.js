@@ -45,6 +45,10 @@ const open311 =
   require(path.join(pluginsPath, 'service_request_open311_plugin'));
 const pipeline =
   require(path.join(pluginsPath, 'service_request_pipeline_plugin'));
+const work =
+  require(path.join(pluginsPath, 'service_request_work_plugin'));
+const duration =
+  require(path.join(pluginsPath, 'service_request_duration_plugin'));
 const changelog =
   require(path.join(pluginsPath, 'service_request_changelog_plugin'));
 
@@ -681,6 +685,8 @@ ServiceRequestSchema.plugin(notification);
 ServiceRequestSchema.plugin(aggregate);
 ServiceRequestSchema.plugin(open311);
 ServiceRequestSchema.plugin(pipeline);
+ServiceRequestSchema.plugin(work);
+ServiceRequestSchema.plugin(duration);
 ServiceRequestSchema.plugin(changelog);
 
 
