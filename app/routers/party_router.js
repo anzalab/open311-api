@@ -259,6 +259,48 @@ router.delete('/parties/:id', function (request, response, next) {
 });
 
 
+//-----------------------------------------------------------------------------
+// Analytics
+//-----------------------------------------------------------------------------
+
+
+/*
+ * @api {get} /parties/:id/performances Get Party Performances
+ * @apiGroup Party
+ * @apiName GetPartyPerformances
+ * @apiVersion 0.1.0
+ *
+ *
+ * @apiHeader {String}        Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}        Authorization
+ *        Authorization token
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
+ */
+router.get('/parties/:id/performances', function (request, response, next) {
+  controller.performances(request, response, next);
+});
+
+
 /**
  * exports parties router
  * @type {Object}

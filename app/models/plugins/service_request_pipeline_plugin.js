@@ -21,7 +21,7 @@
 const _ = require('lodash');
 const mongoose = require('mongoose');
 
-module.exports = exports = function pipelin(schema /*, options*/ ) {
+module.exports = exports = function pipeline(schema /*, options*/ ) {
 
   schema.statics.pipeline = function (criteria, done) {
 
@@ -56,11 +56,11 @@ module.exports = exports = function pipelin(schema /*, options*/ ) {
       })
       .project({ //3 stage: project full required documents
         _id: '$_id',
-        operator: '$_operator',
+        party: '$_operator',
         status: '$_status',
         count: '$count'
       })
-      .project({ _id: 0, operator: 1, status: 1, count: 1 }) //TODO return expectedAt, resolvedAt to obtain lates
+      .project({ _id: 0, party: 1, status: 1, count: 1 }) //TODO return expectedAt, resolvedAt to obtain lates
       .exec(function (error, pipelines) {
 
         //add label to pipelines
@@ -77,9 +77,9 @@ module.exports = exports = function pipelin(schema /*, options*/ ) {
 
         });
 
-        //max status weight
-        const maxStatusWeight =
-          _.chain(pipelines).map('status.weight').max().value();
+        //min status weight
+        const minStatusWeight =
+          _.chain(pipelines).map('status.weight').min().value();
 
         //calculate total reported per operator
         let operators = _.compact(_.map(pipelines, function (pipeline) {
@@ -106,7 +106,7 @@ module.exports = exports = function pipelin(schema /*, options*/ ) {
           return {
             label: {
               name: 'Reported',
-              weight: maxStatusWeight * 10000
+              weight: minStatusWeight * 10000
             },
             count: totalPerOperator
           };

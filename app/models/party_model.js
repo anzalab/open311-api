@@ -13,6 +13,7 @@
 //dependencies
 const path = require('path');
 const _ = require('lodash');
+const async = require('async');
 const config = require('config');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
@@ -36,6 +37,8 @@ const RELATION_TYPE_APP = 'App';
 const RELATION_WORKSPACE_CALL_CENTER = 'Call Center';
 const RELATION_WORKSPACE_CUSTOMER_CARE = 'Customer Care';
 const RELATION_WORKSPACE_OTHER = 'Other';
+
+const BASIC_FIELDS = ['_id', 'name', 'email', 'phone', 'relation'];
 
 
 //PartyRelation Schema
@@ -100,7 +103,7 @@ const PartyRelation = new Schema({
     searchable: true
   }
 
-});
+}, { _id: false, id: false, timestamps: false, emitIndexErrors: true });
 
 
 //Party Schema
@@ -556,6 +559,65 @@ PartySchema.statics.RELATION_WORKSPACES = [
 // PartySchema Analytics
 //-----------------------------------------------------------------------------
 
+PartySchema.statics.performances = function (options, done) {
+  //TODO refactor using aggregations
+  //TODO refactor to model splugin
+  //@see https://docs.mongodb.com/manual/reference/operator/aggregation/facet/
+
+  //refs
+  const Party = mongoose.model('Party');
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //compute performance reports
+  const works = function (party, then) {
+
+    async.parallel({
+
+      //3.0 pick basic party details
+      party: function (after) {
+        const basic = _.pick(party, BASIC_FIELDS);
+        after(null, basic);
+      },
+
+      //3.1 compute pipeline
+      pipelines: function (after) {
+        const criteria = { operator: party._id };
+        ServiceRequest.pipeline(criteria, after);
+      },
+
+      //3.2 compute work durations
+      durations: function (after) {
+        after(null, {});
+      },
+
+      //3.3 compute service requests counts
+      works: function (after) {
+        after(null, {});
+      },
+
+      //compute party workspace leaderboard
+      leaderboard: function (after) {
+        after(null, {});
+      }
+    }, then);
+
+  };
+
+  async.waterfall([
+
+    //1. loading full party instance
+    function preLoadParty(next) {
+      //obtain party id
+      const _id = _.get(options, 'party._id', options.party);
+      Party.findById(_id, next);
+    },
+
+    //2. obtain performance reports in parallel
+    works
+
+  ], done);
+
+};
 
 //exports Party model
 module.exports = mongoose.model('Party', PartySchema);
