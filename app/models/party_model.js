@@ -588,12 +588,14 @@ PartySchema.statics.performances = function (options, done) {
       //3.2 compute work durations
       durations: function (after) {
         //TODO compute day, week, month durations
+        //Party.durations()
         ServiceRequest.duration({ operator: party._id }, after);
       },
 
       //3.3 compute service requests counts
       works: function (after) {
         //TODO compute day, week, month service request counts
+        //Party.works()
         ServiceRequest.work({ operator: party._id }, after);
       },
 
