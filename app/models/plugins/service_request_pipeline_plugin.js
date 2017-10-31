@@ -78,8 +78,10 @@ module.exports = exports = function pipeline(schema /*, options*/ ) {
         });
 
         //min status weight
-        const minStatusWeight =
+        let minStatusWeight =
           _.chain(pipelines).map('status.weight').min().value();
+        minStatusWeight =
+          (minStatusWeight > 0 ? -minStatusWeight : minStatusWeight);
 
         //calculate total reported per operator
         let operators = _.compact(_.map(pipelines, function (pipeline) {
