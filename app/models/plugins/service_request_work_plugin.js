@@ -52,7 +52,7 @@ module.exports = exports = function work(schema /*, options*/ ) {
         party: '$_operator',
         count: '$count'
       })
-      .project({ _id: 0, party: 1, status: 1, count: 1 })
+      .project({ _id: 0, party: 1, count: 1 })
       .exec(function (error, works) {
 
         //TODO merge date periods if available

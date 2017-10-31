@@ -56,7 +56,7 @@ module.exports = exports = function duration(schema /*, options*/ ) {
         party: '$_operator',
         duration: '$duration'
       })
-      .project({ _id: 0, party: 1, status: 1, duration: 1 })
+      .project({ _id: 0, party: 1, duration: 1 })
       .exec(function (error, durations) {
 
         //ensure positive durations
