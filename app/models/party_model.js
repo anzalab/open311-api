@@ -564,7 +564,6 @@ PartySchema.statics.RELATION_WORKSPACES = [
 PartySchema.statics.works = function (options, done) {
 
   //refs
-  const Party = mongoose.model('Party');
   const ServiceRequest = mongoose.model('ServiceRequest');
 
   //normalize results
@@ -594,7 +593,11 @@ PartySchema.statics.works = function (options, done) {
             $lte: endedAt
           }
         }, function (error, work) {
-          error ? next(error) : next(error, normalize(work, 'day'));
+          if (error) {
+            next(error);
+          } else {
+            next(null, normalize(work, 'day'));
+          }
         });
     },
 
@@ -610,8 +613,11 @@ PartySchema.statics.works = function (options, done) {
             $lte: endedAt
           }
         }, function (error, work) {
-          error ? next(error) : next(error, normalize(work,
-            'week'));
+          if (error) {
+            next(error);
+          } else {
+            next(null, normalize(work, 'week'));
+          }
         });
     },
 
@@ -627,8 +633,11 @@ PartySchema.statics.works = function (options, done) {
             $lte: endedAt
           }
         }, function (error, work) {
-          error ? next(error) : next(error, normalize(work,
-            'month'));
+          if (error) {
+            next(error);
+          } else {
+            next(null, normalize(work, 'month'));
+          }
         });
     }
   }, done);
@@ -638,7 +647,6 @@ PartySchema.statics.works = function (options, done) {
 PartySchema.statics.durations = function (options, done) {
 
   //refs
-  const Party = mongoose.model('Party');
   const ServiceRequest = mongoose.model('ServiceRequest');
 
   //normalize results
@@ -674,7 +682,11 @@ PartySchema.statics.durations = function (options, done) {
             $lte: endedAt
           }
         }, function (error, duration) {
-          error ? next(error) : next(error, normalize(duration, 'day'));
+          if (error) {
+            next(error);
+          } else {
+            next(null, normalize(duration, 'day'));
+          }
         });
     },
 
@@ -690,8 +702,11 @@ PartySchema.statics.durations = function (options, done) {
             $lte: endedAt
           }
         }, function (error, duration) {
-          error ? next(error) : next(error, normalize(duration,
-            'week'));
+          if (error) {
+            next(error);
+          } else {
+            next(null, normalize(duration, 'week'));
+          }
         });
     },
 
@@ -707,8 +722,11 @@ PartySchema.statics.durations = function (options, done) {
             $lte: endedAt
           }
         }, function (error, duration) {
-          error ? next(error) : next(error, normalize(duration,
-            'month'));
+          if (error) {
+            next(error);
+          } else {
+            next(null, normalize(duration, 'month'));
+          }
         });
     }
   }, done);

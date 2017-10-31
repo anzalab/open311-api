@@ -18,7 +18,6 @@
  */
 
 //global dependencies(or import)
-const _ = require('lodash');
 const mongoose = require('mongoose');
 
 module.exports = exports = function work(schema /*, options*/ ) {
