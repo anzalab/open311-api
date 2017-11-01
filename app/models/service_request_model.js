@@ -190,7 +190,7 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'name email phone'
+      select: 'name email phone avatar'
     }
   },
 
