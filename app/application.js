@@ -52,6 +52,7 @@ const expressWinston = require('express-winston');
 const cors = require('cors');
 const helmet = require('helmet');
 const respond = require('express-respond');
+const compression = require('compression');
 
 
 //register environment variables
@@ -87,6 +88,9 @@ infobip.init();
 
 //create an express application
 let app = express();
+
+//enable response compression
+app.use(compression());
 
 
 //setup public directories
