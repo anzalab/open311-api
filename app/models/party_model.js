@@ -303,6 +303,8 @@ PartySchema.virtual('permissions').get(function () {
 
   }).compact().flatten().uniq().value();
 
+  permissions = !_.isEmpty(permissions) ? permissions : undefined;
+
   return permissions;
 
 });

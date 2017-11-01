@@ -64,10 +64,7 @@ const JurisdictionSchema = new Schema({
     ref: 'Jurisdiction',
     autoset: true,
     exists: true,
-    index: true,
-    autopopulate: {
-      select: 'code name phone email domain'
-    }
+    index: true
   },
 
 
