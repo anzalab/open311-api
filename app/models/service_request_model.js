@@ -613,8 +613,8 @@ ServiceRequestSchema.pre('validate', function (next) {
 
         //compute changes
         let changes = this.changes();
-        changes = _.sortBy([].concat(this.changelogs).concat(changes),
-          'createdAt');
+        changes = [].concat(this.changelogs).concat(changes);
+        changes = _.sortBy(changes, 'createdAt');
         this.changelogs = changes;
 
         //set service request code
@@ -650,10 +650,10 @@ ServiceRequestSchema.pre('validate', function (next) {
   else {
     //compute changes
     let changes = this.changes();
-    changes = _.sortBy([].concat(this.changelogs).concat(changes),
-      'createdAt');
+    changes = [].concat(this.changelogs).concat(changes);
+    changes = _.sortBy(changes, 'createdAt');
     this.changelogs = changes;
-    next();
+    next(null, this);
   }
 
 });

@@ -234,10 +234,7 @@ const PartySchema = new Schema({
   roles: [{
     type: ObjectId,
     ref: 'Role',
-    autoset: true,
-    autopopulate: {
-      select: 'name permissions'
-    }
+    autoset: true
   }],
 
 
