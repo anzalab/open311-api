@@ -52,10 +52,7 @@ const ServiceSchema = new Schema({
     ref: 'Jurisdiction',
     index: true,
     autoset: true,
-    exists: true,
-    autopopulate: {
-      select: 'code name phone email domain'
-    }
+    exists: true
   },
 
 
@@ -74,10 +71,7 @@ const ServiceSchema = new Schema({
     required: true,
     index: true,
     autoset: true,
-    exists: true,
-    autopopulate: {
-      select: 'code name color'
-    }
+    exists: true
   },
 
 
@@ -181,7 +175,7 @@ const ServiceSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  priority: {
+  priority: {//TODO support optional population
     type: ObjectId,
     ref: 'Priority',
     autoset: true,
