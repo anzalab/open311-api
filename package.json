@@ -86,6 +86,7 @@
     "mongoose-autoset": "^0.1.0",
     "mongoose-exists": "^0.1.1",
     "mongoose-hidden": "git+https://github.com/lykmapipo/mongoose-hidden.git",
+    "mongoose-kue": "^0.1.0",
     "mongoose-regex-search": "^0.4.0",
     "mongoose-valid8": "^0.1.1",
     "nodemailer": "^4.3.1",
