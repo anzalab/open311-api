@@ -611,6 +611,17 @@ ServiceRequestSchema.pre('validate', function (next) {
         this.status = (this.status || result.status || undefined);
         this.priority = (this.priority || result.priority || undefined);
 
+        //ensure open status changelog
+        if (_.isEmpty(this.changelogs)) {
+          this.changelogs = [{
+            createdAt: new Date(),
+            status: this.status,
+            priority: this.priority,
+            changer: this.operator,
+            visibility: ChangeLog.VISIBILITY_PUBLIC
+          }];
+        }
+
         //set service request code
         //in format (Area Code Service Code Year Sequence)
         //i.e ILLK170001
@@ -642,7 +653,18 @@ ServiceRequestSchema.pre('validate', function (next) {
 
   //continue
   else {
-    //compute changes
+    
+    //ensure open status changelog
+    if (_.isEmpty(this.changelogs)) {
+      this.changelogs = [{
+        createdAt: new Date(),
+        status: this.status,
+        priority: this.priority,
+        changer: this.operator,
+        visibility: ChangeLog.VISIBILITY_PUBLIC
+      }];
+    }
+
     return next(null, this);
   }
 
