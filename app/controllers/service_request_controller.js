@@ -150,6 +150,8 @@ module.exports = {
    */
   changelogs: function (request, response, next) {
 
+    //TODO merge it on update(patch)
+
     //obtain _id id
     const _id = request.params.id;
     const changer = request.party;

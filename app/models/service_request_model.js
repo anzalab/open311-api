@@ -590,7 +590,7 @@ ServiceRequestSchema.pre('validate', function (next) {
       }
     }, function (error, result) {
       if (error) {
-        next(error);
+        return next(error);
       } else {
 
         //ensure jurisdiction & service
@@ -622,7 +622,7 @@ ServiceRequestSchema.pre('validate', function (next) {
             }, function (error, ticketNumber) {
               if (!error && ticketNumber) {
                 this.code = ticketNumber;
-                return next();
+                return next(null, this);
               } else {
                 return next(error);
               }
@@ -632,7 +632,7 @@ ServiceRequestSchema.pre('validate', function (next) {
 
         //continue
         else {
-          next(null, this);
+          return next(null, this);
         }
 
       }
@@ -643,7 +643,7 @@ ServiceRequestSchema.pre('validate', function (next) {
   //continue
   else {
     //compute changes
-    next(null, this);
+    return next(null, this);
   }
 
 });
