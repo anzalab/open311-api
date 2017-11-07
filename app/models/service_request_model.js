@@ -611,12 +611,6 @@ ServiceRequestSchema.pre('validate', function (next) {
         this.status = (this.status || result.status || undefined);
         this.priority = (this.priority || result.priority || undefined);
 
-        //compute changes
-        let changes = this.changes();
-        changes = [].concat(this.changelogs).concat(changes);
-        changes = _.sortBy(changes, 'createdAt');
-        this.changelogs = changes;
-
         //set service request code
         //in format (Area Code Service Code Year Sequence)
         //i.e ILLK170001
@@ -649,10 +643,6 @@ ServiceRequestSchema.pre('validate', function (next) {
   //continue
   else {
     //compute changes
-    let changes = this.changes();
-    changes = [].concat(this.changelogs).concat(changes);
-    changes = _.sortBy(changes, 'createdAt');
-    this.changelogs = changes;
     next(null, this);
   }
 

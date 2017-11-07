@@ -1370,6 +1370,45 @@ router.delete('/servicerequests/:id', function (request, response, next) {
 });
 
 
+/*
+ * @api {patch} /servicerequests/:id/changelogs Get ServiceRequest ChangeLogs
+ * @apiGroup ServiceRequest
+ * @apiName PatchServiceRequestChangeLogs
+ * @apiVersion 0.1.0
+ *
+ *
+ * @apiHeader {String}        Accept
+ *        Accept value i.e application/json
+ * @apiHeader {String}        Authorization
+ *        Authorization token
+ *
+ * @apiError  AuthorizationHeaderRequired  Authorization header is required
+ *
+ * @apiErrorExample   {json} Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"Authorization header required",
+ *      "error":{}
+ *    }
+ *
+ * @apiError JWTExpired     Authorization token has expired
+ *
+ * @apiErrorExample  {json}   Error-Response:
+ *    HTTP/1.1 403 Forbidden
+ *    {
+ *      "success":false,
+ *      "message :"jwt expired",
+ *      "error":{}
+ *    }
+ */
+router.patch('/servicerequests/:id/changelogs', function (request, response, next) {
+  //TODO implement patch
+  //TODO use patch specifications
+  controller.changelogs(request, response, next);
+});
+
+
 /**
  * exports servicerequests router
  * @type {Object}

@@ -2,6 +2,7 @@
 
 //dependencies
 const _ = require('lodash');
+const async = require('async');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
 
@@ -137,6 +138,62 @@ module.exports = {
             response.ok(servicerequest);
           }
         });
+  },
+
+
+  /**
+   * @function
+   * @name servicerequests.changelogs()
+   * @description obtain changelog of specific service request
+   * @param  {HttpRequest} request  a http request
+   * @param  {HttpResponse} response a http response
+   */
+  changelogs: function (request, response, next) {
+
+    //obtain _id id
+    const _id = request.params.id;
+    const changer = request.party;
+
+    //TODO handle other updates
+
+    //obtain changelog
+    const changelog = _.merge({}, { changer: changer }, request.body);
+
+    async.waterfall([
+
+      function findServiceRequest(then) {
+        ServiceRequest.findById(_id).exec(then);
+      },
+
+      function computeChanges(servicerequest, then) {
+        if (!servicerequest) {
+          let error = new Error('Service Request Not Found');
+          error.status = 404;
+          then(error);
+        } else {
+          let changelogs = servicerequest.changes(changelog);
+          changelogs =
+            ([].concat(servicerequest.changelogs).concat(changelogs));
+          changelogs = _.sortBy(changelogs, 'createdAt');
+          const changes = _.merge({}, changelog, { changelogs: changelogs });
+          ServiceRequest
+            .findByIdAndUpdate(_id, changes, { new: true })
+            .exec(then);
+        }
+      },
+
+      function reload(servicerequest, then) {
+        ServiceRequest.findById(_id).exec(then);
+      }
+
+    ], function (error, servicerequest) {
+      if (error) {
+        next(error);
+      } else {
+        response.ok(servicerequest);
+      }
+    });
+
   }
 
 };
