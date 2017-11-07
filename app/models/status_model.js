@@ -29,6 +29,7 @@ const Schema = mongoose.Schema;
 //TODO implement status in service request to expose list of applicable 
 //statuses
 //TODO add support to status note
+//TODO add flag for default status
 
 
 /**
