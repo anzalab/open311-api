@@ -66,6 +66,35 @@ module.exports = {
   },
 
 
+
+  /**
+   * @name performances
+   * @description handle performances request
+   * @param  {HttpRequest} request  http request
+   * @param  {HttpResponse} response http response
+   * @since 0.1.0
+   * @version 0.1.0
+   * @public
+   */
+  performances: function (request, response, next) {
+    //TODO pass request options(i.e query params to extras)
+    //TODO support mongodb aggregation pipelines from request(express-mquery)
+
+    const criteria = _.merge({}, (request.mquery || {}).query);
+
+    ServiceRequest
+      .performance(criteria, function (error, performances) {
+        if (error) {
+          error.status = 500;
+          next(error);
+        } else {
+          response.ok(performances);
+        }
+      });
+
+  },
+
+
   /**
    * @name pipelines
    * @description handle pipelines request

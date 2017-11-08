@@ -43,6 +43,8 @@ const aggregate =
   require(path.join(pluginsPath, 'service_request_aggregated_plugin'));
 const open311 =
   require(path.join(pluginsPath, 'service_request_open311_plugin'));
+const performance =
+  require(path.join(pluginsPath, 'service_request_performance_plugin'));
 const pipeline =
   require(path.join(pluginsPath, 'service_request_pipeline_plugin'));
 const work =
@@ -653,7 +655,7 @@ ServiceRequestSchema.pre('validate', function (next) {
 
   //continue
   else {
-    
+
     //ensure open status changelog
     if (_.isEmpty(this.changelogs)) {
       this.changelogs = [{
@@ -696,6 +698,7 @@ ServiceRequestSchema.statics.CONTACT_METHODS = ContactMethod.METHODS;
 ServiceRequestSchema.plugin(notification);
 ServiceRequestSchema.plugin(aggregate);
 ServiceRequestSchema.plugin(open311);
+ServiceRequestSchema.plugin(performance);
 ServiceRequestSchema.plugin(pipeline);
 ServiceRequestSchema.plugin(work);
 ServiceRequestSchema.plugin(duration);
