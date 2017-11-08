@@ -539,10 +539,19 @@ ServiceRequestSchema.pre('validate', function (next) {
 
   //compute time to resolve (ttr) in milliseconds
   if (this.resolvedAt) {
+
     //always ensure positive time diff
     let ttr = this.resolvedAt.getTime() - this.createdAt.getTime();
+
+    //ensure resolve time is ahead of creation time
+    this.resolvedAt =
+      (ttr > 0 ? this.resolvedAt :
+        this.resolvedAt = new Date((this.createdAt.getTime() + -(ttr))));
+
+    //ensure positive ttr
     ttr = ttr > 0 ? ttr : -(ttr);
     this.ttr = { milliseconds: ttr };
+
   }
 
   //ensure jurisdiction from service
