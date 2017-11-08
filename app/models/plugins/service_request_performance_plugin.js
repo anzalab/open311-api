@@ -46,7 +46,61 @@ module.exports = exports = function performance(schema /*, options*/ ) {
   }];
 
 
-  const SERVICE_GROUP_FACET = [{ // dount and group by service group
+  const UNATTENDED_FACET = [{ //count that has been reported but not verified
+    $match: {
+      operator: { $eq: null }
+    }
+  }, {
+    $count: 'unattended'
+  }];
+
+
+  //TODO add escallated facet
+
+
+  const WORKSPACE_FACET = [{ // count and group by operator workspace
+    $group: {
+      _id: '$method.workspace', //group and count by workspace name
+      count: { $sum: 1 }
+    }
+  }, { // project name, color & count
+    $project: {
+      name: '$_id',
+      count: '$count'
+    }
+  }, { // re-shape to obtain group, color & count
+    $project: {
+      _id: 0,
+      name: 1,
+      count: 1
+    }
+  }, { //sort by count ascending
+    $sort: { count: 1 }
+  }];
+
+
+  const METHOD_FACET = [{ // count and group by reporting method
+    $group: {
+      _id: '$method.name', //group and count by reporting method name
+      count: { $sum: 1 }
+    }
+  }, { // project name, color & count
+    $project: {
+      name: '$_id',
+      count: '$count'
+    }
+  }, { // re-shape to obtain group, color & count
+    $project: {
+      _id: 0,
+      name: 1,
+      count: 1
+    }
+  }, { //sort by count ascending
+    $sort: { count: 1 }
+  }];
+
+
+  const SERVICE_GROUP_FACET = [{ // count and group by service group
     $group: {
       _id: '$group.name', //group and count by service group name
       color: { $first: '$group.color' },
@@ -54,17 +108,19 @@ module.exports = exports = function performance(schema /*, options*/ ) {
     }
   }, { // project name, color & count
     $project: {
-      group: '$_id',
+      name: '$_id',
       color: '$color',
       count: '$count'
     }
   }, { // re-shape to obtain group, color & count
     $project: {
       _id: 0,
-      group: 1,
+      name: 1,
       color: 1,
       count: 1
     }
+  }, { //sort by count ascending
+    $sort: { count: 1 }
   }];
 
 
@@ -77,7 +133,7 @@ module.exports = exports = function performance(schema /*, options*/ ) {
     }
   }, { // project name, color & count
     $project: {
-      status: '$_id',
+      name: '$_id',
       weight: '$weight',
       color: '$color',
       count: '$count'
@@ -85,11 +141,62 @@ module.exports = exports = function performance(schema /*, options*/ ) {
   }, { // re-shape to obtain status, color & count
     $project: {
       _id: 0,
-      status: 1,
+      name: 1,
       color: 1,
       weight: 1,
       count: 1
     }
+  }, { //sort by weight ascending
+    $sort: { weight: 1 }
+  }];
+
+
+  const JURISDICTION_FACET = [{ //count and group by jurisdiction
+    $group: {
+      _id: '$jurisdiction.name', //group and count by jurisdiction name
+      color: { $first: '$jurisdiction.color' },
+      count: { $sum: 1 }
+    }
+  }, { // project name, color & count
+    $project: {
+      name: '$_id',
+      color: '$color',
+      count: '$count'
+    }
+  }, { // re-shape to obtain jurisdiction, color & count
+    $project: {
+      _id: 0,
+      name: 1,
+      color: 1,
+      count: 1
+    }
+  }, { //sort by count ascending
+    $sort: { count: 1 }
+  }];
+
+
+  const OPERATOR_FACET = [{ //ensure attended(has operator)
+    $match: {
+      operator: { $ne: null }
+    }
+  }, { //count and group by operator
+    $group: {
+      _id: '$operator.name', //group and count by operator name
+      count: { $sum: 1 }
+    }
+  }, { // project name, color & count
+    $project: {
+      name: '$_id',
+      count: '$count'
+    }
+  }, { // re-shape to obtain operator, color & count
+    $project: {
+      _id: 0,
+      name: 1,
+      count: 1
+    }
+  }, { //sort by count ascending
+    $sort: { count: 1 }
   }];
 
 
@@ -118,8 +225,13 @@ module.exports = exports = function performance(schema /*, options*/ ) {
         total: TOTAL_FACET,
         pending: PENDING_FACET,
         resolved: RESOLVED_FACET,
+        unattended: UNATTENDED_FACET,
+        workspaces: WORKSPACE_FACET,
+        methods: METHOD_FACET,
         groups: SERVICE_GROUP_FACET,
-        statuses: STATUS_FACET
+        statuses: STATUS_FACET,
+        jurisdictions: JURISDICTION_FACET,
+        operators: OPERATOR_FACET
       })
       .exec(function (error, performances) {
 
