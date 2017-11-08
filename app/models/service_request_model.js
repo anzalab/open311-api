@@ -371,28 +371,6 @@ const ServiceRequestSchema = new Schema({
 
 
   /**
-   * @name comments
-   * @description Associated comment(s) with service request(issue)
-   * @type {Array}
-   * @see {@link Comment}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-
-
-  /**
-   * @name changes
-   * @description Associated status changes(s) with service request(issue)
-   * @type {Array}
-   * @see {@link StatusChange}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-
-
-  /**
    * @name expectedAt
    * @description A time when the issue is expected to be resolved.
    *

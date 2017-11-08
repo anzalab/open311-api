@@ -16,7 +16,16 @@
  */
 
 //global dependencies(or import)
+const _ = require('lodash');
 const mongoose = require('mongoose');
+const parseMs = require('parse-ms');
+
+
+//constants
+const SUMMARIES = [
+  'total', 'pending', 'resolved', 'unattended',
+  'late', 'averageAttendTime', 'averageResolveTime'
+];
 
 
 module.exports = exports = function performance(schema /*, options*/ ) {
@@ -52,6 +61,57 @@ module.exports = exports = function performance(schema /*, options*/ ) {
     }
   }, {
     $count: 'unattended'
+  }];
+
+
+  const LATE_FACET = [{ //count that are past expected resolving date
+      $match: {
+        resolvedAt: { $ne: null },
+        expectedAt: { $ne: null }
+      }
+    }, {
+      $addFields: { // calculate late time
+        late: { $subtract: ['$resolvedAt', '$expectedAt'] }
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        late: { $ifNull: ['$late', 0] }
+      }
+    }, {
+      $match: {
+        late: { $gt: 0 }
+      }
+    }, {
+      $count: 'late'
+    }
+  ];
+
+
+  const AVERAGE_ATTEND_TIME_FACET = [{ // calculate average attend time
+    $group: {
+      _id: null,
+      averageAttendTime: { $avg: '$call.duration.milliseconds' }
+    }
+  }, {
+    $project: {
+      _id: 0,
+      averageAttendTime: 1
+    }
+  }];
+
+
+  const AVERAGE_RESOLVE_TIME_FACET = [{ // calculate average time to resolve(ttr)
+    $group: {
+      _id: null,
+      averageResolveTime: { $avg: '$ttr.milliseconds' }
+    }
+  }, {
+    $project: {
+      _id: 0,
+      averageResolveTime: 1
+    }
   }];
 
 
@@ -100,6 +160,30 @@ module.exports = exports = function performance(schema /*, options*/ ) {
   }];
 
 
+  const JURISDICTION_FACET = [{ //count and group by jurisdiction
+    $group: {
+      _id: '$jurisdiction.name', //group and count by jurisdiction name
+      color: { $first: '$jurisdiction.color' },
+      count: { $sum: 1 }
+    }
+  }, { // project name, color & count
+    $project: {
+      name: '$_id',
+      color: '$color',
+      count: '$count'
+    }
+  }, { // re-shape to obtain jurisdiction, color & count
+    $project: {
+      _id: 0,
+      name: 1,
+      color: 1,
+      count: 1
+    }
+  }, { //sort by count ascending
+    $sort: { count: 1 }
+  }];
+
+
   const SERVICE_GROUP_FACET = [{ // count and group by service group
     $group: {
       _id: '$group.name', //group and count by service group name
@@ -113,6 +197,30 @@ module.exports = exports = function performance(schema /*, options*/ ) {
       count: '$count'
     }
   }, { // re-shape to obtain group, color & count
+    $project: {
+      _id: 0,
+      name: 1,
+      color: 1,
+      count: 1
+    }
+  }, { //sort by count ascending
+    $sort: { count: 1 }
+  }];
+
+
+  const SERVICE_FACET = [{ //count and group by service
+    $group: {
+      _id: '$service.name', //group and count by service name
+      color: { $first: '$service.color' },
+      count: { $sum: 1 }
+    }
+  }, { // project name, color & count
+    $project: {
+      name: '$_id',
+      color: '$color',
+      count: '$count'
+    }
+  }, { // re-shape to obtain service, color & count
     $project: {
       _id: 0,
       name: 1,
@@ -151,27 +259,30 @@ module.exports = exports = function performance(schema /*, options*/ ) {
   }];
 
 
-  const JURISDICTION_FACET = [{ //count and group by jurisdiction
+  const PRIORITY_FACET = [{ //count and group by priority
     $group: {
-      _id: '$jurisdiction.name', //group and count by jurisdiction name
-      color: { $first: '$jurisdiction.color' },
+      _id: '$priority.name', //group and count by priority name
+      weight: { $first: '$priority.weight' },
+      color: { $first: '$priority.color' },
       count: { $sum: 1 }
     }
   }, { // project name, color & count
     $project: {
       name: '$_id',
+      weight: '$weight',
       color: '$color',
       count: '$count'
     }
-  }, { // re-shape to obtain jurisdiction, color & count
+  }, { // re-shape to obtain priority, color & count
     $project: {
       _id: 0,
       name: 1,
       color: 1,
+      weight: 1,
       count: 1
     }
-  }, { //sort by count ascending
-    $sort: { count: 1 }
+  }, { //sort by weight ascending
+    $sort: { weight: 1 }
   }];
 
 
@@ -226,14 +337,51 @@ module.exports = exports = function performance(schema /*, options*/ ) {
         pending: PENDING_FACET,
         resolved: RESOLVED_FACET,
         unattended: UNATTENDED_FACET,
+        late: LATE_FACET,
+        averageAttendTime: AVERAGE_ATTEND_TIME_FACET,
+        averageResolveTime: AVERAGE_RESOLVE_TIME_FACET,
         workspaces: WORKSPACE_FACET,
         methods: METHOD_FACET,
-        groups: SERVICE_GROUP_FACET,
-        statuses: STATUS_FACET,
         jurisdictions: JURISDICTION_FACET,
+        groups: SERVICE_GROUP_FACET,
+        services: SERVICE_FACET,
+        statuses: STATUS_FACET,
+        priorities: PRIORITY_FACET,
         operators: OPERATOR_FACET
       })
       .exec(function (error, performances) {
+
+        //normalize results
+        performances = [].concat(performances);
+        performances = _.first(performances);
+
+        //normalize
+        _.forEach(performances, function (value, key) {
+
+          if (_.indexOf(SUMMARIES, key) >= 0) {
+            performances[key] = _.first(performances[key])[key];
+          }
+
+        });
+
+        //parse average resolve time
+        performances.averageResolveTime =
+          (performances.averageResolveTime > 0 ? performances.averageResolveTime :
+            -performances.averageResolveTime);
+
+        //parse to time units
+        performances.averageResolveTime =
+          parseMs(performances.averageResolveTime);
+
+        //parse average attend time
+        performances.averageAttendTime =
+          (performances.averageAttendTime > 0 ? performances.averageAttendTime :
+            -performances.averageAttendTime);
+
+        //parse to time units
+        performances.averageAttendTime =
+          parseMs(performances.averageAttendTime);
+
 
         done(error, performances);
 
