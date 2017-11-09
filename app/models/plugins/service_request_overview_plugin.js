@@ -21,101 +21,202 @@ const mongoose = require('mongoose');
 const parseMs = require('parse-ms');
 
 
-//constants
-const SUMMARIES = [
-  'total', 'pending', 'resolved', 'unattended',
-  'late', 'averageAttendTime', 'averageResolveTime'
-];
+function normalizeTime(item) {
+
+  //parse average resolve time
+  item.averageResolveTime =
+    (item.averageResolveTime > 0 ? item.averageResolveTime :
+      -item.averageResolveTime);
+
+  //parse to time units
+  item.averageResolveTime =
+    parseMs(item.averageResolveTime);
+
+  //parse average attend time
+  item.averageAttendTime =
+    (item.averageAttendTime > 0 ? item.averageAttendTime :
+      -item.averageAttendTime);
+
+  //parse to time units
+  item.averageAttendTime =
+    parseMs(item.averageAttendTime);
+
+  return item;
+
+}
 
 
 module.exports = exports = function overview(schema /*, options*/ ) {
 
-  //prepare aggregation facets
+  //overall stats facet
 
-  const TOTAL_FACET = [{ //count all
-    $count: 'total'
-  }];
-
-
-  const PENDING_FACET = [{ //count pending
-    $match: {
-      resolvedAt: { $eq: null }
-    }
-  }, {
-    $count: 'pending'
-  }];
-
-
-  const RESOLVED_FACET = [{ //count resolved
-    $match: {
-      resolvedAt: { $ne: null }
-    }
-  }, {
-    $count: 'resolved'
-  }];
-
-
-  const UNATTENDED_FACET = [{ //count that has been reported but not verified
-    $match: {
-      operator: { $eq: null }
-    }
-  }, {
-    $count: 'unattended'
-  }];
-
-
-  const LATE_FACET = [{ //count that are past expected resolving date
-      $match: {
-        resolvedAt: { $ne: null },
-        expectedAt: { $ne: null }
-      }
-    }, {
-      $addFields: { // calculate late time
-        late: { $subtract: ['$resolvedAt', '$expectedAt'] }
-      }
-    },
-    {
-      $project: {
-        _id: 1,
-        late: { $ifNull: ['$late', 0] }
-      }
-    }, {
-      $match: {
-        late: { $gt: 0 }
-      }
-    }, {
-      $count: 'late'
-    }
-  ];
-
-
-  const AVERAGE_ATTEND_TIME_FACET = [{ // calculate average attend time
+  const OVERALL_FACET = [{ //overall stats
     $group: {
       _id: null,
+      pending: { $sum: '$pending' },
+      resolved: { $sum: '$resolved' },
+      late: { $sum: '$late' },
+      unattended: { $sum: '$unattended' },
+      count: { $sum: 1 },
+      averageResolveTime: { $avg: '$ttr.milliseconds' },
       averageAttendTime: { $avg: '$call.duration.milliseconds' }
     }
-  }, {
+  }, { // project name, color & stats
+    $project: {
+      _id: '$id',
+      pending: '$pending',
+      resolved: '$resolved',
+      late: '$late',
+      unattended: '$unattended',
+      count: '$count',
+      averageResolveTime: '$averageResolveTime',
+      averageAttendTime: '$averageAttendTime'
+    }
+  }, { // re-shape to obtain overall stats
     $project: {
       _id: 0,
+      name: 1,
+      pending: 1,
+      resolved: 1,
+      late: 1,
+      unattended: 1,
+      count: 1,
+      averageResolveTime: 1,
       averageAttendTime: 1
     }
   }];
 
 
-  const AVERAGE_RESOLVE_TIME_FACET = [{ // calculate average time to resolve(ttr)
+  //jurisdictions overview stats facet
+
+  const JURISDICTION_FACET = [{ //count and group by jurisdiction
     $group: {
-      _id: null,
-      averageResolveTime: { $avg: '$ttr.milliseconds' }
+      _id: '$jurisdiction.name',
+      pending: { $sum: '$pending' },
+      resolved: { $sum: '$resolved' },
+      late: { $sum: '$late' },
+      unattended: { $sum: '$unattended' },
+      color: { $first: '$jurisdiction.color' },
+      count: { $sum: 1 },
+      averageResolveTime: { $avg: '$ttr.milliseconds' },
+      averageAttendTime: { $avg: '$call.duration.milliseconds' }
     }
-  }, {
+  }, { // project name, color & stats
+    $project: {
+      name: '$_id',
+      pending: '$pending',
+      resolved: '$resolved',
+      late: '$late',
+      unattended: '$unattended',
+      color: '$color',
+      count: '$count',
+      averageResolveTime: '$averageResolveTime',
+      averageAttendTime: '$averageAttendTime'
+    }
+  }, { // re-shape to obtain jurisdiction, color & stats
     $project: {
       _id: 0,
-      averageResolveTime: 1
+      name: 1,
+      pending: 1,
+      resolved: 1,
+      late: 1,
+      unattended: 1,
+      color: 1,
+      count: 1,
+      averageResolveTime: 1,
+      averageAttendTime: 1
     }
+  }, { //sort by count ascending
+    $sort: { name: 1 }
   }];
 
 
-  //TODO add escallated facet
+  //service groups overview stats facet
+
+  const SERVICE_GROUP_FACET = [{ // count and group by service group
+    $group: {
+      _id: '$group.name',
+      pending: { $sum: '$pending' },
+      resolved: { $sum: '$resolved' },
+      late: { $sum: '$late' },
+      unattended: { $sum: '$unattended' },
+      color: { $first: '$group.color' },
+      count: { $sum: 1 },
+      averageResolveTime: { $avg: '$ttr.milliseconds' },
+      averageAttendTime: { $avg: '$call.duration.milliseconds' }
+    }
+  }, { // project name, color & stats
+    $project: {
+      name: '$_id',
+      pending: '$pending',
+      resolved: '$resolved',
+      late: '$late',
+      unattended: '$unattended',
+      color: '$color',
+      count: '$count',
+      averageResolveTime: '$averageResolveTime',
+      averageAttendTime: '$averageAttendTime'
+    }
+  }, { // re-shape to obtain group, color & stats
+    $project: {
+      _id: 0,
+      name: 1,
+      pending: 1,
+      resolved: 1,
+      late: 1,
+      unattended: 1,
+      color: 1,
+      count: 1,
+      averageResolveTime: 1,
+      averageAttendTime: 1
+    }
+  }, { //sort by count ascending
+    $sort: { name: 1 }
+  }];
+
+
+  //services overview stats facet
+
+  const SERVICE_FACET = [{ //count and group by service
+    $group: {
+      _id: '$service.name',
+      pending: { $sum: '$pending' },
+      resolved: { $sum: '$resolved' },
+      late: { $sum: '$late' },
+      unattended: { $sum: '$unattended' },
+      color: { $first: '$group.color' },
+      count: { $sum: 1 },
+      averageResolveTime: { $avg: '$ttr.milliseconds' },
+      averageAttendTime: { $avg: '$call.duration.milliseconds' }
+    }
+  }, { // project name, color & stats
+    $project: {
+      name: '$_id',
+      pending: '$pending',
+      resolved: '$resolved',
+      late: '$late',
+      unattended: '$unattended',
+      color: '$color',
+      count: '$count',
+      averageResolveTime: '$averageResolveTime',
+      averageAttendTime: '$averageAttendTime'
+    }
+  }, { // re-shape to obtain service, color & stats
+    $project: {
+      _id: 0,
+      name: 1,
+      pending: 1,
+      resolved: 1,
+      late: 1,
+      unattended: 1,
+      color: 1,
+      count: 1,
+      averageResolveTime: 1,
+      averageAttendTime: 1
+    }
+  }, { //sort by count ascending
+    $sort: { name: 1 }
+  }];
 
 
   const WORKSPACE_FACET = [{ // count and group by operator workspace
@@ -160,78 +261,6 @@ module.exports = exports = function overview(schema /*, options*/ ) {
   }];
 
 
-  const JURISDICTION_FACET = [{ //count and group by jurisdiction
-    $group: {
-      _id: '$jurisdiction.name', //group and count by jurisdiction name
-      color: { $first: '$jurisdiction.color' },
-      count: { $sum: 1 }
-    }
-  }, { // project name, color & count
-    $project: {
-      name: '$_id',
-      color: '$color',
-      count: '$count'
-    }
-  }, { // re-shape to obtain jurisdiction, color & count
-    $project: {
-      _id: 0,
-      name: 1,
-      color: 1,
-      count: 1
-    }
-  }, { //sort by count descending
-    $sort: { count: -1 }
-  }];
-
-
-  const SERVICE_GROUP_FACET = [{ // count and group by service group
-    $group: {
-      _id: '$group.name', //group and count by service group name
-      color: { $first: '$group.color' },
-      count: { $sum: 1 }
-    }
-  }, { // project name, color & count
-    $project: {
-      name: '$_id',
-      color: '$color',
-      count: '$count'
-    }
-  }, { // re-shape to obtain group, color & count
-    $project: {
-      _id: 0,
-      name: 1,
-      color: 1,
-      count: 1
-    }
-  }, { //sort by count ascending
-    $sort: { name: 1 }
-  }];
-
-
-  const SERVICE_FACET = [{ //count and group by service
-    $group: {
-      _id: '$service.name', //group and count by service name
-      color: { $first: '$service.color' },
-      count: { $sum: 1 }
-    }
-  }, { // project name, color & count
-    $project: {
-      name: '$_id',
-      color: '$color',
-      count: '$count'
-    }
-  }, { // re-shape to obtain service, color & count
-    $project: {
-      _id: 0,
-      name: 1,
-      color: 1,
-      count: 1
-    }
-  }, { //sort by count ascending
-    $sort: { count: 1 }
-  }];
-
-
 
   /**
    * @name overview
@@ -253,19 +282,43 @@ module.exports = exports = function overview(schema /*, options*/ ) {
     //run aggregation based on provided criteria
     ServiceRequest
       .aggregated(criteria)
+      .append({ //add calculable fields
+        $addFields: {
+          late: {
+            $subtract: [new Date(), '$expectedAt']
+          }
+        }
+      })
+      .append({ //add calculable fields
+        $addFields: {
+          late: { $ifNull: ['$late', 0] },
+          unattended: { $ifNull: ['$operator', 0] },
+          pending: { $ifNull: ['$resolvedAt', 0] }
+        }
+      })
+      .append({ //add calculable fields
+        $addFields: {
+          late: {
+            $cond: { if: { $gt: ['$late', 0] }, then: 1, else: 0 }
+          },
+          pending: {
+            $cond: { if: { $eq: ['$pending', 0] }, then: 1, else: 0 }
+          },
+          resolved: {
+            $cond: { if: { $ne: ['$pending', 0] }, then: 1, else: 0 }
+          },
+          unattended: {
+            $cond: { if: { $eq: ['$unattended', 0] }, then: 1, else: 0 }
+          }
+        }
+      })
       .facet({
-        total: TOTAL_FACET,
-        pending: PENDING_FACET,
-        resolved: RESOLVED_FACET,
-        unattended: UNATTENDED_FACET,
-        late: LATE_FACET,
-        averageAttendTime: AVERAGE_ATTEND_TIME_FACET,
-        averageResolveTime: AVERAGE_RESOLVE_TIME_FACET,
-        workspaces: WORKSPACE_FACET,
-        methods: METHOD_FACET,
+        overall: OVERALL_FACET,
         jurisdictions: JURISDICTION_FACET,
         groups: SERVICE_GROUP_FACET,
-        services: SERVICE_FACET
+        services: SERVICE_FACET,
+        workspaces: WORKSPACE_FACET,
+        methods: METHOD_FACET
       })
       .exec(function (error, overviews) {
 
@@ -273,34 +326,20 @@ module.exports = exports = function overview(schema /*, options*/ ) {
         overviews = [].concat(overviews);
         overviews = _.first(overviews);
 
+        //normalize overalls
+        overviews.overall =
+          _.map(overviews.overall, normalizeTime);
+        overviews.overall = _.first(overviews.overall);
 
-        //normalize
-        _.forEach(overviews, function (value, key) {
+        //normalize jurisdictions
+        overviews.jurisdictions =
+          _.map(overviews.jurisdictions, normalizeTime);
 
-          if (_.indexOf(SUMMARIES, key) >= 0) {
-            overviews[key] = (_.first(value) || {})[key] || 0;
-          }
+        //normalize groups
+        overviews.groups = _.map(overviews.groups, normalizeTime);
 
-        });
-
-        //parse average resolve time
-        overviews.averageResolveTime =
-          (overviews.averageResolveTime > 0 ? overviews.averageResolveTime :
-            -overviews.averageResolveTime);
-
-        //parse to time units
-        overviews.averageResolveTime =
-          parseMs(overviews.averageResolveTime);
-
-        //parse average attend time
-        overviews.averageAttendTime =
-          (overviews.averageAttendTime > 0 ? overviews.averageAttendTime :
-            -overviews.averageAttendTime);
-
-        //parse to time units
-        overviews.averageAttendTime =
-          parseMs(overviews.averageAttendTime);
-
+        //normalize services
+        overviews.services = _.map(overviews.services, normalizeTime);
 
         done(error, overviews);
 
