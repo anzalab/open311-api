@@ -43,6 +43,8 @@ const aggregate =
   require(path.join(pluginsPath, 'service_request_aggregated_plugin'));
 const open311 =
   require(path.join(pluginsPath, 'service_request_open311_plugin'));
+const performance =
+  require(path.join(pluginsPath, 'service_request_performance_plugin'));
 const pipeline =
   require(path.join(pluginsPath, 'service_request_pipeline_plugin'));
 const work =
@@ -369,28 +371,6 @@ const ServiceRequestSchema = new Schema({
 
 
   /**
-   * @name comments
-   * @description Associated comment(s) with service request(issue)
-   * @type {Array}
-   * @see {@link Comment}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-
-
-  /**
-   * @name changes
-   * @description Associated status changes(s) with service request(issue)
-   * @type {Array}
-   * @see {@link StatusChange}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-
-
-  /**
    * @name expectedAt
    * @description A time when the issue is expected to be resolved.
    *
@@ -537,10 +517,19 @@ ServiceRequestSchema.pre('validate', function (next) {
 
   //compute time to resolve (ttr) in milliseconds
   if (this.resolvedAt) {
+
     //always ensure positive time diff
     let ttr = this.resolvedAt.getTime() - this.createdAt.getTime();
+
+    //ensure resolve time is ahead of creation time
+    this.resolvedAt =
+      (ttr > 0 ? this.resolvedAt :
+        this.resolvedAt = new Date((this.createdAt.getTime() + -(ttr))));
+
+    //ensure positive ttr
     ttr = ttr > 0 ? ttr : -(ttr);
     this.ttr = { milliseconds: ttr };
+
   }
 
   //ensure jurisdiction from service
@@ -653,7 +642,7 @@ ServiceRequestSchema.pre('validate', function (next) {
 
   //continue
   else {
-    
+
     //ensure open status changelog
     if (_.isEmpty(this.changelogs)) {
       this.changelogs = [{
@@ -696,6 +685,7 @@ ServiceRequestSchema.statics.CONTACT_METHODS = ContactMethod.METHODS;
 ServiceRequestSchema.plugin(notification);
 ServiceRequestSchema.plugin(aggregate);
 ServiceRequestSchema.plugin(open311);
+ServiceRequestSchema.plugin(performance);
 ServiceRequestSchema.plugin(pipeline);
 ServiceRequestSchema.plugin(work);
 ServiceRequestSchema.plugin(duration);

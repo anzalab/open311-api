@@ -40,6 +40,17 @@ router.get('/reports/overviews', jwtAuth, function (request, response, next) {
   controller.overviews(request, response, next);
 });
 
+/**
+ * Handle Http GET on /reports/performances
+ * @description obtain issue(service request) performances
+ * @param  {HttpRequest} request  a http request
+ * @param  {HttpResponse} response a http response
+ */
+router.get('/reports/performances', jwtAuth, function (request, response, next) {
+  //TODO ensure party jurisdiction
+  controller.performances(request, response, next);
+});
+
 
 /**
  * Handle Http GET on /reports/pipelines
