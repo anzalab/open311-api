@@ -179,8 +179,8 @@ module.exports = exports = function performance(schema /*, options*/ ) {
       color: 1,
       count: 1
     }
-  }, { //sort by count ascending
-    $sort: { count: 1 }
+  }, { //sort by count descending
+    $sort: { count: -1 }
   }];
 
 
@@ -204,7 +204,7 @@ module.exports = exports = function performance(schema /*, options*/ ) {
       count: 1
     }
   }, { //sort by count ascending
-    $sort: { count: 1 }
+    $sort: { name: 1 }
   }];
 
 
@@ -293,21 +293,24 @@ module.exports = exports = function performance(schema /*, options*/ ) {
   }, { //count and group by operator
     $group: {
       _id: '$operator.name', //group and count by operator name
+      relation: { $first: '$operator.relation' },
       count: { $sum: 1 }
     }
   }, { // project name, color & count
     $project: {
       name: '$_id',
+      relation: '$relation',
       count: '$count'
     }
   }, { // re-shape to obtain operator, color & count
     $project: {
       _id: 0,
       name: 1,
+      relation: 1,
       count: 1
     }
-  }, { //sort by count ascending
-    $sort: { count: 1 }
+  }, { //sort by count descending
+    $sort: { count: -1 }
   }];
 
 
@@ -355,11 +358,12 @@ module.exports = exports = function performance(schema /*, options*/ ) {
         performances = [].concat(performances);
         performances = _.first(performances);
 
+
         //normalize
         _.forEach(performances, function (value, key) {
 
           if (_.indexOf(SUMMARIES, key) >= 0) {
-            performances[key] = _.first(performances[key])[key];
+            performances[key] = (_.first(value) || {})[key] || 0;
           }
 
         });
