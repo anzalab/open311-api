@@ -264,7 +264,9 @@ describe('Jurisdiction', function () {
       function (done) {
 
         Jurisdiction
-          .findById(jurisdiction._id, function (error, found) {
+          .findById(jurisdiction._id)
+          .populate('jurisdiction')
+          .exec(function (error, found) {
 
             expect(error).to.not.exist;
             expect(found).to.exist;
@@ -282,7 +284,7 @@ describe('Jurisdiction', function () {
             expect(found.jurisdiction.code).to.exist;
             expect(found.jurisdiction.name).to.exist;
             expect(found.jurisdiction.domain).to.exist;
-            expect(found.jurisdiction.about).to.not.exist;
+            expect(found.jurisdiction.about).to.exist;
             expect(found.jurisdiction.jurisdiction).to.not.exist;
 
             done(error, found);

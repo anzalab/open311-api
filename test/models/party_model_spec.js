@@ -95,8 +95,9 @@ describe('Party', function () {
   it('should be able to populate party permissions', function (done) {
 
     Party
-      .findById(party._id, function (error, found) {
-
+      .findById(party._id)
+      .populate('roles')
+      .exec(function (error, found) {
         expect(found.permissions).to.exist;
         expect(found.permissions)
           .to.include.members(_.map(permissions, 'wildcard'));

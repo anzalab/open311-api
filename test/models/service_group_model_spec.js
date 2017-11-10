@@ -89,7 +89,9 @@ describe('ServiceGroup', function () {
   it('should be able to find existing service group', function (done) {
 
     ServiceGroup
-      .findById(serviceGroup._id, function (error, found) {
+      .findById(serviceGroup._id)
+      .populate('jurisdiction')
+      .exec(function (error, found) {
 
         expect(error).to.not.exist;
         expect(found).to.exist;
@@ -107,7 +109,7 @@ describe('ServiceGroup', function () {
         expect(found.jurisdiction.code).to.exist;
         expect(found.jurisdiction.name).to.exist;
         expect(found.jurisdiction.domain).to.exist;
-        expect(found.jurisdiction.about).to.not.exist;
+        expect(found.jurisdiction.about).to.exist;
         expect(found.jurisdiction.jurisdiction).to.not.exist;
 
         done(error, found);

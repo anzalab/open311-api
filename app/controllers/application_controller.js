@@ -82,8 +82,13 @@ module.exports = {
             Party.authenticate(request.body, then);
           },
 
+          //ensure roles & permissions
+          function populate(party, then) {
+            party.populate('roles', then);
+          },
+
           function encodePartyToJWT(party, then) {
-            
+
             JWT
               .encode(party, function afterEncode(error, jwtToken) {
                 if (error) {

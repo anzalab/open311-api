@@ -31,6 +31,7 @@ module.exports = exports = function (schema /*, options*/ ) {
       const sort = request.mquery ? request.mquery.sort : undefined;
       const criteria = request.mquery ? request.mquery.query : undefined;
       const select = request.mquery ? request.mquery.select : undefined;
+      const populate = request.mquery ? request.mquery.populate : undefined;
 
       const query = this.search(queryParams.q);
 
@@ -44,6 +45,10 @@ module.exports = exports = function (schema /*, options*/ ) {
 
       if (select) {
         query.select(select);
+      }
+
+      if(populate){
+        query.populate(populate);
       }
 
       query.skip(skip).limit(limit).exec(function (error, models) {

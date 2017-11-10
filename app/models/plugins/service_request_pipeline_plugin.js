@@ -21,7 +21,7 @@
 const _ = require('lodash');
 const mongoose = require('mongoose');
 
-module.exports = exports = function aggregated(schema /*, options*/ ) {
+module.exports = exports = function pipeline(schema /*, options*/ ) {
 
   schema.statics.pipeline = function (criteria, done) {
 
@@ -56,11 +56,11 @@ module.exports = exports = function aggregated(schema /*, options*/ ) {
       })
       .project({ //3 stage: project full required documents
         _id: '$_id',
-        operator: '$_operator',
+        party: '$_operator',
         status: '$_status',
         count: '$count'
       })
-      .project({ _id: 0, operator: 1, status: 1, count: 1 }) //TODO return expectedAt, resolvedAt to obtain lates
+      .project({ _id: 0, party: 1, status: 1, count: 1 }) //TODO return expectedAt, resolvedAt to obtain lates
       .exec(function (error, pipelines) {
 
         //add label to pipelines
@@ -77,23 +77,32 @@ module.exports = exports = function aggregated(schema /*, options*/ ) {
 
         });
 
-        //max status weight
-        const maxStatusWeight =
-          _.chain(pipelines).map('status.weight').max().value();
+        //min status weight
+        let minStatusWeight =
+          _.chain(pipelines).map('status.weight').min().value();
+        minStatusWeight =
+          (minStatusWeight > 0 ? -minStatusWeight : minStatusWeight);
 
         //calculate total reported per operator
         let operators = _.compact(_.map(pipelines, function (pipeline) {
-          return pipeline.operator ?
-            pipeline.operator._id.toString() : undefined;
+          return pipeline.party ?
+            pipeline.party._id.toString() : undefined;
         }));
         operators = _.uniq(operators);
         const totalReportedPerOperator = _.map(operators, function (_id) {
+          //obtain operator object
+          const operator = (_.find(pipelines, function (pipeline) {
+            if (pipeline.party) {
+              return (pipeline.party._id.toString() === _id);
+            }
+            return false;
+          }) || {}).party || {};
 
           //filter pipelines per operator
           const pipelinesPerOperator =
             _.filter(pipelines, function (pipeline) {
-              if (pipeline.operator) {
-                return (pipeline.operator._id.toString() === _id);
+              if (pipeline.party) {
+                return (pipeline.party._id.toString() === _id);
               }
               return false;
             });
@@ -104,9 +113,10 @@ module.exports = exports = function aggregated(schema /*, options*/ ) {
 
           //return total reported
           return {
+            party: operator,
             label: {
-              name: 'Reported',
-              weight: maxStatusWeight * 10000
+              name: 'Total',
+              weight: minStatusWeight * 10000
             },
             count: totalPerOperator
           };

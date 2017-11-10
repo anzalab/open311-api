@@ -143,18 +143,16 @@ module.exports = {
    */
   /*jshint camelcase:false*/
   mailer: {
+    concurrency: 10,
+    timeout: 5000,
+    prefix: 'open311',
+    fake: true,
+    sync: true,
     from: 'open311 <no-reply@open311.com>',
     sender: 'The open311 Team',
     transport: {
       auth: {
-        api_key: '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',
-      }
-    },
-    kue: {
-      concurrency: 10,
-      timeout: 5000,
-      connection: {
-        prefix: 'open311'
+        api_key: process.env.SENDGRID_API_KEY || '',
       }
     }
   },
@@ -165,11 +163,14 @@ module.exports = {
    * @type {Object}
    */
   infobip: {
+    concurrency: 10,
+    timeout: 5000,
+    prefix: 'open311',
+    fake: true,
+    sync: true,
     from: process.env.INFOBIP_FROM || 'DAWASCO',
     username: process.env.INFOBIP_USERNAME || 'DAWASCO311',
     password: process.env.INFOBIP_PASSWORD || 'DAWASCO311',
-    fake: true,
-    sync: true,
     templates: {
       ticket: {
         open: 'Dear customer. Your ticket # is {ticket} for {service} you have reported. Call {phone} for more support. Thanks.',

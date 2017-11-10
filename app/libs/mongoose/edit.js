@@ -22,7 +22,7 @@ module.exports = exports = function (schema) {
     let name = this.modelName || this.collection.name;
 
     //obtain id
-    const id = request.params.id;
+    const id = (request.params.id || request.params._id);
 
     //reference model
     const Model = this;
@@ -35,7 +35,7 @@ module.exports = exports = function (schema) {
           if (error || !found) {
             if (!found) {
               error =
-                new Error(name + 'with id ' + id + ' Not Found');
+                new Error(name + ' with id ' + id + ' Not Found');
               error.status = 400;
             }
             next(error);

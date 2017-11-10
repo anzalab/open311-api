@@ -43,8 +43,16 @@ const aggregate =
   require(path.join(pluginsPath, 'service_request_aggregated_plugin'));
 const open311 =
   require(path.join(pluginsPath, 'service_request_open311_plugin'));
+const performance =
+  require(path.join(pluginsPath, 'service_request_performance_plugin'));
 const pipeline =
   require(path.join(pluginsPath, 'service_request_pipeline_plugin'));
+const work =
+  require(path.join(pluginsPath, 'service_request_work_plugin'));
+const duration =
+  require(path.join(pluginsPath, 'service_request_duration_plugin'));
+const changelog =
+  require(path.join(pluginsPath, 'service_request_changelog_plugin'));
 
 
 //schemas
@@ -57,73 +65,7 @@ const Duration = require(path.join(schemaPath, 'duration_schema'));
 const Call = require(path.join(schemaPath, 'call_schema'));
 const Reporter = require(path.join(schemaPath, 'reporter_schema'));
 const ChangeLog = require(path.join(schemaPath, 'changelog_schema'));
-
-
-//contact methods used for reporting the issue
-const CONTACT_METHOD_PHONE_CALL = 'Call';
-const CONTACT_METHOD_EMAIL = 'Email';
-const CONTACT_METHOD_SMS = 'SMS';
-const CONTACT_METHOD_USSD = 'USSD';
-const CONTACT_METHOD_VISIT = 'Visit';
-const CONTACT_METHOD_LETTER = 'Letter';
-const CONTACT_METHOD_FAX = 'Fax';
-const CONTACT_METHOD_MOBILE_APP = 'Mobile';
-
-const CONTACT_METHODS = [
-  CONTACT_METHOD_PHONE_CALL, CONTACT_METHOD_EMAIL,
-  CONTACT_METHOD_SMS, CONTACT_METHOD_USSD, CONTACT_METHOD_VISIT,
-  CONTACT_METHOD_LETTER, CONTACT_METHOD_FAX, CONTACT_METHOD_MOBILE_APP
-];
-
-
-//TODO refactor contact method to independent schema
-
-/**
- * @name ContactMethod
- * @description schema for representing a method used by reporter and workspace
- *              used to receive the service request. Example a customer may
- *              call call center and operator log the service request, then
- *              a contact method is a call and workspace is call center.
- * @type {Schema}
- * @since 0.1.0
- * @version 0.1.0
- * @private
- */
-const ContactMethod = new Schema({
-  /**
-   * @name name
-   * @description A communication(contact) method(mechanism) used by a reporter
-   *              to report the issue
-   *
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  name: {
-    type: String,
-    index: true,
-    default: CONTACT_METHOD_PHONE_CALL,
-    enum: CONTACT_METHODS,
-    searchable: true
-  },
-
-
-  /**
-   * @name workspace
-   * @description workspace used be operator to receive service request
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  workspace: {
-    type: String,
-    index: true,
-    searchable: true
-  }
-
-}, { _id: false, id: false, timestamps: false });
+const ContactMethod = require(path.join(schemaPath, 'contact_method_schema'));
 
 
 /**
@@ -250,7 +192,7 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'name email phone'
+      select: 'name email phone avatar'
     }
   },
 
@@ -429,28 +371,6 @@ const ServiceRequestSchema = new Schema({
 
 
   /**
-   * @name comments
-   * @description Associated comment(s) with service request(issue)
-   * @type {Array}
-   * @see {@link Comment}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-
-
-  /**
-   * @name changes
-   * @description Associated status changes(s) with service request(issue)
-   * @type {Array}
-   * @see {@link StatusChange}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-
-
-  /**
    * @name expectedAt
    * @description A time when the issue is expected to be resolved.
    *
@@ -558,109 +478,6 @@ ServiceRequestSchema.virtual('latitude').get(function () {
 // ServiceSchema Instance Methods
 //-----------------------------------------------------------------------------
 
-/**
- * @name changes
- * @description compute internal changes of the service request(issue) 
- *              for logging in changelogs
- *              
- * @param  {Object} changelog latest changes to apply
- * @param  {Party} [changelog.changer] latest party to apply changes to service
- *                                     sequest(issue)
- *
- * @param {String} [changelog.comment] comment(or note) to be added as a
- *                                     descriptive of work performed so far or
- *                                     reply to a reporter
- *
- * @param {Boolean} [changelog.shouldNotify] flag if notification should be send
- *                                           when changes applied 
- * @param  {Function} done a callback to invoke on success or failure
- * @return {Object|Object[]} latest changelog(s) to be applied to a 
- *                           servicerequest(issue) instance
- * @since  0.1.0
- * @version 0.1.0
- * @private
- * @type {Function}
- */
-ServiceRequestSchema.methods.changes = function (changelog) {
-
-  //ensure changelog defaults
-  changelog = _.merge({}, {
-    createdAt: new Date(),
-    changer: this.operator
-  }, changelog);
-
-  //ensure first status is logged(i.e open)
-  if (_.isEmpty(this.changelogs)) {
-    changelog = {
-      createdAt: new Date(),
-      status: this.status,
-      priority: this.priority,
-      changer: this.operator,
-      visibility: ChangeLog.VISIBILITY_PUBLIC
-    };
-    return [changelog];
-  }
-
-  //continue computing changes
-  else {
-
-    //get latest changelog
-    const changelogs = _.filter(this.changelogs, function (change) {
-      return _.isDate(change.createdAt);
-    });
-    const latestChangeLog =
-      _.chain(changelogs).sortBy('createdAt').last().value();
-
-    //get latest changes that have not been saved(dirty changes)
-    let dirtyChanges = _.filter(this.changelogs, function (change) {
-      return !change._id;
-    });
-
-    //compute changes
-    
-    //record status changes
-    const statusHasChanged = (this.status &&
-      this.status._id !== (latestChangeLog.status || {})._id);
-    if (statusHasChanged) {
-      changelog.status = this.status;
-    }
-
-    //record priority changes
-    const priorityHasChanged = (this.priority &&
-      this.priority._id !== (latestChangeLog.priority || {})._id);
-    if (priorityHasChanged) {
-      changelog.priority = this.priority;
-    }
-
-    //record assignee changes
-    const assigneeHasChanged = (this.assignee &&
-      this.assignee._id !== (latestChangeLog.assignee || {})._id);
-    if (assigneeHasChanged) {
-      changelog.assignee = this.assignee;
-    }
-
-    //update dirty changes
-    dirtyChanges = _.map(dirtyChanges, function (change) {
-      change = _.merge({}, {
-        changer: changelog.changer || this.operator
-      }, changelog, change);
-      return change;
-    }.bind(this));
-
-    //update changelogs
-    const isValid = (changelog.status || changelog.priority ||
-      changelog.assignee || changelog.comment);
-    changelog = isValid ? [].concat(changelog) : [];
-    changelog = [].concat(dirtyChanges).concat(changelog);
-
-    //TODO ensure close status is logged(i.e closed)
-    //TODO ensure resolve status is logged(i.e resolved)
-    //TODO ensure re-open status is logged(i.e re-open)
-    //TODO send changelog notification on changelog post save
-    return changelog;
-  }
-
-};
 
 
 //-----------------------------------------------------------------------------
@@ -700,10 +517,19 @@ ServiceRequestSchema.pre('validate', function (next) {
 
   //compute time to resolve (ttr) in milliseconds
   if (this.resolvedAt) {
+
     //always ensure positive time diff
     let ttr = this.resolvedAt.getTime() - this.createdAt.getTime();
+
+    //ensure resolve time is ahead of creation time
+    this.resolvedAt =
+      (ttr > 0 ? this.resolvedAt :
+        this.resolvedAt = new Date((this.createdAt.getTime() + -(ttr))));
+
+    //ensure positive ttr
     ttr = ttr > 0 ? ttr : -(ttr);
     this.ttr = { milliseconds: ttr };
+
   }
 
   //ensure jurisdiction from service
@@ -753,7 +579,7 @@ ServiceRequestSchema.pre('validate', function (next) {
       }
     }, function (error, result) {
       if (error) {
-        next(error);
+        return next(error);
       } else {
 
         //ensure jurisdiction & service
@@ -774,11 +600,16 @@ ServiceRequestSchema.pre('validate', function (next) {
         this.status = (this.status || result.status || undefined);
         this.priority = (this.priority || result.priority || undefined);
 
-        //compute changes
-        let changes = this.changes();
-        changes = _.sortBy([].concat(this.changelogs).concat(changes),
-          'createdAt');
-        this.changelogs = changes;
+        //ensure open status changelog
+        if (_.isEmpty(this.changelogs)) {
+          this.changelogs = [{
+            createdAt: new Date(),
+            status: this.status,
+            priority: this.priority,
+            changer: this.operator,
+            visibility: ChangeLog.VISIBILITY_PUBLIC
+          }];
+        }
 
         //set service request code
         //in format (Area Code Service Code Year Sequence)
@@ -791,7 +622,7 @@ ServiceRequestSchema.pre('validate', function (next) {
             }, function (error, ticketNumber) {
               if (!error && ticketNumber) {
                 this.code = ticketNumber;
-                return next();
+                return next(null, this);
               } else {
                 return next(error);
               }
@@ -801,7 +632,7 @@ ServiceRequestSchema.pre('validate', function (next) {
 
         //continue
         else {
-          next(null, this);
+          return next(null, this);
         }
 
       }
@@ -811,12 +642,19 @@ ServiceRequestSchema.pre('validate', function (next) {
 
   //continue
   else {
-    //compute changes
-    let changes = this.changes();
-    changes = _.sortBy([].concat(this.changelogs).concat(changes),
-      'createdAt');
-    this.changelogs = changes;
-    next();
+
+    //ensure open status changelog
+    if (_.isEmpty(this.changelogs)) {
+      this.changelogs = [{
+        createdAt: new Date(),
+        status: this.status,
+        priority: this.priority,
+        changer: this.operator,
+        visibility: ChangeLog.VISIBILITY_PUBLIC
+      }];
+    }
+
+    return next(null, this);
   }
 
 });
@@ -828,16 +666,16 @@ ServiceRequestSchema.pre('validate', function (next) {
 
 //contact methods constants
 ServiceRequestSchema.statics.CONTACT_METHOD_PHONE_CALL =
-  CONTACT_METHOD_PHONE_CALL;
-ServiceRequestSchema.statics.CONTACT_METHOD_FAX = CONTACT_METHOD_FAX;
-ServiceRequestSchema.statics.CONTACT_METHOD_LETTER = CONTACT_METHOD_LETTER;
-ServiceRequestSchema.statics.CONTACT_METHOD_VISIT = CONTACT_METHOD_VISIT;
-ServiceRequestSchema.statics.CONTACT_METHOD_SMS = CONTACT_METHOD_SMS;
-ServiceRequestSchema.statics.CONTACT_METHOD_USSD = CONTACT_METHOD_USSD;
-ServiceRequestSchema.statics.CONTACT_METHOD_EMAIL = CONTACT_METHOD_EMAIL;
+  ContactMethod.PHONE_CALL;
+ServiceRequestSchema.statics.CONTACT_METHOD_FAX = ContactMethod.FAX;
+ServiceRequestSchema.statics.CONTACT_METHOD_LETTER = ContactMethod.LETTER;
+ServiceRequestSchema.statics.CONTACT_METHOD_VISIT = ContactMethod.VISIT;
+ServiceRequestSchema.statics.CONTACT_METHOD_SMS = ContactMethod.SMS;
+ServiceRequestSchema.statics.CONTACT_METHOD_USSD = ContactMethod.USSD;
+ServiceRequestSchema.statics.CONTACT_METHOD_EMAIL = ContactMethod.EMAIL;
 ServiceRequestSchema.statics.CONTACT_METHOD_MOBILE_APP =
-  CONTACT_METHOD_MOBILE_APP;
-ServiceRequestSchema.statics.CONTACT_METHODS = CONTACT_METHODS;
+  ContactMethod.MOBILE_APP;
+ServiceRequestSchema.statics.CONTACT_METHODS = ContactMethod.METHODS;
 
 
 
@@ -847,7 +685,11 @@ ServiceRequestSchema.statics.CONTACT_METHODS = CONTACT_METHODS;
 ServiceRequestSchema.plugin(notification);
 ServiceRequestSchema.plugin(aggregate);
 ServiceRequestSchema.plugin(open311);
+ServiceRequestSchema.plugin(performance);
 ServiceRequestSchema.plugin(pipeline);
+ServiceRequestSchema.plugin(work);
+ServiceRequestSchema.plugin(duration);
+ServiceRequestSchema.plugin(changelog);
 
 
 //-----------------------------------------------------------------------------

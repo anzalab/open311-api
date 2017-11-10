@@ -101,7 +101,10 @@ describe('Service', function () {
   it('should be able to find existing service', function (done) {
 
     Service
-      .findById(service._id, function (error, found) {
+      .findById(service._id)
+      .populate('jurisdiction')
+      .populate('group')
+      .exec(function (error, found) {
 
         expect(error).to.not.exist;
         expect(found).to.exist;
@@ -125,7 +128,7 @@ describe('Service', function () {
         expect(found.jurisdiction.code).to.exist;
         expect(found.jurisdiction.name).to.exist;
         expect(found.jurisdiction.domain).to.exist;
-        expect(found.jurisdiction.about).to.not.exist;
+        expect(found.jurisdiction.about).to.exist;
         expect(found.jurisdiction.jurisdiction).to.not.exist;
 
         //assert group

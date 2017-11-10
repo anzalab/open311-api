@@ -40,6 +40,7 @@ const VISIBILITIES = [VISIBILITY_PRIVATE, VISIBILITY_PUBLIC];
 //TODO ensure notification is sent once there are changes
 //TODO always sort them in order of update before send them
 //TODO notify assignee once changed(previous and current)
+//TODO support attachment changelog(audio, images etc)
 
 /**
  * @name ChangeLogSchema
@@ -126,7 +127,6 @@ const ChangeLogSchema = new Schema({
   changer: {
     type: ObjectId,
     ref: 'Party',
-    required: true,
     index: true,
     autoset: true,
     exists: true,

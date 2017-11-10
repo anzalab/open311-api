@@ -20,8 +20,6 @@ const mongooseReload =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'reload'));
 const mongooseSoftDelete =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'soft_delete'));
-const mongooseUrl =
-  require(path.join(__dirname, '..', 'libs', 'mongoose', 'url'));
 const mongooseSearchable = require('mongoose-regex-search');
 const mongooseExists = require('mongoose-exists');
 const mongooseAutoset = require('mongoose-autoset');
@@ -79,7 +77,6 @@ mongoose.plugin(function (schema) {
 
 mongoose.plugin(mongooseAutoset);
 mongoose.plugin(mongooseExists);
-mongoose.plugin(mongooseUrl);
 mongoose.plugin(mongooseSoftDelete);
 mongoose.plugin(mongoosePaginate);
 mongoose.plugin(mongooseAutopopulate);

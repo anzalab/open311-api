@@ -13,7 +13,9 @@
 //dependencies
 const path = require('path');
 const _ = require('lodash');
+const async = require('async');
 const config = require('config');
+const moment = require('moment');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Schema.ObjectId;
@@ -36,6 +38,8 @@ const RELATION_TYPE_APP = 'App';
 const RELATION_WORKSPACE_CALL_CENTER = 'Call Center';
 const RELATION_WORKSPACE_CUSTOMER_CARE = 'Customer Care';
 const RELATION_WORKSPACE_OTHER = 'Other';
+
+const BASIC_FIELDS = ['_id', 'name', 'email', 'phone', 'relation'];
 
 
 //PartyRelation Schema
@@ -100,7 +104,7 @@ const PartyRelation = new Schema({
     searchable: true
   }
 
-});
+}, { _id: false, id: false, timestamps: false, emitIndexErrors: true });
 
 
 //Party Schema
@@ -230,10 +234,7 @@ const PartySchema = new Schema({
   roles: [{
     type: ObjectId,
     ref: 'Role',
-    autoset: true,
-    autopopulate: {
-      select: 'name permissions'
-    }
+    autoset: true
   }],
 
 
@@ -301,6 +302,8 @@ PartySchema.virtual('permissions').get(function () {
     }
 
   }).compact().flatten().uniq().value();
+
+  permissions = !_.isEmpty(permissions) ? permissions : undefined;
 
   return permissions;
 
@@ -556,6 +559,272 @@ PartySchema.statics.RELATION_WORKSPACES = [
 // PartySchema Analytics
 //-----------------------------------------------------------------------------
 
+//TODO refactor to performannce plugin
+PartySchema.statics.works = function (options, done) {
+
+  //refs
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //normalize results
+  const normalize = function (work, length) {
+    //merge default 
+    work = _.merge({}, {
+      startedAt: options[length].startedAt,
+      endedAt: options[length].endedAt,
+      party: options.party,
+      count: 0
+    }, _.first(work));
+
+    return work;
+
+  };
+
+  async.parallel({
+    //1. compute total day work(service requests count)
+    day: function (next) {
+      const startedAt = options.day.startedAt;
+      const endedAt = options.day.endedAt;
+      ServiceRequest
+        .work({
+          operator: options.party._id,
+          createdAt: {
+            $gt: startedAt,
+            $lte: endedAt
+          }
+        }, function (error, work) {
+          if (error) {
+            next(error);
+          } else {
+            next(null, normalize(work, 'day'));
+          }
+        });
+    },
+
+    //2. compute total week work(service requests count)
+    week: function (next) {
+      const startedAt = options.week.startedAt;
+      const endedAt = options.week.endedAt;
+      ServiceRequest
+        .work({
+          operator: options.party._id,
+          createdAt: {
+            $gt: startedAt,
+            $lte: endedAt
+          }
+        }, function (error, work) {
+          if (error) {
+            next(error);
+          } else {
+            next(null, normalize(work, 'week'));
+          }
+        });
+    },
+
+    //3. compute month work(service requests count)
+    month: function (next) {
+      const startedAt = options.month.startedAt;
+      const endedAt = options.month.endedAt;
+      ServiceRequest
+        .work({
+          operator: options.party._id,
+          createdAt: {
+            $gt: startedAt,
+            $lte: endedAt
+          }
+        }, function (error, work) {
+          if (error) {
+            next(error);
+          } else {
+            next(null, normalize(work, 'month'));
+          }
+        });
+    }
+  }, done);
+
+};
+
+PartySchema.statics.durations = function (options, done) {
+
+  //refs
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //normalize results
+  const normalize = function (duration, length) {
+    //merge default 
+    duration = _.merge({}, {
+      startedAt: options[length].startedAt,
+      endedAt: options[length].endedAt,
+      party: options.party,
+      duration: {
+        days: 0,
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+        milliseconds: 0
+      }
+    }, _.first(duration));
+
+    return duration;
+
+  };
+
+  async.parallel({
+    //1. compute total day work duration
+    day: function (next) {
+      const startedAt = options.day.startedAt;
+      const endedAt = options.day.endedAt;
+      ServiceRequest
+        .duration({
+          operator: options.party._id,
+          createdAt: {
+            $gt: startedAt,
+            $lte: endedAt
+          }
+        }, function (error, duration) {
+          if (error) {
+            next(error);
+          } else {
+            next(null, normalize(duration, 'day'));
+          }
+        });
+    },
+
+    //2. compute total week work duration
+    week: function (next) {
+      const startedAt = options.week.startedAt;
+      const endedAt = options.week.endedAt;
+      ServiceRequest
+        .duration({
+          operator: options.party._id,
+          createdAt: {
+            $gt: startedAt,
+            $lte: endedAt
+          }
+        }, function (error, duration) {
+          if (error) {
+            next(error);
+          } else {
+            next(null, normalize(duration, 'week'));
+          }
+        });
+    },
+
+    //3. compute month work duration
+    month: function (next) {
+      const startedAt = options.month.startedAt;
+      const endedAt = options.month.endedAt;
+      ServiceRequest
+        .duration({
+          operator: options.party._id,
+          createdAt: {
+            $gt: startedAt,
+            $lte: endedAt
+          }
+        }, function (error, duration) {
+          if (error) {
+            next(error);
+          } else {
+            next(null, normalize(duration, 'month'));
+          }
+        });
+    }
+  }, done);
+
+};
+
+PartySchema.statics.performances = function (options, done) {
+  //TODO refactor using aggregations
+  //TODO refactor to model splugin
+  //@see https://docs.mongodb.com/manual/reference/operator/aggregation/facet/
+
+  //refs
+  const Party = mongoose.model('Party');
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  //prepare date range filtes
+  const filters = {
+    day: {
+      startedAt: moment().utc().startOf('date').toDate(),
+      endedAt: moment().utc().endOf('date').toDate(),
+    },
+    week: {
+      startedAt: moment().utc().startOf('week').toDate(),
+      endedAt: moment().utc().endOf('week').toDate(),
+    },
+    month: {
+      startedAt: moment().utc().startOf('month').toDate(),
+      endedAt: moment().utc().endOf('month').toDate(),
+    }
+  };
+
+  //compute performance reports
+  const works = function (party, then) {
+
+    async.parallel({
+
+      //3.0 pick basic party details
+      party: function (after) {
+        const basic = _.pick(party, BASIC_FIELDS);
+        after(null, basic);
+      },
+
+      //3.1 compute pipeline
+      pipelines: function (after) {
+        const criteria = { operator: party._id };
+        ServiceRequest.pipeline(criteria, after);
+      },
+
+      //3.2 compute work durations
+      durations: function (after) {
+        //compute day, week, month durations
+        const options =
+          (_.merge({}, { party: _.pick(party, BASIC_FIELDS) },
+            filters));
+        Party.durations(options, after);
+      },
+
+      //3.3 compute service requests counts
+      works: function (after) {
+        //compute day, week, month service request counts
+        //compute day, week, month durations
+        const options =
+          (_.merge({}, { party: _.pick(party, BASIC_FIELDS) },
+            filters));
+        Party.works(options, after);
+      },
+
+      //compute party workspace leaderboard
+      leaderboard: function (after) {
+
+        //TODO ensure are only of party workspace
+        ServiceRequest.work({
+          'method.workspace': party.relation.workspace
+        }, function (error, leaderboards) {
+          // order leader board desc
+          leaderboards = _.orderBy(leaderboards, 'count', 'desc');
+          after(error, leaderboards);
+        });
+
+      }
+    }, then);
+
+  };
+
+  async.waterfall([
+
+    //1. loading full party instance
+    function preLoadParty(next) {
+      //obtain party id
+      const _id = _.get(options, 'party._id', options.party);
+      Party.findById(_id, next);
+    },
+
+    //2. obtain performance reports in parallel
+    works
+
+  ], done);
+
+};
 
 //exports Party model
 module.exports = mongoose.model('Party', PartySchema);

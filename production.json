@@ -15,10 +15,16 @@
     "node_args": [],
 
     //run in cluster mode
-    "exec_mode": "fork",
+    //see http://pm2.keymetrics.io/docs/usage/cluster-mode/
+    "exec_mode": "cluster", //fork
 
     //run as many instances as number of cpus
-    "instances": 1,
+    "instances": "max", //2
+
+    // fix multiple instance environment config sharing
+    // see https://github.com/lorenwest/node-config/issues/244
+    // see http://pm2.keymetrics.io/docs/usage/environment/#specific-environment-variables
+    "instance_var": "INSTANCE_ID",
 
     //enables the watch feature, defaults to "false". 
     //if true, it will restart your app everytime a file change is detected 
@@ -46,10 +52,16 @@
     "node_args": [],
 
     //run in cluster mode
-    "exec_mode": "fork",
+    //see http://pm2.keymetrics.io/docs/usage/cluster-mode/
+    "exec_mode": "cluster", //fork
 
     //run as many instances as number of cpus
-    "instances": 1,
+    "instances": 2, //max
+
+    // fix multiple instance environment config sharing
+    // see https://github.com/lorenwest/node-config/issues/244
+    // see http://pm2.keymetrics.io/docs/usage/environment/#specific-environment-variables
+    "instance_var": "INSTANCE_ID",
 
     //enables the watch feature, defaults to "false". 
     //if true, it will restart your app everytime a file change is detected 

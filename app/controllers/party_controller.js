@@ -1,9 +1,10 @@
 'use strict';
 
 //dependencies
+const _ = require('lodash');
+const async = require('async');
 const mongoose = require('mongoose');
 const Party = mongoose.model('Party');
-const async = require('async');
 const irinaUtils = require('irina/lib/utils.js');
 
 /**
@@ -128,15 +129,45 @@ module.exports = {
    */
   destroy: function (request, response, next) {
     Party
-      .findByIdAndRemove(
-        request.params.id,
-        function (error, party) {
-          if (error) {
-            next(error);
-          } else {
-            response.ok(party);
-          }
-        });
+      .findByIdAndRemove(request.params.id, function (error, party) {
+        if (error) {
+          next(error);
+        } else {
+          response.ok(party);
+        }
+      });
+  },
+
+
+  //-----------------------------------------------------------------------------
+  // Analytics
+  //-----------------------------------------------------------------------------
+
+
+
+  /**
+   * @function
+   * @name parties.performances()
+   * @description computes a specific party performances
+   * @param  {HttpRequest} request  a http request
+   * @param  {HttpResponse} response a http response
+   */
+  performances: function (request, response, next) {
+
+    //obtain party id
+    const party = (request.params.id || request.party);
+
+    //prepare options
+    const options = _.merge({}, { party: party }, request.query);
+
+    Party
+      .performances(options, function (error, performances) {
+        if (error) {
+          next(error);
+        } else {
+          response.ok(performances);
+        }
+      });
   }
 
 };
