@@ -28,6 +28,8 @@
 const path = require('path');
 const _ = require('lodash');
 const async = require('async');
+const config = require('config');
+const sync = require('open311-api-sync');
 const moment = require('moment');
 const mongoose = require('mongoose');
 const parseMs = require('parse-ms');
@@ -480,6 +482,77 @@ ServiceRequestSchema.virtual('latitude').get(function () {
 // ServiceSchema Instance Methods
 //-----------------------------------------------------------------------------
 
+
+/**
+ * @name syncDownstream
+ * @description sync service request to local server
+ * @param {Function} done  a callback to invoke on success or failure
+ * @since  0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequest.methods.syncDownstream = function (done) {
+
+  // obtain sync configurations
+  const options = config.get('sync.downstream');
+
+  //TODO check if service isExternal
+
+  //check if downstream syncing is enabled
+  const isEnabled =
+    (options.enabled &&
+      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token));
+
+  //sync down stream
+  if (isEnabled) {
+    sync.baseUrl = options.baseUrl;
+    sync.token = options.token;
+    sync.post(this, done);
+  }
+
+  //no downstream sync back-off
+  else {
+    done(null, this);
+  }
+
+};
+
+
+/**
+ * @name syncUpstream
+ * @description sync service request to public server
+ * @param {Function} done  a callback to invoke on success or failure
+ * @since  0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequest.methods.syncUpstream = function (done) {
+
+  // obtain sync configurations
+  const options = config.get('sync.upstream');
+
+  //TODO check if service isExternal
+
+  //check if upstream syncing is enabled
+  const isEnabled =
+    (options.enabled &&
+      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token));
+
+  //sync down stream
+  if (isEnabled) {
+    sync.baseUrl = options.baseUrl;
+    sync.token = options.token;
+    sync.post(this, done);
+  }
+
+  //no upstream sync back-off
+  else {
+    done(null, this);
+  }
+
+};
 
 
 //-----------------------------------------------------------------------------

@@ -133,6 +133,12 @@ module.exports = {
     downstream: {
 
       /**
+       * @description if syncing to local server enabled
+       * @type {String}
+       */
+      enabled: false,
+
+      /**
        * @description base url for the local server
        * @type {String}
        */
@@ -151,6 +157,12 @@ module.exports = {
      * @type {Object}
      */
     upstream: {
+
+      /**
+       * @description if syncing to public server enabled
+       * @type {String}
+       */
+      enabled: false,
 
       /**
        * @description base url for the public server
