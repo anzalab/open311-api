@@ -162,7 +162,7 @@ module.exports = {
        * @description if syncing to public server enabled
        * @type {String}
        */
-      enabled: true,
+      enabled: false,
 
       /**
        * @description base url for the public server
