@@ -26,6 +26,7 @@ const mongooseAutoset = require('mongoose-autoset');
 const mongooseValid8 = require('mongoose-valid8');
 const mongoosePaginate = require('express-mquery').plugin;
 const mongooseAutopopulate = require('mongoose-autopopulate');
+const mongooseRunInBackground = require('mongoose-kue').plugin;
 const mongooseHidden = require('mongoose-hidden')({
   defaultHidden: {
     password: true,
@@ -33,7 +34,9 @@ const mongooseHidden = require('mongoose-hidden')({
     __t: true
   },
   virtuals: {
-    id: 'hideJSON'
+    id: 'hideJSON',
+    runInBackgroundQueue: 'hideJSON',
+    runInBackgroundOptions: 'hideJSON'
   }
 });
 
@@ -87,11 +90,14 @@ mongoose.plugin(mongooseEdit);
 mongoose.plugin(mongooseList);
 mongoose.plugin(mongooseReload);
 mongoose.plugin(mongooseSearchable);
+mongoose.plugin(mongooseRunInBackground);
+
 
 //require external models
 require('open311-messages')(_.merge({}, {
   mongoose: mongoose
 }, conf.get('infobip'))); //initialize message models
+
 
 // load all models recursively
 require('require-all')({

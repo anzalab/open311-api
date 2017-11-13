@@ -57,5 +57,11 @@ infobip.options = config.get('infobip');
 infobip.start();
 
 
+//initialize mongoose-kue to run schema methods in background
+const worker = require('mongoose-kue').worker;
+const mongoose = require('mongoose');
+worker.start({ mongoose: mongoose });
+
+
 //open web interface to monitor jobs
 kue.app.listen(9000);

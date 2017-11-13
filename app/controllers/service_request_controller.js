@@ -66,6 +66,9 @@ module.exports = {
       if (error) {
         next(error);
       } else {
+        //sync
+        serviceRequest.sync();
+
         response.created(serviceRequest);
       }
     });
@@ -114,6 +117,7 @@ module.exports = {
         if (error) {
           next(error);
         } else {
+          //TODO sync patches
           response.ok(servicerequest);
         }
       });
@@ -192,6 +196,7 @@ module.exports = {
       if (error) {
         next(error);
       } else {
+        //TODO sync patches
         response.ok(servicerequest);
       }
     });

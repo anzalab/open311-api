@@ -29,6 +29,7 @@ const path = require('path');
 const _ = require('lodash');
 const async = require('async');
 const config = require('config');
+const environment = require('execution-environment');
 const sync = require('open311-api-sync');
 const moment = require('moment');
 const mongoose = require('mongoose');
@@ -485,14 +486,14 @@ ServiceRequestSchema.virtual('latitude').get(function () {
 
 /**
  * @name syncDownstream
- * @description sync service request to local server
+ * @description sync service request to local(downstream) server
  * @param {Function} done  a callback to invoke on success or failure
  * @since  0.1.0
  * @version 0.1.0
  * @public
  * @type {Function}
  */
-ServiceRequest.methods.syncDownstream = function (done) {
+ServiceRequestSchema.methods.syncDownstream = function (done) {
 
   // obtain sync configurations
   const options = config.get('sync.downstream');
@@ -521,14 +522,14 @@ ServiceRequest.methods.syncDownstream = function (done) {
 
 /**
  * @name syncUpstream
- * @description sync service request to public server
+ * @description sync service request to public(upstream) server
  * @param {Function} done  a callback to invoke on success or failure
  * @since  0.1.0
  * @version 0.1.0
  * @public
  * @type {Function}
  */
-ServiceRequest.methods.syncUpstream = function (done) {
+ServiceRequestSchema.methods.syncUpstream = function (done) {
 
   // obtain sync configurations
   const options = config.get('sync.upstream');
@@ -550,6 +551,67 @@ ServiceRequest.methods.syncUpstream = function (done) {
   //no upstream sync back-off
   else {
     done(null, this);
+  }
+
+};
+
+
+/**
+ * @name sync
+ * @description try sync service request either to public(upstream) or 
+ *              local(downstream) server
+ * @param {Function} [done]  a callback to invoke on success or failure
+ * @since  0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.methods.sync = function (done) {
+
+  //obtain current execution environment
+  const isProduction = environment.isProd();
+
+  // check if downstream sync enable
+  let options = config.get('sync.downstream');
+  let isEnabled =
+    (options.enabled &&
+      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token));
+
+  //sync downstream
+  if (isEnabled) {
+
+    //queue & run in background in production
+    if (isProduction && this.runInBackground) {
+      this.runInBackground({ method: 'syncDownstream' });
+    }
+
+    //run synchronous in dev & test environment
+    else {
+      this.syncDownstream(done);
+    }
+
+  }
+
+
+  // check if upstream sync enable
+  options = config.get('sync.upstream');
+  isEnabled =
+    (options.enabled &&
+      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token));
+
+  //sync upstream
+  if (isEnabled) {
+
+    //queue & run in background in production
+    if (isProduction && this.runInBackground) {
+      this.runInBackground({ method: 'syncUpstream' });
+    }
+
+    //run synchronous in dev & test environment
+    else {
+      this.syncUpstream(done);
+    }
+
   }
 
 };
