@@ -25,6 +25,7 @@ process.env.SUPPRESS_NO_CONFIG_WARNING = true;
 
 //dependencies
 const path = require('path');
+const _ = require('lodash');
 const config = require('config'); //load configurations
 const environment = require('execution-environment');
 const mkdir = require('mkdir-p');
@@ -50,7 +51,11 @@ require(path.join(__dirname, 'app', 'initializers', 'mongoose'));
 
 //initialize infobip sms transport
 const infobip = require('open311-infobip');
-infobip.options = config.get('infobip');
+let infobipOptions = config.get('infobip');
+if (process.env.REDIS_URL) {
+  infobipOptions.redis = process.env.REDIS_URL;
+}
+infobip.options = infobipOptions;
 
 
 //start
@@ -60,7 +65,11 @@ infobip.start();
 //initialize mongoose-kue to run schema methods in background
 const worker = require('mongoose-kue').worker;
 const mongoose = require('mongoose');
-worker.start({ mongoose: mongoose });
+let mongooseKueOptions = { mongoose: mongoose };
+if (process.env.REDIS_URL) {
+  mongooseKueOptions.redis = process.env.REDIS_URL;
+}
+worker.start(mongooseKueOptions);
 
 
 //open web interface to monitor jobs

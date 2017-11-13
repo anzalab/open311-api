@@ -90,7 +90,13 @@ mongoose.plugin(mongooseEdit);
 mongoose.plugin(mongooseList);
 mongoose.plugin(mongooseReload);
 mongoose.plugin(mongooseSearchable);
-mongoose.plugin(mongooseRunInBackground);
+
+//plugin mongoose kue
+let mongooseKueOptions = { mongoose: mongoose };
+if (process.env.REDIS_URL) {
+  mongooseKueOptions.redis = process.env.REDIS_URL;
+}
+mongoose.plugin(mongooseRunInBackground, mongooseKueOptions);
 
 
 //require external models

@@ -80,7 +80,11 @@ require(path.join(__dirname, 'initializers', 'mongoose'));
 
 //setup messages transports
 const infobip = require('open311-infobip');
-infobip.options = config.get('infobip');
+let infobipOptions = config.get('infobip');
+if (process.env.REDIS_URL) {
+  infobipOptions.redis = process.env.REDIS_URL;
+}
+infobip.options = infobipOptions;
 infobip.init();
 
 //finish initializers
