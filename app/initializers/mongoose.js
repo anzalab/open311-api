@@ -35,8 +35,8 @@ const mongooseHidden = require('mongoose-hidden')({
   },
   virtuals: {
     id: 'hideJSON',
-    runInBackgroundQueue: 'hideJSON',
-    runInBackgroundOptions: 'hideJSON'
+    runInBackgroundQueue: 'hide',
+    runInBackgroundOptions: 'hide'
   }
 });
 

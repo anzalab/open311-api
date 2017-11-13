@@ -509,7 +509,7 @@ ServiceRequestSchema.methods.syncDownstream = function (done) {
   if (isEnabled) {
     sync.baseUrl = options.baseUrl;
     sync.token = options.token;
-    sync.post(this, done);
+    sync.post(this.toObject(), done);
   }
 
   //no downstream sync back-off
@@ -545,7 +545,7 @@ ServiceRequestSchema.methods.syncUpstream = function (done) {
   if (isEnabled) {
     sync.baseUrl = options.baseUrl;
     sync.token = options.token;
-    sync.post(this, done);
+    sync.post(this.toObject(), done);
   }
 
   //no upstream sync back-off
@@ -567,6 +567,9 @@ ServiceRequestSchema.methods.syncUpstream = function (done) {
  * @type {Function}
  */
 ServiceRequestSchema.methods.sync = function (done) {
+
+  //ensure callback
+  done = done || function () {};
 
   //obtain current execution environment
   const isProduction = environment.isProd();
@@ -603,7 +606,8 @@ ServiceRequestSchema.methods.sync = function (done) {
   if (isEnabled) {
 
     //queue & run in background in production
-    if (isProduction && this.runInBackground) {
+    // if (isProduction && this.runInBackground) {
+    if (this.runInBackground) {
       this.runInBackground({ method: 'syncUpstream' });
     }
 
