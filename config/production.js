@@ -163,7 +163,7 @@ module.exports = {
        * @description if syncing to local server enabled
        * @type {String}
        */
-      enabled: false,
+      enabled: true,
 
       /**
        * @description base url for the local server
