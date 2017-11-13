@@ -3,6 +3,10 @@
 //dependencies
 const defer = require('config/defer').deferConfig;
 
+
+//TODO add support to locale(country, language, date formats etc)
+
+
 /**
  * @description default configurations
  * @type {Object}
