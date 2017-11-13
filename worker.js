@@ -25,7 +25,6 @@ process.env.SUPPRESS_NO_CONFIG_WARNING = true;
 
 //dependencies
 const path = require('path');
-const _ = require('lodash');
 const config = require('config'); //load configurations
 const environment = require('execution-environment');
 const mkdir = require('mkdir-p');
@@ -73,4 +72,6 @@ worker.start(mongooseKueOptions);
 
 
 //open web interface to monitor jobs
-kue.app.listen(9000);
+if (!process.env.REDIS_URL) {
+  kue.app.listen(9000);
+}
