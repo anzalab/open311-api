@@ -121,6 +121,55 @@ module.exports = {
 
 
   /**
+   * @description API sync configuration
+   * @type {Object}
+   */
+  sync: {
+
+    /**
+     * @description local server configuration
+     * @type {Object}
+     */
+    downstream: {
+
+      /**
+       * @description base url for the local server
+       * @type {String}
+       */
+      baseUrl: process.env.DOWNSTREAM_BASE_URL,
+
+      /**
+       * @description local server authorization token
+       * @type {String}
+       */
+      token: process.env.DOWNSTREAM_TOKEN
+
+    },
+
+    /**
+     * @description public server configuration
+     * @type {Object}
+     */
+    upstream: {
+
+      /**
+       * @description base url for the public server
+       * @type {String}
+       */
+      baseUrl: process.env.UPSTREAM_BASE_URL,
+
+      /**
+       * @description public server authorization token
+       * @type {String}
+       */
+      token: process.env.UPSTREAM_TOKEN,
+
+    }
+
+  },
+
+
+  /**
    *@description logger configurations
    */
   logger: {
