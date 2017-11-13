@@ -38,7 +38,8 @@ environment.registerEnvironments({
 
 
 //build logs directory if does not exists
-mkdir.sync(path.join(__dirname, '..', 'logs'));
+const logPath = path.join(__dirname, 'logs');
+mkdir.sync(logPath);
 
 
 //setup application mongoose instance
