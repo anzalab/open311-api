@@ -606,8 +606,7 @@ ServiceRequestSchema.methods.sync = function (done) {
   if (isEnabled) {
 
     //queue & run in background in production
-    // if (isProduction && this.runInBackground) {
-    if (this.runInBackground) {
+    if (isProduction && this.runInBackground) {
       this.runInBackground({ method: 'syncUpstream' });
     }
 
