@@ -17,8 +17,18 @@ const mongoose = require('mongoose');
 const Service = mongoose.model('Service');
 const ServiceRequest = mongoose.model('ServiceRequest');
 
+//constants
+const OPEN311_STATUS_OPEN = 'open';
+const parseDate = function (date) {
+  date = Date.parse(date);
+  date = (date ? new Date(date) : undefined);
+  return date;
+};
+
 //TODO handle date & other open 311 filter on get request(s) status
 //TODO handle specific client issues
+//TODO present error in 311 specifications
+//TODO add support to API Key(client id & client credentials)
 
 module.exports = {
   /**
@@ -39,11 +49,11 @@ module.exports = {
   /**
    * @name services
    * @description handle /services request.
-   * 
-   *              It provides a list of all acceptable service request types 
+   *
+   *              It provides a list of all acceptable service request types
    *              and their associated service codes.
    *
-   * 
+   *
    * @param  {HttpRequest} request  http request
    * @param  {HttpResponse} response http response
    * @since 0.1.0
@@ -51,8 +61,16 @@ module.exports = {
    * @public
    */
   services: function (request, response, next) {
-    //TODO filter per jurisdiction
-    let criteria = {};
+
+    //initialize query criteria
+    let criteria = { isExternal: true };
+
+    //obtain provided jurisdiction criteria
+    const jurisdiction = _.get(request, 'query.jurisdiction_id');
+
+    //merge & clean criteria
+    criteria = _.merge({}, criteria, { jurisdiction: jurisdiction });
+    criteria = _.omitBy(criteria, _.isUndefined);
 
     Service
       .find(criteria)
@@ -77,11 +95,44 @@ module.exports = {
    * @description display a list of all service request in open311 compliant fomart
    * @param  {HttpRequest} request  a http request
    * @param  {HttpResponse} response a http response
+   * @see {@link http://wiki.open311.org/GeoReport_v2/#get-service-requests}
    */
   index: function (request, response, next) {
-    //TODO filter per jurisdiction
     //TODO filter per client
+    //TODO filter by service_request_id
+    //TODO filter by service_code
+
+    //initialize query criteria
     let criteria = {};
+
+    //obtain provided jurisdiction criteria
+    criteria.jurisdiction = _.get(request, 'query.jurisdiction_id');
+
+    //filter by provided status criteria
+    criteria.status = _.get(request, 'query.status');
+    if (!_.isEmpty(criteria.status)) {
+      criteria.resolvedAt =
+        (criteria.status === OPEN311_STATUS_OPEN ? { $eq: null } : { $ne: null });
+    }
+    delete criteria.status;
+
+    //filter by provided start date criteria
+    criteria.startedAt = parseDate(_.get(request, 'query.start_date'));
+    if (_.isDate(criteria.startedAt)) {
+      criteria.createdAt = { $gte: criteria.startedAt };
+    }
+    delete criteria.startedAt;
+
+    //filter by provided end date criteria
+    criteria.endedAt = parseDate(_.get(request, 'query.end_date'));
+    if (_.isDate(criteria.endedAt)) {
+      criteria.createdAt =
+        _.merge({}, criteria.createdAt, { $lte: criteria.endedAt });
+    }
+    delete criteria.endedAt;
+
+    //merge & clean criteria
+    criteria = _.omitBy(criteria, _.isUndefined);
 
     ServiceRequest
       .find(criteria)

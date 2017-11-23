@@ -68,7 +68,7 @@ const mongoOptions = config.options;
 
 
 /**
- * @description plugin schema wide mongoose plugins 
+ * @description plugin schema wide mongoose plugins
  */
 mongoose.plugin(function (schema) {
   //allow virtuals on toJSON
