@@ -163,7 +163,7 @@ module.exports = {
        * @description if syncing to local server enabled
        * @type {String}
        */
-      enabled: true,
+      enabled: process.env.DOWNSTREAM_ENABLED || false,
 
       /**
        * @description base url for the local server
@@ -189,7 +189,7 @@ module.exports = {
        * @description if syncing to public server enabled
        * @type {String}
        */
-      enabled: false,
+      enabled: process.env.UPSTREAM_ENABLED || false,
 
       /**
        * @description base url for the public server
