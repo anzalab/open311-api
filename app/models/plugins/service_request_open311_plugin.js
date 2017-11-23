@@ -141,7 +141,9 @@ module.exports = exports = function open311(schema /*,options*/ ) {
           //check for location presence
           let location;
           if (serviceRequest.long && serviceRequest.lat) {
-            location = [serviceRequest.long, serviceRequest.lat];
+            location = {
+              coordinates: [serviceRequest.long, serviceRequest.lat]
+            };
           }
 
           //prepare attachment
