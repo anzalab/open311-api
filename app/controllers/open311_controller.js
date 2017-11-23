@@ -189,7 +189,11 @@ module.exports = {
     ServiceRequest
       .findOne({ code: code })
       .exec(function (error, serviceRequest) {
-        if (error) {
+        if (error || !serviceRequest) {
+          if (!error) {
+            error = new Error('Not Found');
+            error.status = 404;
+          }
           next(error);
         } else {
           response.ok([serviceRequest.toOpen311()]);
