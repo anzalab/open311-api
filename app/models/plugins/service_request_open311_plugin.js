@@ -145,7 +145,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
           }
 
           //prepare attachment
-          if (_.isEmpty(serviceRequest.media_url)) {
+          if (!_.isEmpty(serviceRequest.media_url)) {
             const attachment = { url: serviceRequest.media_url };
             serviceRequest.attachments = [attachment];
           }
