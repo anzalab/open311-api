@@ -166,7 +166,6 @@ module.exports = {
     ServiceRequest
       .createFromOpen311Client(serviceRequest,
         function (error, open311Response /*, serviceRequest*/ ) {
-          console.log('submit error', error);
           if (error) {
             next(error);
           } else {
