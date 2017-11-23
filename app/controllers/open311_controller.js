@@ -166,6 +166,7 @@ module.exports = {
     ServiceRequest
       .createFromOpen311Client(serviceRequest,
         function (error, open311Response /*, serviceRequest*/ ) {
+          console.log('submit error', error);
           if (error) {
             next(error);
           } else {
@@ -189,7 +190,6 @@ module.exports = {
     ServiceRequest
       .findOne({ code: code })
       .exec(function (error, serviceRequest) {
-        console.log('submit error', error);
         if (error || !serviceRequest) {
           if (!error) {
             error = new Error('Not Found');
