@@ -3,7 +3,7 @@
 /**
  * @name open311
  * @description extend a service request with open311 specifications
- *              
+ *
  * @see {@link ServiceRequest}
  * @see {@link http://wiki.open311.org/GeoReport_v2/}
  * @author lally elias <lallyelias87@mail.com>
@@ -13,6 +13,7 @@
  */
 
 //dependencies
+const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
 
@@ -83,7 +84,10 @@ module.exports = exports = function open311(schema /*,options*/ ) {
     as311.long = this.longitude;
 
     //A URL to media associated with the request, for example an image.
-    as311.media_url = '';
+    if (!_.isEmpty(this.attachments)) {
+      //TODO handle base 64 encoded images
+      as311.media_url = (_.first(this.attachments) || {}).url;
+    }
 
     /*jshint camelcase:true*/
 
@@ -140,6 +144,12 @@ module.exports = exports = function open311(schema /*,options*/ ) {
             location = [serviceRequest.long, serviceRequest.lat];
           }
 
+          //prepare attachment
+          if (_.isEmpty(serviceRequest.media_url)) {
+            const attachment = { url: serviceRequest.media_url };
+            serviceRequest.attachments = [attachment];
+          }
+
           //prepare service request
           serviceRequest = {
             service: service,
@@ -155,10 +165,9 @@ module.exports = exports = function open311(schema /*,options*/ ) {
             description: serviceRequest.description,
             address: serviceRequest.address_string,
             method: CONTACT_METHOD_MOBILE_APP,
-            location: location ? location : undefined
+            location: location ? location : undefined,
+            attachments: serviceRequest.attachments
           };
-
-          console.log('service request', serviceRequest);
 
           /*jshint camelcase:false*/
 
