@@ -91,13 +91,13 @@ module.exports = exports = function overview(schema /*, options*/ ) {
 
   const JURISDICTION_FACET = [{ //count and group by jurisdiction
     $group: {
-      _id: '$_id',
+      _id: '$jurisdiction._id',
       pending: { $sum: '$pending' },
       resolved: { $sum: '$resolved' },
       late: { $sum: '$late' },
       unattended: { $sum: '$unattended' },
-      name: { $first: '$name' },
-      color: { $first: '$color' },
+      name: { $first: '$jurisdiction.name' },
+      color: { $first: '$jurisdiction.color' },
       count: { $sum: 1 },
       averageResolveTime: { $avg: '$ttr.milliseconds' },
       averageAttendTime: { $avg: '$call.duration.milliseconds' }
@@ -118,11 +118,11 @@ module.exports = exports = function overview(schema /*, options*/ ) {
   }, { // re-shape to obtain jurisdiction, color & stats
     $project: {
       _id: 1,
-      name: 1,
       pending: 1,
       resolved: 1,
       late: 1,
       unattended: 1,
+      name: 1,
       color: 1,
       count: 1,
       averageResolveTime: 1,
@@ -137,23 +137,25 @@ module.exports = exports = function overview(schema /*, options*/ ) {
 
   const SERVICE_GROUP_FACET = [{ // count and group by service group
     $group: {
-      _id: '$group.name',
+      _id: '$group._id',
       pending: { $sum: '$pending' },
       resolved: { $sum: '$resolved' },
       late: { $sum: '$late' },
       unattended: { $sum: '$unattended' },
-      color: { $first: '$group.color' },
+      name: { $first: '$group.color' },
+      color: { $first: '$group.name' },
       count: { $sum: 1 },
       averageResolveTime: { $avg: '$ttr.milliseconds' },
       averageAttendTime: { $avg: '$call.duration.milliseconds' }
     }
   }, { // project name, color & stats
     $project: {
-      name: '$_id',
+      _id: '$_id',
       pending: '$pending',
       resolved: '$resolved',
       late: '$late',
       unattended: '$unattended',
+      name: '$name',
       color: '$color',
       count: '$count',
       averageResolveTime: '$averageResolveTime',
@@ -161,7 +163,7 @@ module.exports = exports = function overview(schema /*, options*/ ) {
     }
   }, { // re-shape to obtain group, color & stats
     $project: {
-      _id: 0,
+      _id: 1,
       name: 1,
       pending: 1,
       resolved: 1,
@@ -181,23 +183,25 @@ module.exports = exports = function overview(schema /*, options*/ ) {
 
   const SERVICE_FACET = [{ //count and group by service
     $group: {
-      _id: '$service.name',
+      _id: '$service._id',
       pending: { $sum: '$pending' },
       resolved: { $sum: '$resolved' },
       late: { $sum: '$late' },
       unattended: { $sum: '$unattended' },
-      color: { $first: '$group.color' },
+      name: { $first: '$service.name' },
+      color: { $first: '$service.color' },
       count: { $sum: 1 },
       averageResolveTime: { $avg: '$ttr.milliseconds' },
       averageAttendTime: { $avg: '$call.duration.milliseconds' }
     }
   }, { // project name, color & stats
     $project: {
-      name: '$_id',
+      _id: '$_id',
       pending: '$pending',
       resolved: '$resolved',
       late: '$late',
       unattended: '$unattended',
+      name: '$name',
       color: '$color',
       count: '$count',
       averageResolveTime: '$averageResolveTime',
@@ -205,7 +209,7 @@ module.exports = exports = function overview(schema /*, options*/ ) {
     }
   }, { // re-shape to obtain service, color & stats
     $project: {
-      _id: 0,
+      _id: 1,
       name: 1,
       pending: 1,
       resolved: 1,
