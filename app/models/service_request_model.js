@@ -181,7 +181,7 @@ const ServiceRequestSchema = new Schema({
    *              It also a party that is answerable for the progress and
    *              status of the service request(issue) to a reporter.
    *
-   *              For jurisdiction that own a call center, then operator is 
+   *              For jurisdiction that own a call center, then operator is
    *              a person who received a call.
    *
    * @type {Object}
@@ -379,9 +379,9 @@ const ServiceRequestSchema = new Schema({
    * @name expectedAt
    * @description A time when the issue is expected to be resolved.
    *
-   *              Computed by adding expected hours to resolve issue to the 
+   *              Computed by adding expected hours to resolve issue to the
    *              reporting time of the issue i.e (createdAt + service.sla.ttr in hours).
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -558,7 +558,7 @@ ServiceRequestSchema.methods.syncUpstream = function (done) {
 
 /**
  * @name sync
- * @description try sync service request either to public(upstream) or 
+ * @description try sync service request either to public(upstream) or
  *              local(downstream) server
  * @param {Function} [done]  a callback to invoke on success or failure
  * @since  0.1.0
@@ -648,7 +648,7 @@ ServiceRequestSchema.pre('validate', function (next) {
     //obtain sla expected time ttr
     const ttr = _.get(this.service, 'sla.ttr');
     if (ttr) {
-      //compute time to when a service request(issue) 
+      //compute time to when a service request(issue)
       //is expected to be resolve
       this.expectedAt =
         moment(this.createdAt).add(ttr, 'hours').toDate(); //or h
@@ -1254,6 +1254,7 @@ ServiceRequestSchema.statics.standings = function (criteria, done) {
  * @version 0.1.0
  * @public
  * @type {Function}
+ * @deprecated
  */
 ServiceRequestSchema.statics.overviews = function (done) {
   //refs

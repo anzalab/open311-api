@@ -4,7 +4,7 @@
 /**
  * @name overview
  * @description build overview report per specified criteria.
- *              
+ *
  * @see {@link ServiceRequest}
  * @see {@link http://mongoosejs.com/docs/api.html#aggregate_Aggregate}
  * @see {@link http://mongoosejs.com/docs/api.html#aggregate_Aggregate-lookup}
@@ -91,23 +91,25 @@ module.exports = exports = function overview(schema /*, options*/ ) {
 
   const JURISDICTION_FACET = [{ //count and group by jurisdiction
     $group: {
-      _id: '$jurisdiction.name',
+      _id: '$_id',
       pending: { $sum: '$pending' },
       resolved: { $sum: '$resolved' },
       late: { $sum: '$late' },
       unattended: { $sum: '$unattended' },
-      color: { $first: '$jurisdiction.color' },
+      name: { $first: '$name' },
+      color: { $first: '$color' },
       count: { $sum: 1 },
       averageResolveTime: { $avg: '$ttr.milliseconds' },
       averageAttendTime: { $avg: '$call.duration.milliseconds' }
     }
   }, { // project name, color & stats
     $project: {
-      name: '$_id',
+      _id: '$_id',
       pending: '$pending',
       resolved: '$resolved',
       late: '$late',
       unattended: '$unattended',
+      name: '$name',
       color: '$color',
       count: '$count',
       averageResolveTime: '$averageResolveTime',
@@ -115,7 +117,7 @@ module.exports = exports = function overview(schema /*, options*/ ) {
     }
   }, { // re-shape to obtain jurisdiction, color & stats
     $project: {
-      _id: 0,
+      _id: 1,
       name: 1,
       pending: 1,
       resolved: 1,
@@ -265,7 +267,7 @@ module.exports = exports = function overview(schema /*, options*/ ) {
   /**
    * @name overview
    * @description run overview aggregation facets
-   * @param  {Object} [criteria] query criteria 
+   * @param  {Object} [criteria] query criteria
    * @param  {Function} done callback to invoke on success or failure
    * @return {Object}
    * @author lally elias <lallyelias87@mail.com>
