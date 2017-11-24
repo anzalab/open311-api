@@ -142,8 +142,8 @@ module.exports = exports = function overview(schema /*, options*/ ) {
       resolved: { $sum: '$resolved' },
       late: { $sum: '$late' },
       unattended: { $sum: '$unattended' },
-      name: { $first: '$group.color' },
-      color: { $first: '$group.name' },
+      name: { $first: '$group.name' },
+      color: { $first: '$group.color' },
       count: { $sum: 1 },
       averageResolveTime: { $avg: '$ttr.milliseconds' },
       averageAttendTime: { $avg: '$call.duration.milliseconds' }
@@ -164,11 +164,11 @@ module.exports = exports = function overview(schema /*, options*/ ) {
   }, { // re-shape to obtain group, color & stats
     $project: {
       _id: 1,
-      name: 1,
       pending: 1,
       resolved: 1,
       late: 1,
       unattended: 1,
+      name: 1,
       color: 1,
       count: 1,
       averageResolveTime: 1,

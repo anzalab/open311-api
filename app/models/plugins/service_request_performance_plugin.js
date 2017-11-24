@@ -210,7 +210,6 @@ module.exports = exports = function performance(schema /*, options*/ ) {
   }, { // re-shape to obtain service, color & stats
     $project: {
       _id: 1,
-      name: 1,
       pending: 1,
       resolved: 1,
       late: 1,
