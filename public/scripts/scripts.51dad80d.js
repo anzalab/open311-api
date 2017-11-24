@@ -246,8 +246,13 @@ angular
       })
       .state('app.performances', {
         url: '/performances',
-        templateUrl: 'views/dashboards/performances.html',
+        templateUrl: 'views/dashboards/performance/index.html',
         controller: 'DashboardPerformanceCtrl',
+        params: {
+          jurisdiction: null,
+          startedAt: null,
+          endedAt: null
+        },
         data: {
           authenticated: true
         },
@@ -4861,6 +4866,7 @@ angular
       workspaces: []
     };
 
+    //TODO persist filter to local storage
     $scope.filters = defaultFilters;
 
     //bind exports
@@ -4888,6 +4894,19 @@ angular
           'Late', 'Average Attend Time (Call Duration)',
           'Average Resolve Time'
         ]
+      },
+      methods: {
+        filename: 'reporting_methods_overview_reports_' + Date.now() +
+          '.csv',
+        headers: [
+          'Name', 'Total'
+        ]
+      },
+      workspaces: {
+        filename: 'workspaces_overview_reports_' + Date.now() + '.csv',
+        headers: [
+          'Name', 'Total'
+        ]
       }
     };
 
@@ -4901,27 +4920,38 @@ angular
     $scope.export = function (type) {
       var _exports =
         _.map($scope.overviews[type], function (overview) {
-          return {
+
+          overview = {
             name: overview.name,
             total: overview.count,
             pending: overview.pending,
             resolved: overview.resolved,
             late: overview.late,
-            averageAttendTime: [
+            averageAttendTime: overview.averageAttendTime ? [
               overview.averageAttendTime.days, ' days, ',
               overview.averageAttendTime.hours, ' hrs, ',
               overview.averageAttendTime.minutes, ' mins, ',
               overview.averageAttendTime.seconds, ' secs'
-            ].join(''),
-            averageResolveTime: [
+            ].join('') : undefined,
+            averageResolveTime: overview.averageResolveTime ? [
               overview.averageResolveTime.days, 'days, ',
               overview.averageResolveTime.hours, 'hrs, ',
               overview.averageResolveTime.minutes, 'mins, ',
               overview.averageResolveTime.seconds, 'secs, '
-            ].join(''),
+            ].join('') : undefined,
           };
+
+          //reshape for workspace and method
+          if (type === 'methods' || type === 'workspaces') {
+            overview = _.pick(overview, ['name', 'total']);
+          }
+
+          return overview;
+
         });
+
       return _exports;
+
     };
 
 
@@ -4995,6 +5025,8 @@ angular
       $scope.prepareServiceVisualization();
       $scope.prepareJurisdictionVisualization();
       $scope.prepareServiceGroupVisualization();
+      $scope.prepareMethodVisualization();
+      $scope.prepareWorkspaceVisualization();
 
     };
 
@@ -5010,7 +5042,7 @@ angular
       //ensure column
       column = column || 'count';
 
-      //prepare unique service groups for bar chart categories
+      //prepare unique services for bar chart categories
       var categories = _.chain($scope.overviews)
         .map('services')
         .uniqBy('name')
@@ -5123,10 +5155,11 @@ angular
 
 
       //prepare chart series data
-      var data = _.map($scope.overviews.jurisdictions, function (group) {
+      var data = _.map($scope.overviews.jurisdictions, function (
+        jurisdiction) {
         return {
-          name: group.name,
-          value: group[column]
+          name: jurisdiction.name,
+          value: jurisdiction[column]
         };
       });
 
@@ -5171,7 +5204,6 @@ angular
           selectedMode: 'single',
           radius: ['45%', '55%'],
           color: _.map($scope.overviews.jurisdictions, 'color'),
-
           label: {
             normal: {
               formatter: '{b}\n{d}%',
@@ -5247,6 +5279,154 @@ angular
           radius: ['45%', '55%'],
           color: _.map($scope.overviews.groups, 'color'),
 
+          label: {
+            normal: {
+              formatter: '{b}\n{d}%',
+            }
+          },
+          data: data
+        }]
+      };
+
+    };
+
+
+    /**
+     * prepare method overview visualization
+     * @return {object} echart pie chart configurations
+     * @version 0.1.0
+     * @since  0.1.0
+     * @author lally elias<lallyelias87@gmail.com>
+     */
+    $scope.prepareMethodVisualization = function (column) {
+
+      //ensure column
+      column = column || 'count';
+
+
+      //prepare chart series data
+      var data = _.map($scope.overviews.methods, function (method) {
+        return {
+          name: method.name,
+          value: method[column]
+        };
+      });
+
+      //prepare chart config
+      $scope.perMethodConfig = {
+        height: 400,
+        forceClear: true
+      };
+
+      //prepare chart options
+      $scope.perMethodOptions = {
+        textStyle: {
+          fontFamily: 'Lato'
+        },
+        title: {
+          text: column === 'count' ? 'Total' : _.upperFirst(column.toLowerCase()),
+          subtext: $filter('number')(_.sumBy(data, 'value'), 0),
+          x: 'center',
+          y: 'center',
+          textStyle: {
+            fontWeight: 'normal',
+            fontSize: 16
+          }
+        },
+        tooltip: {
+          show: true,
+          trigger: 'item',
+          formatter: "{b}:<br/> Count: {c} <br/> Percent: ({d}%)"
+        },
+        toolbox: {
+          show: true,
+          feature: {
+            saveAsImage: {
+              name: 'Reporting Methods Overview - ' + new Date().getTime(),
+              title: 'Save',
+              show: true
+            }
+          }
+        },
+        series: [{
+          type: 'pie',
+          selectedMode: 'single',
+          radius: ['45%', '55%'],
+          color: _.map($scope.overviews.services, 'color'),
+          label: {
+            normal: {
+              formatter: '{b}\n{d}%',
+            }
+          },
+          data: data
+        }]
+      };
+
+    };
+
+    /**
+     * prepare workspace overview visualization
+     * @return {object} echart pie chart configurations
+     * @version 0.1.0
+     * @since  0.1.0
+     * @author lally elias<lallyelias87@gmail.com>
+     */
+    $scope.prepareWorkspaceVisualization = function (column) {
+
+      //ensure column
+      column = column || 'count';
+
+
+      //prepare chart series data
+      var data = _.map($scope.overviews.workspaces, function (workspace) {
+        return {
+          name: workspace.name,
+          value: workspace[column]
+        };
+      });
+
+      //prepare chart config
+      $scope.perWorkspaceConfig = {
+        height: 400,
+        forceClear: true
+      };
+
+      //prepare chart options
+      $scope.perWorkspaceOptions = {
+        textStyle: {
+          fontFamily: 'Lato'
+        },
+        title: {
+          text: column === 'count' ? 'Total' : _.upperFirst(column.toLowerCase()),
+          subtext: $filter('number')(_.sumBy(data, 'value'), 0),
+          x: 'center',
+          y: 'center',
+          textStyle: {
+            fontWeight: 'normal',
+            fontSize: 16
+          }
+        },
+        tooltip: {
+          show: true,
+          trigger: 'item',
+          formatter: "{b}:<br/> Count: {c} <br/> Percent: ({d}%)"
+        },
+        toolbox: {
+          show: true,
+          feature: {
+            saveAsImage: {
+              name: 'Workspaces Overview - ' + new Date().getTime(),
+              title: 'Save',
+              show: true
+            }
+          }
+        },
+        series: [{
+          type: 'pie',
+          selectedMode: 'single',
+          radius: ['45%', '55%'],
+          color: _.reverse(_.map($scope.overviews.services,
+            'color')),
           label: {
             normal: {
               formatter: '{b}\n{d}%',
@@ -6163,7 +6343,7 @@ angular
 angular
   .module('ng311')
   .controller('DashboardPerformanceCtrl', function (
-    $rootScope, $scope, $state, $uibModal,
+    $rootScope, $scope, $state, $filter, $stateParams, $uibModal,
     Summary, endpoints, party
   ) {
 
@@ -6178,29 +6358,105 @@ angular
     $scope.jurisdictions = endpoints.jurisdictions.jurisdictions;
     $scope.workspaces = party.settings.party.relation.workspaces;
 
+    //set default jurisdiction
+    $scope.jurisdiction =
+      ($stateParams.jurisdiction || _.first($scope.jurisdictions));
+
     //bind filters
     var defaultFilters = {
-      // startedAt: moment().utc().startOf('date').toDate(),
-      startedAt: moment().utc().startOf('year').toDate(),
-      endedAt: moment().utc().endOf('date').toDate(),
-      statuses: [],
-      priorities: [],
-      servicegroups: [],
-      jurisdictions: [],
+      startedAt: ($stateParams.startedAt || moment().utc().startOf('date').toDate()),
+      endedAt: ($stateParams.endedAt || moment().utc().endOf('date').toDate()),
+      jurisdictions: [].concat($scope.jurisdiction._id),
       workspaces: []
     };
 
+    //TODO persist filter to local storage
     $scope.filters = defaultFilters;
 
+
+    //bind exports
+    $scope.exports = {
+      groups: {
+        filename: 'service_groups_performance_reports_' + Date.now() +
+          '.csv',
+        headers: [
+          'Service Group', 'Total', 'Pending', 'Resolved',
+          'Late', 'Average Attend Time (Call Duration)',
+          'Average Resolve Time'
+        ]
+      },
+      services: {
+        filename: 'services_performance_reports_' + Date.now() + '.csv',
+        headers: [
+          'Service', 'Total', 'Pending', 'Resolved',
+          'Late', 'Average Attend Time (Call Duration)',
+          'Average Resolve Time'
+        ]
+      },
+      summary: {
+        filename: 'summary_performance_reports_' + Date.now() + '.csv',
+        headers: [
+          'Name', 'Total'
+        ]
+      },
+      statuses: {
+        filename: 'statuses_performance_reports_' + Date.now() + '.csv',
+        headers: [
+          'Name', 'Total'
+        ]
+      }
+    };
+
     //initialize performances
-    $scope.performances = [];
+    $scope.performances = {};
 
     /**
-     * Open overview reports filter
+     * Exports current overview data
+     */
+    $scope.export = function (type) {
+      var _exports =
+        _.map($scope.performances[type], function (performance) {
+
+          performance = {
+            name: performance.name,
+            total: performance.count,
+            pending: performance.pending,
+            resolved: performance.resolved,
+            late: performance.late,
+            averageAttendTime: performance.averageAttendTime ? [
+              performance.averageAttendTime.days, ' days, ',
+              performance.averageAttendTime.hours, ' hrs, ',
+              performance.averageAttendTime.minutes, ' mins, ',
+              performance.averageAttendTime.seconds, ' secs'
+            ].join('') : undefined,
+            averageResolveTime: performance.averageResolveTime ? [
+              performance.averageResolveTime.days, 'days, ',
+              performance.averageResolveTime.hours, 'hrs, ',
+              performance.averageResolveTime.minutes, 'mins, ',
+              performance.averageResolveTime.seconds, 'secs, '
+            ].join('') : undefined,
+          };
+
+          //reshape for workspace and method
+          if (type === 'summaries' || type === 'statuses') {
+            performance = _.pick(performance, ['name', 'total']);
+          }
+
+          return performance;
+
+        });
+
+      return _exports;
+
+    };
+
+
+    /**
+     * Open performance reports filter
      */
     $scope.showFilter = function () {
 
-      //open overview reports filter modal
+      //open performance reports filter modal
       $scope.modal = $uibModal.open({
         templateUrl: 'views/dashboards/_partials/performances_filter.html',
         scope: $scope,
@@ -6215,7 +6471,7 @@ angular
 
 
     /**
-     * Filter overview reports based on on current selected filters
+     * Filter performance reports based on on current selected filters
      * @param {Boolean} [reset] whether to clear and reset filter
      */
     $scope.filter = function (reset) {
@@ -6226,6 +6482,12 @@ angular
       //prepare query
       $scope.params = Summary.prepareQuery($scope.filters);
 
+      //reset area
+      var _id = _.first($scope.filters.jurisdictions);
+      $scope.jurisdiction = _.find($scope.jurisdictions, {
+        '_id': _id
+      });
+
       //load reports
       $scope.reload();
 
@@ -6233,73 +6495,389 @@ angular
       $scope.modal.close();
     };
 
+    //prepare summaries
+    //TODO make api to return data
+    $scope.prepareSummaries = function () {
+      //prepare summary
+      $scope.performances.summaries = [{
+        name: 'Resolved',
+        count: $scope.performances.overall.resolved,
+        color: '#8BC34A'
+      }, {
+        name: 'Pending',
+        count: $scope.performances.overall.pending,
+        color: '#00BCD4'
+      }, {
+        name: 'Late',
+        count: $scope.performances.overall.late,
+        color: '#009688'
+      }];
+    };
 
-    /**
-     * Filter service based on selected service group
-     */
-    $scope.filterServices = function () {
-      var filterHasServiceGroups =
-        ($scope.filters.servicegroups && $scope.filters.servicegroups.length >
-          0);
-      //pick only service of selected group
-      if (filterHasServiceGroups) {
-        //filter services based on service group(s)
-        $scope.services =
-          _.filter(endpoints.services.services, function (service) {
-            return _.includes($scope.filters.servicegroups, service.group
-              ._id);
-          });
-      }
-      //use all services
-      else {
-        $scope.services = endpoints.services.services;
-      }
+    $scope.prepare = function () {
+
+      //shaping data
+      $scope.prepareSummaries();
+
+      //prepare visualization
+      $scope.prepareSummaryVisualization();
+      $scope.prepareStatusesVisualization();
+      $scope.prepareServiceGroupVisualization();
+      $scope.prepareServiceVisualization();
+
     };
 
 
     /**
-     * Reload overview reports
+     * Reload performance reports
      */
     $scope.reload = function () {
       Summary
-        .performances({ query: $scope.params })
+        .performances({
+          query: $scope.params
+        })
         .then(function (performances) {
+
           $scope.performances = performances;
 
-          //prepare summary
-          $scope.performances.summaries = [{
-            name: 'Total',
-            count: $scope.performances.total,
-            color: '#607D8B'
-          }, {
-            name: 'Resolved',
-            count: $scope.performances.resolved,
-            color: '#8BC34A'
-          }, {
-            name: 'Pending',
-            count: $scope.performances.pending,
-            color: '#00BCD4'
-          }, {
-            name: 'Late',
-            count: $scope.performances.late,
-            color: '#009688'
-          }, {
-            name: 'Un-Attended',
-            count: $scope.performances.unattended,
-            color: '#9E9D24'
-          }];
+          //ensure status are sorted by weight
+          $scope.performances.statuses =
+            _.orderBy(performances.statuses, 'weight', 'asc');
+
+          $scope.prepare();
 
         });
     };
 
-    //listen for events and reload overview accordingly
+    /**
+     * prepare summary visualization
+     * @return {object} echart donut chart configurations
+     * @version 0.1.0
+     * @since  0.1.0
+     * @author lally elias<lallyelias87@gmail.com>
+     */
+    $scope.prepareSummaryVisualization = function () {
+
+      //prepare chart series data
+      var data = _.map($scope.performances.summaries, function (summary) {
+        return {
+          name: summary.name,
+          value: summary.count
+        };
+      });
+
+      //prepare chart config
+      $scope.perSummaryConfig = {
+        height: 400,
+        forceClear: true
+      };
+
+      //prepare chart options
+      $scope.perSummaryOptions = {
+        textStyle: {
+          fontFamily: 'Lato'
+        },
+        title: {
+          text: 'Total',
+          subtext: $filter('number')(_.sumBy(data, 'value'), 0),
+          x: 'center',
+          y: 'center',
+          textStyle: {
+            fontWeight: 'normal',
+            fontSize: 16
+          }
+        },
+        tooltip: {
+          show: true,
+          trigger: 'item',
+          formatter: "{b}:<br/> Count: {c} <br/> Percent: ({d}%)"
+        },
+        toolbox: {
+          show: true,
+          feature: {
+            saveAsImage: {
+              name: 'Area Overview - ' + new Date().getTime(),
+              title: 'Save',
+              show: true
+            }
+          }
+        },
+        series: [{
+          type: 'pie',
+          selectedMode: 'single',
+          radius: ['45%', '55%'],
+          color: _.map($scope.performances.summaries, 'color'),
+          label: {
+            normal: {
+              formatter: '{b}\n{d}%',
+            }
+          },
+          data: data
+        }]
+      };
+
+    };
+
+    /**
+     * prepare statuses visualization
+     * @return {object} echart donut chart configurations
+     * @version 0.1.0
+     * @since  0.1.0
+     * @author lally elias<lallyelias87@gmail.com>
+     */
+    $scope.prepareStatusesVisualization = function () {
+
+      //prepare chart series data
+      var data = _.map($scope.performances.statuses, function (status) {
+        return {
+          name: status.name,
+          value: status.count
+        };
+      });
+
+      //prepare chart config
+      $scope.perStatusesConfig = {
+        height: 400,
+        forceClear: true
+      };
+
+      //prepare chart options
+      $scope.perStatusesOptions = {
+        textStyle: {
+          fontFamily: 'Lato'
+        },
+        title: {
+          text: 'Total',
+          subtext: $filter('number')(_.sumBy(data, 'value'), 0),
+          x: 'center',
+          y: 'center',
+          textStyle: {
+            fontWeight: 'normal',
+            fontSize: 16
+          }
+        },
+        tooltip: {
+          show: true,
+          trigger: 'item',
+          formatter: "{b}:<br/> Count: {c} <br/> Percent: ({d}%)"
+        },
+        toolbox: {
+          show: true,
+          feature: {
+            saveAsImage: {
+              name: 'Area Status Overview - ' + new Date().getTime(),
+              title: 'Save',
+              show: true
+            }
+          }
+        },
+        series: [{
+          type: 'pie',
+          selectedMode: 'single',
+          radius: ['45%', '55%'],
+          color: _.map($scope.performances.statuses, 'color'),
+          label: {
+            normal: {
+              formatter: '{b}\n{d}%',
+            }
+          },
+          data: data
+        }]
+      };
+
+    };
+
+    /**
+     * prepare service group performance visualization
+     * @return {object} echart bar chart configurations
+     * @version 0.1.0
+     * @since  0.1.0
+     * @author lally elias<lallyelias87@gmail.com>
+     */
+    $scope.prepareServiceGroupVisualization = function (column) {
+
+      //ensure column
+      column = column || 'count';
+
+
+      //prepare chart series data
+      var data = _.map($scope.performances.groups, function (group) {
+        return {
+          name: group.name,
+          value: group[column]
+        };
+      });
+
+      //prepare chart config
+      $scope.perServiceGroupConfig = {
+        height: 400,
+        forceClear: true
+      };
+
+      //prepare chart options
+      $scope.perServiceGroupOptions = {
+        textStyle: {
+          fontFamily: 'Lato'
+        },
+        title: {
+          text: column === 'count' ? 'Total' : _.upperFirst(column.toLowerCase()),
+          subtext: $filter('number')(_.sumBy(data, 'value'), 0),
+          x: 'center',
+          y: 'center',
+          textStyle: {
+            fontWeight: 'normal',
+            fontSize: 16
+          }
+        },
+        tooltip: {
+          show: true,
+          trigger: 'item',
+          formatter: "{b}:<br/> Count: {c} <br/> Percent: ({d}%)"
+        },
+        toolbox: {
+          show: true,
+          feature: {
+            saveAsImage: {
+              name: 'Service Groups Overview - ' + new Date().getTime(),
+              title: 'Save',
+              show: true
+            }
+          }
+        },
+        series: [{
+          type: 'pie',
+          selectedMode: 'single',
+          radius: ['45%', '55%'],
+          color: _.map($scope.performances.groups, 'color'),
+
+          label: {
+            normal: {
+              formatter: '{b}\n{d}%',
+            }
+          },
+          data: data
+        }]
+      };
+
+    };
+
+    /**
+     * prepare per service bar chart
+     * @return {object} echart bar chart configurations
+     * @version 0.1.0
+     * @since  0.1.0
+     * @author lally elias<lallyelias87@gmail.com>
+     */
+    $scope.prepareServiceVisualization = function (column) {
+
+      //ensure column
+      column = column || 'count';
+
+      //prepare unique services for bar chart categories
+      var categories = _.chain($scope.performances)
+        .map('services')
+        .uniqBy('name')
+        .value();
+
+      //prepare bar chart series data
+      var data =
+        _.map($scope.performances.services, function (service) {
+
+          var serie = {
+            name: service.name,
+            value: service[column],
+            itemStyle: {
+              normal: {
+                color: service.color
+              }
+            }
+          };
+
+          return serie;
+
+        });
+
+      //sort data by their value
+      data = _.orderBy(data, 'value', 'asc');
+
+      //prepare chart config
+      $scope.perServiceConfig = {
+        height: '1100',
+        forceClear: true
+      };
+
+      //prepare chart options
+      $scope.perServiceOptions = {
+        color: _.map(data, 'itemStyle.normal.color'),
+        textStyle: {
+          fontFamily: 'Lato'
+        },
+        tooltip: {
+          trigger: 'item',
+          formatter: '{b} : {c}'
+        },
+        toolbox: {
+          show: true,
+          feature: {
+            saveAsImage: {
+              name: 'Area Services Overview - ' + new Date().getTime(),
+              title: 'Save',
+              show: true
+            }
+          }
+        },
+        calculable: true,
+        yAxis: [{
+          type: 'category',
+          data: _.map(data, 'name'),
+          boundaryGap: true,
+          axisTick: {
+            alignWithLabel: true
+          },
+          axisLabel: {
+            rotate: 60,
+          },
+          axisLine: {
+            show: true
+          }
+        }],
+        xAxis: [{
+          type: 'value',
+          scale: true,
+          position: 'top',
+          boundaryGap: true,
+          axisTick: {
+            show: false,
+            lineStyle: {
+              color: '#ddd'
+            }
+          },
+          splitLine: {
+            show: false
+          }
+        }],
+        series: [{
+          type: 'bar',
+          barWidth: '55%',
+          label: {
+            normal: {
+              show: true,
+              position: 'right'
+            }
+          },
+          data: data
+        }]
+      };
+
+    };
+
+    //listen for events and reload performance accordingly
     $rootScope.$on('app:servicerequests:reload', function () {
       $scope.reload();
     });
 
-
     //pre-load reports
-    //prepare overview details
+    //prepare performance details
     $scope.params = Summary.prepareQuery($scope.filters);
     $scope.reload();
 
@@ -6778,7 +7356,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   'use strict';
 
   $templateCache.put('views/_partials/aside.html',
-    " <div class=\"navside\" data-layout=\"column\"> <div class=\"navbar no-radius\"> <a title=\"{{ENV.title}} | {{ENV.description}}\" ui-sref=\"app.servicerequests.list\" class=\"navbar-brand\"> <img src=\"images/logo_sm.daaf6944.png\" alt=\".\" width=\"48\" class=\"m-t-sm\"> <span class=\"hidden-folded inline\">open311</span> </a> </div> <br> <div data-flex class=\"hide-scroll\"> <nav class=\"scroll nav-stacked nav-stacked-rounded nav-color\"> <ul class=\"nav\" data-ui-nav> <li class=\"nav-header hidden-folded\"> <span class=\"text-xs\">Main</span> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:view\"> <a ui-sref=\"app.servicerequests.list\" title=\"Issues & Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-chatbubble-working\"></i> </span> <span class=\"nav-text\">Issues</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:edit\"> <a ui-sref=\"app.create_servicerequests\" ui-sref-opts=\"{reload: true}\" title=\"Report New Issue or Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-plus-circled\"></i> </span> <span class=\"nav-text\">New Issue</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.overviews\" title=\"Overviews\"> <span class=\"nav-icon\"> <i class=\"ion-pie-graph\"></i> </span> <span class=\"nav-text\">Overviews</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.standings\" title=\"Standings\"> <span class=\"nav-icon\"> <i class=\"ion-arrow-graph-up-right\"></i> </span> <span class=\"nav-text\">Standings</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.exports\" title=\"Exports\"> <span class=\"nav-icon\"> <i class=\"ion-social-buffer\"></i> </span> <span class=\"nav-text\">Exports</span> </a> </li> <li show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\" ui-sref-active=\"active\"> <a ui-sref=\"app.manage.jurisdictions\" title=\"Manage System\"> <span class=\"nav-icon\"> <i class=\"ion-gear-a\"></i> </span> <span class=\"nav-text\">Manage</span> </a> </li> </ul> </nav> </div> <div data-flex-no-shrink> <div uib-dropdown class=\"nav-fold dropup\" title=\"{{party.name}}\"> <a uib-dropdown-toggle data-toggle=\"dropdown\"> <div class=\"pull-left\"> <div class=\"inline\"> <letter-avatar title=\"{{party.name}}\" data=\"{{party.name}}\" height=\"60\" width=\"60\" shape=\"round\" class=\"avatar w-40\"> </letter-avatar> </div> </div> </a> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a class=\"dropdown-item\" ui-sref=\"app.profile\" title=\"My Profile\"> <span>Profile</span> </a> <a ng-show=\"isAuthenticated\" ng-show=\"isAuthenticated\" data-signout title=\"Signout\" class=\"dropdown-item\" title=\"Signout\"> Sign out </a> </div> </div> </div> </div> "
+    " <div class=\"navside\" data-layout=\"column\"> <div class=\"navbar no-radius\"> <a title=\"{{ENV.title}} | {{ENV.description}}\" ui-sref=\"app.servicerequests.list\" class=\"navbar-brand\"> <img src=\"images/logo_sm.daaf6944.png\" alt=\".\" width=\"48\" class=\"m-t-sm\"> <span class=\"hidden-folded inline\">open311</span> </a> </div> <br> <div data-flex class=\"hide-scroll\"> <nav class=\"scroll nav-stacked nav-stacked-rounded nav-color\"> <ul class=\"nav\" data-ui-nav> <li class=\"nav-header hidden-folded\"> <span class=\"text-xs\">Main</span> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:view\"> <a ui-sref=\"app.servicerequests.list\" title=\"Issues & Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-chatbubble-working\"></i> </span> <span class=\"nav-text\">Issues</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:edit\"> <a ui-sref=\"app.create_servicerequests\" ui-sref-opts=\"{reload: true}\" title=\"Report New Issue or Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-plus-circled\"></i> </span> <span class=\"nav-text\">New Issue</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.overviews\" title=\"Overviews\"> <span class=\"nav-icon\"> <i class=\"ion-pie-graph\"></i> </span> <span class=\"nav-text\">Overviews</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.standings\" title=\"Standings\"> <span class=\"nav-icon\"> <i class=\"ion-arrow-graph-up-right\"></i> </span> <span class=\"nav-text\">Standings</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.performances\" title=\"Performances\"> <span class=\"nav-icon\"> <i class=\"ion-ios-pulse-strong\"></i> </span> <span class=\"nav-text\">Performances</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.exports\" title=\"Exports\"> <span class=\"nav-icon\"> <i class=\"ion-social-buffer\"></i> </span> <span class=\"nav-text\">Exports</span> </a> </li> <li show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\" ui-sref-active=\"active\"> <a ui-sref=\"app.manage.jurisdictions\" title=\"Manage System\"> <span class=\"nav-icon\"> <i class=\"ion-gear-a\"></i> </span> <span class=\"nav-text\">Manage</span> </a> </li> </ul> </nav> </div> <div data-flex-no-shrink> <div uib-dropdown class=\"nav-fold dropup\" title=\"{{party.name}}\"> <a uib-dropdown-toggle data-toggle=\"dropdown\"> <div class=\"pull-left\"> <div class=\"inline\"> <letter-avatar title=\"{{party.name}}\" data=\"{{party.name}}\" height=\"60\" width=\"60\" shape=\"round\" class=\"avatar w-40\"> </letter-avatar> </div> </div> </a> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a class=\"dropdown-item\" ui-sref=\"app.profile\" title=\"My Profile\"> <span>Profile</span> </a> <a ng-show=\"isAuthenticated\" ng-show=\"isAuthenticated\" data-signout title=\"Signout\" class=\"dropdown-item\" title=\"Signout\"> Sign out </a> </div> </div> </div> </div> "
   );
 
 
@@ -6868,7 +7446,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/dashboards/_partials/performances_filter.html',
-    "<div> <div class=\"modal-header\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$dismiss()\" aria-hidden=\"true\">×</button> <h4 class=\"modal-title\">Performances Reports - Filters</h4> </div> <div class=\"modal-body\"> <div class=\"container-fluid\"> <div class=\"row\"> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> From </h6> </div> <div pickadate ng-model=\"filters.startedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> To </h6> </div> <div pickadate ng-model=\"filters.endedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> </div> <div class=\"row m-t-sm\" ng-if=\"jurisdictions.length > 1\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Area </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"jurisdiction in jurisdictions\"> <div class=\"checkbox-custom checkbox-primary p-a p-b-none\"> <input type=\"checkbox\" checklist-model=\"filters.jurisdictions\" checklist-value=\"jurisdiction._id\"> <label class=\"text-muted\" title=\"{{jurisdiction.name}}\">{{jurisdiction.name}}</label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service Group </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"servicegroup in servicegroups\"> <div class=\"checkbox-custom checkbox-primary p-a p-b-none\"> <input type=\"checkbox\" checklist-model=\"filters.servicegroups\" checklist-value=\"servicegroup._id\" checklist-change=\"filterServices()\"> <label class=\"text-muted\" title=\"{{servicegroup.name}}\">{{servicegroup.name}}</label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"service in services\"> <div class=\"checkbox-custom checkbox-primary p-a p-b-none\"> <input type=\"checkbox\" checklist-model=\"filters.services\" checklist-value=\"service._id\"> <label class=\"text-muted\" title=\"{{service.name}}\">{{service.name}}</label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Status </h6> </div> </div> <div class=\"col-md-2\" ng-repeat=\"status in statuses\"> <div class=\"checkbox-custom checkbox-primary p-a\"> <input type=\"checkbox\" checklist-model=\"filters.statuses\" checklist-value=\"status._id\"> <label class=\"text-muted\" title=\"{{status.name}}\">{{status.name}}</label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Priority </h6> </div> </div> <div class=\"col-md-2\" ng-repeat=\"priority in priorities\"> <div class=\"checkbox-custom checkbox-primary p-a\"> <input type=\"checkbox\" checklist-model=\"filters.priorities\" checklist-value=\"priority._id\"> <label class=\"text-muted\" title=\"{{priority.name}}\">{{priority.name}}</label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Workspace </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"workspace in workspaces\"> <div class=\"checkbox-custom checkbox-primary p-a\"> <input type=\"checkbox\" checklist-model=\"filters.workspaces\" checklist-value=\"workspace\"> <label class=\"text-muted\" title=\"{{workspace}}\">{{workspace}}</label> </div> </div> </div> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-primary\" ng-click=\"filter()\">Filter</button> <button class=\"btn btn-default\" ng-click=\"$dismiss()\">Cancel</button> </div> </div> "
+    "<div> <div class=\"modal-header\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$dismiss()\" aria-hidden=\"true\">×</button> <h4 class=\"modal-title\">Performances Reports - Filters</h4> </div> <div class=\"modal-body\"> <div class=\"container-fluid\"> <div class=\"row\"> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> From </h6> </div> <div pickadate ng-model=\"filters.startedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> To </h6> </div> <div pickadate ng-model=\"filters.endedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> </div> <div class=\"row m-t-sm\" ng-if=\"jurisdictions.length > 1\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Area </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"jurisdiction in jurisdictions\"> <div class=\"checkbox-custom checkbox-primary p-a p-b-none\"> <input type=\"checkbox\" checklist-model=\"filters.jurisdictions\" checklist-value=\"jurisdiction._id\"> <label class=\"text-muted\" title=\"{{jurisdiction.name}}\">{{jurisdiction.name}}</label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Workspace </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"workspace in workspaces\"> <div class=\"checkbox-custom checkbox-primary p-a\"> <input type=\"checkbox\" checklist-model=\"filters.workspaces\" checklist-value=\"workspace\"> <label class=\"text-muted\" title=\"{{workspace}}\">{{workspace}}</label> </div> </div> </div> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-primary\" ng-click=\"filter()\">Filter</button> <button class=\"btn btn-default\" ng-click=\"$dismiss()\">Cancel</button> </div> </div> "
   );
 
 
@@ -6938,7 +7516,12 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/dashboards/overviews/_partials/jurisdictions_summary.html',
-    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Areas Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('jurisdictions')\" csv-header=\"exports.jurisdictions.headers\" filename=\"areas_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-5 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perJurisdictionConfig\" options=\"perJurisdictionOptions\"></echart> </div> </div> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareJurisdictionVisualization('count')\" title=\"Area\">Area</th> <th ng-click=\"prepareJurisdictionVisualization('count')\" title=\"Total Count of Service Requests\">Total</th> <th ng-click=\"prepareJurisdictionVisualization('pending')\" title=\"Total Count of Pending Service Requests\">Pending</th> <th ng-click=\"prepareJurisdictionVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\">Resolved</th> <th ng-click=\"prepareJurisdictionVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\">Late</th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\">Average Attend Time</th> <th title=\"Average Time Taken to a Resolve Service Request\">Average Resolve Time</th> </tr> </thead> <tbody> <tr ng-repeat=\"jurisdiction in overviews.jurisdictions\"> <td title=\"{{jurisdiction.name}}\"> {{jurisdiction.name}} </td> <td title=\"{{jurisdiction.count | number:0}}\"> {{jurisdiction.count | number:0}} </td> <td title=\" {{jurisdiction.pending | number:0}}\"> {{jurisdiction.pending | number:0}} </td> <td title=\" {{jurisdiction.resolved | number:0}}\"> {{jurisdiction.resolved | number:0}} </td> <td title=\" {{jurisdiction.late | number:0}}\"> {{jurisdiction.late | number:0}} </td> <td> <span> {{jurisdiction.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{jurisdiction.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{jurisdiction.averageResolveTime.hours + (jurisdiction.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{jurisdiction.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Areas Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('jurisdictions')\" csv-header=\"exports.jurisdictions.headers\" filename=\"jurisdictions_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-5 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perJurisdictionConfig\" options=\"perJurisdictionOptions\"></echart> </div> </div> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareJurisdictionVisualization('count')\" title=\"Area\">Area</th> <th ng-click=\"prepareJurisdictionVisualization('count')\" title=\"Total Count of Service Requests\">Total</th> <th ng-click=\"prepareJurisdictionVisualization('pending')\" title=\"Total Count of Pending Service Requests\">Pending</th> <th ng-click=\"prepareJurisdictionVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\">Resolved</th> <th ng-click=\"prepareJurisdictionVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\">Late</th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\">Average Attend Time</th> <th title=\"Average Time Taken to a Resolve Service Request\">Average Resolve Time</th> </tr> </thead> <tbody> <tr ng-repeat=\"jurisdiction in overviews.jurisdictions\" ui-sref=\"app.performances({jurisdiction:jurisdiction,startedAt:filters.startedAt,endedAt:filters.endedAt})\"> <td title=\"{{jurisdiction.name}}\"> {{jurisdiction.name}} </td> <td title=\"{{jurisdiction.count | number:0}}\"> {{jurisdiction.count | number:0}} </td> <td title=\" {{jurisdiction.pending | number:0}}\"> {{jurisdiction.pending | number:0}} </td> <td title=\" {{jurisdiction.resolved | number:0}}\"> {{jurisdiction.resolved | number:0}} </td> <td title=\" {{jurisdiction.late | number:0}}\"> {{jurisdiction.late | number:0}} </td> <td> <span> {{jurisdiction.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{jurisdiction.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{jurisdiction.averageResolveTime.hours + (jurisdiction.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{jurisdiction.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+  );
+
+
+  $templateCache.put('views/dashboards/overviews/_partials/methods_summary.html',
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Reporting Methods Summary\"> <h3>Reporting Methods Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('methods')\" csv-header=\"exports.methods.headers\" filename=\"methods_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-5 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perMethodConfig\" options=\"perMethodOptions\"></echart> </div> </div> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareMethodVisualization('count')\" title=\"Reporting Method\">Method</th> <th ng-click=\"prepareMethodVisualization('count')\" title=\"Total Count of Service Requests\">Total</th> </tr> </thead> <tbody> <tr ng-repeat=\"method in overviews.methods\"> <td title=\"{{method.name}}\"> {{method.name}} </td> <td title=\"{{method.count | number:0}}\"> {{method.count | number:0}} </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
   );
 
 
@@ -6957,8 +7540,48 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   );
 
 
+  $templateCache.put('views/dashboards/overviews/_partials/workspaces_summary.html',
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Reporting Workspaces Summary\"> <h3>Workspaces Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('workspaces')\" csv-header=\"exports.workspaces.headers\" filename=\"workspaces_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareWorkspaceVisualization('count')\" title=\"Workspace\">Workspace</th> <th ng-click=\"prepareWorkspaceVisualization('count')\" title=\"Total Count of Service Requests\">Total</th> </tr> </thead> <tbody> <tr ng-repeat=\"workspace in overviews.workspaces\"> <td title=\"{{workspace.name}}\"> {{workspace.name}} </td> <td title=\"{{workspace.count | number:0}}\"> {{workspace.count | number:0}} </td> </tr> </tbody> </table> </div> <div class=\"col-sm-5 b-l lt\"> <div class=\"p-a-md\"> <echart config=\"perWorkspaceConfig\" options=\"perWorkspaceOptions\"></echart> </div> </div> </div> </div> </div> </div> "
+  );
+
+
   $templateCache.put('views/dashboards/overviews/index.html',
-    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Overview - Reports </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <ng-include ng-if=\"overviews.overall\" src=\"'views/dashboards/overviews/_partials/overall_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.jurisdictions && overviews.jurisdictions.length > 1\" src=\"'views/dashboards/overviews/_partials/jurisdictions_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.groups && overviews.groups.length > 0\" src=\"'views/dashboards/overviews/_partials/service_groups_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.services  && overviews.services.length > 0\" src=\"'views/dashboards/overviews/_partials/services_summary.html'\"></ng-include> </div> </div> "
+    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Overview - Reports </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <ng-include ng-if=\"overviews.overall\" src=\"'views/dashboards/overviews/_partials/overall_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.jurisdictions && overviews.jurisdictions.length > 1\" src=\"'views/dashboards/overviews/_partials/jurisdictions_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.groups && overviews.groups.length > 0\" src=\"'views/dashboards/overviews/_partials/service_groups_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.services  && overviews.services.length > 0\" src=\"'views/dashboards/overviews/_partials/services_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.methods  && overviews.methods.length > 0\" src=\"'views/dashboards/overviews/_partials/methods_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.workspaces  && overviews.workspaces.length > 0\" src=\"'views/dashboards/overviews/_partials/workspaces_summary.html'\"></ng-include> </div> </div> "
+  );
+
+
+  $templateCache.put('views/dashboards/performance/_partials/average_time_summary.html',
+    " <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-6 b-a\" title=\"Average Attend Time(Call Duration)\"> <div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average Attend Time(Call Duration) - Minutes Spent\"> {{performances.overall.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span title=\"Average Attend Time(Call Duration) - Seconds Spent\"> {{performances.overall.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </h2> <p class=\"text-muted m-b-md\">Avarage Attend Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-6 b-b b-t b-r\" title=\"Average resolve Time\"> <div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average resolve Time - Days Spent\"> {{performances.overall.averageResolveTime.days}} <span class=\"text-muted text-xs\">days</span> </span> <span title=\"Average resolve Time - Hours Spent\"> {{performances.overall.averageResolveTime.hours}} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average resolve Time - Minutes Spent\"> {{performances.overall.averageResolveTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </h2> <p class=\"text-muted m-b-md\">Avarage Resolve Time</p> </div> </div> </div> </div> "
+  );
+
+
+  $templateCache.put('views/dashboards/performance/_partials/jurisdiction_summary.html',
+    " <div class=\"item\"> <div class=\"p-a-lg\"> <div class=\"row m-t\"> <div class=\"col-sm-12 col-md-6 col-lg-6\"> <a href=\"#\" class=\"pull-left m-r-md\"> <span> <letter-avatar title=\"{{jurisdiction.name}}\" data=\"{{jurisdiction.name}}\" height=\"96\" width=\"96\" shape=\"round\"> </letter-avatar> <i class=\"on b-white\"></i> </span> </a> <div class=\"clear m-b\"> <h4 class=\"m-a-0 m-b-sm\" title=\"Name\">{{jurisdiction.name}}</h4> <div class=\"block clearfix m-t-md m-b\"> <span> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-phone\"></i> <i class=\"icon-phone indigo\"></i> </a> <span title=\"Phone Number\" class=\"text-muted\"> {{jurisdiction.phone ? jurisdiction.phone : 'N/A'}} </span> </span> <span class=\"m-l-md\"> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-envelope\"></i> <i class=\"icon-envelope light-blue\"></i> </a> <span title=\"Email Address\" class=\"text-muted\"> {{jurisdiction.email ? jurisdiction.email : 'N/A'}} </span> </span> </div> </div> </div> <div class=\"col-sm-12 col-md-6 col-lg-6 pull-right\"> <ng-include src=\"'views/dashboards/performance/_partials/average_time_summary.html'\"></ng-include> </div> </div> </div> </div> "
+  );
+
+
+  $templateCache.put('views/dashboards/performance/_partials/overall_summary.html',
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Overview Summary\"> <h3>Overview Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('summaries')\" csv-header=\"exports.summaries.headers\" filename=\"summary_performance_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-3 b-r b-b\" title=\"Total Service Requests\"> <div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{performances.overall.count | number:0}} </h2> <p class=\"text-muted m-b-md\">Total</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Pending Service Requests\"> <div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{performances.overall.pending | number:0}} </h2> <p class=\"text-muted m-b-md\">Pending</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Resolved Service Requests\"> <div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{performances.overall.resolved | number:0}} </h2> <p class=\"text-muted m-b-md\">Resolved</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Late(Past SLA Time) Service Requests\"> <div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{performances.overall.late | number:0}} </h2> <p class=\"text-muted m-b-md\">Late</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-3 b-b\" title=\"Escallated(Received) Service Requests\"> <div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{performances.overall.late | number:0}} </h2> <p class=\"text-muted m-b-md\">Escallated</p> </div> </div> </div> </div> <div class=\"p-a-md\"> <echart config=\"perSummaryConfig\" options=\"perSummaryOptions\"></echart> </div> </div> </div> </div> "
+  );
+
+
+  $templateCache.put('views/dashboards/performance/_partials/pipeline_summary.html',
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Work Pipeline\"> <h3>Work Pipeline</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('statuses')\" csv-header=\"exports.statuses.headers\" filename=\"statuses_performance_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row no-gutter\"> <div ng-repeat=\"status in performances.statuses\" class=\"col-xs-6 col-sm-3 b-r b-b\" title=\"{{status.name}} Service Requests\"> <div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{status.count}} </h2> <p class=\"text-muted m-b-md\"> {{status.name}} </p> </div> </div> </div> </div> <div class=\"p-a-md\"> <echart config=\"perStatusesConfig\" options=\"perStatusesOptions\"></echart> </div> </div> </div> </div> "
+  );
+
+
+  $templateCache.put('views/dashboards/performance/_partials/service_groups_summary.html',
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Service Groups Summary\"> <h3>Service Groups Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('groups')\" csv-header=\"exports.groups.headers\" filename=\"service_groups_performance_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceGroupVisualization('count')\" title=\"Area\"> Service Group </th> <th ng-click=\"prepareServiceGroupVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceGroupVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceGroupVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceGroupVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"group in performances.groups\"> <td title=\"{{group.name}}\"> {{group.name}} </td> <td title=\"{{group.count | number:0}}\"> {{group.count | number:0}} </td> <td title=\" {{group.pending | number:0}}\"> {{group.pending | number:0}} </td> <td title=\" {{group.resolved | number:0}}\"> {{group.resolved | number:0}} </td> <td title=\" {{group.late | number:0}}\"> {{group.late | number:0}} </td> <td> <span> {{group.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{group.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{group.averageResolveTime.hours + (group.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{group.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> <div class=\"col-sm-5 b-l lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceGroupConfig\" options=\"perServiceGroupOptions\"></echart> </div> </div> </div> </div> </div> </div> "
+  );
+
+
+  $templateCache.put('views/dashboards/performance/_partials/services_summary.html',
+    " <div class=\"padding m-t-md m-b-lg\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Services Summary\"> <h3>Services Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_performance_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-6 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceConfig\" options=\"perServiceOptions\"></echart> </div> </div> <div class=\"col-sm-6\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Area\">Service</th> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Total Count of Service Requests\">Total</th> <th ng-click=\"prepareServiceVisualization('pending')\" title=\"Total Count of Pending Service Requests\">Pending</th> <th ng-click=\"prepareServiceVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\">Resolved</th> <th ng-click=\"prepareServiceVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\">Late</th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\">Average Attend Time</th> <th title=\"Average Time Taken to a Resolve Service Request\">Average Resolve Time</th> </tr> </thead> <tbody> <tr ng-repeat=\"service in performances.services\"> <td title=\"{{service.name}}\"> {{service.name}} </td> <td title=\"{{service.count | number:0}}\"> {{service.count | number:0}} </td> <td title=\" {{service.pending | number:0}}\"> {{service.pending | number:0}} </td> <td title=\" {{service.resolved | number:0}}\"> {{service.resolved | number:0}} </td> <td title=\" {{service.late | number:0}}\"> {{service.late | number:0}} </td> <td> <span> {{service.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{service.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{performances.overall.averageResolveTime.hours + (performances.overall.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{service.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+  );
+
+
+  $templateCache.put('views/dashboards/performance/index.html',
+    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Performance </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <ng-include src=\"'views/dashboards/performance/_partials/jurisdiction_summary.html'\"></ng-include> <div class=\"row no-gutter\"> <div class=\"col-xs-12 col-sm-6 col-md-6\"> <ng-include src=\"'views/dashboards/performance/_partials/overall_summary.html'\"></ng-include> </div> <div class=\"col-xs-12 col-sm-6 col-md-6\"> <ng-include src=\"'views/dashboards/performance/_partials/pipeline_summary.html'\"></ng-include> </div> </div> <ng-include ng-if=\"performances.groups && performances.groups.length > 0\" src=\"'views/dashboards/performance/_partials/service_groups_summary.html'\"></ng-include> <ng-include ng-if=\"performances.services  && performances.services.length > 0\" src=\"'views/dashboards/performance/_partials/services_summary.html'\"></ng-include> <hr> <div class=\"padding\" style=\"display: none\"> <div class=\"row m-t-lg\"> <div class=\"col-sm-12 col-md-5 col-lg-5\"> <ng-include ng-if=\"performances.operators\" src=\"'views/dashboards/_partials/service_request_leaderboard.html'\"> </div> <div class=\"col-sm-12 col-md-5 col-lg-5 offset-md-1\"> <ng-include ng-if=\"performances.jurisdictions\" src=\"'views/dashboards/_partials/service_request_area_leaderboard.html'\"> </div> </div> </div> </div> </div> "
   );
 
 
