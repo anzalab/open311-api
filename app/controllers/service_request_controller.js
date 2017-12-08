@@ -6,8 +6,6 @@ const async = require('async');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
 const config = require('config');
-
-
 const { downstream, upstream } = config.get('sync.strategies');
 
 
