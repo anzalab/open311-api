@@ -504,7 +504,7 @@ ServiceRequestSchema.methods.syncDownstream = function (done) {
   //check if downstream syncing is enabled
   const isEnabled =
     (options.enabled &&
-      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token) && isExternal);
+      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token));
 
   //sync down stream
   if (isEnabled) {
@@ -536,12 +536,12 @@ ServiceRequestSchema.methods.syncUpstream = function (done) {
   const options = config.get('sync.upstream');
 
   //check if service isExternal
-  // const isExternal = (this.service && this.service.isExternal);
+  const isExternal = (this.service && this.service.isExternal);
 
   //check if upstream syncing is enabled
   const isEnabled =
     (options.enabled &&
-      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token));
+      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token) && isExternal);
 
   //sync down stream
   if (isEnabled) {
