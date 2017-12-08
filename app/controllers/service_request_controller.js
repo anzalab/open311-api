@@ -62,14 +62,14 @@ module.exports = {
       body.operator = request.party;
     }
 
-    ServiceRequest.create(body, function (error, serviceRequest) {
+    ServiceRequest.create(body, function (error, servicerequest) {
       if (error) {
         next(error);
       } else {
         //sync
-        serviceRequest.sync();
+        servicerequest.sync();
 
-        response.created(serviceRequest);
+        response.created(servicerequest);
       }
     });
 
@@ -118,7 +118,7 @@ module.exports = {
           next(error);
         } else {
           //sync patches
-          serviceRequest.sync();
+          servicerequest.sync();
 
           response.ok(servicerequest);
         }
@@ -199,7 +199,7 @@ module.exports = {
         next(error);
       } else {
         //sync patches
-        serviceRequest.sync();
+        servicerequest.sync();
 
         response.ok(servicerequest);
       }
