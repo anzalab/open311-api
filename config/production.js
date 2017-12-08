@@ -255,7 +255,7 @@ module.exports = {
     timeout: 5000,
     prefix: 'open311',
     fake: false,
-    sync: true,
+    sync: process.env.INFOBIP_SYNC || true,
     from: process.env.INFOBIP_FROM || 'DAWASCO',
     username: process.env.INFOBIP_USERNAME || 'DAWASCO311',
     password: process.env.INFOBIP_PASSWORD || 'DAWASCO311',
