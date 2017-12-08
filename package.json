@@ -50,6 +50,7 @@
     "stop": "pm2 stop production.json",
     "restart": "pm2 restart production.json",
     "reload": "pm2 reload production.json",
+    "refresh": "pm2 reload production.json --update-env",
     "delete": "pm2 delete production.json",
     "startup": "pm2 startup",
     "save": "pm2 save",
