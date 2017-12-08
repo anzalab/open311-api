@@ -115,6 +115,7 @@ module.exports = {
     ServiceRequest
       .edit(request, function (error, servicerequest) {
         if (error) {
+          console.log(error);
           next(error);
         } else {
           //sync patches
