@@ -19,7 +19,7 @@ module.exports = exports = function (schema) {
   schema.statics.edit = function edit(request, done) {
 
     //prepare results name
-    let name = this.modelName || this.collection.name;
+    // let name = this.modelName || this.collection.name;
 
     //obtain id
     const id = (request.params.id || request.params._id);

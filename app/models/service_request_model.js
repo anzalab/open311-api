@@ -568,7 +568,7 @@ ServiceRequestSchema.methods.syncUpstream = function (done) {
  * @public
  * @type {Function}
  */
-ServiceRequestSchema.methods.sync = function (done) {
+ServiceRequestSchema.methods.sync = function (strategy, done) {
 
   //ensure callback
   done = done || function () {};
@@ -576,25 +576,31 @@ ServiceRequestSchema.methods.sync = function (done) {
   //obtain current execution environment
   const isProduction = environment.isProd();
 
+  //obtain sync strategies
+  const { downstream, upstream } = config.get('sync.strategies');
+
   // check if downstream sync enable
   let options = config.get('sync.downstream');
   let isEnabled =
     (options.enabled &&
       !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token));
 
-  //sync downstream
-  if (isEnabled) {
+  if (strategy === downstream) {
 
-    //queue & run in background in production
-    if (isProduction && this.runInBackground) {
-      this.runInBackground({ method: 'syncDownstream' });
+    //sync downstream
+    if (isEnabled) {
+
+      //queue & run in background in production
+      if (isProduction && this.runInBackground) {
+        this.runInBackground({ method: 'syncDownstream' });
+      }
+
+      //run synchronous in dev & test environment
+      else {
+        this.syncDownstream(done);
+      }
+
     }
-
-    //run synchronous in dev & test environment
-    else {
-      this.syncDownstream(done);
-    }
-
   }
 
 
@@ -604,19 +610,22 @@ ServiceRequestSchema.methods.sync = function (done) {
     (options.enabled &&
       !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token));
 
-  //sync upstream
-  if (isEnabled) {
+  if (strategy === upstream) {
 
-    //queue & run in background in production
-    if (isProduction && this.runInBackground) {
-      this.runInBackground({ method: 'syncUpstream' });
+    //sync upstream
+    if (isEnabled) {
+
+      //queue & run in background in production
+      if (isProduction && this.runInBackground) {
+        this.runInBackground({ method: 'syncUpstream' });
+      }
+
+      //run synchronous in dev & test environment
+      else {
+        this.syncUpstream(done);
+      }
+
     }
-
-    //run synchronous in dev & test environment
-    else {
-      this.syncUpstream(done);
-    }
-
   }
 
 };

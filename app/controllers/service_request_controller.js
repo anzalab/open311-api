@@ -5,6 +5,10 @@ const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
+const config = require('config');
+
+
+const { downstream, upstream } = config.get('sync.strategies');
 
 
 /**
@@ -67,7 +71,7 @@ module.exports = {
         next(error);
       } else {
         //sync
-        servicerequest.sync();
+        servicerequest.sync(downstream);
 
         response.created(servicerequest);
       }
@@ -119,7 +123,7 @@ module.exports = {
           next(error);
         } else {
           //sync patches
-          servicerequest.sync();
+          servicerequest.sync(upstream);
 
           response.ok(servicerequest);
         }
@@ -200,7 +204,7 @@ module.exports = {
         next(error);
       } else {
         //sync patches
-        servicerequest.sync();
+        servicerequest.sync(upstream);
 
         response.ok(servicerequest);
       }

@@ -132,6 +132,14 @@ module.exports = {
    * @type {Object}
    */
   sync: {
+    /**
+     * @description syncing strategies configuration
+     * @type {Object}
+     */
+    strategy: {
+      downstream: 'DOWNSTREAM',
+      upstream: 'UPSTREAM'
+    },
 
     /**
      * @description local server configuration
