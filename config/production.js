@@ -157,7 +157,7 @@ module.exports = {
      * @description syncing strategies configuration
      * @type {Object}
      */
-    strategy: {
+    strategies: {
       downstream: 'DOWNSTREAM',
       upstream: 'UPSTREAM'
     },
