@@ -547,7 +547,7 @@ ServiceRequestSchema.methods.syncUpstream = function (done) {
   if (isEnabled) {
     sync.baseUrl = options.baseUrl;
     sync.token = options.token;
-    sync.post(this.toObject(), done);
+    sync.patch(this.toObject(), done);
   }
 
   //no upstream sync back-off
