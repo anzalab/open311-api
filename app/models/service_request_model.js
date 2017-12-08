@@ -543,7 +543,7 @@ ServiceRequestSchema.methods.syncUpstream = function (done) {
     (options.enabled &&
       !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token) && isExternal);
 
-  //sync down stream
+  //sync up stream
   if (isEnabled) {
     sync.baseUrl = options.baseUrl;
     sync.token = options.token;
