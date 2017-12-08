@@ -84,7 +84,7 @@ module.exports = {
    * @description application phone number
    * @type {String}
    */
-  phone: '255714095061',
+  phone: process.env.APP_PHONE || '255714095061',
 
 
   /**
@@ -261,7 +261,7 @@ module.exports = {
     password: process.env.INFOBIP_PASSWORD || 'DAWASCO311',
     templates: {
       ticket: {
-        open: 'Dear customer. Your ticket # is {ticket} for {service} you have reported. Call {phone} for more support. Thanks.',
+        open: 'Dear customer. Your ticket # is {ticket}. You have reported {service}. Call {phone} for more support. Thanks.',
         resolve: 'Dear customer. Your issue # - {ticket} has been resolved. Call {phone} for confirmation. Thanks.'
       }
     }
