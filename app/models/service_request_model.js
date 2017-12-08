@@ -547,7 +547,10 @@ ServiceRequestSchema.methods.syncUpstream = function (done) {
   if (isEnabled) {
     sync.baseUrl = options.baseUrl;
     sync.token = options.token;
-    sync.patch(this.toObject(), done);
+    const toSync = _.merge({}, this.toObject());
+    delete toSync.changelogs; //TODO sync public changelogs
+    delete toSync.attachments; //TODO sync attachement
+    sync.patch(toSync, done);
   }
 
   //no upstream sync back-off
