@@ -12,7 +12,7 @@ const async = require('async');
  *              from express request
  * @param  {Schema} schema  valid mongoose schema
  * @param  {Object} options edit plugin configurations
- * @return {Function} valid mongoose plugin 
+ * @return {Function} valid mongoose plugin
  */
 module.exports = exports = function (schema) {
 
@@ -33,12 +33,15 @@ module.exports = exports = function (schema) {
 
         Model.findById(id, function (error, found) {
           if (error || !found) {
-            if (!found) {
-              error =
-                new Error(name + ' with id ' + id + ' Not Found');
+            //notify error
+            if (error) {
               error.status = 400;
+              next(error);
             }
-            next(error);
+            //create if not exists
+            else {
+              Model.create(request.body, next);
+            }
           } else {
             next(null, found);
           }
