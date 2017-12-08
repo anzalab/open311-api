@@ -144,7 +144,7 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'code name color group' // remove group?
+      select: 'code name color group isExternal' // remove group?
     }
   },
 
