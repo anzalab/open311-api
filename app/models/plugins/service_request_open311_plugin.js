@@ -12,11 +12,14 @@
  * @public
  */
 
-//dependencies
+//global dependencies(or imports)
+const path = require('path');
 const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
 
+//local dependencies(or imports)
+const Media = require(path.join(__dirname, '..', 'schemas', 'media_schema'));
 
 module.exports = exports = function open311(schema /*,options*/ ) {
   /**
@@ -151,7 +154,8 @@ module.exports = exports = function open311(schema /*,options*/ ) {
             const attachment = {
               url: serviceRequest.media_url,
               name: 'Attachement',
-              caption: serviceRequest.description
+              caption: serviceRequest.description,
+              storage: Media.STORAGE_REMOTE
             };
             serviceRequest.attachments = [attachment];
           }
