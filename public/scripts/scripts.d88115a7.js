@@ -2025,15 +2025,28 @@ angular
         if (hasAttachments) {
           servicerequest.attachments =
             _.map(servicerequest.attachments, function (attachment) {
-              if (!_.startsWith(attachment.content, 'data:')) {
-                attachment.thumb = ['data:', attachment.mime, ';base64,',
-                  attachment.content
-                ].join('');
-              } else {
-                attachment.thumb = attachment.content;
+
+              //obtain media thumb url from base64 encoded image
+              if (!_.isEmpty(attachment.content)) {
+                if (!_.startsWith(attachment.content, 'data:')) {
+                  attachment.thumb = ['data:', attachment.mime,
+                    ';base64,',
+                    attachment.content
+                  ].join('');
+                } else {
+                  attachment.thumb = attachment.content;
+                }
               }
+
+              //obtain media thumb from url
+              if (!_.isEmpty(attachment.url) && _.startsWith(url, 'http')) {
+                attachment.thumb = attachment.url;
+              }
+
               attachment.description = attachment.caption;
+
               return attachment;
+
             });
         }
 
