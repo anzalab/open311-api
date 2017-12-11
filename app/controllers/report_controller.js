@@ -210,15 +210,15 @@ module.exports = {
     serviceRequests
       .pipe(csv.transform(function (serviceRequest) {
         //TODO
-        // Call Start Time Call End Time Call Duration(Minutes)  Call Duration(Seconds)  
+        // Call Start Time Call End Time Call Duration(Minutes)  Call Duration(Seconds)
         // Time Taken(days)  Time Taken(hrs) Time Taken(mins)  Time Taken(secs)
         return {
           'Ticket Number': serviceRequest.code,
           'Reported Date': moment(serviceRequest.createdAt).toISOString(),
-          'Reporter Name': serviceRequest.reporter.name,
-          'Reporter Phone': serviceRequest.reporter.phone,
-          'Reporter Account': serviceRequest.reporter.account,
-          'Operator': serviceRequest.operator.name,
+          'Reporter Name': _.get(serviceRequest, 'reporter.name', ''),
+          'Reporter Phone': _.get(serviceRequest, 'reporter.phone', ''),
+          'Reporter Account': _.get(serviceRequest, 'reporter.account', ''),
+          'Operator': _.get(serviceRequest, 'operator.name', ''),
           'Area': serviceRequest.jurisdiction.name,
           'Service Group': serviceRequest.group.name,
           'Service': serviceRequest.service.name,
