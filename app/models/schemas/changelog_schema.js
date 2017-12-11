@@ -5,8 +5,8 @@
  * @module ChangeLog
  * @name ChangeLog
  * @description A record(log) of a changes on a service request(issue).
- *              
- *              It may be status change, priority change, assignee change, 
+ *
+ *              It may be status change, priority change, assignee change,
  *              private comment(internal note) or public comment etc.
  *
  * @see {@link ServiceRequest}
@@ -138,11 +138,11 @@ const ChangeLogSchema = new Schema({
 
   /**
    * @name comment
-   * @description A note provided by a change when changing a status. 
+   * @description A note provided by a change when changing a status.
    *
-   *              It may be an internal note telling how far the service 
+   *              It may be an internal note telling how far the service
    *              request(issue) has been worked on or a message to a reporter.
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -158,10 +158,10 @@ const ChangeLogSchema = new Schema({
 
   /**
    * @name shouldNotify
-   * @description Signal to send notification to a service request(issue) 
+   * @description Signal to send notification to a service request(issue)
    *              reporter using sms, email etc. about work(progress) done
    *              so far to resolve the issue.
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -175,13 +175,13 @@ const ChangeLogSchema = new Schema({
 
   /**
    * @name wasNotificationSent
-   * @description Tells if a notification contain a changes was 
-   *              sent to a service request(issue) reporter using 
+   * @description Tells if a notification contain a changes was
+   *              sent to a service request(issue) reporter using
    *              sms, email etc. once a service request changed.
    *
    *              Note!: status changes trigger a notification to be sent
    *              always.
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -198,7 +198,7 @@ const ChangeLogSchema = new Schema({
    * @description Signal if this changelog is public or private viewable.
    *
    *              Note!: status changes are always public viewable by default.
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -239,6 +239,19 @@ ChangeLogSchema.pre('validate', function (next) {
   //continue
   next();
 
+});
+
+
+/**
+ * @name isPublic
+ * @description check if current change log is public visible
+ * @type {Boolean}
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+ChangeLogSchema.virtual('isPublic').get(function () {
+  const isPublic = (this.visibility === VISIBILITY_PRIVATE ? false : true);
+  return isPublic;
 });
 
 
