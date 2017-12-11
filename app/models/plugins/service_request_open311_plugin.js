@@ -149,16 +149,19 @@ module.exports = exports = function open311(schema /*,options*/ ) {
             };
           }
 
-          //prepare attachment
-          if (!_.isEmpty(serviceRequest.media_url)) {
-            const attachment = {
-              url: serviceRequest.media_url,
-              name: 'Attachement',
-              caption: serviceRequest.description,
-              storage: Media.STORAGE_REMOTE
-            };
-            serviceRequest.attachments = [attachment];
-          }
+          //prepare attachments
+          //TODO support url fetch of remote image
+          const mediaUrls = _.compact([].concat(serviceRequest.media_url));
+          serviceRequest.attachments =
+            _.map(mediaUrls, function (mediaUrl) {
+              const attachment = {
+                url: mediaUrl,
+                name: 'Attachement',
+                caption: serviceRequest.description,
+                storage: Media.STORAGE_REMOTE
+              };
+              return attachment;
+            });
 
           //prepare service request
           serviceRequest = {

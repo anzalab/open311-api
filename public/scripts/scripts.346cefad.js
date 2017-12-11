@@ -2026,6 +2026,7 @@ angular
           servicerequest.attachments =
             _.map(servicerequest.attachments, function (attachment) {
 
+
               //obtain media thumb url from base64 encoded image
               if (!_.isEmpty(attachment.content)) {
                 if (!_.startsWith(attachment.content, 'data:')) {
@@ -2039,7 +2040,7 @@ angular
               }
 
               //obtain media thumb from url
-              if (!_.isEmpty(attachment.url) && _.startsWith(url, 'http')) {
+              if (!_.isEmpty(attachment.url) && _.startsWith(attachment.url, 'http')) {
                 attachment.thumb = attachment.url;
               }
 
@@ -7783,7 +7784,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/jurisdictions/_partials/action_bar.html',
-    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Jurisdiction Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Jurisdiction\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted\" title=\"Click to edit jurisdiction\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"save()\" class=\"nav-link text-muted\" title=\"Click to save jurisdiction\"> Save </a> </li> </ul> "
+    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Jurisdiction Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Jurisdiction\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted no-border\" title=\"Click to edit jurisdiction\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"save()\" class=\"nav-link text-muted no-border\" title=\"Click to save jurisdiction\"> Save </a> </li> </ul> "
   );
 
 
@@ -7810,7 +7811,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/parties/_partials/action_bar.html',
-    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Jurisdiction Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Jurisdiction\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted\" title=\"Click to edit party\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit && canSave\" class=\"nav-item\"> <a ng-click=\"save()\" class=\"nav-link text-muted\" title=\"Click to save party\"> Save </a> </li> <li ng-show=\"edit && !(party.deletedAt || party.lockedAt) && party._id\" class=\"nav-item\"> <a ng-click=\"block()\" class=\"nav-link text-muted\" title=\"Click to block party\"> Block </a> </li> <li ng-show=\"edit && (party.deletedAt || party.lockedAt) && party._id\" class=\"nav-item\"> <a ng-click=\"unblock()\" class=\"nav-link text-muted\" title=\"Click to unblock party\"> Unblock </a> </li> </ul> "
+    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Jurisdiction Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Jurisdiction\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted no-border\" title=\"Click to edit party\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit && canSave\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"save()\" class=\"nav-link text-muted no-border\" title=\"Click to save party\"> Save </a> </li> <li ng-show=\"edit && !(party.deletedAt || party.lockedAt) && party._id\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"block()\" class=\"nav-link text-muted no-border\" title=\"Click to block party\"> Block </a> </li> <li ng-show=\"edit && (party.deletedAt || party.lockedAt) && party._id\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"unblock()\" class=\"nav-link text-muted no-border\" title=\"Click to unblock party\"> Unblock </a> </li> </ul> "
   );
 
 
@@ -7825,7 +7826,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/priorities/_partials/action_bar.html',
-    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Priority Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Priority\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted\" title=\"Click to edit priority\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"save()\" class=\"nav-link text-muted\" title=\"Click to save priority\"> Save </a> </li> </ul> "
+    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Priority Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Priority\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted no-border\" title=\"Click to edit priority\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"save()\" class=\"nav-link text-muted no-border\" title=\"Click to save priority\"> Save </a> </li> </ul> "
   );
 
 
@@ -7840,7 +7841,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/roles/_partials/action_bar.html',
-    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Role Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Role\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted\" title=\"Click to edit role\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"save()\" class=\"nav-link text-muted\" title=\"Click to save role\"> Save </a> </li> </ul> "
+    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Role Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Role\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted no-border\" title=\"Click to edit role\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"save()\" class=\"nav-link text-muted no-border\" title=\"Click to save role\"> Save </a> </li> </ul> "
   );
 
 
@@ -7856,7 +7857,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/servicegroups/_partials/action_bar.html',
-    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Service Group Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Service Group\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted\" title=\"Click to edit service group\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"save()\" class=\"nav-link text-muted\" title=\"Click to save service group\"> Save </a> </li> </ul> "
+    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Service Group Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Service Group\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted no-border\" title=\"Click to edit service group\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"save()\" class=\"nav-link text-muted no-border\" title=\"Click to save service group\"> Save </a> </li> </ul> "
   );
 
 
@@ -7919,7 +7920,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/services/_partials/action_bar.html',
-    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Service Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Service\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted\" title=\"Click to edit service\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"save()\" class=\"nav-link text-muted\" title=\"Click to save service\"> Save </a> </li> </ul> "
+    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Service Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Service\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted no-border\" title=\"Click to edit service\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"save()\" class=\"nav-link text-muted no-border\" title=\"Click to save service\"> Save </a> </li> </ul> "
   );
 
 
@@ -7945,7 +7946,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/statuses/_partials/action_bar.html',
-    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Status Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Status\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted\" title=\"Click to edit status\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"save()\" class=\"nav-link text-muted\" title=\"Click to save status\"> Save </a> </li> </ul> "
+    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Status Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Status\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted no-border\" title=\"Click to edit status\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"save()\" class=\"nav-link text-muted no-border\" title=\"Click to save status\"> Save </a> </li> </ul> "
   );
 
 
