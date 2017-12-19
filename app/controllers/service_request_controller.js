@@ -115,7 +115,7 @@ module.exports = {
     request.body = _.merge({}, request.body, { method: { workspace: workspace } });
 
     ServiceRequest
-      .edit(request, function (error, servicerequest) {
+      .edit(request, { ignore:['changelogs', 'attachments'] }, function (error, servicerequest) {
         if (error) {
           next(error);
         } else {
