@@ -60,6 +60,8 @@ module.exports = {
         _.get(request, 'party.relation.workspace'));
     body.method.workspace = workspace;
 
+    //TODO ensure report method name
+
     if (shouldSetOperator) {
       body.operator = request.party;
     }
