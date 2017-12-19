@@ -219,7 +219,7 @@ module.exports = {
           'Reporter Phone': _.get(serviceRequest, 'reporter.phone', ''),
           'Reporter Account': _.get(serviceRequest, 'reporter.account',
             ''),
-          'Operator': _.get(serviceRequest, 'operator.name', ''),
+          'Operator': _.get(serviceRequest, 'operator.name', 'Un-Attended'),
           'Area': _.get(serviceRequest, 'jurisdiction.name', ''),
           'Service Group': _.get(serviceRequest, 'group.name', ''),
           'Service': _.get(serviceRequest, 'service.name', ''),
