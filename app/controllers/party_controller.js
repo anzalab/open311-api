@@ -171,3 +171,30 @@ module.exports = {
   }
 
 };
+
+{
+  attending: {
+    overall: {
+      total: 0,
+      maximum: 0,
+      minimum: 0,
+      average: 0,
+    },
+    distribution: {
+      groups: [{
+        group: {},
+        total: 0,
+        maximum: 0,
+        minimum: 0,
+        average: 0,
+      }],
+      services: [{
+        service: {},
+        total: 0,
+        maximum: 0,
+        minimum: 0,
+        average: 0,
+      }]
+    }
+  }
+}

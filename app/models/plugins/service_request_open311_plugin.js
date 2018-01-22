@@ -124,6 +124,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
           /*jshint camelcase:false*/
 
           // find service by request code
+          console.log('open311 service request:', serviceRequest);
           Service
             .findOne({ code: serviceRequest.service_code })
             .exec(function (error, service) {
