@@ -163,6 +163,8 @@ module.exports = {
     //TODO support media upload & media_url
     let serviceRequest = request.body;
 
+    console.log('http body service request:', serviceRequest);
+
     ServiceRequest
       .createFromOpen311Client(serviceRequest,
         function (error, open311Response /*, serviceRequest*/ ) {

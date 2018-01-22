@@ -17,7 +17,7 @@
  *     5.1 loading common express middlewares
  *     5.1 setup application routes
  *     5.2 setup error hanlders middlewares
- * 
+ *
  * @since 0.1.0
  * @version 0.1.0
  * @author lally elias <lallyelias87@gmail.com>
@@ -105,7 +105,7 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(cors());
 
 
-//use express respond to force 
+//use express respond to force
 //response content type to json always
 app.use(respond({ types: 'json' }));
 
@@ -123,10 +123,10 @@ app.use(helmet.hidePoweredBy({
 
 
 //parsing body
-app.use(bodyParser.json({ limit: '2mb' }));
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+app.use(bodyParser.json({ limit: '2mb' }));
 app.use(methodOverride('_method'));
 
 
