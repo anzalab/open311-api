@@ -115,6 +115,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
       const ServiceRequest = this;
       const Service = mongoose.model('Service');
 
+      //TODO use open311 as method
       const CONTACT_METHOD_MOBILE_APP =
         ServiceRequest.CONTACT_METHOD_MOBILE_APP;
 
@@ -124,7 +125,6 @@ module.exports = exports = function open311(schema /*,options*/ ) {
           /*jshint camelcase:false*/
 
           // find service by request code
-          console.log('open311 service request:', serviceRequest);
           Service
             .findOne({ code: serviceRequest.service_code })
             .exec(function (error, service) {
@@ -178,7 +178,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
             },
             description: serviceRequest.description,
             address: serviceRequest.address_string,
-            method: CONTACT_METHOD_MOBILE_APP,
+            method: { name: CONTACT_METHOD_MOBILE_APP },
             location: location ? location : undefined,
             attachments: serviceRequest.attachments
           };
