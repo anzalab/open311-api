@@ -119,8 +119,6 @@ module.exports = exports = function open311(schema /*,options*/ ) {
       const CONTACT_METHOD_MOBILE_APP =
         ServiceRequest.CONTACT_METHOD_MOBILE_APP;
 
-      console.log('open311 service request:', serviceRequest);
-
       async.waterfall([
 
         function ensureServiceExist(next) {
