@@ -142,7 +142,7 @@ module.exports = {
    * @type {Object}
    */
   counter: {
-    prefix: 'P',
+    prefix: '',
     suffix: ''
   },
 
@@ -264,10 +264,10 @@ module.exports = {
     timeout: 5000,
     prefix: 'open311',
     fake: false,
-    sync: process.env.INFOBIP_SYNC || true,
+    sync: process.env.INFOBIP_SYNC || false,
     from: process.env.INFOBIP_FROM || 'MWAUWASA',
-    username: process.env.INFOBIP_USERNAME || 'MWAUWASA1',
-    password: process.env.INFOBIP_PASSWORD || 'MWAUWASA',
+    username: process.env.INFOBIP_USERNAME || 'MWAUWASATZ',
+    password: process.env.INFOBIP_PASSWORD || 'Alena2014',
     templates: {
       ticket: {
         open: 'Dear customer. Your ticket # is {ticket}. You have reported {service}. Call {phone} for more support. Thanks.',
