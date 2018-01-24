@@ -136,6 +136,8 @@ module.exports = {
     //merge & clean criteria
     criteria = _.omitBy(criteria, _.isUndefined);
 
+    //TODO make use of stream api
+
     ServiceRequest
       .find(criteria)
       .exec(function (error, serviceRequests) {

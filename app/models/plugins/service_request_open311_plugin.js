@@ -103,6 +103,8 @@ module.exports = exports = function open311(schema /*,options*/ ) {
     //service group(or category)
     as311.group = _.get(this, 'group.name', '');
 
+    //TODO reporter details
+
     /*jshint camelcase:true*/
 
     return as311;
