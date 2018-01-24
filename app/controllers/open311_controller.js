@@ -74,6 +74,8 @@ module.exports = {
 
     Service
       .find(criteria)
+      .populate('group')
+      .populate('jurisdiction')
       .exec(function (error, services) {
         if (error) {
           next(error);

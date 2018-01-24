@@ -43,24 +43,27 @@ module.exports = exports = function open311(schema /*,options*/ ) {
 
     //Explanation of why the status was changed to the current state
     //or more details on the current status than conveyed with status alone.
-    as311.status_notes = this.status.name; //TODO make use of status description
+    //TODO make use of status description
+    //TODO make use of latest public internal notice
+    //TODO introduce status note when changin a status prompt for it
+    as311.status_notes = _.get(this, 'status.name', '');
 
     //The human readable name of the service request type
-    as311.service_name = this.service.name;
+    as311.service_name = _.get(this, 'service.name', '');
 
     //The unique identifier for the service request type
-    as311.service_code = this.service.code;
+    as311.service_code = _.get(this, 'service.code', '');
 
     //The current status of the service request.
-    as311.status = this.status.name;
+    as311.status = _.get(this, 'status.name', '');
 
     //A full description of the request or report submitted.
     as311.description = this.description;
 
     //The agency responsible for fulfilling or otherwise
     //addressing the service request.
-    as311.agency_responsible =
-      (this.jurisdiction ? this.jurisdiction.name : '');
+    //TODO make use of current assignee
+    as311.agency_responsible = _.get(this, 'jurisdiction.name', '');
 
     // Information about the action expected to fulfill the request or
     // otherwise address the information reported.
@@ -98,7 +101,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
     as311.jurisdiction = _.get(this, 'jurisdiction.name', '');
 
     //service group(or category)
-    as311.service_group = _.get(this, 'group.name', '');
+    as311.group = _.get(this, 'group.name', '');
 
     /*jshint camelcase:true*/
 
