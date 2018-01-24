@@ -92,6 +92,14 @@ module.exports = exports = function open311(schema /*,options*/ ) {
       as311.media_url = (_.first(this.attachments) || {}).url;
     }
 
+    //extras
+
+    //service jurisdiction(or authority to where request presented)
+    as311.jurisdiction = _.get(this, 'jurisdiction.name', '');
+
+    //service group(or category)
+    as311.service_group = _.get(this, 'group.name', '');
+
     /*jshint camelcase:true*/
 
     return as311;
