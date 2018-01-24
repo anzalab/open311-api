@@ -266,7 +266,7 @@ module.exports = {
     fake: false,
     sync: process.env.INFOBIP_SYNC || true,
     from: process.env.INFOBIP_FROM || 'MWAUWASA',
-    username: process.env.INFOBIP_USERNAME || 'MWAUWASA',
+    username: process.env.INFOBIP_USERNAME || 'MWAUWASA1',
     password: process.env.INFOBIP_PASSWORD || 'MWAUWASA',
     templates: {
       ticket: {
