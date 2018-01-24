@@ -84,7 +84,7 @@ module.exports = {
    * @description application phone number
    * @type {String}
    */
-  phone: process.env.APP_PHONE || '255714095061',
+  phone: process.env.APP_PHONE || '255767080825',
 
 
   /**
@@ -265,9 +265,9 @@ module.exports = {
     prefix: 'open311',
     fake: false,
     sync: process.env.INFOBIP_SYNC || true,
-    from: process.env.INFOBIP_FROM || 'DAWASCO',
-    username: process.env.INFOBIP_USERNAME || 'DAWASCO311',
-    password: process.env.INFOBIP_PASSWORD || 'DAWASCO311',
+    from: process.env.INFOBIP_FROM || 'MWAUWASA',
+    username: process.env.INFOBIP_USERNAME || 'MWAUWASA',
+    password: process.env.INFOBIP_PASSWORD || 'MWAUWASA',
     templates: {
       ticket: {
         open: 'Dear customer. Your ticket # is {ticket}. You have reported {service}. Call {phone} for more support. Thanks.',
