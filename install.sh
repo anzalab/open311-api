@@ -16,20 +16,18 @@ sudo apt-get install -y curl make g++ git
 sudo apt-get install -y libkrb5-dev
 
 #
-# install mongodb
-# 
+# install mongodb for Ubuntu 16.04
+#
 # https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
-# 
+#
 # import the public key used by the package management system
-# sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
+
 
 # create a list file for MongoDB
-#echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
+# Ubuntu 16.04
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 
-# Ubuntu 14.04
-# echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
-echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
 
 # reload local package database
 sudo apt-get update
@@ -60,7 +58,7 @@ sudo apt-get install -y redis-server
 #
 # install node version manager
 # curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.29.0/install.sh | bash
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | bash
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
 
 
 # ensure nvm changes made to your path are actually reflected
