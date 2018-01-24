@@ -185,6 +185,7 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   show: function (request, response, next) {
+
     //obtain service request code
     const code = request.params.id;
 
