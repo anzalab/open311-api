@@ -133,13 +133,21 @@ module.exports = {
     }
     delete criteria.endedAt;
 
+    //update criteria with reporter filters
+    //TODO update specification
+    criteria = _.merge({}, _.get(request.mquery, 'query'), criteria);
+
     //merge & clean criteria
     criteria = _.omitBy(criteria, _.isUndefined);
+
+    console.log(criteria);
 
     //TODO make use of stream api
 
     ServiceRequest
       .find(criteria)
+      .skip(criteria.skip || 0)
+      .limit(criteria.limit || 10)
       .exec(function (error, serviceRequests) {
         if (error) {
           next(error);

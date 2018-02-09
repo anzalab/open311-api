@@ -39,6 +39,26 @@ sudo apt-get install -y mongodb-org
 sudo service mongod start
 
 
+sudo vi /lib/systemd/system/mongod.service
+
+[Unit]
+Description=High-performance, schema-free document-oriented database
+After=network.target
+Documentation=https://docs.mongodb.org/manual
+
+[Service]
+User=mongodb
+Group=mongodb
+ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
+
+[Install]
+WantedBy=multi-user.target
+
+sudo systemctl daemon-reload
+sudo systemctl start mongod
+sudo systemctl enable mongod
+
+
 #
 # Install redis
 # https://www.digitalocean.com/community/tutorials/how-to-install-and-use-redis
@@ -80,3 +100,12 @@ sudo apt-get install -y libcap2-bin
 #sudo setcap cap_net_bind_service=+ep /usr/local/bin/node
 # if you have install node using nvm try below command
 sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\``
+
+
+## set static ip address on local ubuntu server
+# auto <iface>
+# iface <iface> inet static
+# address <ip>
+# netmask <net mask>
+# gateway <gateway>
+# dns-nameservers <dns server>
