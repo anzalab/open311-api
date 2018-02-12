@@ -135,8 +135,8 @@ module.exports = {
 
     //update criteria with reporter filters
     //TODO update specification
-    criteria.skip = _.get(request, 'query.skip', 0);
-    criteria.limit = _.get(request, 'query.limit', 10);
+    const skip = _.get(request, 'query.skip', 0);
+    const limit = _.get(request, 'query.limit', 10);
     criteria = _.merge({}, _.get(request.mquery, 'query'), criteria);
 
     //merge & clean criteria
@@ -147,8 +147,8 @@ module.exports = {
     ServiceRequest
       .find(criteria)
       .sort(_.get(request, 'mquery.sort', { createdAt: -1 }))
-      .skip(criteria.skip)
-      .limit(criteria.limit)
+      .skip(skip)
+      .limit(limit)
       .exec(function (error, serviceRequests) {
         if (error) {
           next(error);
