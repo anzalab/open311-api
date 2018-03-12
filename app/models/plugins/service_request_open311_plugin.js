@@ -104,6 +104,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
     as311.group = _.get(this, 'group.name', '');
 
     //TODO reporter details
+    // as311.reporter = _.get(this, 'reporter', '');
 
     /*jshint camelcase:true*/
 
