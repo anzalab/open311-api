@@ -270,8 +270,8 @@ module.exports = {
     password: process.env.INFOBIP_PASSWORD || 'Alena2014',
     templates: {
       ticket: {
-        open: 'Dear customer. Your ticket # is {ticket}. You have reported {service}. Call {phone} for more support. Thanks.',
-        resolve: 'Dear customer. Your issue # - {ticket} has been resolved. Call {phone} for confirmation. Thanks.'
+        open: 'Ndugu mteja, tiketi namba ya tatizo uliloripoti ni {ticket}. Piga {phone} kwa ufatiliaji. Ahsante.',
+        resolve: 'Ndugu mteja, tatizo lako namba {ticket} uliloripoti limeshafanyiwa kazi. Piga {phone} kwa msaada zaidi. Ahsante.'
       }
     }
   }
