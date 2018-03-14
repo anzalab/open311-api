@@ -2352,6 +2352,7 @@ angular
      * @return {[type]} [description]
      */
     $scope.onSearchAssignees = function () {
+      //TODO allow party where jurisdiction = null
       if ($scope.search.party && $scope.search.party.length >= 2) {
         Party.find({
           query: {
@@ -2514,9 +2515,9 @@ angular
     //listen for events
     $rootScope.$on('app:servicerequests:reload', function () {
 
-      //re-load current operator service requests
+      //re-load current operator service requests(inbox)
       $scope.find({
-        operator: party._id,
+        $or: [{ operator: party._id }, { assignee: party._id }],
         resolvedAt: null,
         resetPage: true,
         reset: true,
