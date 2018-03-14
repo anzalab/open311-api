@@ -25,7 +25,17 @@ module.exports = function (request, response, next) {
 
         if (!error && !_.isEmpty(jurisdictions)) {
           jurisdictions = _.map(jurisdictions, '_id');
-          criteria.jurisdiction = { $in: jurisdictions };
+          // criteria.jurisdiction = { $in: jurisdictions };
+          criteria.jurisdiction = {
+            $or: [{
+              jurisdiction: {
+                $in: jurisdictions
+              }
+            }, {
+              jurisdiction: { $eq: null }
+            }]
+          };
+
         }
 
         //restore criteria
