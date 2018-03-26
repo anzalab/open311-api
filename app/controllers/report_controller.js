@@ -214,7 +214,7 @@ module.exports = {
         // Time Taken(days)  Time Taken(hrs) Time Taken(mins)  Time Taken(secs)
         return {
           'Ticket Number': serviceRequest.code,
-          'Reported Date': moment(serviceRequest.createdAt).toISOString(),
+          'Reported Date': moment(serviceRequest.createdAt).format('YYYY-MM-DD'),
           'Reported Time': moment(serviceRequest.createdAt).format('HH:mm:ss'),
           'Reporter Name': _.get(serviceRequest, 'reporter.name', ''),
           'Reporter Phone': _.get(serviceRequest, 'reporter.phone', ''),
@@ -224,17 +224,17 @@ module.exports = {
           'Area': _.get(serviceRequest, 'jurisdiction.name', ''),
           'Service Group': _.get(serviceRequest, 'group.name', ''),
           'Service': _.get(serviceRequest, 'service.name', ''),
-          'Description': serviceRequest.description,
           'Address': serviceRequest.address,
           'Status': _.get(serviceRequest, 'status.name', ''),
           'Priority': _.get(serviceRequest, 'priority.name', ''),
           'Assignee': _.get(serviceRequest, 'assignee.name', ''),
           'Resolved Date': serviceRequest.resolvedAt ? moment(
-            serviceRequest.resolvedAt).toISOString() : '',
-          'Updated Date': serviceRequest.updatedAt ? moment(
-            serviceRequest.updatedAt).toISOString() : '',
+            serviceRequest.resolvedAt).format('YYYY-MM-DD') : '',
+          'Resolved Time': serviceRequest.resolvedAt ? moment(
+            serviceRequest.resolvedAt).format('HH:mm:ss') : '',
           'Contact Method': _.get(serviceRequest, 'method.name', ''),
-          'Workspace': _.get(serviceRequest, 'method.workspace', '')
+          'Workspace': _.get(serviceRequest, 'method.workspace', ''),
+          'Description': serviceRequest.description
         };
 
       }))
