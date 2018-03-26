@@ -189,10 +189,10 @@ if (environment.isLocal()) {
     response.status(error.status || 500);
     response.json({
       success: false,
+      status: error.status,
+      code: error.code,
       message: error.message,
-      error: {
-        status: error.code
-      }
+      error: error
     });
   });
 }
@@ -209,10 +209,9 @@ if (environment.isProd()) {
     response.status(error.status || 500);
     response.json({
       success: false,
-      message: error.message,
-      error: {
-        status: error.code
-      }
+      status: error.status,
+      code: error.code,
+      message: error.message
     });
   });
 }

@@ -48,22 +48,8 @@ module.exports = {
     password: '',
     port: 27017,
     options: {
-      db: {
-        safe: true
-      },
-      config: {
-        autoIndex: false
-      },
-      server: {
-        socketOptions: {
-          keepAlive: 1
-        }
-      },
-      replset: {
-        socketOptions: {
-          keepAlive: 1
-        }
-      }
+      keepAlive: 1,
+      autoReconnect: true
     }
   },
 

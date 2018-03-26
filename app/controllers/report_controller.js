@@ -215,6 +215,7 @@ module.exports = {
         return {
           'Ticket Number': serviceRequest.code,
           'Reported Date': moment(serviceRequest.createdAt).toISOString(),
+          'Reported Time': moment(serviceRequest.createdAt).format('HH:mm:ss'),
           'Reporter Name': _.get(serviceRequest, 'reporter.name', ''),
           'Reporter Phone': _.get(serviceRequest, 'reporter.phone', ''),
           'Reporter Account': _.get(serviceRequest, 'reporter.account',
