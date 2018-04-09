@@ -4,9 +4,9 @@
 /**
  * @module Service
  * @name Service
- * @description An acceptable service (request types)(e.g Water Leakage) 
+ * @description An acceptable service (request types)(e.g Water Leakage)
  *              offered(or handled) by a specific jurisdiction.
- *              
+ *
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
  * @version 0.1.0
@@ -35,12 +35,12 @@ const ServiceSchema = new Schema({
 
   /**
    * @name jurisdiction
-   * @description A jurisdiction undewhich a service (request type) is 
+   * @description A jurisdiction undewhich a service (request type) is
    *              applicable.
    *
-   *              If not available a service is applicable to all 
+   *              If not available a service is applicable to all
    *              jurisdictions.
-   *               
+   *
    * @type {Object}
    * @see {@link Jurisdiction}
    * @private
@@ -77,11 +77,11 @@ const ServiceSchema = new Schema({
 
   /**
    * @name code
-   * @description A unique identifier of the service. 
-   *              
-   *              Used in deriving code of the service request(issue) and 
+   * @description A unique identifier of the service.
+   *
+   *              Used in deriving code of the service request(issue) and
    *              internal usage.
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -89,7 +89,7 @@ const ServiceSchema = new Schema({
    */
   code: {
     type: String,
-    // unique: true, see index section below for compound index 
+    // unique: true, see index section below for compound index
     // used to enforce uniqueness
     required: true,
     trim: true,
@@ -102,7 +102,7 @@ const ServiceSchema = new Schema({
    * @name name
    * @description A unique human readable name of the service (request type)
    *              e.g Water Leakage
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -110,7 +110,7 @@ const ServiceSchema = new Schema({
    */
   name: {
     type: String,
-    // unique: true, see index section below for compound index 
+    // unique: true, see index section below for compound index
     // used to enforce uniqueness
     required: true,
     trim: true,
@@ -123,7 +123,7 @@ const ServiceSchema = new Schema({
    * @name description
    * @description A detailed human readable explanation about the service
    *              (request type)
-   *               
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -138,9 +138,9 @@ const ServiceSchema = new Schema({
 
   /**
    * @name color
-   * @description A color (hexadecimal format) used to differentiate service 
+   * @description A color (hexadecimal format) used to differentiate service
    *              request type visually from other service
-   *               
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -155,7 +155,7 @@ const ServiceSchema = new Schema({
   /**
    * @name sla
    * @description A service level agreement
-   *               
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -175,7 +175,7 @@ const ServiceSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  priority: {//TODO support optional population
+  priority: { //TODO support optional population
     type: ObjectId,
     ref: 'Priority',
     autoset: true,
@@ -193,7 +193,7 @@ const ServiceSchema = new Schema({
    *              Its also applicable when a jurisdiction will want generic
    *              service to be exposed to public while maintaining specific
    *              services internally.
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -234,6 +234,8 @@ ServiceSchema.index({ jurisdiction: 1, group: 1, name: 1, code: 1 }, { unique: t
  * @type {Function}
  */
 ServiceSchema.methods.toOpen311 = function () {
+  //TODO refactor to plugin
+
   /*jshint camelcase:false*/
 
   let as311 = {};
@@ -251,19 +253,24 @@ ServiceSchema.methods.toOpen311 = function () {
   //Current we don't support additional form fields
   as311.metadata = false;
 
-  // The service request ID(ticket number) will be returned immediately after 
+  // The service request ID(ticket number) will be returned immediately after
   // the service request is submitted.
   as311.type = 'realtime';
 
-  // A comma separated list of tags or keywords to help users identify 
+  // A comma separated list of tags or keywords to help users identify
   // the request type. This can provide synonyms of the service_name and group.
   as311.keywords =
     _.compact([this.name, (this.group || {}).name]).join(',');
 
-  // A category to group this service type within. 
-  // This provides a way to group several service request types under 
+  // A category to group this service type within.
+  // This provides a way to group several service request types under
   // one category such as "sanitation"
-  as311.group = (this.group || {}).name;
+  as311.group = _.get(this, 'group.name', '');
+
+  //extras
+
+  //service jurisdiction(or authority to where request will be presented)
+  as311.jurisdiction = _.get(this, 'jurisdiction.name', '');
 
   /*jshint camelcase:true*/
 

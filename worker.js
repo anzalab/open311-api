@@ -38,7 +38,8 @@ environment.registerEnvironments({
 
 
 //build logs directory if does not exists
-mkdir.sync(path.join(__dirname, '..', 'logs'));
+const logPath = path.join(__dirname, 'logs');
+mkdir.sync(logPath);
 
 
 //setup application mongoose instance
@@ -50,12 +51,28 @@ require(path.join(__dirname, 'app', 'initializers', 'mongoose'));
 
 //initialize infobip sms transport
 const infobip = require('open311-infobip');
-infobip.options = config.get('infobip');
+let infobipOptions = config.get('infobip');
+if (process.env.REDIS_URL) {
+  infobipOptions.redis = process.env.REDIS_URL;
+}
+infobip.options = infobipOptions;
 
 
 //start
 infobip.start();
 
 
+//initialize mongoose-kue to run schema methods in background
+const worker = require('mongoose-kue').worker;
+const mongoose = require('mongoose');
+let mongooseKueOptions = { mongoose: mongoose };
+if (process.env.REDIS_URL) {
+  mongooseKueOptions.redis = process.env.REDIS_URL;
+}
+worker.start(mongooseKueOptions);
+
+
 //open web interface to monitor jobs
-kue.app.listen(9000);
+if (!process.env.REDIS_URL) {
+  kue.app.listen(9000);
+}

@@ -48,22 +48,8 @@ module.exports = {
     password: '',
     port: 27017,
     options: {
-      db: {
-        safe: true
-      },
-      config: {
-        autoIndex: false
-      },
-      server: {
-        socketOptions: {
-          keepAlive: 1
-        }
-      },
-      replset: {
-        socketOptions: {
-          keepAlive: 1
-        }
-      }
+      keepAlive: 1,
+      autoReconnect: true
     }
   },
 
@@ -119,6 +105,75 @@ module.exports = {
   counter: {
     prefix: '',
     suffix: ''
+  },
+
+  /**
+   * @description API sync configuration
+   * @type {Object}
+   */
+  sync: {
+
+    /**
+     * @description syncing strategies configuration
+     * @type {Object}
+     */
+    strategies: {
+      downstream: 'DOWNSTREAM',
+      upstream: 'UPSTREAM'
+    },
+
+    /**
+     * @description local server configuration
+     * @type {Object}
+     */
+    downstream: {
+
+      /**
+       * @description if syncing to local server enabled
+       * @type {String}
+       */
+      enabled: false,
+
+      /**
+       * @description base url for the local server
+       * @type {String}
+       */
+      baseUrl: process.env.DOWNSTREAM_BASE_URL,
+
+      /**
+       * @description local server authorization token
+       * @type {String}
+       */
+      token: process.env.DOWNSTREAM_TOKEN
+
+    },
+
+    /**
+     * @description public server configuration
+     * @type {Object}
+     */
+    upstream: {
+
+      /**
+       * @description if syncing to public server enabled
+       * @type {String}
+       */
+      enabled: false,
+
+      /**
+       * @description base url for the public server
+       * @type {String}
+       */
+      baseUrl: process.env.UPSTREAM_BASE_URL,
+
+      /**
+       * @description public server authorization token
+       * @type {String}
+       */
+      token: process.env.UPSTREAM_TOKEN,
+
+    }
+
   },
 
 

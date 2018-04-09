@@ -16,20 +16,18 @@ sudo apt-get install -y curl make g++ git
 sudo apt-get install -y libkrb5-dev
 
 #
-# install mongodb
-# 
+# install mongodb for Ubuntu 16.04
+#
 # https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
-# 
+#
 # import the public key used by the package management system
-# sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
+
 
 # create a list file for MongoDB
-#echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
+# Ubuntu 16.04
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 
-# Ubuntu 14.04
-# echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
-echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
 
 # reload local package database
 sudo apt-get update
@@ -39,6 +37,26 @@ sudo apt-get install -y mongodb-org
 
 # start mongodb service
 sudo service mongod start
+
+
+sudo vi /lib/systemd/system/mongod.service
+
+[Unit]
+Description=High-performance, schema-free document-oriented database
+After=network.target
+Documentation=https://docs.mongodb.org/manual
+
+[Service]
+User=mongodb
+Group=mongodb
+ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
+
+[Install]
+WantedBy=multi-user.target
+
+sudo systemctl daemon-reload
+sudo systemctl start mongod
+sudo systemctl enable mongod
 
 
 #
@@ -60,7 +78,7 @@ sudo apt-get install -y redis-server
 #
 # install node version manager
 # curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.29.0/install.sh | bash
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | bash
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
 
 
 # ensure nvm changes made to your path are actually reflected
@@ -82,3 +100,12 @@ sudo apt-get install -y libcap2-bin
 #sudo setcap cap_net_bind_service=+ep /usr/local/bin/node
 # if you have install node using nvm try below command
 sudo setcap cap_net_bind_service=+ep `readlink -f \`which node\``
+
+
+## set static ip address on local ubuntu server
+# auto <iface>
+# iface <iface> inet static
+# address <ip>
+# netmask <net mask>
+# gateway <gateway>
+# dns-nameservers <dns server>

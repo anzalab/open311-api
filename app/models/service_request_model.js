@@ -28,6 +28,9 @@
 const path = require('path');
 const _ = require('lodash');
 const async = require('async');
+const config = require('config');
+const environment = require('execution-environment');
+const sync = require('open311-api-sync');
 const moment = require('moment');
 const mongoose = require('mongoose');
 const parseMs = require('parse-ms');
@@ -43,6 +46,8 @@ const aggregate =
   require(path.join(pluginsPath, 'service_request_aggregated_plugin'));
 const open311 =
   require(path.join(pluginsPath, 'service_request_open311_plugin'));
+const overview =
+  require(path.join(pluginsPath, 'service_request_overview_plugin'));
 const performance =
   require(path.join(pluginsPath, 'service_request_performance_plugin'));
 const pipeline =
@@ -139,7 +144,7 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'code name color group' // remove group?
+      select: 'code name color group isExternal' // remove group?
     }
   },
 
@@ -176,7 +181,7 @@ const ServiceRequestSchema = new Schema({
    *              It also a party that is answerable for the progress and
    *              status of the service request(issue) to a reporter.
    *
-   *              For jurisdiction that own a call center, then operator is 
+   *              For jurisdiction that own a call center, then operator is
    *              a person who received a call.
    *
    * @type {Object}
@@ -374,9 +379,9 @@ const ServiceRequestSchema = new Schema({
    * @name expectedAt
    * @description A time when the issue is expected to be resolved.
    *
-   *              Computed by adding expected hours to resolve issue to the 
+   *              Computed by adding expected hours to resolve issue to the
    *              reporting time of the issue i.e (createdAt + service.sla.ttr in hours).
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -479,6 +484,155 @@ ServiceRequestSchema.virtual('latitude').get(function () {
 //-----------------------------------------------------------------------------
 
 
+/**
+ * @name syncDownstream
+ * @description sync service request to local(downstream) server
+ * @param {Function} done  a callback to invoke on success or failure
+ * @since  0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.methods.syncDownstream = function (done) {
+
+  // obtain sync configurations
+  const options = config.get('sync.downstream');
+
+  //check if service isExternal
+  // const isExternal = (this.service && this.service.isExternal);
+
+  //check if downstream syncing is enabled
+  const isEnabled =
+    (options.enabled &&
+      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token));
+
+  //sync down stream
+  if (isEnabled) {
+    sync.baseUrl = options.baseUrl;
+    sync.token = options.token;
+    sync.post(this.toObject(), done);
+  }
+
+  //no downstream sync back-off
+  else {
+    done(null, this);
+  }
+
+};
+
+
+/**
+ * @name syncUpstream
+ * @description sync service request to public(upstream) server
+ * @param {Function} done  a callback to invoke on success or failure
+ * @since  0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.methods.syncUpstream = function (done) {
+
+  // obtain sync configurations
+  const options = config.get('sync.upstream');
+
+  //check if service isExternal
+  const isExternal = (this.service && this.service.isExternal);
+
+  //check if upstream syncing is enabled
+  const isEnabled =
+    (options.enabled &&
+      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token) && isExternal);
+
+  //sync up stream
+  if (isEnabled) {
+    sync.baseUrl = options.baseUrl;
+    sync.token = options.token;
+    const toSync = _.merge({}, this.toObject());
+    delete toSync.changelogs; //TODO sync public changelogs
+    delete toSync.attachments; //TODO sync attachement
+    sync.patch(toSync, done);
+  }
+
+  //no upstream sync back-off
+  else {
+    done(null, this);
+  }
+
+};
+
+
+/**
+ * @name sync
+ * @description try sync service request either to public(upstream) or
+ *              local(downstream) server
+ * @param {Function} [done]  a callback to invoke on success or failure
+ * @since  0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.methods.sync = function (strategy, done) {
+
+  //ensure callback
+  done = done || function () {};
+
+  //obtain current execution environment
+  const isProduction = environment.isProd();
+
+  //obtain sync strategies
+  const { downstream, upstream } = config.get('sync.strategies');
+
+  // check if downstream sync enable
+  let options = config.get('sync.downstream');
+  let isEnabled =
+    (options.enabled &&
+      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token));
+
+  if (strategy === downstream) {
+
+    //sync downstream
+    if (isEnabled) {
+
+      //queue & run in background in production
+      if (isProduction && this.runInBackground) {
+        this.runInBackground({ method: 'syncDownstream' });
+      }
+
+      //run synchronous in dev & test environment
+      else {
+        this.syncDownstream(done);
+      }
+
+    }
+  }
+
+
+  // check if upstream sync enable
+  options = config.get('sync.upstream');
+  isEnabled =
+    (options.enabled &&
+      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token));
+
+  if (strategy === upstream) {
+
+    //sync upstream
+    if (isEnabled) {
+
+      //queue & run in background in production
+      if (isProduction && this.runInBackground) {
+        this.runInBackground({ method: 'syncUpstream' });
+      }
+
+      //run synchronous in dev & test environment
+      else {
+        this.syncUpstream(done);
+      }
+
+    }
+  }
+
+};
+
 
 //-----------------------------------------------------------------------------
 // ServiceRequestSchema Hooks
@@ -508,7 +662,7 @@ ServiceRequestSchema.pre('validate', function (next) {
     //obtain sla expected time ttr
     const ttr = _.get(this.service, 'sla.ttr');
     if (ttr) {
-      //compute time to when a service request(issue) 
+      //compute time to when a service request(issue)
       //is expected to be resolve
       this.expectedAt =
         moment(this.createdAt).add(ttr, 'hours').toDate(); //or h
@@ -685,6 +839,7 @@ ServiceRequestSchema.statics.CONTACT_METHODS = ContactMethod.METHODS;
 ServiceRequestSchema.plugin(notification);
 ServiceRequestSchema.plugin(aggregate);
 ServiceRequestSchema.plugin(open311);
+ServiceRequestSchema.plugin(overview);
 ServiceRequestSchema.plugin(performance);
 ServiceRequestSchema.plugin(pipeline);
 ServiceRequestSchema.plugin(work);
@@ -1106,76 +1261,6 @@ ServiceRequestSchema.statics.standings = function (criteria, done) {
 
 
 /**
- * @name overview
- * @description compute current issue(service request) overview/pipeline
- * @param  {Function} done a callback to be invoked on success or failure
- * @since 0.1.0
- * @version 0.1.0
- * @public
- * @type {Function}
- */
-ServiceRequestSchema.statics.overview = function (criteria, done) {
-
-  //normalize arguments
-  if (_.isFunction(criteria)) {
-    done = criteria;
-    criteria = {};
-  }
-
-  //refs
-  const ServiceRequest = mongoose.model('ServiceRequest');
-
-  //count issues
-  ServiceRequest
-    .aggregated(criteria)
-    .group({ //1 stage: count per group, service, status and priority
-      _id: {
-        group: '$group.name',
-        service: '$service.name',
-        status: '$status.name',
-        priority: '$priority.name'
-      },
-
-      //select service group fields
-      _group: { $first: '$group' },
-
-      //select service fields
-      _service: { $first: '$service' },
-
-      //select status fields
-      _status: { $first: '$status' },
-
-      //select priority fields
-      _priority: { $first: '$priority' },
-
-      count: { $sum: 1 }
-    })
-    .project({ //2 stage: project only required fields
-      _id: 1,
-      count: 1,
-      _group: { name: 1, code: 1, color: 1 },
-      _service: { name: 1, code: 1, color: 1 },
-      _status: { name: 1, color: 1, weight: 1 },
-      _priority: { name: 1, color: 1, weight: 1 }
-    })
-    .project({ //3 stage: project full grouped by documents
-      _id: 0,
-      count: 1,
-      group: '$_group',
-      service: '$_service',
-      status: '$_status',
-      priority: '$_priority'
-    })
-    .exec(function (error, overviews) {
-
-      done(error, overviews);
-
-    });
-
-};
-
-
-/**
  * @name overviews
  * @description compute current issue overview/pipeline
  * @param  {Function} done a callback to be invoked on success or failure
@@ -1183,6 +1268,7 @@ ServiceRequestSchema.statics.overview = function (criteria, done) {
  * @version 0.1.0
  * @public
  * @type {Function}
+ * @deprecated
  */
 ServiceRequestSchema.statics.overviews = function (done) {
   //refs

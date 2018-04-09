@@ -5,6 +5,8 @@ const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
+const config = require('config');
+const { downstream, upstream } = config.get('sync.strategies');
 
 
 /**
@@ -58,15 +60,20 @@ module.exports = {
         _.get(request, 'party.relation.workspace'));
     body.method.workspace = workspace;
 
+    //TODO ensure report method name
+
     if (shouldSetOperator) {
       body.operator = request.party;
     }
 
-    ServiceRequest.create(body, function (error, serviceRequest) {
+    ServiceRequest.create(body, function (error, servicerequest) {
       if (error) {
         next(error);
       } else {
-        response.created(serviceRequest);
+        //sync
+        servicerequest.sync(downstream);
+
+        response.created(servicerequest);
       }
     });
 
@@ -110,10 +117,14 @@ module.exports = {
     request.body = _.merge({}, request.body, { method: { workspace: workspace } });
 
     ServiceRequest
-      .edit(request, function (error, servicerequest) {
+      .edit(request, { ignore: ['changelogs', 'attachments'] }, function (
+        error, servicerequest) {
         if (error) {
           next(error);
         } else {
+          //sync patches
+          servicerequest.sync(upstream);
+
           response.ok(servicerequest);
         }
       });
@@ -192,6 +203,9 @@ module.exports = {
       if (error) {
         next(error);
       } else {
+        //sync patches
+        servicerequest.sync(upstream);
+
         response.ok(servicerequest);
       }
     });

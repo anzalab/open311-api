@@ -3,7 +3,7 @@
 /**
  * @name open311
  * @description extend a service request with open311 specifications
- *              
+ *
  * @see {@link ServiceRequest}
  * @see {@link http://wiki.open311.org/GeoReport_v2/}
  * @author lally elias <lallyelias87@mail.com>
@@ -12,10 +12,14 @@
  * @public
  */
 
-//dependencies
+//global dependencies(or imports)
+const path = require('path');
+const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
 
+//local dependencies(or imports)
+const Media = require(path.join(__dirname, '..', 'schemas', 'media_schema'));
 
 module.exports = exports = function open311(schema /*,options*/ ) {
   /**
@@ -39,24 +43,27 @@ module.exports = exports = function open311(schema /*,options*/ ) {
 
     //Explanation of why the status was changed to the current state
     //or more details on the current status than conveyed with status alone.
-    as311.status_notes = this.status.name; //TODO make use of status description
+    //TODO make use of status description
+    //TODO make use of latest public internal notice
+    //TODO introduce status note when changin a status prompt for it
+    as311.status_notes = _.get(this, 'status.name', '');
 
     //The human readable name of the service request type
-    as311.service_name = this.service.name;
+    as311.service_name = _.get(this, 'service.name', '');
 
     //The unique identifier for the service request type
-    as311.service_code = this.service.code;
+    as311.service_code = _.get(this, 'service.code', '');
 
     //The current status of the service request.
-    as311.status = this.status.name;
+    as311.status = _.get(this, 'status.name', '');
 
     //A full description of the request or report submitted.
     as311.description = this.description;
 
     //The agency responsible for fulfilling or otherwise
     //addressing the service request.
-    as311.agency_responsible =
-      (this.jurisdiction ? this.jurisdiction.name : '');
+    //TODO make use of current assignee
+    as311.agency_responsible = _.get(this, 'jurisdiction.name', '');
 
     // Information about the action expected to fulfill the request or
     // otherwise address the information reported.
@@ -83,7 +90,21 @@ module.exports = exports = function open311(schema /*,options*/ ) {
     as311.long = this.longitude;
 
     //A URL to media associated with the request, for example an image.
-    as311.media_url = '';
+    if (!_.isEmpty(this.attachments)) {
+      //TODO handle base 64 encoded images
+      as311.media_url = (_.first(this.attachments) || {}).url;
+    }
+
+    //extras
+
+    //service jurisdiction(or authority to where request presented)
+    as311.jurisdiction = _.get(this, 'jurisdiction.name', '');
+
+    //service group(or category)
+    as311.group = _.get(this, 'group.name', '');
+
+    //TODO reporter details
+    // as311.reporter = _.get(this, 'reporter', '');
 
     /*jshint camelcase:true*/
 
@@ -108,6 +129,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
       const ServiceRequest = this;
       const Service = mongoose.model('Service');
 
+      //TODO use open311 as method
       const CONTACT_METHOD_MOBILE_APP =
         ServiceRequest.CONTACT_METHOD_MOBILE_APP;
 
@@ -137,8 +159,24 @@ module.exports = exports = function open311(schema /*,options*/ ) {
           //check for location presence
           let location;
           if (serviceRequest.long && serviceRequest.lat) {
-            location = [serviceRequest.long, serviceRequest.lat];
+            location = {
+              coordinates: [serviceRequest.long, serviceRequest.lat]
+            };
           }
+
+          //prepare attachments
+          //TODO support url fetch of remote image
+          const mediaUrls = _.compact([].concat(serviceRequest.media_url));
+          serviceRequest.attachments =
+            _.map(mediaUrls, function (mediaUrl) {
+              const attachment = {
+                url: mediaUrl,
+                name: 'Attachement',
+                caption: serviceRequest.description,
+                storage: Media.STORAGE_REMOTE
+              };
+              return attachment;
+            });
 
           //prepare service request
           serviceRequest = {
@@ -154,11 +192,10 @@ module.exports = exports = function open311(schema /*,options*/ ) {
             },
             description: serviceRequest.description,
             address: serviceRequest.address_string,
-            method: CONTACT_METHOD_MOBILE_APP,
-            location: location ? location : undefined
+            method: { name: CONTACT_METHOD_MOBILE_APP },
+            location: location ? location : undefined,
+            attachments: serviceRequest.attachments
           };
-
-          console.log('service request', serviceRequest);
 
           /*jshint camelcase:false*/
 

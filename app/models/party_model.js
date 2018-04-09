@@ -153,7 +153,7 @@ const PartySchema = new Schema({
    * @description A base64 encode party avatar content.
    *
    *              It may be a person photo, company logo etc.
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -253,11 +253,11 @@ const PartySchema = new Schema({
 
   /**
    * @name token
-   * @description valid api token for the party. 
-   * 
-   *              Mainly used for parties that operate as client 
+   * @description valid api token for the party.
+   *
+   *              Mainly used for parties that operate as client
    *              i.e mobile apps etc
-   *              
+   *
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -567,7 +567,7 @@ PartySchema.statics.works = function (options, done) {
 
   //normalize results
   const normalize = function (work, length) {
-    //merge default 
+    //merge default
     work = _.merge({}, {
       startedAt: options[length].startedAt,
       endedAt: options[length].endedAt,
@@ -643,6 +643,8 @@ PartySchema.statics.works = function (options, done) {
 
 };
 
+
+//TODO refactor
 PartySchema.statics.durations = function (options, done) {
 
   //refs
@@ -650,7 +652,7 @@ PartySchema.statics.durations = function (options, done) {
 
   //normalize results
   const normalize = function (duration, length) {
-    //merge default 
+    //merge default
     duration = _.merge({}, {
       startedAt: options[length].startedAt,
       endedAt: options[length].endedAt,
@@ -734,7 +736,7 @@ PartySchema.statics.durations = function (options, done) {
 
 PartySchema.statics.performances = function (options, done) {
   //TODO refactor using aggregations
-  //TODO refactor to model splugin
+  //TODO refactor to model plugin
   //@see https://docs.mongodb.com/manual/reference/operator/aggregation/facet/
 
   //refs

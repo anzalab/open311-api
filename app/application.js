@@ -17,7 +17,7 @@
  *     5.1 loading common express middlewares
  *     5.1 setup application routes
  *     5.2 setup error hanlders middlewares
- * 
+ *
  * @since 0.1.0
  * @version 0.1.0
  * @author lally elias <lallyelias87@gmail.com>
@@ -80,7 +80,11 @@ require(path.join(__dirname, 'initializers', 'mongoose'));
 
 //setup messages transports
 const infobip = require('open311-infobip');
-infobip.options = config.get('infobip');
+let infobipOptions = config.get('infobip');
+if (process.env.REDIS_URL) {
+  infobipOptions.redis = process.env.REDIS_URL;
+}
+infobip.options = infobipOptions;
 infobip.init();
 
 //finish initializers
@@ -101,7 +105,7 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(cors());
 
 
-//use express respond to force 
+//use express respond to force
 //response content type to json always
 app.use(respond({ types: 'json' }));
 
@@ -119,10 +123,10 @@ app.use(helmet.hidePoweredBy({
 
 
 //parsing body
-app.use(bodyParser.json({ limit: '2mb' }));
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+app.use(bodyParser.json({ limit: '2mb' }));
 app.use(methodOverride('_method'));
 
 
@@ -185,10 +189,10 @@ if (environment.isLocal()) {
     response.status(error.status || 500);
     response.json({
       success: false,
+      status: error.status,
+      code: error.code,
       message: error.message,
-      error: {
-        status: error.code
-      }
+      error: error
     });
   });
 }
@@ -205,10 +209,9 @@ if (environment.isProd()) {
     response.status(error.status || 500);
     response.json({
       success: false,
-      message: error.message,
-      error: {
-        status: error.code
-      }
+      status: error.status,
+      code: error.code,
+      message: error.message
     });
   });
 }

@@ -16,19 +16,8 @@ let mongoOptions = {
   user: '',
   password: '',
   options: {
-    db: {
-      safe: true
-    },
-    server: {
-      socketOptions: {
-        keepAlive: 1
-      }
-    },
-    replset: {
-      socketOptions: {
-        keepAlive: 1
-      }
-    }
+    keepAlive: 1,
+    autoReconnect: true
   }
 };
 
@@ -84,7 +73,7 @@ module.exports = {
    * @description application phone number
    * @type {String}
    */
-  phone: '255714095061',
+  phone: process.env.APP_PHONE || '255714095061',
 
 
   /**
@@ -148,6 +137,76 @@ module.exports = {
 
 
   /**
+   * @description API sync configuration
+   * @type {Object}
+   */
+  sync: {
+
+    /**
+     * @description syncing strategies configuration
+     * @type {Object}
+     */
+    strategies: {
+      downstream: 'DOWNSTREAM',
+      upstream: 'UPSTREAM'
+    },
+
+    /**
+     * @description local server configuration
+     * @type {Object}
+     */
+    downstream: {
+
+      /**
+       * @description if syncing to local server enabled
+       * @type {String}
+       */
+      enabled: process.env.DOWNSTREAM_ENABLED || false,
+
+      /**
+       * @description base url for the local server
+       * @type {String}
+       */
+      baseUrl: process.env.DOWNSTREAM_BASE_URL,
+
+      /**
+       * @description local server authorization token
+       * @type {String}
+       */
+      token: process.env.DOWNSTREAM_TOKEN
+
+    },
+
+    /**
+     * @description public server configuration
+     * @type {Object}
+     */
+    upstream: {
+
+      /**
+       * @description if syncing to public server enabled
+       * @type {String}
+       */
+      enabled: process.env.UPSTREAM_ENABLED || false,
+
+      /**
+       * @description base url for the public server
+       * @type {String}
+       */
+      baseUrl: process.env.UPSTREAM_BASE_URL,
+
+      /**
+       * @description public server authorization token
+       * @type {String}
+       */
+      token: process.env.UPSTREAM_TOKEN,
+
+    }
+
+  },
+
+
+  /**
    *@description logger configurations
    */
   logger: {
@@ -194,13 +253,13 @@ module.exports = {
     timeout: 5000,
     prefix: 'open311',
     fake: false,
-    sync: true,
+    sync: process.env.INFOBIP_SYNC || true,
     from: process.env.INFOBIP_FROM || 'DAWASCO',
     username: process.env.INFOBIP_USERNAME || 'DAWASCO311',
     password: process.env.INFOBIP_PASSWORD || 'DAWASCO311',
     templates: {
       ticket: {
-        open: 'Dear customer. Your ticket # is {ticket} for {service} you have reported. Call {phone} for more support. Thanks.',
+        open: 'Dear customer. Your ticket # is {ticket}. You have reported {service}. Call {phone} for more support. Thanks.',
         resolve: 'Dear customer. Your issue # - {ticket} has been resolved. Call {phone} for confirmation. Thanks.'
       }
     }

@@ -4,7 +4,7 @@
 /**
  * @module MediaSchema
  * @name MediaSchema
- * @description An attachment or file associated with an entity 
+ * @description An attachment or file associated with an entity
  *              e.g service request
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
@@ -114,7 +114,7 @@ const MediaSchema = new Schema({
 
   /**
    * @name storage
-   * @description A store where a media can be found 
+   * @description A store where a media can be found
    *              i.e Local, Remote, Google Drive, Dropbox etc
    * @type {Object}
    * @private
@@ -128,6 +128,16 @@ const MediaSchema = new Schema({
   },
 
 }, { timestamps: true });
+
+//export constant
+MediaSchema.STORAGE_LOCAL =
+  MediaSchema.statics.STORAGE_LOCAL = STORAGE_LOCAL;
+
+MediaSchema.STORAGE_REMOTE =
+  MediaSchema.statics.STORAGE_REMOTE = STORAGE_REMOTE;
+
+MediaSchema.STORAGES =
+  MediaSchema.statics.STORAGES = STORAGES;
 
 //exports Status Schema
 module.exports = exports = MediaSchema;

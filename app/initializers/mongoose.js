@@ -23,9 +23,9 @@ const mongooseSoftDelete =
 const mongooseSearchable = require('mongoose-regex-search');
 const mongooseExists = require('mongoose-exists');
 const mongooseAutoset = require('mongoose-autoset');
-const mongooseValid8 = require('mongoose-valid8');
 const mongoosePaginate = require('express-mquery').plugin;
 const mongooseAutopopulate = require('mongoose-autopopulate');
+const mongooseRunInBackground = require('mongoose-kue').plugin;
 const mongooseHidden = require('mongoose-hidden')({
   defaultHidden: {
     password: true,
@@ -33,7 +33,9 @@ const mongooseHidden = require('mongoose-hidden')({
     __t: true
   },
   virtuals: {
-    id: 'hideJSON'
+    id: 'hideJSON',
+    runInBackgroundQueue: 'hide',
+    runInBackgroundOptions: 'hide'
   }
 });
 
@@ -65,7 +67,7 @@ const mongoOptions = config.options;
 
 
 /**
- * @description plugin schema wide mongoose plugins 
+ * @description plugin schema wide mongoose plugins
  */
 mongoose.plugin(function (schema) {
   //allow virtuals on toJSON
@@ -81,17 +83,25 @@ mongoose.plugin(mongooseSoftDelete);
 mongoose.plugin(mongoosePaginate);
 mongoose.plugin(mongooseAutopopulate);
 mongoose.plugin(mongooseHidden);
-mongoose.plugin(mongooseValid8);
 mongoose.plugin(mongooseShow);
 mongoose.plugin(mongooseEdit);
 mongoose.plugin(mongooseList);
 mongoose.plugin(mongooseReload);
 mongoose.plugin(mongooseSearchable);
 
+//plugin mongoose kue
+let mongooseKueOptions = { mongoose: mongoose };
+if (process.env.REDIS_URL) {
+  mongooseKueOptions.redis = process.env.REDIS_URL;
+}
+mongoose.plugin(mongooseRunInBackground, mongooseKueOptions);
+
+
 //require external models
 require('open311-messages')(_.merge({}, {
   mongoose: mongoose
 }, conf.get('infobip'))); //initialize message models
+
 
 // load all models recursively
 require('require-all')({

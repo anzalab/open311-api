@@ -210,29 +210,31 @@ module.exports = {
     serviceRequests
       .pipe(csv.transform(function (serviceRequest) {
         //TODO
-        // Call Start Time Call End Time Call Duration(Minutes)  Call Duration(Seconds)  
+        // Call Start Time Call End Time Call Duration(Minutes)  Call Duration(Seconds)
         // Time Taken(days)  Time Taken(hrs) Time Taken(mins)  Time Taken(secs)
         return {
           'Ticket Number': serviceRequest.code,
-          'Reported Date': moment(serviceRequest.createdAt).toISOString(),
-          'Reporter Name': serviceRequest.reporter.name,
-          'Reporter Phone': serviceRequest.reporter.phone,
-          'Reporter Account': serviceRequest.reporter.account,
-          'Operator': serviceRequest.operator.name,
-          'Area': serviceRequest.jurisdiction.name,
-          'Service Group': serviceRequest.group.name,
-          'Service': serviceRequest.service.name,
-          'Description': serviceRequest.description,
+          'Reported Date': moment(serviceRequest.createdAt).format('YYYY-MM-DD'),
+          'Reported Time': moment(serviceRequest.createdAt).format('HH:mm:ss'),
+          'Reporter Name': _.get(serviceRequest, 'reporter.name', ''),
+          'Reporter Phone': _.get(serviceRequest, 'reporter.phone', ''),
+          'Reporter Account': _.get(serviceRequest, 'reporter.account',
+            ''),
+          'Operator': _.get(serviceRequest, 'operator.name', 'Un-Attended'),
+          'Area': _.get(serviceRequest, 'jurisdiction.name', ''),
+          'Service Group': _.get(serviceRequest, 'group.name', ''),
+          'Service': _.get(serviceRequest, 'service.name', ''),
           'Address': serviceRequest.address,
-          'Status': serviceRequest.status.name,
-          'Priority': serviceRequest.priority.name,
+          'Status': _.get(serviceRequest, 'status.name', ''),
+          'Priority': _.get(serviceRequest, 'priority.name', ''),
           'Assignee': _.get(serviceRequest, 'assignee.name', ''),
           'Resolved Date': serviceRequest.resolvedAt ? moment(
-            serviceRequest.resolvedAt).toISOString() : '',
-          'Updated Date': serviceRequest.updatedAt ? moment(
-            serviceRequest.updatedAt).toISOString() : '',
+            serviceRequest.resolvedAt).format('YYYY-MM-DD') : '',
+          'Resolved Time': serviceRequest.resolvedAt ? moment(
+            serviceRequest.resolvedAt).format('HH:mm:ss') : '',
           'Contact Method': _.get(serviceRequest, 'method.name', ''),
-          'Workspace': _.get(serviceRequest, 'method.workspace', '')
+          'Workspace': _.get(serviceRequest, 'method.workspace', ''),
+          'Description': serviceRequest.description
         };
 
       }))
