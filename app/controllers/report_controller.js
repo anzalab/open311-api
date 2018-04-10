@@ -196,7 +196,7 @@ module.exports = {
 
     //prepare query cursor/stream
     const serviceRequests =
-      ServiceRequest.find(criteria).sort({ createdAt: -1 }).cursor();
+      ServiceRequest.find(criteria).cursor();
 
     //prepare file name
     const fileName = 'service_requests_exports_' + Date.now() + '.csv';
@@ -213,7 +213,7 @@ module.exports = {
         // Call Start Time Call End Time Call Duration(Minutes)  Call Duration(Seconds)
         // Time Taken(days)  Time Taken(hrs) Time Taken(mins)  Time Taken(secs)
         return {
-          'Ticket Number': serviceRequest.code,
+          'Ticket Number': serviceRequest.code || '',
           'Reported Date': moment(serviceRequest.createdAt).format('YYYY-MM-DD'),
           'Reported Time': moment(serviceRequest.createdAt).format('HH:mm:ss'),
           'Reporter Name': _.get(serviceRequest, 'reporter.name', ''),
@@ -224,7 +224,7 @@ module.exports = {
           'Area': _.get(serviceRequest, 'jurisdiction.name', ''),
           'Service Group': _.get(serviceRequest, 'group.name', ''),
           'Service': _.get(serviceRequest, 'service.name', ''),
-          'Address': serviceRequest.address,
+          'Address': serviceRequest.address || '',
           'Status': _.get(serviceRequest, 'status.name', ''),
           'Priority': _.get(serviceRequest, 'priority.name', ''),
           'Assignee': _.get(serviceRequest, 'assignee.name', ''),
@@ -234,7 +234,9 @@ module.exports = {
             serviceRequest.resolvedAt).format('HH:mm:ss') : '',
           'Contact Method': _.get(serviceRequest, 'method.name', ''),
           'Workspace': _.get(serviceRequest, 'method.workspace', ''),
-          'Description': serviceRequest.description
+          'Description': serviceRequest.description || '',
+          'Longitude': _.get(serviceRequest, 'longitude', ''),
+          'Latitude': _.get(serviceRequest, 'latitude', '')
         };
 
       }))
