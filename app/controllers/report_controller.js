@@ -9,7 +9,7 @@
 //dependencies
 const _ = require('lodash');
 const csv = require('csv');
-const moment = require('moment');
+// const moment = require('moment');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
 
@@ -214,29 +214,33 @@ module.exports = {
         // Time Taken(days)  Time Taken(hrs) Time Taken(mins)  Time Taken(secs)
         return {
           'Ticket Number': serviceRequest.code || '',
-          'Reported Date': moment(serviceRequest.createdAt).format('YYYY-MM-DD'),
-          'Reported Time': moment(serviceRequest.createdAt).format('HH:mm:ss'),
+          // 'Reported Date': moment(serviceRequest.createdAt).format('YYYY-MM-DD'),
+          // 'Reported Time': moment(serviceRequest.createdAt).format('HH:mm:ss'),
+          'Reported Time': serviceRequest.createdAt.toISOString(),
           'Reporter Name': _.get(serviceRequest, 'reporter.name', ''),
           'Reporter Phone': _.get(serviceRequest, 'reporter.phone', ''),
           'Reporter Account': _.get(serviceRequest, 'reporter.account',
             ''),
-          'Operator': _.get(serviceRequest, 'operator.name', 'Un-Attended'),
           'Area': _.get(serviceRequest, 'jurisdiction.name', ''),
           'Service Group': _.get(serviceRequest, 'group.name', ''),
           'Service': _.get(serviceRequest, 'service.name', ''),
-          'Address': serviceRequest.address || '',
           'Status': _.get(serviceRequest, 'status.name', ''),
           'Priority': _.get(serviceRequest, 'priority.name', ''),
-          'Assignee': _.get(serviceRequest, 'assignee.name', ''),
-          'Resolved Date': serviceRequest.resolvedAt ? moment(
-            serviceRequest.resolvedAt).format('YYYY-MM-DD') : '',
-          'Resolved Time': serviceRequest.resolvedAt ? moment(
-            serviceRequest.resolvedAt).format('HH:mm:ss') : '',
           'Contact Method': _.get(serviceRequest, 'method.name', ''),
           'Workspace': _.get(serviceRequest, 'method.workspace', ''),
-          'Description': serviceRequest.description || '',
+          'Operator': _.get(serviceRequest, 'operator.name',
+            'Un-Attended'),
+          'Assignee': _.get(serviceRequest, 'assignee.name', ''),
+          // 'Resolved Date': serviceRequest.resolvedAt ? moment(
+          //   serviceRequest.resolvedAt).format('YYYY-MM-DD') : '',
+          // 'Resolved Time': serviceRequest.resolvedAt ? moment(
+          //   serviceRequest.resolvedAt).format('HH:mm:ss') : '',
+          'Resolved Time': serviceRequest.resolvedAt ? serviceRequest.resolvedAt
+            .toISOString() : '',
           'Longitude': _.get(serviceRequest, 'longitude', ''),
-          'Latitude': _.get(serviceRequest, 'latitude', '')
+          'Latitude': _.get(serviceRequest, 'latitude', ''),
+          'Address': serviceRequest.address || '',
+          // 'Description': serviceRequest.description || ''
         };
 
       }))
