@@ -84,7 +84,7 @@ module.exports = {
    * @description application phone number
    * @type {String}
    */
-  phone: process.env.APP_PHONE || '255767080825',
+  phone: process.env.APP_PHONE || '0800110023',
 
 
   /**
