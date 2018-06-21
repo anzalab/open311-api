@@ -69,9 +69,10 @@ mkdir.sync(logPath);
 
 //setup winston application logger
 let winston = require('winston');
-winston.add(require('winston-daily-rotate-file'), {
+require('winston-daily-rotate-file');
+winston.add(new(winston.transports.DailyRotateFile)({
   filename: path.join(logPath, 'log.log')
-});
+}));
 winston.level = 'silly';
 
 //setup application mongoose instance

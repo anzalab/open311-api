@@ -23,7 +23,6 @@ const mongooseSoftDelete =
 const mongooseSearchable = require('mongoose-regex-search');
 const mongooseExists = require('mongoose-exists');
 const mongooseAutoset = require('mongoose-autoset');
-const mongooseValid8 = require('mongoose-valid8');
 const mongoosePaginate = require('express-mquery').plugin;
 const mongooseAutopopulate = require('mongoose-autopopulate');
 const mongooseRunInBackground = require('mongoose-kue').plugin;
@@ -84,7 +83,6 @@ mongoose.plugin(mongooseSoftDelete);
 mongoose.plugin(mongoosePaginate);
 mongoose.plugin(mongooseAutopopulate);
 mongoose.plugin(mongooseHidden);
-mongoose.plugin(mongooseValid8);
 mongoose.plugin(mongooseShow);
 mongoose.plugin(mongooseEdit);
 mongoose.plugin(mongooseList);

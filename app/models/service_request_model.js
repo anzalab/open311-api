@@ -446,6 +446,8 @@ const ServiceRequestSchema = new Schema({
 
 //ensure `2dsphere` on service request location
 ServiceRequestSchema.index({ location: '2dsphere' });
+ServiceRequestSchema.index({ createdAt: 1 });
+ServiceRequestSchema.index({ updatedAt: 1 });
 
 
 //-----------------------------------------------------------------------------
