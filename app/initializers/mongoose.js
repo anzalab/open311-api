@@ -91,9 +91,11 @@ mongoose.plugin(mongooseSearchable);
 
 //plugin mongoose kue
 let mongooseKueOptions = { mongoose: mongoose };
+console.log('redis url: ', process.env.REDIS_URL);
 if (process.env.REDIS_URL) {
   mongooseKueOptions.redis = process.env.REDIS_URL;
 }
+console.log('mongoose kue options: ', mongooseKueOptions);
 mongoose.plugin(mongooseRunInBackground, mongooseKueOptions);
 
 
