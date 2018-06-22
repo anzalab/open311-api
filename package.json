@@ -71,7 +71,6 @@
     "express-oauth-server": "^2.0.0",
     "express-paginate": "^1.0.0",
     "express-respond": "^0.4.0",
-    "express-winston": "^2.5.1",
     "fs-extra": "^6.0.1",
     "helmet": "^3.12.1",
     "inflection": "^1.12.0",

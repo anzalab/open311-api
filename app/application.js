@@ -48,7 +48,6 @@ const mkdir = require('mkdir-p');
 const express = require('express');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
-const expressWinston = require('express-winston');
 const cors = require('cors');
 const helmet = require('helmet');
 const respond = require('express-respond');
@@ -135,14 +134,6 @@ app.use(methodOverride('_method'));
 app.use(require('express-mquery').middleware({ limit: 10, maxLimit: 1000 }));
 
 
-//setup application request logger
-if (!environment.isLocal()) {
-  app.use(expressWinston.logger({
-    winstonInstance: winston
-  }));
-}
-
-
 //bind settings loader middleware
 app.use(require(path.join(__dirname, 'middlewares', 'settings')));
 app.use(require(path.join(__dirname, 'middlewares', 'preloader')));
@@ -158,14 +149,6 @@ require('require-all')({
     app.use(router);
   }
 });
-
-
-//setup application request error logger
-if (!environment.isLocal()) {
-  app.use(expressWinston.errorLogger({
-    winstonInstance: winston
-  }));
-}
 
 
 // catch 404 and forward to error handler
