@@ -184,6 +184,7 @@ if (environment.isLocal()) {
   app.use(function (error, request, response, next) {
 
     //log all errors
+    console.log(error);
     winston.error(error);
 
     //respond
@@ -204,6 +205,7 @@ if (environment.isProd()) {
   app.use(function (error, request, response, next) {
 
     //log all errors
+    console.log(error);
     winston.error(error);
 
     //respond

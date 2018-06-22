@@ -82,7 +82,7 @@
     "method-override": "^2.3.10",
     "mkdir-p": "0.0.7",
     "moment": "^2.22.2",
-    "mongoose": "5.1.6",
+    "mongoose": "4.13.14",
     "mongoose-autopopulate": "^0.7.0",
     "mongoose-autoset": "^0.1.0",
     "mongoose-exists": "^0.3.0",

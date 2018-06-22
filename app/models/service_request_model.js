@@ -834,7 +834,6 @@ ServiceRequestSchema.statics.CONTACT_METHOD_MOBILE_APP =
 ServiceRequestSchema.statics.CONTACT_METHODS = ContactMethod.METHODS;
 
 
-
 //-----------------------------------------------------------------------------
 // ServiceRequestSchema Plugins
 //-----------------------------------------------------------------------------

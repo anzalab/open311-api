@@ -106,7 +106,6 @@ module.exports = {
 
         ],
         function done(error, result) {
-          console.log(error);
 
           //fail to authenticate party
           //return error message
