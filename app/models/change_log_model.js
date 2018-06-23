@@ -6,8 +6,8 @@
  * @name ChangeLog
  * @description A record(log) of a changes on a service request(issue).
  *
- *              It may be status change, priority change, assignee change,
- *              private comment(internal note) or public comment etc.
+ * It may be status change, priority change, assignee change,
+ * private comment(internal note) or public comment etc.
  *
  * @see {@link ServiceRequest}
  * @see {@link Status}
@@ -20,13 +20,10 @@
  */
 
 
-//global dependencies(or imports)
+//dependencies
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
-
-
-//local dependencies(or imports)
 
 
 //constants
@@ -34,6 +31,8 @@ const VISIBILITY_PUBLIC = 'Public';
 const VISIBILITY_PRIVATE = 'Private';
 const VISIBILITIES = [VISIBILITY_PRIVATE, VISIBILITY_PUBLIC];
 
+
+//TODO add changelog type i.e status, service, assignement, comment etc
 //TODO hook on service request pre validation
 //TODO hook on service request pre save
 //TODO hook on service request post save
@@ -41,6 +40,8 @@ const VISIBILITIES = [VISIBILITY_PRIVATE, VISIBILITY_PUBLIC];
 //TODO always sort them in order of update before send them
 //TODO notify assignee once changed(previous and current)
 //TODO support attachment changelog(audio, images etc)
+//TODO tract reopens, escallations etc
+
 
 /**
  * @name ChangeLogSchema
@@ -50,16 +51,37 @@ const VISIBILITIES = [VISIBILITY_PRIVATE, VISIBILITY_PUBLIC];
  * @private
  */
 const ChangeLogSchema = new Schema({
+  /**
+   * @name request
+   * @description Associated service request(issue)
+   * @type {ServiceRequest}
+   * @see {@link ServiceRequest}
+   * @since 0.1.0
+   * @version 0.1.0
+   * @instance
+   */
+  request: {
+    type: ObjectId,
+    ref: 'ServiceRequest',
+    required: true,
+    index: true,
+    autoset: true,
+    exists: true,
+    autopopulate: {
+      select: 'code',
+      maxDepth: 1
+    }
+  },
 
 
   /**
    * @name status
-   * @description A current assigned status of the service request.
+   * @description A current assigned status of the service request(issue)
    * @type {Status}
    * @see {@link Status}
-   * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @instance
    */
   status: {
     type: ObjectId,
@@ -68,19 +90,20 @@ const ChangeLogSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'name weight color'
+      select: 'name weight color',
+      maxDepth: 1
     }
   },
 
 
   /**
    * @name priority
-   * @description A current assigned priority of the service request
+   * @description A current assigned priority of the service request(issue)
    * @type {Priority}
    * @see {@link Priority}
-   * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @instance
    */
   priority: {
     type: ObjectId,
@@ -89,7 +112,8 @@ const ChangeLogSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'name weight color'
+      select: 'name weight color',
+      maxDepth: 1
     }
   },
 
@@ -99,9 +123,9 @@ const ChangeLogSchema = new Schema({
    * @description A current assigned party to work on service request(issue)
    * @type {Party}
    * @see {@link Priority}
-   * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @instance
    */
   assignee: {
     type: ObjectId,
@@ -110,19 +134,20 @@ const ChangeLogSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'name email phone'
+      select: 'name email phone',
+      maxDepth: 1
     }
   },
 
 
   /**
    * @name changer
-   * @description A party whose made changes to a servie request(issue)
+   * @description A party who made changes to a servie request(issue)
    * @type {Object}
    * @see {@link Party}
-   * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @instance
    */
   changer: {
     type: ObjectId,
@@ -131,22 +156,22 @@ const ChangeLogSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'name email phone'
+      select: 'name email phone',
+      maxDepth: 1
     }
   },
 
 
   /**
    * @name comment
-   * @description A note provided by a change when changing a status.
-   *
-   *              It may be an internal note telling how far the service
-   *              request(issue) has been worked on or a message to a reporter.
+   * @description Additional note for the changes. It may be an internal note
+   * telling how far the service request(issue) has been worked on or a message
+   * to a reporter.
    *
    * @type {Object}
-   * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @instance
    */
   comment: {
     type: String,
@@ -158,11 +183,11 @@ const ChangeLogSchema = new Schema({
 
   /**
    * @name resolvedAt
-   * @description A time when the issue was resolved
+   * @description Latest time when the service request(issue) was resolved.
    * @type {Object}
-   * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @instance
    */
   resolvedAt: {
     type: Date,
@@ -172,7 +197,7 @@ const ChangeLogSchema = new Schema({
 
   /**
    * @name reopenedAt
-   * @description A time when the issue was reopened
+   * @description Latest time when the service request(issue) was reopened.
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -187,13 +212,13 @@ const ChangeLogSchema = new Schema({
   /**
    * @name shouldNotify
    * @description Signal to send notification to a service request(issue)
-   *              reporter using sms, email etc. about work(progress) done
-   *              so far to resolve the issue.
+   * reporter using sms, email etc. about work(progress) done so far to resolve
+   * the issue.
    *
    * @type {Object}
-   * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @instance
    */
   shouldNotify: {
     type: Boolean,
@@ -204,16 +229,15 @@ const ChangeLogSchema = new Schema({
   /**
    * @name wasNotificationSent
    * @description Tells if a notification contain a changes was
-   *              sent to a service request(issue) reporter using
-   *              sms, email etc. once a service request changed.
+   * sent to a service request(issue) reporter using sms, email etc.
+   * once a service request changed.
    *
-   *              Note!: status changes trigger a notification to be sent
-   *              always.
+   * Note!: status changes trigger a notification to be sent always.
    *
    * @type {Object}
-   * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @instance
    */
   wasNotificationSent: {
     type: Boolean,
@@ -224,13 +248,12 @@ const ChangeLogSchema = new Schema({
   /**
    * @name visibility
    * @description Signal if this changelog is public or private viewable.
-   *
-   *              Note!: status changes are always public viewable by default.
+   * Note!: status changes are always public viewable by default.
    *
    * @type {Object}
-   * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @instance
    */
   visibility: {
     type: String,
@@ -239,18 +262,28 @@ const ChangeLogSchema = new Schema({
     default: VISIBILITY_PRIVATE
   }
 
+
 }, { timestamps: true, emitIndexErrors: true });
 
 
-//---------------------------------------------------------
-// ChangeLogSchema Hooks
-//---------------------------------------------------------
+//------------------------------------------------------------------------------
+// index
+//------------------------------------------------------------------------------
+
+
+ChangeLogSchema.index({ createdAt: 1 });
+ChangeLogSchema.index({ updatedAt: 1 });
+
+
+//------------------------------------------------------------------------------
+// hooks
+//------------------------------------------------------------------------------
 
 
 /**
- * @name  preValidate
+ * @name preValidate
  * @description pre validation logics for changelog
- * @param  {Function} next a callback to be called after pre validation logics
+ * @param {Function} next a callback to be called after pre validation logics
  * @since  0.1.0
  * @version 0.1.0
  * @private
@@ -276,6 +309,7 @@ ChangeLogSchema.pre('validate', function (next) {
  * @type {Boolean}
  * @since 0.1.0
  * @version 0.1.0
+ * @private
  */
 ChangeLogSchema.virtual('isPublic').get(function () {
   const isPublic = (this.visibility === VISIBILITY_PRIVATE ? false : true);
@@ -283,32 +317,23 @@ ChangeLogSchema.virtual('isPublic').get(function () {
 });
 
 
-//---------------------------------------------------------
-// ChangeLogSchema Statics
-//---------------------------------------------------------
+//------------------------------------------------------------------------------
+// statics
+//------------------------------------------------------------------------------
 
-//expose changelog visibility flags(constants)
-ChangeLogSchema.VISIBILITY_PRIVATE =
-  ChangeLogSchema.statics.VISIBILITY_PRIVATE = VISIBILITY_PRIVATE;
 
-ChangeLogSchema.VISIBILITY_PUBLIC =
-  ChangeLogSchema.statics.VISIBILITY_PUBLIC = VISIBILITY_PUBLIC;
-
-ChangeLogSchema.VISIBILITIES =
-  ChangeLogSchema.statics.VISIBILITIES = VISIBILITIES;
+/* constants */
+ChangeLogSchema.statics.VISIBILITY_PRIVATE = VISIBILITY_PRIVATE;
+ChangeLogSchema.statics.VISIBILITY_PUBLIC = VISIBILITY_PUBLIC;
+ChangeLogSchema.statics.VISIBILITIES = VISIBILITIES;
 
 
 //TODO post save send notification
 //TODO for public comment notify reporter
+//TODO for assignment notify assignee
+//TODO for escallation notify assignee + jurisdiction
 //TODO do not notify private changes(?)
 
 
-/**
- * @name ChangeLogSchema
- * @description exports changelog schema
- * @type {Schema}
- * @since  0.1.0
- * @version 0.1.0
- * @public
- */
-module.exports = exports = ChangeLogSchema;
+/* export changelog model */
+module.exports = mongoose.model('ChangeLog', ChangeLogSchema);

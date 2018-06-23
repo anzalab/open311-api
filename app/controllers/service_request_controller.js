@@ -170,24 +170,65 @@ module.exports = {
     //TODO handle other updates
 
     //obtain changelog
-    const changelog = _.merge({}, { changer: changer }, request.body);
+    let changelog = _.merge({}, { changer: changer }, request.body);
+
+    //ensure server time in case its resolve
+    if (changelog.resolvedAt) {
+      changelog.resolvedAt = new Date();
+      //TODO ensure resolver & assignee
+    }
 
     async.waterfall([
 
       function findServiceRequest(then) {
+        ServiceRequest.findById(_id, { changelogs: 0 }).exec(then);
+      },
+
+      function resolveOrReopen(servicerequest, then) {
+
+        if (_.has(changelog, 'resolvedAt')) {
+          //clear or set resolve time
+          servicerequest.resolvedAt = changelog.resolvedAt;
+
+          if (!changelog.resolvedAt) {
+
+            //clear resolve time
+            servicerequest.ttr = undefined;
+
+            //set reopen time
+            const reopenedAt = new Date();
+            servicerequest.reopenedAt = new Date();
+            changelog.reopenedAt = reopenedAt;
+          }
+
+        }
+
+        servicerequest.save(function (error, updated) {
+          then(error, updated);
+        });
+
+      },
+
+      function reload(servicerequest, then) {
         ServiceRequest.findById(_id).exec(then);
       },
 
-      function computeChanges(servicerequest, then) {
+      function computeChanges(servicerequest, then) { //TODO FIX: array sub-doc save
         if (!servicerequest) {
           let error = new Error('Service Request Not Found');
           error.status = 404;
           then(error);
         } else {
+          changelog = _.omitBy(changelog, function (value) {
+            return _.isUndefined(value) || _.isNull(value);
+          });
           let changelogs = servicerequest.changes(changelog);
+          console.log(changelogs);
           changelogs =
             ([].concat(servicerequest.changelogs).concat(changelogs));
+          console.log(changelogs);
           changelogs = _.sortBy(changelogs, 'createdAt');
+          console.log(changelogs);
           const changes = _.merge({}, changelog, { changelogs: changelogs });
           ServiceRequest
             .findByIdAndUpdate(_id, changes, { new: true })
@@ -195,7 +236,7 @@ module.exports = {
         }
       },
 
-      function reload(servicerequest, then) {
+      function reload(servicerequest, then) { //TODO notify resolved
         ServiceRequest.findById(_id).exec(then);
       }
 

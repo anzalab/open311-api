@@ -408,6 +408,20 @@ const ServiceRequestSchema = new Schema({
 
 
   /**
+   * @name reopenedAt
+   * @description A time when the issue was reopened
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  reopenedAt: {
+    type: Date,
+    index: true
+  },
+
+
+  /**
    * @name ttr
    * @description A time taken to resolve the issue(service request) in duration format.
    *

@@ -5,7 +5,7 @@
  * @name changelog
  * @description Extend service request(issue) with capability to track and log
  *              changes such as status change, priority change etc.
- *              
+ *
  * @see {@link ServiceRequest}
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
@@ -29,9 +29,9 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
 
   /**
    * @name changes
-   * @description compute internal changes of the service request(issue) 
+   * @description compute internal changes of the service request(issue)
    *              for logging in changelogs
-   *              
+   *
    * @param  {Object} changelog latest changes to apply
    * @param  {Party} [changelog.changer] latest party to apply changes to service
    *                                     sequest(issue)
@@ -41,9 +41,9 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
    *                                     reply to a reporter
    *
    * @param {Boolean} [changelog.shouldNotify] flag if notification should be send
-   *                                           when changes applied 
+   *                                           when changes applied
    * @param  {Function} done a callback to invoke on success or failure
-   * @return {Object|Object[]} latest changelog(s) to be applied to a 
+   * @return {Object|Object[]} latest changelog(s) to be applied to a
    *                           servicerequest(issue) instance
    * @since  0.1.0
    * @version 0.1.0
@@ -57,6 +57,9 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
       createdAt: new Date(),
       changer: this.operator
     }, changelog);
+    changelog = _.omitBy(changelog, function (value) {
+      return _.isUndefined(value) || _.isNull(value);
+    });
 
     //ensure first status is logged(i.e open)
     if (_.isEmpty(this.changelogs)) {
@@ -122,6 +125,12 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
         changelog.assignee = this.assignee;
       }
 
+      //record resolve date changes
+      if (changelog.resolvedAt || changelog.reopenedAt) {
+        changelog =
+          _.merge({}, changelog, { visibility: ChangeLog.VISIBILITY_PUBLIC });
+      }
+
       //update dirty changes
       dirtyChanges = _.map(dirtyChanges, function (change) {
         change = _.merge({}, {
@@ -131,14 +140,15 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
       }.bind(this));
 
       //update changelogs
-      const isValid = (changelog.status || changelog.priority ||
-        changelog.assignee || changelog.comment);
+      const isValid = (
+        changelog.status || changelog.priority ||
+        changelog.assignee || changelog.comment ||
+        changelog.resolvedAt || changelog.reopenedAt
+      );
       changelog = isValid ? [].concat(changelog) : [];
       changelog = [].concat(dirtyChanges).concat(changelog);
 
       //TODO ensure close status is logged(i.e closed)
-      //TODO ensure resolve status is logged(i.e resolved)
-      //TODO ensure re-open status is logged(i.e re-open)
       //TODO send changelog notification on changelog post save
       return changelog;
     }
