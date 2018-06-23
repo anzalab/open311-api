@@ -56,8 +56,6 @@ const work =
   require(path.join(pluginsPath, 'service_request_work_plugin'));
 const duration =
   require(path.join(pluginsPath, 'service_request_duration_plugin'));
-const changelog =
-  require(path.join(pluginsPath, 'service_request_changelog_plugin'));
 
 
 //schemas
@@ -69,7 +67,6 @@ const Media = require(path.join(schemaPath, 'media_schema'));
 const Duration = require(path.join(schemaPath, 'duration_schema'));
 const Call = require(path.join(schemaPath, 'call_schema'));
 const Reporter = require(path.join(schemaPath, 'reporter_schema'));
-const ChangeLog = require(path.join(schemaPath, 'changelog_schema'));
 const ContactMethod = require(path.join(schemaPath, 'contact_method_schema'));
 
 
@@ -443,12 +440,11 @@ const ServiceRequestSchema = new Schema({
    * @name changelogs
    * @description Associated change(s) on service request(issue)
    * @type {Array}
-   * @see {@link ChangeLogSchema}
+   * @see {@link ChangeLog}
    * @private
    * @since 0.1.0
    * @version 0.1.0
    */
-  changelogs: [ChangeLog]
 
 }, { timestamps: true, emitIndexErrors: true });
 
@@ -492,6 +488,21 @@ ServiceRequestSchema.virtual('longitude').get(function () {
 ServiceRequestSchema.virtual('latitude').get(function () {
   return this.location && this.location.coordinates ?
     this.location.coordinates[1] : 0;
+});
+
+
+/**
+ * @name changelogs
+ * @description obtain service request(issue) changelogs
+ * @type {Object}
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+ServiceRequestSchema.virtual('changelogs', {
+  ref: 'ChangeLog',
+  localField: '_id',
+  foreignField: 'request',
+  autopopulate: true
 });
 
 
@@ -771,15 +782,15 @@ ServiceRequestSchema.pre('validate', function (next) {
         this.priority = (this.priority || result.priority || undefined);
 
         //ensure open status changelog
-        if (_.isEmpty(this.changelogs)) {
-          this.changelogs = [{
-            createdAt: new Date(),
-            status: this.status,
-            priority: this.priority,
-            changer: this.operator,
-            visibility: ChangeLog.VISIBILITY_PUBLIC
-          }];
-        }
+        // if (_.isEmpty(this.changelogs)) {
+        //   this.changelogs = [{
+        //     createdAt: new Date(),
+        //     status: this.status,
+        //     priority: this.priority,
+        //     changer: this.operator,
+        //     visibility: ChangeLog.VISIBILITY_PUBLIC
+        //   }];
+        // }
 
         //set service request code
         //in format (Area Code Service Code Year Sequence)
@@ -814,15 +825,15 @@ ServiceRequestSchema.pre('validate', function (next) {
   else {
 
     //ensure open status changelog
-    if (_.isEmpty(this.changelogs)) {
-      this.changelogs = [{
-        createdAt: new Date(),
-        status: this.status,
-        priority: this.priority,
-        changer: this.operator,
-        visibility: ChangeLog.VISIBILITY_PUBLIC
-      }];
-    }
+    // if (_.isEmpty(this.changelogs)) {
+    //   this.changelogs = [{
+    //     createdAt: new Date(),
+    //     status: this.status,
+    //     priority: this.priority,
+    //     changer: this.operator,
+    //     visibility: ChangeLog.VISIBILITY_PUBLIC
+    //   }];
+    // }
 
     return next(null, this);
   }
@@ -859,7 +870,7 @@ ServiceRequestSchema.plugin(performance);
 ServiceRequestSchema.plugin(pipeline);
 ServiceRequestSchema.plugin(work);
 ServiceRequestSchema.plugin(duration);
-ServiceRequestSchema.plugin(changelog);
+// ServiceRequestSchema.plugin(changelog);
 
 
 //-----------------------------------------------------------------------------

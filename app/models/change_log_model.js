@@ -21,6 +21,8 @@
 
 
 //dependencies
+const _ = require('lodash');
+// const async = require('async');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
@@ -67,6 +69,7 @@ const ChangeLogSchema = new Schema({
     index: true,
     autoset: true,
     exists: true,
+    hidden: true,
     autopopulate: {
       select: 'code',
       maxDepth: 1
@@ -326,6 +329,27 @@ ChangeLogSchema.virtual('isPublic').get(function () {
 ChangeLogSchema.statics.VISIBILITY_PRIVATE = VISIBILITY_PRIVATE;
 ChangeLogSchema.statics.VISIBILITY_PUBLIC = VISIBILITY_PUBLIC;
 ChangeLogSchema.statics.VISIBILITIES = VISIBILITIES;
+
+
+/**
+ * @name track
+ * @type Function
+ * @description track service request changelogs
+ * @param {Object} changes service request latest changes
+ * @param {Function} done a callback to invoke on success or failure
+ * @return {Object} latest service request
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ * @public
+ */
+ChangeLogSchema.statics.track = function (changes, done) {
+
+  //ensure changelog
+  let changelog = _.merge({}, changes);
+  done(null, changelog);
+
+};
 
 
 //TODO post save send notification
