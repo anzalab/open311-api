@@ -56,6 +56,8 @@ const work =
   require(path.join(pluginsPath, 'service_request_work_plugin'));
 const duration =
   require(path.join(pluginsPath, 'service_request_duration_plugin'));
+const changelog =
+  require(path.join(pluginsPath, 'service_request_changelog_plugin'));
 
 
 //schemas
@@ -98,7 +100,8 @@ const ServiceRequestSchema = new Schema({
     index: true,
     exists: true,
     autopopulate: {
-      select: 'code name phone email domain'
+      select: 'code name phone email domain',
+      maxDepth: 1
     }
   },
 
@@ -119,7 +122,8 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'code name color'
+      select: 'code name color',
+      maxDepth: 1
     }
   },
 
@@ -141,7 +145,8 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'code name color group isExternal' // remove group?
+      select: 'code name color group isExternal', // remove group?
+      maxDepth: 1
     }
   },
 
@@ -194,7 +199,8 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'name email phone avatar'
+      select: 'name email phone avatar',
+      maxDepth: 1
     }
   },
 
@@ -220,7 +226,8 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'name email phone'
+      select: 'name email phone',
+      maxDepth: 1
     }
   },
 
@@ -331,7 +338,9 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     index: true,
-    autopopulate: true
+    autopopulate: {
+      maxDepth: 1
+    }
   },
 
 
@@ -353,7 +362,9 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     index: true,
-    autopopulate: true
+    autopopulate: {
+      maxDepth: 1
+    }
   },
 
 
@@ -870,7 +881,7 @@ ServiceRequestSchema.plugin(performance);
 ServiceRequestSchema.plugin(pipeline);
 ServiceRequestSchema.plugin(work);
 ServiceRequestSchema.plugin(duration);
-// ServiceRequestSchema.plugin(changelog);
+ServiceRequestSchema.plugin(changelog);
 
 
 //-----------------------------------------------------------------------------

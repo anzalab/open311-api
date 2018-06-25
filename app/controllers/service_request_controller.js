@@ -2,9 +2,9 @@
 
 //dependencies
 const _ = require('lodash');
-const async = require('async');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
+const ChangeLog = mongoose.model('ChangeLog');
 const config = require('config');
 const { downstream, upstream } = config.get('sync.strategies');
 
@@ -170,7 +170,8 @@ module.exports = {
     //TODO handle other updates
 
     //obtain changelog
-    let changelog = _.merge({}, { changer: changer }, request.body);
+    let changelog =
+      _.merge({}, { changer: changer, request: _id }, request.body);
 
     //ensure server time in case its resolve
     if (changelog.resolvedAt) {
@@ -178,78 +179,17 @@ module.exports = {
       //TODO ensure resolver & assignee
     }
 
-    async.waterfall([
-
-      function findServiceRequest(then) {
-        ServiceRequest.findById(_id, { changelogs: 0 }).exec(then);
-      },
-
-      function resolveOrReopen(servicerequest, then) {
-
-        if (_.has(changelog, 'resolvedAt')) {
-          //clear or set resolve time
-          servicerequest.resolvedAt = changelog.resolvedAt;
-
-          if (!changelog.resolvedAt) {
-
-            //clear resolve time
-            servicerequest.ttr = undefined;
-
-            //set reopen time
-            const reopenedAt = new Date();
-            servicerequest.reopenedAt = new Date();
-            changelog.reopenedAt = reopenedAt;
-          }
-
-        }
-
-        servicerequest.save(function (error, updated) {
-          then(error, updated);
-        });
-
-      },
-
-      function reload(servicerequest, then) {
-        ServiceRequest.findById(_id).exec(then);
-      },
-
-      function computeChanges(servicerequest, then) { //TODO FIX: array sub-doc save
-        if (!servicerequest) {
-          let error = new Error('Service Request Not Found');
-          error.status = 404;
-          then(error);
+    ChangeLog
+      .track(changelog, function (error, servicerequest) {
+        if (error) {
+          next(error);
         } else {
-          changelog = _.omitBy(changelog, function (value) {
-            return _.isUndefined(value) || _.isNull(value);
-          });
-          let changelogs = servicerequest.changes(changelog);
-          console.log(changelogs);
-          changelogs =
-            ([].concat(servicerequest.changelogs).concat(changelogs));
-          console.log(changelogs);
-          changelogs = _.sortBy(changelogs, 'createdAt');
-          console.log(changelogs);
-          const changes = _.merge({}, changelog, { changelogs: changelogs });
-          ServiceRequest
-            .findByIdAndUpdate(_id, changes, { new: true })
-            .exec(then);
+          //sync patches
+          servicerequest.sync(upstream);
+
+          response.ok(servicerequest);
         }
-      },
-
-      function reload(servicerequest, then) { //TODO notify resolved
-        ServiceRequest.findById(_id).exec(then);
-      }
-
-    ], function (error, servicerequest) {
-      if (error) {
-        next(error);
-      } else {
-        //sync patches
-        servicerequest.sync(upstream);
-
-        response.ok(servicerequest);
-      }
-    });
+      });
 
   }
 

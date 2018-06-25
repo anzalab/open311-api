@@ -22,7 +22,7 @@
 
 //dependencies
 const _ = require('lodash');
-// const async = require('async');
+const async = require('async');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
@@ -336,6 +336,7 @@ ChangeLogSchema.statics.VISIBILITIES = VISIBILITIES;
  * @type Function
  * @description track service request changelogs
  * @param {Object} changes service request latest changes
+ * @param {ObjectId} changes.request valid existing service request object id
  * @param {Function} done a callback to invoke on success or failure
  * @return {Object} latest service request
  * @since 0.1.0
@@ -347,7 +348,113 @@ ChangeLogSchema.statics.track = function (changes, done) {
 
   //ensure changelog
   let changelog = _.merge({}, changes);
-  done(null, changelog);
+
+  if (!changelog.request) {
+    let error = new Error('Missing Service Request Id');
+    error.status = 400;
+    return done(error);
+  }
+
+
+  //refs
+  const ServiceRequest = mongoose.model('ServiceRequest');
+
+  async.waterfall([
+
+    //obtain service requests
+    function findServiceRequest(next) {
+
+      ServiceRequest
+        .findById(changelog.request)
+        .exec(function (error, servicerequest) {
+
+          //ensure service request exists
+          if (!servicerequest) {
+            error = new Error('Service Request Not Found');
+            error.status = 404;
+          }
+
+          //continue
+          next(error, servicerequest);
+
+        });
+
+    },
+
+    //resolve or reopen
+    function resolveOrReopen(servicerequest, next) {
+
+      //check resolvedAt
+      if (_.has(changelog, 'resolvedAt')) {
+
+        //clear or set resolve time
+        servicerequest.resolvedAt = changelog.resolvedAt;
+
+        if (!changelog.resolvedAt) {
+
+          //clear resolve time
+          servicerequest.ttr = undefined;
+
+          //set reopen time
+          const reopenedAt = new Date();
+          servicerequest.reopenedAt = reopenedAt;
+          changelog.reopenedAt = reopenedAt;
+        }
+
+      }
+
+      //continue
+      next(undefined, servicerequest);
+
+    },
+
+    //compute changes
+    function computeChanges(servicerequest, next) {
+
+      //compact changelog
+      changelog = _.omitBy(changelog, function (value) {
+        return _.isUndefined(value) || _.isNull(value);
+      });
+
+      //compute changelogs
+      let changelogs = servicerequest.changes(changelog);
+      changelogs =
+        ([].concat(servicerequest.changelogs).concat(changelogs));
+
+      //persists changes
+      this.create(changelogs, function (error /*, changelogs*/ ) {
+        next(error, servicerequest);
+      });
+
+    }.bind(this),
+
+    //update service request
+    function updateServiceRequest(servicerequest, next) {
+
+      //update
+      _.forEach(changelog, function (value, key) {
+        servicerequest.set(key, value);
+      });
+
+      //update
+      servicerequest.save(function (error /*, servicerequest*/ ) {
+        next(error, servicerequest);
+      });
+
+    },
+
+    //reload service request
+    function reload(servicerequest, next) {
+      ServiceRequest
+        .findById(changelog.request)
+        .exec(next);
+    }
+
+
+  ], done);
+
+  //handle resolved
+  //handle reopened
 
 };
 
