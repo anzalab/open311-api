@@ -64,6 +64,7 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
     //ensure first status is logged(i.e open)
     if (_.isEmpty(this.changelogs)) {
       changelog = {
+        request: this,
         createdAt: new Date(),
         status: this.status,
         priority: this.priority,
