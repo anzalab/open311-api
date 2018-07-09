@@ -216,8 +216,6 @@ angular
     //switch locale to sw
     $numeraljsConfigProvider.locale(ENV.settings.locale);
 
-
-
     //unmatched route handler
     $urlRouterProvider.otherwise('/servicerequests');
 
@@ -349,7 +347,7 @@ angular
 
 angular.module('ng311')
 
-.constant('ENV', {name:'production',owner:'MWAUWASA',title:'MWAUWASA',version:'v0.1.0',description:'Citizen Feedback System',apiEndPoint:{mobile:'',web:''},socketEndPoint:{mobile:'',web:''},socketEnable:false,settings:{locale:'sw',name:'open311',email:'example@example.com',phone:'(000) 000 000 000',currency:'USD',dateFormat:'dd/MM/yyyy',timeFormat:'hh:mm:ss',defaultPassword:'guest',abbreviations:{thousand:'K',million:'M',billion:'B',trillion:'T'}}})
+.constant('ENV', {name:'development',owner:'MajiFix',author:'MajiFix',title:'MajiFix',version:'v0.1.0',description:'Citizen Feedback System',apiEndPoint:{web:'',mobile:''},socketEndPoint:{web:'',mobile:''},socketEnable:false,settings:{locale:'sw',name:'MajiFix',email:'lallyelias87@gmail.com',phone:'(000) 000 000 000',currency:'USD',dateFormat:'dd/MM/yyyy',timeFormat:'hh:mm:ss',defaultPassword:'guest',abbreviations:{thousand:'K',million:'M',billion:'B',trillion:'T'}}})
 
 ;
 'use strict';
@@ -362,61 +360,14 @@ angular
   .config(function ($stateProvider) {
 
     //party authentications flows states
-    $stateProvider
-      .state('change', {
-        url: '/change',
-        templateUrl: 'views/auth/change.html',
-        controller: 'AuthChangeCtrl'
-      })
-      .state('forgot', {
-        url: '/forgot',
-        templateUrl: 'views/auth/forgot.html',
-        controller: 'AuthForgotCtrl'
-      })
-      .state('recover', {
-        url: '/recover/:token',
-        templateUrl: 'views/auth/recover.html',
-        controller: 'AuthRecoverCtrl'
-      })
-      .state('confirm', {
-        url: '/confirm/:token',
-        resolve: {
-          confirm: function ($rootScope, $state, $stateParams, Party) {
-            Party.confirm({
-              token: $stateParams.token
-            }).then(function (response) {
-              $rootScope.$broadcast('confirmSuccess', response);
-              $state.go('signin');
-            }).catch(function (error) {
-              $rootScope.$broadcast('confirmError', error);
-              $state.go('signin');
-            });
-          }
-        }
-      }).state('unlock', {
-        url: '/unlock/:token',
-        resolve: {
-          unlock: function ($rootScope, $state, $stateParams, Party) {
-            Party.unlock({
-              token: $stateParams.token
-            }).then(function (response) {
-              $rootScope.$broadcast('unlockSuccess', response);
-              $state.go('signin');
-            }).catch(function (error) {
-              $rootScope.$broadcast('unlockError', error);
-              $state.go('signin');
-            });
-          }
-        }
-      })
-      .state('app.profile', {
-        url: '/profile',
-        templateUrl: 'views/auth/profile.html',
-        controller: 'AuthProfileCtrl',
-        data: {
-          authenticated: true
-        }
-      });
+    $stateProvider.state('app.profile', {
+      url: '/profile',
+      templateUrl: 'views/auth/profile.html',
+      controller: 'AuthProfileCtrl',
+      data: {
+        authenticated: true
+      }
+    });
   });
 
 'use strict';
@@ -789,123 +740,6 @@ angular
 
 /**
  * @ngdoc function
- * @name ng311.controller:AuthChangeCtrl
- * @description
- * # AuthChangeCtrl
- * Controller of the ng311
- */
-angular
-  .module('ng311')
-  .controller('AuthChangeCtrl', function ($rootScope, $scope, $state, $auth,
-    Party) {
-
-    //new party password
-    $scope.party = {
-      _id: $rootScope.party._id,
-      password: ''
-    };
-
-    /**
-     * @submit password change request
-     * @return {[type]} [description]
-     */
-    $scope.change = function () {
-      //update current party password
-      Party.change($scope.party).then(function (response) {
-          //signout current party
-          $auth.signout().then(function () {
-            //notify
-            $rootScope.$broadcast('appSuccess', response);
-            $state.go('signin');
-
-          });
-        })
-        .catch(function (error) {
-          //notify error
-          $rootScope.$broadcast('appError', error);
-          $state.go('app.home');
-        });
-    }
-
-  });
-
-'use strict';
-
-/**
- * @ngdoc function
- * @name ng311.controller:AuthForgotCtrl
- * @description
- * # AuthForgotCtrl
- * Controller of the ng311
- */
-angular
-  .module('ng311')
-  .controller('AuthForgotCtrl', function ($rootScope, $scope, $state, Party) {
-
-    //recovery email address
-    $scope.party = {
-      email: ''
-    };
-
-
-    /**
-     * @submit forgot password request
-     * @return {[type]} [description]
-     */
-    $scope.forgot = function () {
-      Party.requestRecover($scope.party).then(function (response) {
-          $rootScope.$broadcast('appSuccess', response);
-          $state.go('signin');
-        })
-        .catch(function (error) {
-          $rootScope.$broadcast('appError', error);
-          $state.go('signin');
-        });
-    }
-  });
-
-'use strict';
-
-/**
- * @ngdoc function
- * @name ng311.controller:AuthRecoverCtrl
- * @description
- * # AuthRecoverCtrl
- * Controller of the ng311
- */
-angular
-  .module('ng311')
-  .controller('AuthRecoverCtrl', function ($rootScope, $scope, $state,
-    $stateParams, Party) {
-
-    //new party password
-    $scope.party = {
-      token: $stateParams.token,
-      password: ''
-    };
-
-
-    /**
-     * @submit recover party password
-     * @return {[type]} [description]
-     */
-    $scope.recover = function () {
-      //update current party password
-      Party.recover($scope.party).then(function (response) {
-        $rootScope.$broadcast('appSuccess', response);
-        $state.go('signin');
-      }).catch(function (error) {
-        $rootScope.$broadcast('appError', error);
-        $state.go('signin');
-      });
-    }
-
-  });
-
-'use strict';
-
-/**
- * @ngdoc function
  * @name ng311.controller:AuthProfileCtrl
  * @description
  * # AuthProfileCtrl
@@ -914,7 +748,7 @@ angular
 angular
   .module('ng311')
   .controller('AuthProfileCtrl', function (
-    $rootScope, $scope, $state, $auth, Party
+    $rootScope, $scope, $state, $auth, $uibModal, Party
   ) {
 
     //signal if its editing process
@@ -1007,13 +841,13 @@ angular
       //TODO show input prompt
       //TODO show loading mask
       $scope.party.$update().then(function (response) {
-          if (passwordChanged) {
-            //signout current party
-            return $auth.signout();
-          } else {
-            return response;
-          }
-        })
+        if (passwordChanged) {
+          //signout current party
+          return $auth.signout();
+        } else {
+          return response;
+        }
+      })
         .then(function (response) {
           response = response || {};
 
@@ -1046,19 +880,49 @@ angular
         //TODO comment
         response.pipelines =
           _.chain(response.pipelines)
-          .orderBy('label.weight', 'asc')
-          .map(function (pipeline) {
-            return _.merge({}, {
-              displayColor: _.get(pipeline, 'label.color',
-                '#4BC0C0') + '!important'
-            }, pipeline);
-          }).value();
+            .orderBy('label.weight', 'asc')
+            .map(function (pipeline) {
+              return _.merge({}, {
+                displayColor: _.get(pipeline, 'label.color',
+                  '#4BC0C0') + '!important'
+              }, pipeline);
+            }).value();
 
         response.leaderboard =
           _.orderBy(response.leaderboard, 'count', 'desc');
         console.log(response);
         $scope.performances = response;
       });
+    };
+
+
+    /**
+     * Open date filters for profile reports
+     */
+    $scope.showFilter = function () {
+
+      //open overview reports filter modal
+      $scope.modal = $uibModal.open({
+        templateUrl: 'views/auth/_partials/profile_filter.html',
+        scope: $scope,
+        size: 'lg',
+      });
+
+      //handle modal close and dismissed
+      $scope.modal.result.then(function onClose( /*selectedItem*/) { },
+        function onDismissed() { });
+
+    };
+
+    /**
+     * Filter profile reports based on on current selected filters
+     * @param {Boolean} [reset] whether to clear and reset filter
+     */
+    $scope.filter = function (reset) {
+
+      if (reset) {
+        //TODO clear filters
+      }
     };
 
     $scope.performance();
@@ -1667,7 +1531,6 @@ angular
       } catch (error) {}
 
       //prepare e-mail body
-      //TODO add internal notes & use template if possible
       var body = [
         'Hello,',
         '\n\n',
@@ -1702,7 +1565,100 @@ angular
         'Regards.'
       ].join('');
 
-      //TODO add internal notes
+      //add internal notes
+      var changelogs =
+        _.orderBy([].concat(issue.changelogs), 'createdAt', 'desc');
+      var notes = _.map(changelogs, function (changelog) {
+        var note = [];
+
+        //handle changelog
+        if (changelog.comment) {
+          note = note.concat([
+            changelog.changer.name,
+            ' on ',
+            $filter('date')(changelog.createdAt,
+              'dd MMM yyyy hh:mm:ss a'),
+            ': ',
+            'Write: ',
+            changelog.comment,
+          ].join(''));
+        }
+
+        //handle status
+        if (changelog.status) {
+          note = note.concat([
+            changelog.changer.name,
+            ' on ',
+            $filter('date')(changelog.createdAt,
+              'dd MMM yyyy hh:mm:ss a'),
+            ': ',
+            'Change status to ',
+            changelog.status.name,
+          ].join(''));
+        }
+
+        //handle priority
+        if (changelog.priority) {
+          note = note.concat([
+            changelog.changer.name,
+            ' on ',
+            $filter('date')(changelog.createdAt,
+              'dd MMM yyyy hh:mm:ss a'),
+            ': ',
+            'Change priority to ',
+            changelog.priority.name,
+          ].join(''));
+        }
+
+        //handle assignee
+        if (changelog.assignee) {
+          note = note.concat([
+            changelog.changer.name,
+            ' on ',
+            $filter('date')(changelog.createdAt,
+              'dd MMM yyyy hh:mm:ss a'),
+            ': ',
+            'Assignee to ',
+            changelog.assignee.name,
+          ].join(''));
+        }
+
+        //handle resolved
+        if (changelog.resolvedAt) {
+          note = note.concat([
+            changelog.changer.name,
+            ' on ',
+            $filter('date')(changelog.createdAt,
+              'dd MMM yyyy hh:mm:ss a'),
+            ': ',
+            'Change status to ',
+            'Resolved',
+          ].join(''));
+        }
+
+        //handle resolved
+        if (changelog.reopenedAt) {
+          note = note.concat([
+            changelog.changer.name,
+            ' on ',
+            $filter('date')(changelog.createdAt,
+              'dd MMM yyyy hh:mm:ss a'),
+            ': ',
+            'Change status to ',
+            'Reopened',
+          ].join(''));
+        }
+
+        note = _.filter(note, function (line) { return !_.isEmpty(line); });
+        note = note.length > 0 ? note.join(',\n') : undefined;
+        return note;
+
+      });
+
+      notes = _.compact(notes);
+
+      body = body + '\n\n' + 'Change Logs: ' + '\n\n' + notes.join(',\n');
+
       //TODO add a link to actual problem
 
       //prepare e-mail send option
@@ -2019,6 +1975,9 @@ angular
               lat: servicerequest.latitude,
               lng: servicerequest.longitude,
               zoom: 1
+            },
+            defaults: {
+              scrollWheelZoom: false
             }
           };
 
@@ -2127,6 +2086,7 @@ angular
         });
 
       }
+
     };
 
     $scope.changePriority = function (priority) {
@@ -2379,8 +2339,19 @@ angular
     };
 
     $scope.loadComment = function (servicerequest) {
-      $scope.comments =
+      var comments =
         _.orderBy($scope.servicerequest.changelogs, 'createdAt', 'desc');
+      comments = _.map(comments, function (comment) {
+        comment.color = undefined;
+        comment.color =
+          (comment.status ? comment.status.color : comment.color);
+        comment.color =
+          (comment.priority ? comment.priority.color : comment.color);
+        comment.color = comment.reopenedAt ? '#F44336' : comment.color;
+        comment.color = comment.resolvedAt ? '#4CAF50' : comment.color;
+        return comment;
+      });
+      $scope.comments = comments;
     };
 
     /**
@@ -5324,7 +5295,6 @@ angular
       $scope.prepareServiceGroupVisualization();
       $scope.prepareMethodVisualization();
       $scope.prepareWorkspaceVisualization();
-
     };
 
 
@@ -5351,7 +5321,7 @@ angular
             .overall.count) * 100,
         };
 
-        _.merge($scope.overviews.overall, $scope.overviews.overall,
+        $scope.overviews.overall = _.merge({}, $scope.overviews.overall,
           percentages);
 
       }
@@ -5554,7 +5524,6 @@ angular
 
       //ensure column
       column = column || 'count';
-
 
       //prepare chart series data
       var data = _.map($scope.overviews.groups, function (group) {
@@ -6839,7 +6808,7 @@ angular
             .overall.count) * 100,
         };
 
-        _.merge($scope.performances.overall, $scope.performances.overall,
+        $scope.performances.overall = _.merge({}, $scope.performances.overall,
           percentages);
       }
     };
@@ -7651,7 +7620,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   'use strict';
 
   $templateCache.put('views/_partials/aside.html',
-    " <div class=\"navside\" data-layout=\"column\"> <div class=\"navbar no-radius\"> <a title=\"{{ENV.title}} | {{ENV.description}}\" ui-sref=\"app.servicerequests.list\" class=\"navbar-brand\"> <img src=\"images/logo_sm.daaf6944.png\" alt=\".\" width=\"48\" class=\"m-t-sm\"> <span class=\"hidden-folded inline\">open311</span> </a> </div> <br> <div data-flex class=\"hide-scroll\"> <nav class=\"scroll nav-stacked nav-stacked-rounded nav-color\"> <ul class=\"nav\" data-ui-nav> <li class=\"nav-header hidden-folded\"> <span class=\"text-xs\">Main</span> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:view\"> <a ui-sref=\"app.servicerequests.list\" title=\"Issues & Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-chatbubble-working\"></i> </span> <span class=\"nav-text\">Issues</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:edit\"> <a ui-sref=\"app.create_servicerequests\" ui-sref-opts=\"{reload: true}\" title=\"Report New Issue or Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-plus-circled\"></i> </span> <span class=\"nav-text\">New Issue</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.overviews\" title=\"Overviews\"> <span class=\"nav-icon\"> <i class=\"ion-pie-graph\"></i> </span> <span class=\"nav-text\">Overviews</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.standings\" title=\"Standings\"> <span class=\"nav-icon\"> <i class=\"ion-arrow-graph-up-right\"></i> </span> <span class=\"nav-text\">Standings</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.performances\" title=\"Performances\"> <span class=\"nav-icon\"> <i class=\"ion-ios-pulse-strong\"></i> </span> <span class=\"nav-text\">Performances</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.exports\" title=\"Exports\"> <span class=\"nav-icon\"> <i class=\"ion-social-buffer\"></i> </span> <span class=\"nav-text\">Exports</span> </a> </li> <li show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\" ui-sref-active=\"active\"> <a ui-sref=\"app.manage.jurisdictions\" title=\"Manage System\"> <span class=\"nav-icon\"> <i class=\"ion-gear-a\"></i> </span> <span class=\"nav-text\">Manage</span> </a> </li> </ul> </nav> </div> <div data-flex-no-shrink> <div uib-dropdown class=\"nav-fold dropup\" title=\"{{party.name}}\"> <a uib-dropdown-toggle data-toggle=\"dropdown\"> <div class=\"pull-left\"> <div class=\"inline\"> <letter-avatar title=\"{{party.name}}\" data=\"{{party.name}}\" height=\"60\" width=\"60\" shape=\"round\" class=\"avatar w-40\"> </letter-avatar> </div> </div> </a> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a class=\"dropdown-item\" ui-sref=\"app.profile\" title=\"My Profile\"> <span>Profile</span> </a> <a ng-show=\"isAuthenticated\" ng-show=\"isAuthenticated\" data-signout title=\"Signout\" class=\"dropdown-item\" title=\"Signout\"> Sign out </a> </div> </div> </div> </div> "
+    " <div class=\"navside\" data-layout=\"column\"> <div class=\"navbar no-radius\"> <a title=\"{{ENV.title}} | {{ENV.description}}\" ui-sref=\"app.servicerequests.list\" class=\"navbar-brand\"> <img src=\"images/logo_sm.ba4da961.png\" alt=\".\" width=\"48\" class=\"m-t-sm\"> </a> </div> <br> <div data-flex class=\"hide-scroll\"> <nav class=\"scroll nav-stacked nav-stacked-rounded nav-color\"> <ul class=\"nav\" data-ui-nav> <li class=\"nav-header hidden-folded\"> <span class=\"text-xs\">Main</span> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:view\"> <a ui-sref=\"app.servicerequests.list\" title=\"Issues & Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-chatbubble-working\"></i> </span> <span class=\"nav-text\">Issues</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:edit\"> <a ui-sref=\"app.create_servicerequests\" ui-sref-opts=\"{reload: true}\" title=\"Report New Issue or Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-plus-circled\"></i> </span> <span class=\"nav-text\">New Issue</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.overviews\" title=\"Overviews\"> <span class=\"nav-icon\"> <i class=\"ion-pie-graph\"></i> </span> <span class=\"nav-text\">Overviews</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.standings\" title=\"Standings\"> <span class=\"nav-icon\"> <i class=\"ion-arrow-graph-up-right\"></i> </span> <span class=\"nav-text\">Standings</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.performances\" title=\"Performances\"> <span class=\"nav-icon\"> <i class=\"ion-ios-pulse-strong\"></i> </span> <span class=\"nav-text\">Performances</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.exports\" title=\"Exports\"> <span class=\"nav-icon\"> <i class=\"ion-social-buffer\"></i> </span> <span class=\"nav-text\">Exports</span> </a> </li> <li show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\" ui-sref-active=\"active\"> <a ui-sref=\"app.manage.jurisdictions\" title=\"Manage System\"> <span class=\"nav-icon\"> <i class=\"ion-gear-a\"></i> </span> <span class=\"nav-text\">Manage</span> </a> </li> </ul> </nav> </div> <div data-flex-no-shrink> <div uib-dropdown class=\"nav-fold dropup\" title=\"{{party.name}}\"> <a uib-dropdown-toggle data-toggle=\"dropdown\"> <div class=\"pull-left\"> <div class=\"inline\"> <letter-avatar title=\"{{party.name}}\" data=\"{{party.name}}\" height=\"60\" width=\"60\" shape=\"round\" class=\"avatar w-40\"> </letter-avatar> </div> </div> </a> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a class=\"dropdown-item\" ui-sref=\"app.profile\" title=\"My Profile\"> <span>Profile</span> </a> <a ng-show=\"isAuthenticated\" ng-show=\"isAuthenticated\" data-signout title=\"Signout\" class=\"dropdown-item\" title=\"Signout\"> Sign out </a> </div> </div> </div> </div> "
   );
 
 
@@ -7667,6 +7636,11 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
   $templateCache.put('views/app.html',
     " <div ng-include=\"'views/_partials/aside.html'\" class=\"app-aside fade nav-dropdown folded b-r\"></div> <div ui-view class=\"app-content\" role=\"main\"></div> "
+  );
+
+
+  $templateCache.put('views/auth/_partials/profile_filter.html',
+    "<div> <div class=\"modal-header\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$dismiss()\" aria-hidden=\"true\">×</button> <h4 class=\"modal-title\">Profile Reports - Filters</h4> </div> <div class=\"modal-body\"> <div class=\"container-fluid\"> <div class=\"row\"> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> From </h6> </div> <div pickadate ng-model=\"filters.startedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> To </h6> </div> <div pickadate ng-model=\"filters.endedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> </div> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" ng-click=\"$dismiss()\">Cancel</button> <button class=\"btn btn-primary\" ng-click=\"filter()\">Filter</button> </div> </div>"
   );
 
 
@@ -7695,28 +7669,13 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   );
 
 
-  $templateCache.put('views/auth/change.html',
-    " <div class=\"container\"> <div class=\"card card-signin\"> <img class=\"profile-img\" src=\"images/icon-96.1292dd0a.png\" alt=\"Logo\"> <p class=\"text-center mgn-t20\">Type your new password</p> <form ng-submit=\"change()\" class=\"mgn-t30\" role=\"form\" autocomplete=\"off\"> <div class=\"form-group\"> <label for=\"password\" class=\"sr-only\">Password</label> <input ng-model=\"user.password\" type=\"password\" id=\"password\" class=\"form-control input-lg\" placeholder=\"New password\" required> </div> <button class=\"btn btn-lg btn-misc btn-block\" type=\"submit\">Change</button> <br> <a ui-sref=\"app.home\" class=\"display-block text-center m-t-md fs-sm\">Continue to use current password</a> </form> </div> </div> "
-  );
-
-
-  $templateCache.put('views/auth/forgot.html',
-    " <div class=\"page-login-v3 layout-full\"> <div class=\"page animsition vertical-align text-center\"> <div class=\"page-content vertical-align-middle\"> <div class=\"panel\"> <div class=\"panel-body\"> <div class=\"brand margin-top-80 margin-bottom-40\"> <img src=\"images/logo_md.7144376c.png\" alt=\".\" width=\"84\"> </div> <p class=\"text-center font-size-12 margin-bottom-60 text-grey-700\">Enter your e-mail address below to reset your password</p> <form ng-submit=\"forgot()\" name=\"forgotForm\" role=\"form\" autocomplete=\"off\"> <div class=\"form-group form-material floating\"> <input type=\"email\" class=\"form-control\" name=\"email\" ng-model=\"user.email\" ng-required> <label class=\"floating-label\">Email</label> </div> <div class=\"form-group clearfix\"> <a class=\"pull-right text-blue-600\" ui-sref=\"signin\" title=\"Click to signin to your current account\"> Signin to your Account </a> </div> <button ng-disabled=\"forgotForm.$invalid || !user.email\" type=\"submit\" class=\"btn btn-primary btn-block btn-lg margin-top-40\">Submit</button> </form> </div> </div> </div> </div> </div> "
-  );
-
-
   $templateCache.put('views/auth/profile.html',
-    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Profile </div> </div> </div> <div class=\"app-body\"> <ng-include src=\"'views/auth/_partials/profile_summary.html'\"></ng-include> <ng-include ng-if=\"performances.works\" src=\"'views/auth/_partials/service_request_counts.html'\"></ng-include> <ng-include ng-if=\"performances.durations\" src=\"'views/auth/_partials/service_request_durations.html'\"></ng-include> <ng-include ng-if=\"performances.leaderboard\" src=\"'views/auth/_partials/service_request_leaderboard.html'\"></ng-include> </div> "
-  );
-
-
-  $templateCache.put('views/auth/recover.html',
-    " <div class=\"container\"> <div class=\"card card-signin\"> <img class=\"profile-img\" src=\"images/icon-96.1292dd0a.png\" alt=\"Logo\"> <p class=\"text-center mgn-t20\">Type your new password</p> <form ng-submit=\"recover()\" class=\"mgn-t30\" role=\"form\" autocomplete=\"off\"> <div class=\"form-group\"> <input ng-model=\"user.password\" type=\"password\" id=\"password\" class=\"form-control input-lg\" placeholder=\"Password\" required> </div> <button class=\"btn btn-lg btn-misc btn-block\" type=\"submit\">Submit</button> <br> <a ui-sref=\"signin\" class=\"display-block text-center m-t-md fs-sm\">Signin to your account</a> </form> </div> </div> "
+    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Profile </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <ng-include src=\"'views/auth/_partials/profile_summary.html'\"></ng-include> <ng-include ng-if=\"performances.works\" src=\"'views/auth/_partials/service_request_counts.html'\"></ng-include> <ng-include ng-if=\"performances.durations\" src=\"'views/auth/_partials/service_request_durations.html'\"></ng-include> <ng-include ng-if=\"performances.leaderboard\" src=\"'views/auth/_partials/service_request_leaderboard.html'\"></ng-include> </div> "
   );
 
 
   $templateCache.put('views/auth/signin.html',
-    " <div class=\"page-login-v3 layout-full\"> <div class=\"page animsition vertical-align text-center\"> <div class=\"page-content vertical-align-middle\"> <div class=\"panel\"> <div class=\"panel-body\"> <div class=\"brand margin-top-80 margin-bottom-60\"> <img src=\"images/logo_md.7144376c.png\" alt=\".\" width=\"84\"> </div> <form ng-submit=\"signin()\" name=\"signinForm\" role=\"form\" autocomplete=\"off\"> <div class=\"form-group form-material floating\"> <input type=\"email\" class=\"form-control\" name=\"email\" ng-model=\"user.email\" focus-if=\"!user.email\" ng-required> <label class=\"floating-label\">Email</label> </div> <div class=\"form-group form-material floating\"> <input type=\"password\" class=\"form-control\" name=\"password\" ng-model=\"user.password\" ng-required> <label class=\"floating-label\">Password</label> </div> <div class=\"form-group clearfix\"> <a class=\"pull-right text-blue-600\" href title=\"Click to request reset password\"> Forgot Password? </a> </div> <button ng-disabled=\"signinForm.$invalid || !user.email || !user.password\" type=\"submit\" class=\"btn btn-primary btn-block btn-lg\">Sign in</button> </form> </div> </div> </div> </div> </div> "
+    " <div class=\"b-t\"> <div class=\"center-block w-xxl w-auto-xs p-y-md text-center\"> <div class=\"p-a-md\"> <div class=\"brand m-t-lg m-b-lg\"> <img src=\"images/logo_md.ba4da961.png\" alt=\".\" width=\"84\"> </div> <form ng-submit=\"signin()\" name=\"signinForm\" role=\"form\" autocomplete=\"off\"> <div class=\"md-form-group float-label\"> <input class=\"md-input\" type=\"email\" name=\"email\" ng-model=\"user.email\" focus-if=\"!user.email\" ng-required title=\"Enter your email\"> <label>Email</label> </div> <div class=\"md-form-group float-label\"> <input class=\"md-input\" type=\"password\" name=\"password\" ng-model=\"user.password\" ng-required title=\"Enter your password\"> <label>Password</label> </div> <button ng-disabled=\"signinForm.$invalid || !user.email || !user.password\" type=\"submit\" class=\"btn btn-primary btn-block m-t-sm\"> Sign in </button> </form> </div> </div> </div> "
   );
 
 
@@ -7811,7 +7770,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/dashboards/overviews/_partials/jurisdictions_summary.html',
-    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Areas Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('jurisdictions')\" csv-header=\"exports.jurisdictions.headers\" filename=\"jurisdictions_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-5 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perJurisdictionConfig\" options=\"perJurisdictionOptions\"></echart> </div> </div> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareJurisdictionVisualization('count')\" title=\"Area\">Area</th> <th ng-click=\"prepareJurisdictionVisualization('count')\" title=\"Total Count of Service Requests\">Total</th> <th ng-click=\"prepareJurisdictionVisualization('pending')\" title=\"Total Count of Pending Service Requests\">Pending</th> <th ng-click=\"prepareJurisdictionVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\">Resolved</th> <th ng-click=\"prepareJurisdictionVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\">Late</th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\">Average Attend Time</th> <th title=\"Average Time Taken to a Resolve Service Request\">Average Resolve Time</th> </tr> </thead> <tbody> <tr ng-repeat=\"jurisdiction in overviews.jurisdictions\" ui-sref=\"app.performances({jurisdiction:jurisdiction,startedAt:filters.startedAt,endedAt:filters.endedAt})\"> <td title=\"{{jurisdiction.name}}\"> {{jurisdiction.name}} </td> <td title=\"{{jurisdiction.count | number:0}}\"> {{jurisdiction.count | number:0}} </td> <td title=\" {{jurisdiction.pending | number:0}}\"> {{jurisdiction.pending | number:0}} </td> <td title=\" {{jurisdiction.resolved | number:0}}\"> {{jurisdiction.resolved | number:0}} </td> <td title=\" {{jurisdiction.late | number:0}}\"> {{jurisdiction.late | number:0}} </td> <td> <span> {{jurisdiction.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{jurisdiction.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{jurisdiction.averageResolveTime.hours + (jurisdiction.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{jurisdiction.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Areas Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('jurisdictions')\" csv-header=\"exports.jurisdictions.headers\" filename=\"jurisdictions_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-5 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perJurisdictionConfig\" options=\"perJurisdictionOptions\"></echart> </div> </div> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareJurisdictionVisualization('count')\" title=\"Area\">Area</th> <th ng-click=\"prepareJurisdictionVisualization('count')\" title=\"Total Count of Service Requests\">Total</th> <th ng-click=\"prepareJurisdictionVisualization('pending')\" title=\"Total Count of Pending Service Requests\">Pending</th> <th ng-click=\"prepareJurisdictionVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\">Resolved</th> <th ng-click=\"prepareJurisdictionVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\">Late</th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\">Average Attend Time</th> <th title=\"Average Time Taken to a Resolve Service Request\">Average Resolve Time</th> </tr> </thead> <tbody> <tr ng-repeat=\"jurisdiction in overviews.jurisdictions\" ui-sref=\"app.performances({jurisdiction:jurisdiction,startedAt:filters.startedAt,endedAt:filters.endedAt})\"> <td title=\"{{jurisdiction.name}}\"> {{jurisdiction.name}} </td> <td title=\"{{jurisdiction.count | number:0}}\"> {{jurisdiction.count | number:0}} </td> <td title=\" {{jurisdiction.pending | number:0}}\"> {{jurisdiction.pending | number:0}} </td> <td title=\" {{jurisdiction.resolved | number:0}}\"> {{jurisdiction.resolved | number:0}} </td> <td title=\" {{jurisdiction.late | number:0}}\"> {{jurisdiction.late | number:0}} </td> <td> <span> {{jurisdiction.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{jurisdiction.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{jurisdiction.averageResolveTime.hours + (jurisdiction.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{jurisdiction.averageResolveTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
   );
 
 
@@ -7821,17 +7780,17 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/dashboards/overviews/_partials/overall_summary.html',
-    " <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Total Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{overviews.overall.count | number:0}} </h2> <p class=\"text-muted m-b-md\">Total</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Pending Service Requests\"> <div class=\"padding\"> <div> <span class=\"pull-right\" ng-class=\"overviews.overall.percentagePending <= 50 ? 'text-success' : 'text-danger'\">{{overviews.overall.percentagePending | number:2}}%</span> </div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{overviews.overall.pending | number:0}} </h2> <p class=\"text-muted m-b-md\">Pending</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Resolved Service Requests\"> <div class=\"padding\"> <div> <span class=\"pull-right\" ng-class=\"overviews.overall.percentageResolved >= 50 ? 'text-success' : 'text-danger'\">{{overviews.overall.percentageResolved | number:2}}%</span> </div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{overviews.overall.resolved | number:0}} </h2> <p class=\"text-muted m-b-md\">Resolved</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Late(Past SLA Time) Service Requests\"> <div class=\"padding\"> <div> <span class=\"pull-right\" ng-class=\"overviews.overall.percentageLate > 0 ? 'text-danger' : 'text-success'\">{{overviews.overall.percentageLate | number:2}}%</span> </div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{overviews.overall.late | number:0}} </h2> <p class=\"text-muted m-b-md\">Late</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Average Attend Time(Call Duration)\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average Attend Time(Call Duration) - Minutes Spent\"> {{overviews.overall.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span title=\"Average Attend Time(Call Duration) - Seconds Spent\"> {{overviews.overall.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </h2> <p class=\"text-muted m-b-md\">Avarage Attend Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-b\" title=\"Average resolve Time\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average resolve Time - Hourss Spent\"> {{overviews.overall.averageResolveTime.hours + (overviews.overall.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average resolve Time - Minutes Spent\"> {{overviews.overall.averageResolveTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </h2> <p class=\"text-muted m-b-md\">Avarage Resolve Time</p> </div> </div> </div> </div> "
+    " <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Total Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{overviews.overall.count | number:0}} </h2> <p class=\"text-muted m-b-md\">Total</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Pending Service Requests\"> <div class=\"padding\"> <div> <span class=\"pull-right\" ng-class=\"overviews.overall.percentagePending <= 50 ? 'text-success' : 'text-danger'\">{{overviews.overall.percentagePending | number:2}}%</span> </div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{overviews.overall.pending | number:0}} </h2> <p class=\"text-muted m-b-md\">Pending</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Resolved Service Requests\"> <div class=\"padding\"> <div> <span class=\"pull-right\" ng-class=\"overviews.overall.percentageResolved >= 50 ? 'text-success' : 'text-danger'\">{{overviews.overall.percentageResolved | number:2}}%</span> </div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{overviews.overall.resolved | number:0}} </h2> <p class=\"text-muted m-b-md\">Resolved</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Late(Past SLA Time) Service Requests\"> <div class=\"padding\"> <div> <span class=\"pull-right\" ng-class=\"overviews.overall.percentageLate > 0 ? 'text-danger' : 'text-success'\">{{overviews.overall.percentageLate | number:2}}%</span> </div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{overviews.overall.late | number:0}} </h2> <p class=\"text-muted m-b-md\">Late</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Average Attend Time(Call Duration)\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average Attend Time(Call Duration) - Minutes Spent\"> {{overviews.overall.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span title=\"Average Attend Time(Call Duration) - Seconds Spent\"> {{overviews.overall.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Attend Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-b\" title=\"Average resolve Time\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average resolve Time - Hourss Spent\"> {{overviews.overall.averageResolveTime.hours + (overviews.overall.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average resolve Time - Minutes Spent\"> {{overviews.overall.averageResolveTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Resolve Time</p> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/overviews/_partials/service_groups_summary.html',
-    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Service Groups Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('groups')\" csv-header=\"exports.groups.headers\" filename=\"service_groups_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceGroupVisualization('count')\" title=\"Area\"> Service Group </th> <th ng-click=\"prepareServiceGroupVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceGroupVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceGroupVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceGroupVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"group in overviews.groups\"> <td title=\"{{group.name}}\"> {{group.name}} </td> <td title=\"{{group.count | number:0}}\"> {{group.count | number:0}} </td> <td title=\" {{group.pending | number:0}}\"> {{group.pending | number:0}} </td> <td title=\" {{group.resolved | number:0}}\"> {{group.resolved | number:0}} </td> <td title=\" {{group.late | number:0}}\"> {{group.late | number:0}} </td> <td> <span> {{group.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{group.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{group.averageResolveTime.hours + (group.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{group.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> <div class=\"col-sm-5 b-l lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceGroupConfig\" options=\"perServiceGroupOptions\"></echart> </div> </div> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Service Groups Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('groups')\" csv-header=\"exports.groups.headers\" filename=\"service_groups_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceGroupVisualization('count')\" title=\"Area\"> Service Group </th> <th ng-click=\"prepareServiceGroupVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceGroupVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceGroupVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceGroupVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"group in overviews.groups\"> <td title=\"{{group.name}}\"> {{group.name}} </td> <td title=\"{{group.count | number:0}}\"> {{group.count | number:0}} </td> <td title=\" {{group.pending | number:0}}\"> {{group.pending | number:0}} </td> <td title=\" {{group.resolved | number:0}}\"> {{group.resolved | number:0}} </td> <td title=\" {{group.late | number:0}}\"> {{group.late | number:0}} </td> <td> <span> {{group.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{group.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{group.averageResolveTime.hours + (group.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{group.averageResolveTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> <div class=\"col-sm-5 b-l lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceGroupConfig\" options=\"perServiceGroupOptions\"></echart> </div> </div> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/overviews/_partials/services_summary.html',
-    " <div class=\"padding m-t-md m-b-lg\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Services Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-6 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceConfig\" options=\"perServiceOptions\"></echart> </div> </div> <div class=\"col-sm-6\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Area\">Service</th> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Total Count of Service Requests\">Total</th> <th ng-click=\"prepareServiceVisualization('pending')\" title=\"Total Count of Pending Service Requests\">Pending</th> <th ng-click=\"prepareServiceVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\">Resolved</th> <th ng-click=\"prepareServiceVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\">Late</th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\">Average Attend Time</th> <th title=\"Average Time Taken to a Resolve Service Request\">Average Resolve Time</th> </tr> </thead> <tbody> <tr ng-repeat=\"service in overviews.services\"> <td title=\"{{service.name}}\"> {{service.name}} </td> <td title=\"{{service.count | number:0}}\"> {{service.count | number:0}} </td> <td title=\" {{service.pending | number:0}}\"> {{service.pending | number:0}} </td> <td title=\" {{service.resolved | number:0}}\"> {{service.resolved | number:0}} </td> <td title=\" {{service.late | number:0}}\"> {{service.late | number:0}} </td> <td> <span> {{service.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{service.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{overviews.overall.averageResolveTime.hours + (overviews.overall.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{service.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md m-b-lg\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Services Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-6 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceConfig\" options=\"perServiceOptions\"></echart> </div> </div> <div class=\"col-sm-6\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Area\">Service</th> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Total Count of Service Requests\">Total</th> <th ng-click=\"prepareServiceVisualization('pending')\" title=\"Total Count of Pending Service Requests\">Pending</th> <th ng-click=\"prepareServiceVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\">Resolved</th> <th ng-click=\"prepareServiceVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\">Late</th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\">Average Attend Time</th> <th title=\"Average Time Taken to a Resolve Service Request\">Average Resolve Time</th> </tr> </thead> <tbody> <tr ng-repeat=\"service in overviews.services\"> <td title=\"{{service.name}}\"> {{service.name}} </td> <td title=\"{{service.count | number:0}}\"> {{service.count | number:0}} </td> <td title=\" {{service.pending | number:0}}\"> {{service.pending | number:0}} </td> <td title=\" {{service.resolved | number:0}}\"> {{service.resolved | number:0}} </td> <td title=\" {{service.late | number:0}}\"> {{service.late | number:0}} </td> <td> <span> {{service.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{service.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{service.averageResolveTime.hours + (service.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{service.averageResolveTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
   );
 
 
@@ -7985,7 +7944,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/servicerequests/_partials/comments.html',
-    " <div class=\"padding b-t\"> <h6 class=\"m-b\" title=\"Internal Notes & Comments\">Internal Notes</h6> <div class=\"p-a\"> <div print-hide ng-if=\"!servicerequest.resolvedAt\" class=\"p-a p-y-sm b-t b-b m-b\"> <form> <div class=\"input-group b-a b-transparent\"> <input ng-enter=\"comment()\" ng-model=\"note.content\" type=\"text\" class=\"form-control no-border font-size-12\" placeholder=\"Write your note\" id=\"internal-comment-box\"> <span class=\"input-group-btn\"> <button ng-click=\"comment()\" class=\"btn no-bg no-shadow\" type=\"button\"> <i class=\"fa fa-send text-success\"></i> </button> </span> </div> </form> </div> <div class=\"streamline m-b\"> <div class=\"sl-item\" ng-style=\"comment.status || comment.priority ? {'border-color': comment.status.color || comment.priority.color} : {}\" ng-repeat=\"comment in comments\"> <div class=\"sl-content\"> <div class=\"sl-date text-muted\"> <span class=\"text-info\"> {{comment.changer.name}} </span> on {{comment.createdAt | date:'dd MMM yyyy hh:mm:ss a'}}</div> <p ng-if=\"comment.comment\">{{comment.comment}}</p> <p ng-if=\"comment.status && comment.status.name\"> Change status to <span class=\"label success pos-rlt m-l-xs b-a-xs\" ng-style=\"comment.status ? {'background-color': comment.status.color} : {}\"> <b class=\"arrow left b-success pull-in\" ng-style=\"comment.status ? {'border-color': comment.status.color} : {}\"></b> {{comment.status.name}} </span> </p> <p ng-if=\"comment.priority && comment.priority.name\"> Change priority to <span class=\"label success pos-rlt m-l-xs b-a-xs\" ng-style=\"comment.priority ? {'background-color': comment.priority.color} : {}\"> <b class=\"arrow left b-success pull-in\" ng-style=\"comment.priority ? {'border-color': comment.priority.color} : {}\"></b> {{comment.priority.name}} </span> </p> <p ng-if=\"comment.assignee && comment.assignee.name\"> Assignee to {{comment.assignee.name}} </p> </div> </div> </div> </div> </div> "
+    " <div class=\"padding b-t\"> <h6 class=\"m-b\" title=\"Internal Notes & Comments\">Internal Notes</h6> <div class=\"p-a\"> <div print-hide ng-if=\"!servicerequest.resolvedAt\" class=\"p-a p-y-sm b-t b-b m-b\"> <form> <div class=\"input-group b-a b-transparent\"> <input ng-enter=\"comment()\" ng-model=\"note.content\" type=\"text\" class=\"form-control no-border font-size-12\" placeholder=\"Write your note\" id=\"internal-comment-box\"> <span class=\"input-group-btn\"> <button ng-click=\"comment()\" class=\"btn no-bg no-shadow\" type=\"button\"> <i class=\"fa fa-send text-success\"></i> </button> </span> </div> </form> </div> <div class=\"streamline m-b\"> <div class=\"sl-item\" ng-style=\"comment.color ? {'border-color': comment.color} : {}\" ng-repeat=\"comment in comments\"> <div class=\"sl-content\"> <div class=\"sl-date text-muted\"> <span class=\"text-info\"> {{comment.changer.name}} </span> on {{comment.createdAt | date:'dd MMM yyyy hh:mm:ss a'}}</div> <p ng-if=\"comment.comment\">{{comment.comment}}</p> <p ng-if=\"comment.status && comment.status.name\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" ng-style=\"comment.status ? {'background-color': comment.status.color} : {}\"> <b class=\"arrow left b-success pull-in\" ng-style=\"comment.status ? {'border-color': comment.status.color} : {}\"></b> {{comment.status.name}} </span> </p> <p ng-if=\"comment.priority && comment.priority.name\"> Change priority to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" ng-style=\"comment.priority ? {'background-color': comment.priority.color} : {}\"> <b class=\"arrow left b-success pull-in\" ng-style=\"comment.priority ? {'border-color': comment.priority.color} : {}\"></b> {{comment.priority.name}} </span> </p> <p ng-if=\"comment.assignee && comment.assignee.name\"> Assignee to {{comment.assignee.name}} </p> <p ng-if=\"comment.resolvedAt\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" style=\"background-color: #4CAF50\"> <b class=\"arrow left b-success pull-in\" style=\"border-color: #4CAF50\"></b> Resolved </span> </p> <p ng-if=\"comment.reopenedAt\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" style=\"background-color: #F44336\"> <b class=\"arrow left b-success pull-in\" style=\"border-color: #F44336\"></b> Reopened </span> </p> </div> </div> </div> </div> </div> "
   );
 
 
@@ -7997,7 +7956,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/servicerequests/_partials/detail.html',
-    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/servicerequests/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\" print-section> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <h4 class=\"_600\"> <span title=\"Issue Nature\"> {{servicerequest.service.name}} </span> - <span title=\"Issue Number\"> #{{servicerequest.code}} </span> <span class=\"pull-right font-size-14\"> <span title=\"Issue Group/Category\"> <span class=\"text-muted font-size-10\">Group</span> {{servicerequest.group.name}} </span> <br> <span title=\"Area Responsible\"> <span class=\"text-muted font-size-10\">Area</span> {{servicerequest.jurisdiction.name}} </span> <br> <span ng-if=\"servicerequest.jurisdiction.phone && servicerequest.jurisdiction.phone != 'N/A'\" title=\"Area Phone Number\"> <span class=\"text-muted font-size-10\">Phone</span> {{servicerequest.jurisdiction.phone}} </span> </span> </h4> <div class=\"p-y\"> <div title=\"Reporter Name\"> <span class=\"text-muted font-size-12\">From: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.name, {'reporter.name':servicerequest.reporter.name, resolvedAt:null, operator:servicerequest.operator})\">{{servicerequest.reporter.name}}</span> </div> <div title=\"Reporter Account Number\"> <span class=\"text-muted font-size-12\">Account #: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.account, {'reporter.account':servicerequest.reporter.account, resolvedAt:null, operator:servicerequest.operator})\">{{servicerequest.reporter.account}}</span> </div> <div title=\"Reporter Phone Number\"> <span class=\"text-muted font-size-12\">Phone #: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.phone, {'reporter.phone':servicerequest.reporter.phone, resolvedAt:null, operator:servicerequest.operator})\">{{servicerequest.reporter.phone}}</span> </div> <div title=\"Reporter Address\"> <span class=\"text-muted font-size-12\">Address: </span> <span>{{servicerequest.address}}</span> </div> <div title=\"Communication Method\"> <span class=\"text-muted font-size-12\">Method: </span> <span>{{servicerequest.method.name}}</span> </div> </div> <div class=\"p-y b-t\" ng-show=\"servicerequest.call.startedAt && servicerequest.call.endedAt\"> <span title=\"Call Start Time\"> <span class=\"text-muted font-size-12\"> Call Start: </span> <span class=\"font-size-12\">{{servicerequest.call.startedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span title=\"Call End Time\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Call End: </span> <span class=\"font-size-12\">{{servicerequest.call.endedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span title=\"Call Duration\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Call Duration: </span> <span class=\"font-size-12\">{{servicerequest.call.duration.human}}</span> </span> </div> <div class=\"p-b\" ng-class=\"{'p-y b-t':!servicerequest.call}\"> <span title=\"Date Issue Reported\"> <span class=\"text-muted font-size-12\">Reported: </span> <span class=\"font-size-12\">{{servicerequest.createdAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span ng-if=\"servicerequest.resolvedAt\" title=\"Date Issue Resolved\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Resolved: </span> <span class=\"font-size-12\">{{servicerequest.resolvedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span ng-if=\"servicerequest.resolvedAt\" title=\"Time Taken To Resolve\" class=\"p-l\"> <span class=\"text-muted font-size-12\">TTR: </span> <span class=\"font-size-12\"> {{servicerequest.ttr.human}} </span> </span> </div> <div class=\"p-y b-t\"> <span title=\"Operator Responsible\"> <span class=\"text-muted font-size-12\">Operator: </span> <span>{{servicerequest.operator.name}}</span> </span> <span title=\"Assignee\" uib-dropdown auto-close=\"outsideClick\" class=\"m-l\"> <span uib-dropdown-toggle class=\"text-muted font-size-12\">Assignee: </span> <span>{{servicerequest.assignee.name || 'N/A'}}</span> <div ng-if=\"!servicerequest.resolvedAt\" uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <ul class=\"list no-border p-b\"> <li class=\"list-item\" title=\"Type To Search Assignee\"> <input ng-change=\"onSearchAssignees()\" ng-model=\"search.party\" type=\"text\" class=\"form-control form-control-sm\" placeholder=\"Search Assignee ...\"> </li> <li class=\"list-item\" ng-repeat=\"assignee in assignees\" ng-click=\"assign(assignee)\"> <div class=\"list-body\"> <div> <a href=\"#\">{{assignee.name}}</a> </div> <small class=\"text-muted text-ellipsis\"> {{assignee.relation.type}} </small> </div> </li> </ul> </div> </span> <span ng-if=\"!servicerequest.resolvedAt\" uib-dropdown class=\"label primary m-l\" title=\"Status\" style=\"background-color:{{servicerequest.status.color}}\"> <span uib-dropdown-toggle class=\"font-size-12 text-white\">Status: {{servicerequest.status.name}} </span> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a ng-repeat=\"status in statuses\" ng-click=\"changeStatus(status)\" class=\"dropdown-item\" href=\"#\" title=\"Status - {{status.name}}\"> <span>{{status.name}}</span> </a> </div> </span> <span ng-if=\"!servicerequest.resolvedAt\" uib-dropdown class=\"label danger m-l\" title=\"Priority\" style=\"background-color:{{servicerequest.priority.color}}\"> <span uib-dropdown-toggle class=\"font-size-12 text-white\">Priority: {{servicerequest.priority.name}}</span> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a ng-repeat=\"priority in priorities\" ng-click=\"changePriority(priority)\" class=\"dropdown-item\" href=\"#\" title=\"Priority {{priority.name}}\"> <span>{{priority.name}}</span> </a> </div> </span> <span ng-if=\"servicerequest.resolvedAt\" class=\"label danger m-l\" style=\"background-color: #4CAF50\"> <span class=\"font-size-12 text-white\">Resolved</span> </span> </div> </div> <div class=\"padding b-t\"> <h6 class=\"m-b\" title=\"Issue Description\">Description</h6> <p class=\"text-lt\"> {{servicerequest.description}} </p> <p>&nbsp;</p> </div> <div class=\"padding b-t\" ng-show=\"servicerequest.longitude && servicerequest.latitude\"> <h6 class=\"m-b\" title=\"Issue Map\">Map</h6> <leaflet id=\"servicerequest-map\" center=\"map.center\" markers=\"map.markers\" bounds=\"map.bounds\" height=\"280px\" width=\"100%\"></leaflet> <p>&nbsp;</p> </div> <div class=\"padding b-t\" ng-show=\"servicerequest.attachments && servicerequest.attachments.length > 0\"> <h6 class=\"m-b\" title=\"Issue Attachements\">Attachments</h6> <ng-gallery images=\"servicerequest.attachments\"></ng-gallery> </div> <div ng-include=\"'views/servicerequests/_partials/comments.html'\"></div> </div> </div> </div> </div> "
+    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/servicerequests/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\" print-section> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <h4 class=\"_600\"> <span title=\"Issue Nature\"> {{servicerequest.service.name}} </span> - <span title=\"Issue Number\"> #{{servicerequest.code}} </span> <span class=\"pull-right font-size-14\"> <span title=\"Issue Group/Category\"> <span class=\"text-muted font-size-10\">Group</span> {{servicerequest.group.name}} </span> <br> <span title=\"Area Responsible\"> <span class=\"text-muted font-size-10\">Area</span> {{servicerequest.jurisdiction.name}} </span> <br> <span ng-if=\"servicerequest.jurisdiction.phone && servicerequest.jurisdiction.phone != 'N/A'\" title=\"Area Phone Number\"> <span class=\"text-muted font-size-10\">Phone</span> {{servicerequest.jurisdiction.phone}} </span> </span> </h4> <div class=\"p-y\"> <div title=\"Reporter Name\"> <span class=\"text-muted font-size-12\">From: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.name, {'reporter.name':servicerequest.reporter.name, resolvedAt:null, operator:servicerequest.operator})\">{{servicerequest.reporter.name}}</span> </div> <div title=\"Reporter Account Number\"> <span class=\"text-muted font-size-12\">Account #: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.account, {'reporter.account':servicerequest.reporter.account, resolvedAt:null, operator:servicerequest.operator})\">{{servicerequest.reporter.account}}</span> </div> <div title=\"Reporter Phone Number\"> <span class=\"text-muted font-size-12\">Phone #: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.phone, {'reporter.phone':servicerequest.reporter.phone, resolvedAt:null, operator:servicerequest.operator})\">{{servicerequest.reporter.phone}}</span> </div> <div title=\"Reporter Address\"> <span class=\"text-muted font-size-12\">Address: </span> <span>{{servicerequest.address}}</span> </div> <div title=\"Communication Method\"> <span class=\"text-muted font-size-12\">Method: </span> <span>{{servicerequest.method.name}}</span> </div> </div> <div class=\"p-y b-t\" ng-show=\"servicerequest.call.startedAt && servicerequest.call.endedAt\"> <span title=\"Call Start Time\"> <span class=\"text-muted font-size-12\"> Call Start: </span> <span class=\"font-size-12\">{{servicerequest.call.startedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span title=\"Call End Time\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Call End: </span> <span class=\"font-size-12\">{{servicerequest.call.endedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span title=\"Call Duration\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Call Duration: </span> <span class=\"font-size-12\">{{servicerequest.call.duration.human}}</span> </span> </div> <div class=\"p-b\" ng-class=\"{'p-y b-t':!servicerequest.call}\"> <span title=\"Date Issue Reported\"> <span class=\"text-muted font-size-12\">Reported: </span> <span class=\"font-size-12\">{{servicerequest.createdAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span ng-if=\"servicerequest.resolvedAt\" title=\"Date Issue Resolved\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Resolved: </span> <span class=\"font-size-12\">{{servicerequest.resolvedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span ng-if=\"servicerequest.resolvedAt\" title=\"Time Taken To Resolve\" class=\"p-l\"> <span class=\"text-muted font-size-12\">TTR: </span> <span class=\"font-size-12\"> {{servicerequest.ttr.human}} </span> </span> </div> <div class=\"p-y b-t\"> <span title=\"Operator Responsible\"> <span class=\"text-muted font-size-12\">Operator: </span> <span>{{servicerequest.operator.name}}</span> </span> <span title=\"Assignee\" uib-dropdown auto-close=\"outsideClick\" class=\"m-l\"> <span uib-dropdown-toggle class=\"text-muted font-size-12\">Assignee: </span> <span>{{servicerequest.assignee.name || 'N/A'}}</span> <div ng-if=\"!servicerequest.resolvedAt\" uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <ul class=\"list no-border p-b\"> <li class=\"list-item\" title=\"Type To Search Assignee\"> <input ng-change=\"onSearchAssignees()\" ng-model=\"search.party\" type=\"text\" class=\"form-control form-control-sm\" placeholder=\"Search Assignee ...\"> </li> <li class=\"list-item\" ng-repeat=\"assignee in assignees\" ng-click=\"assign(assignee)\"> <div class=\"list-body\"> <div> <a href=\"#\">{{assignee.name}}</a> </div> <small class=\"text-muted text-ellipsis\"> {{assignee.relation.type}} </small> </div> </li> </ul> </div> </span> <span ng-if=\"!servicerequest.resolvedAt\" uib-dropdown class=\"label primary m-l\" title=\"Status\" style=\"background-color:{{servicerequest.status.color}}\"> <span uib-dropdown-toggle class=\"font-size-12 text-white\">Status: {{servicerequest.status.name}} </span> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a ng-repeat=\"status in statuses\" ng-click=\"changeStatus(status)\" class=\"dropdown-item\" href=\"#\" title=\"Status - {{status.name}}\"> <span>{{status.name}}</span> </a> </div> </span> <span ng-if=\"!servicerequest.resolvedAt\" uib-dropdown class=\"label danger m-l\" title=\"Priority\" style=\"background-color:{{servicerequest.priority.color}}\"> <span uib-dropdown-toggle class=\"font-size-12 text-white\">Priority: {{servicerequest.priority.name}}</span> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a ng-repeat=\"priority in priorities\" ng-click=\"changePriority(priority)\" class=\"dropdown-item\" href=\"#\" title=\"Priority {{priority.name}}\"> <span>{{priority.name}}</span> </a> </div> </span> <span ng-if=\"servicerequest.resolvedAt\" class=\"label danger m-l\" style=\"background-color: #4CAF50\"> <span class=\"font-size-12 text-white\">Resolved</span> </span> </div> </div> <div class=\"padding b-t\"> <h6 class=\"m-b\" title=\"Issue Description\">Description</h6> <p class=\"text-lt\"> {{servicerequest.description}} </p> <p>&nbsp;</p> </div> <div class=\"padding b-t\" ng-show=\"servicerequest.longitude && servicerequest.latitude\"> <h6 class=\"m-b\" title=\"Issue Map\">Map</h6> <leaflet id=\"servicerequest-map\" center=\"map.center\" markers=\"map.markers\" bounds=\"map.bounds\" defaults=\"map.defaults\" height=\"280px\" width=\"100%\"></leaflet> <p>&nbsp;</p> </div> <div class=\"padding b-t\" ng-show=\"servicerequest.attachments && servicerequest.attachments.length > 0\"> <h6 class=\"m-b\" title=\"Issue Attachements\">Attachments</h6> <ng-gallery images=\"servicerequest.attachments\"></ng-gallery> </div> <div ng-include=\"'views/servicerequests/_partials/comments.html'\"></div> </div> </div> </div> </div> "
   );
 
 
