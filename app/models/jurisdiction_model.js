@@ -26,7 +26,7 @@
 
 
 //dependencies
-const { Jurisdiction } = require('@codetanzania/majifix-jurisdiction')
+const { Jurisdiction } = require('@codetanzania/majifix-jurisdiction');
 
 
 /**

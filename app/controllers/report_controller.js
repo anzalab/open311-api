@@ -215,25 +215,47 @@ module.exports = {
         return {
           'Ticket Number': serviceRequest.code,
           'Reported Date': moment(serviceRequest.createdAt).toISOString(),
+          'Reported Day': moment(serviceRequest.createdAt).format(
+            'DD-MM-YYYY'),
+          'Reported Time': moment(serviceRequest.createdAt).format(
+            'HH:mm:ss'),
           'Reporter Name': _.get(serviceRequest, 'reporter.name', ''),
           'Reporter Phone': _.get(serviceRequest, 'reporter.phone', ''),
           'Reporter Account': _.get(serviceRequest, 'reporter.account',
             ''),
-          'Operator': _.get(serviceRequest, 'operator.name', 'Un-Attended'),
+          'Operator': _.get(serviceRequest, 'operator.name',
+            'Un-Attended'),
           'Area': _.get(serviceRequest, 'jurisdiction.name', ''),
           'Service Group': _.get(serviceRequest, 'group.name', ''),
           'Service': _.get(serviceRequest, 'service.name', ''),
-          'Description': serviceRequest.description,
-          'Address': serviceRequest.address,
           'Status': _.get(serviceRequest, 'status.name', ''),
           'Priority': _.get(serviceRequest, 'priority.name', ''),
           'Assignee': _.get(serviceRequest, 'assignee.name', ''),
           'Resolved Date': serviceRequest.resolvedAt ? moment(
             serviceRequest.resolvedAt).toISOString() : '',
+          'Resolved Day': serviceRequest.resolvedAt ? moment(
+            serviceRequest.resolvedAt).format(
+            'DD-MM-YYYY') : '',
+          'Resolved Time': serviceRequest.resolvedAt ? moment(
+            serviceRequest.resolvedAt).format(
+            'HH:mm:ss') : '',
+          'Re-Opened Date': serviceRequest.reopenedAt ? moment(
+            serviceRequest.reopenedAt).toISOString() : '',
+          'Re-Opened Day': serviceRequest.reopenedAt ? moment(
+            serviceRequest.reopenedAt).format(
+            'DD-MM-YYYY') : '',
+          'Re-Opened Time': serviceRequest.reopenedAt ? moment(
+            serviceRequest.reopenedAt).format(
+            'HH:mm:ss') : '',
           'Updated Date': serviceRequest.updatedAt ? moment(
             serviceRequest.updatedAt).toISOString() : '',
           'Contact Method': _.get(serviceRequest, 'method.name', ''),
-          'Workspace': _.get(serviceRequest, 'method.workspace', '')
+          'Workspace': _.get(serviceRequest, 'method.workspace', ''),
+          'Longitude': (serviceRequest.longitude || 0),
+          'Latitude': (serviceRequest.latitude || 0),
+          'Address': (serviceRequest.address || '').replace(/,/g, ';'),
+          'Description': (serviceRequest.description || '').replace(
+            /,/g, ';'),
         };
 
       }))

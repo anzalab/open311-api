@@ -44,7 +44,7 @@
     "url": "https://github.com/CodeTanzania/open311-api/"
   },
   "scripts": {
-    "drop": "node scripts/drop.js",
+    "dev": "NODE_ENV=development node server.js",
     "test": "grunt modelsspec",
     "start": "pm2 start production.json",
     "stop": "pm2 stop production.json",

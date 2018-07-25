@@ -2,7 +2,10 @@
 var conn = new Mongo();
 var db = conn.getDB('open311');
 
+
 //drop unused indexes
+db.jurisdictions.dropIndex('code_1');
+db.jurisdictions.dropIndex('name_1');
 db.jurisdictions.dropIndex('domain_1');
 db.jurisdictions.dropIndex('location_2dsphere');
 db.jurisdictions.dropIndex('boundaries_2dsphere');
