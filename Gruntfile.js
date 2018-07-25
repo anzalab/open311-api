@@ -135,15 +135,9 @@ module.exports = function (grunt) {
           'worker.js',
           '<%= project.app %>/**/*.js',
           '<%= project.appConfig %>/**/*.js',
-          '<%= project.appSeeds %>/**/*.js',
-          '!<%= project.scripts %>/**/*.js'
+          '<%= project.appSeeds %>/**/*.js'
         ]
       },
-      // scripts: {
-      //   src: [
-      //     '<%= project.scripts %>/**/*.js'
-      //   ]
-      // },
       test: {
         options: {
           jshintrc: '<%= project.test %>/.jshintrc'

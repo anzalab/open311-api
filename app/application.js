@@ -48,7 +48,6 @@ const mkdir = require('mkdir-p');
 const express = require('express');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
-const expressWinston = require('express-winston');
 const cors = require('cors');
 const helmet = require('helmet');
 const respond = require('express-respond');
@@ -69,9 +68,10 @@ mkdir.sync(logPath);
 
 //setup winston application logger
 let winston = require('winston');
-winston.add(require('winston-daily-rotate-file'), {
+require('winston-daily-rotate-file');
+winston.add(new(winston.transports.DailyRotateFile)({
   filename: path.join(logPath, 'log.log')
-});
+}));
 winston.level = 'silly';
 
 //setup application mongoose instance
@@ -134,14 +134,6 @@ app.use(methodOverride('_method'));
 app.use(require('express-mquery').middleware({ limit: 10, maxLimit: 1000 }));
 
 
-//setup application request logger
-if (!environment.isLocal()) {
-  app.use(expressWinston.logger({
-    winstonInstance: winston
-  }));
-}
-
-
 //bind settings loader middleware
 app.use(require(path.join(__dirname, 'middlewares', 'settings')));
 app.use(require(path.join(__dirname, 'middlewares', 'preloader')));
@@ -157,14 +149,6 @@ require('require-all')({
     app.use(router);
   }
 });
-
-
-//setup application request error logger
-if (!environment.isLocal()) {
-  app.use(expressWinston.errorLogger({
-    winstonInstance: winston
-  }));
-}
 
 
 // catch 404 and forward to error handler
@@ -183,6 +167,7 @@ if (environment.isLocal()) {
   app.use(function (error, request, response, next) {
 
     //log all errors
+    console.log(error);
     winston.error(error);
 
     //respond
@@ -203,6 +188,7 @@ if (environment.isProd()) {
   app.use(function (error, request, response, next) {
 
     //log all errors
+    console.log(error);
     winston.error(error);
 
     //respond

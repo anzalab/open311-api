@@ -21,7 +21,7 @@ const Status = mongoose.model('Status');
 const JWT = require(path.join(__dirname, '..', 'libs', 'jwt'));
 
 //TODO refactor out reports to report controller
-//TODO export /me to be able to refresh current request party profile 
+//TODO export /me to be able to refresh current request party profile
 
 module.exports = {
   /**
@@ -106,6 +106,7 @@ module.exports = {
 
         ],
         function done(error, result) {
+
           //fail to authenticate party
           //return error message
           if (error) {
@@ -116,7 +117,7 @@ module.exports = {
           }
 
           //party authenticated successfully
-          //token generated successfully 
+          //token generated successfully
           else {
             response.ok({
               success: true,
