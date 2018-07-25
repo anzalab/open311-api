@@ -69,7 +69,6 @@ const Media = require(path.join(schemaPath, 'media_schema'));
 const Duration = require(path.join(schemaPath, 'duration_schema'));
 const Call = require(path.join(schemaPath, 'call_schema'));
 const Reporter = require(path.join(schemaPath, 'reporter_schema'));
-const ChangeLog = require(path.join(schemaPath, 'changelog_schema'));
 const ContactMethod = require(path.join(schemaPath, 'contact_method_schema'));
 
 
@@ -101,7 +100,8 @@ const ServiceRequestSchema = new Schema({
     index: true,
     exists: true,
     autopopulate: {
-      select: 'code name phone email domain'
+      select: 'code name phone email domain',
+      maxDepth: 1
     }
   },
 
@@ -122,7 +122,8 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'code name color'
+      select: 'code name color',
+      maxDepth: 1
     }
   },
 
@@ -144,7 +145,8 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'code name color group isExternal' // remove group?
+      select: 'code name color group isExternal', // remove group?
+      maxDepth: 1
     }
   },
 
@@ -197,7 +199,8 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'name email phone avatar'
+      select: 'name email phone avatar',
+      maxDepth: 1
     }
   },
 
@@ -223,7 +226,8 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     autopopulate: {
-      select: 'name email phone'
+      select: 'name email phone',
+      maxDepth: 1
     }
   },
 
@@ -334,7 +338,9 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     index: true,
-    autopopulate: true
+    autopopulate: {
+      maxDepth: 1
+    }
   },
 
 
@@ -356,7 +362,9 @@ const ServiceRequestSchema = new Schema({
     autoset: true,
     exists: true,
     index: true,
-    autopopulate: true
+    autopopulate: {
+      maxDepth: 1
+    }
   },
 
 
@@ -408,6 +416,20 @@ const ServiceRequestSchema = new Schema({
 
 
   /**
+   * @name reopenedAt
+   * @description A time when the issue was reopened
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  reopenedAt: {
+    type: Date,
+    index: true
+  },
+
+
+  /**
    * @name ttr
    * @description A time taken to resolve the issue(service request) in duration format.
    *
@@ -429,12 +451,11 @@ const ServiceRequestSchema = new Schema({
    * @name changelogs
    * @description Associated change(s) on service request(issue)
    * @type {Array}
-   * @see {@link ChangeLogSchema}
+   * @see {@link ChangeLog}
    * @private
    * @since 0.1.0
    * @version 0.1.0
    */
-  changelogs: [ChangeLog]
 
 }, { timestamps: true, emitIndexErrors: true });
 
@@ -446,6 +467,8 @@ const ServiceRequestSchema = new Schema({
 
 //ensure `2dsphere` on service request location
 ServiceRequestSchema.index({ location: '2dsphere' });
+ServiceRequestSchema.index({ createdAt: 1 });
+ServiceRequestSchema.index({ updatedAt: 1 });
 
 
 //-----------------------------------------------------------------------------
@@ -476,6 +499,21 @@ ServiceRequestSchema.virtual('longitude').get(function () {
 ServiceRequestSchema.virtual('latitude').get(function () {
   return this.location && this.location.coordinates ?
     this.location.coordinates[1] : 0;
+});
+
+
+/**
+ * @name changelogs
+ * @description obtain service request(issue) changelogs
+ * @type {Object}
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+ServiceRequestSchema.virtual('changelogs', {
+  ref: 'ChangeLog',
+  localField: '_id',
+  foreignField: 'request',
+  autopopulate: true
 });
 
 
@@ -755,15 +793,15 @@ ServiceRequestSchema.pre('validate', function (next) {
         this.priority = (this.priority || result.priority || undefined);
 
         //ensure open status changelog
-        if (_.isEmpty(this.changelogs)) {
-          this.changelogs = [{
-            createdAt: new Date(),
-            status: this.status,
-            priority: this.priority,
-            changer: this.operator,
-            visibility: ChangeLog.VISIBILITY_PUBLIC
-          }];
-        }
+        // if (_.isEmpty(this.changelogs)) {
+        //   this.changelogs = [{
+        //     createdAt: new Date(),
+        //     status: this.status,
+        //     priority: this.priority,
+        //     changer: this.operator,
+        //     visibility: ChangeLog.VISIBILITY_PUBLIC
+        //   }];
+        // }
 
         //set service request code
         //in format (Area Code Service Code Year Sequence)
@@ -798,15 +836,15 @@ ServiceRequestSchema.pre('validate', function (next) {
   else {
 
     //ensure open status changelog
-    if (_.isEmpty(this.changelogs)) {
-      this.changelogs = [{
-        createdAt: new Date(),
-        status: this.status,
-        priority: this.priority,
-        changer: this.operator,
-        visibility: ChangeLog.VISIBILITY_PUBLIC
-      }];
-    }
+    // if (_.isEmpty(this.changelogs)) {
+    //   this.changelogs = [{
+    //     createdAt: new Date(),
+    //     status: this.status,
+    //     priority: this.priority,
+    //     changer: this.operator,
+    //     visibility: ChangeLog.VISIBILITY_PUBLIC
+    //   }];
+    // }
 
     return next(null, this);
   }
@@ -830,7 +868,6 @@ ServiceRequestSchema.statics.CONTACT_METHOD_EMAIL = ContactMethod.EMAIL;
 ServiceRequestSchema.statics.CONTACT_METHOD_MOBILE_APP =
   ContactMethod.MOBILE_APP;
 ServiceRequestSchema.statics.CONTACT_METHODS = ContactMethod.METHODS;
-
 
 
 //-----------------------------------------------------------------------------

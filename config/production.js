@@ -73,7 +73,7 @@ module.exports = {
    * @description application phone number
    * @type {String}
    */
-  phone: process.env.APP_PHONE || '255714095061',
+  phone: process.env.APP_PHONE || '0800110023',
 
 
   /**
@@ -131,7 +131,7 @@ module.exports = {
    * @type {Object}
    */
   counter: {
-    prefix: 'P',
+    prefix: '',
     suffix: ''
   },
 
@@ -253,14 +253,14 @@ module.exports = {
     timeout: 5000,
     prefix: 'open311',
     fake: false,
-    sync: process.env.INFOBIP_SYNC || true,
-    from: process.env.INFOBIP_FROM || 'DAWASCO',
-    username: process.env.INFOBIP_USERNAME || 'DAWASCO311',
-    password: process.env.INFOBIP_PASSWORD || 'DAWASCO311',
+    sync: process.env.INFOBIP_SYNC || false,
+    from: process.env.INFOBIP_FROM || 'MWAUWASA',
+    username: process.env.INFOBIP_USERNAME || 'MWAUWASATZ',
+    password: process.env.INFOBIP_PASSWORD || 'Alena2014',
     templates: {
       ticket: {
-        open: 'Dear customer. Your ticket # is {ticket}. You have reported {service}. Call {phone} for more support. Thanks.',
-        resolve: 'Dear customer. Your issue # - {ticket} has been resolved. Call {phone} for confirmation. Thanks.'
+        open: 'Ndugu mteja, tiketi namba ya tatizo uliloripoti ni {ticket}. Piga {phone} kwa ufatiliaji. Ahsante.',
+        resolve: 'Ndugu mteja, tatizo lako namba {ticket} uliloripoti limeshafanyiwa kazi. Piga {phone} kwa msaada zaidi. Ahsante.'
       }
     }
   }

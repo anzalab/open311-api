@@ -98,9 +98,7 @@ mongoose.plugin(mongooseRunInBackground, mongooseKueOptions);
 
 
 //require external models
-require('open311-messages')(_.merge({}, {
-  mongoose: mongoose
-}, conf.get('infobip'))); //initialize message models
+require('open311-messages')(_.merge({}, mongooseKueOptions, conf.get('infobip'))); //initialize message models
 
 
 // load all models recursively

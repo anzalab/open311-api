@@ -118,7 +118,7 @@ module.exports = function (grunt) {
     //------------------------------------------------------------
     //js hint task configuration
     //------------------------------------------------------------
-    // Make sure code styles are up to par and 
+    // Make sure code styles are up to par and
     // there are no obvious mistakes
     jshint: {
       options: {
@@ -136,11 +136,6 @@ module.exports = function (grunt) {
           '<%= project.app %>/**/*.js',
           '<%= project.appConfig %>/**/*.js',
           '<%= project.appSeeds %>/**/*.js'
-        ]
-      },
-      scripts: {
-        src: [
-          '<%= project.scripts %>/**/*.js'
         ]
       },
       test: {
