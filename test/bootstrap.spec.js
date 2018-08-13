@@ -1,9 +1,11 @@
 'use strict';
 
-//set environment to test
+
+/* set environment to test */
 process.env.NODE_ENV = 'test';
 
-//dependencies
+
+/* dependencies */
 const path = require('path');
 const async = require('async');
 const faker = require('faker');
@@ -12,38 +14,27 @@ require(path.join(__dirname, '..', 'app', 'application'));
 const JWT = require(path.join(__dirname, '..', 'app', 'libs', 'jwt'));
 const Party = mongoose.model('Party');
 
-//enable mongoose query debug(log)
+
+/* enable mongoose query debug(log) */
 // mongoose.set('debug', true);
 
-/**
- * @description wipe all mongoose model data and drop all indexes
- */
-function wipe(done) {
-  const cleanups = mongoose.modelNames()
-    .map(function (modelName) {
-      //grab mongoose model
-      return mongoose.model(modelName);
-    })
-    .map(function (Model) {
-      return async.series.bind(null, [
-        //clean up all model data
-        Model.remove.bind(Model),
-        //drop all indexes
-        Model.collection.dropAllIndexes.bind(Model.collection)
-      ]);
-    });
 
-  //run all clean ups parallel
-  async.parallel(cleanups, function (error) {
-    if (error && error.message !== 'ns not found') {
-      done(error);
-    } else {
-      done(null);
-    }
-  });
+/* wipe test database */
+function wipe(done) {
+  if (mongoose.connection && mongoose.connection.dropDatabase) {
+    mongoose.connection.dropDatabase(done);
+  } else {
+    done();
+  }
 }
 
-//setup party and jwt token
+/* setup initial environment */
+after(function (done) {
+  wipe(done);
+});
+
+
+/* setup party and jwt token */
 before(function (done) {
 
   async.waterfall([
@@ -82,8 +73,8 @@ before(function (done) {
 
 });
 
-// restore initial environment
+
+/* restore initial environment */
 after(function (done) {
-  // mongoose.connection.dropDatabase(done);
   wipe(done);
 });
