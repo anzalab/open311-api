@@ -23,6 +23,12 @@ module.exports = {
         if (error) {
           next(error);
         } else {
+          //map to legacy api
+          results.priorities =
+            _.map(results.priorities, function (priority) {
+              priority.name = priority.name.en;
+              return priority;
+            });
           response.ok(results);
         }
       });
@@ -37,8 +43,12 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   create: function (request, response, next) {
+    //support legacy
+    let body = request.body;
+    body = _.merge({}, body, { name: { en: body.name } });
+
     Priority
-      .create(request.body, function (error, priority) {
+      .create(body, function (error, priority) {
         if (error) {
           next(error);
         } else {
@@ -61,6 +71,8 @@ module.exports = {
         if (error) {
           next(error);
         } else {
+          //support legacy
+          priority.name = priority.name.en;
           response.ok(priority);
         }
       });
@@ -75,10 +87,14 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   update: function (request, response, next) {
+    //support legacy
+    let body = request.body;
+    body = _.merge({}, body, { name: { en: body.name } });
+
     Priority
       .findByIdAndUpdate(
         request.params.id,
-        request.body, {
+        body, {
           upsert: true,
           new: true
         },
