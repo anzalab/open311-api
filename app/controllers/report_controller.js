@@ -229,7 +229,7 @@ module.exports = {
           'Service Group': _.get(serviceRequest, 'group.name', ''),
           'Service': _.get(serviceRequest, 'service.name', ''),
           'Status': _.get(serviceRequest, 'status.name', ''),
-          'Priority': _.get(serviceRequest, 'priority.name', ''),
+          'Priority': _.get(serviceRequest, 'priority.name.en', ''),
           'Assignee': _.get(serviceRequest, 'assignee.name', ''),
           'Resolved Date': serviceRequest.resolvedAt ? moment(
             serviceRequest.resolvedAt).toISOString() : '',

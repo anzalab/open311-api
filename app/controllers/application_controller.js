@@ -368,7 +368,20 @@ module.exports = {
       },
 
       priorities: function (next) { //fetch priorities
-        Priority.list(request, next);
+        Priority.list(request, function (error, results) {
+          if (error) {
+            next(error);
+          } else {
+            //support legacy
+            results.priorities =
+              _.map(results.priorities, function (priority) {
+                const _priority = priority.toObject();
+                _priority.name = priority.name.en;
+                return _priority;
+              });
+            next(null, results);
+          }
+        });
       },
 
       statuses: function (next) { //fetch statuses

@@ -1,6 +1,7 @@
 'use strict';
 
 //dependencies
+const _ = require('lodash');
 const mongoose = require('mongoose');
 const Priority = mongoose.model('Priority');
 
@@ -26,8 +27,9 @@ module.exports = {
           //map to legacy api
           results.priorities =
             _.map(results.priorities, function (priority) {
-              priority.name = priority.name.en;
-              return priority;
+              const _priority = priority.toObject();
+              _priority.name = priority.name.en;
+              return _priority;
             });
           response.ok(results);
         }
@@ -52,7 +54,10 @@ module.exports = {
         if (error) {
           next(error);
         } else {
-          response.created(priority);
+          //support legacy
+          const _priority = priority.toObject();
+          _priority.name = priority.name.en;
+          response.created(_priority);
         }
       });
   },
@@ -72,8 +77,9 @@ module.exports = {
           next(error);
         } else {
           //support legacy
-          priority.name = priority.name.en;
-          response.ok(priority);
+          const _priority = priority.toObject();
+          _priority.name = priority.name.en;
+          response.ok(_priority);
         }
       });
   },
@@ -102,7 +108,10 @@ module.exports = {
           if (error) {
             next(error);
           } else {
-            response.ok(priority);
+            //support legacy
+            const _priority = priority.toObject();
+            _priority.name = priority.name.en;
+            response.ok(_priority);
           }
         });
   },
@@ -123,7 +132,10 @@ module.exports = {
           if (error) {
             next(error);
           } else {
-            response.ok(priority);
+            //support legacy
+            const _priority = priority.toObject();
+            _priority.name = priority.name.en;
+            response.ok(_priority);
           }
         });
   }

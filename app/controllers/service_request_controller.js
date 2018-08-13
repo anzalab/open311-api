@@ -29,6 +29,18 @@ module.exports = {
         if (error) {
           next(error);
         } else {
+          //support legacy
+          _.forEach(results.servicerequests, function (servicerequest) {
+            servicerequest.changelogs =
+              _.map(servicerequest.changelogs, function (changelog) {
+                const _changelog = changelog.toObject();
+                if (changelog.priority) {
+                  _changelog.priority.name =
+                    changelog.priority.name.en;
+                }
+                return _changelog;
+              });
+          });
           response.ok(results);
         }
       });
@@ -73,6 +85,17 @@ module.exports = {
         //sync
         servicerequest.sync(downstream);
 
+        //support legacy
+        servicerequest.changelogs =
+          _.map(servicerequest.changelogs, function (changelog) {
+            const _changelog = changelog.toObject();
+            if (changelog.priority) {
+              _changelog.priority.name =
+                changelog.priority.name.en;
+            }
+            return _changelog;
+          });
+
         response.created(servicerequest);
       }
     });
@@ -93,6 +116,16 @@ module.exports = {
         if (error) {
           next(error);
         } else {
+          //support legacy
+          servicerequest.changelogs =
+            _.map(servicerequest.changelogs, function (changelog) {
+              const _changelog = changelog.toObject();
+              if (changelog.priority) {
+                _changelog.priority.name =
+                  changelog.priority.name.en;
+              }
+              return _changelog;
+            });
           response.ok(servicerequest);
         }
       });
@@ -125,6 +158,17 @@ module.exports = {
           //sync patches
           servicerequest.sync(upstream);
 
+          //support legacy
+          servicerequest.changelogs =
+            _.map(servicerequest.changelogs, function (changelog) {
+              const _changelog = changelog.toObject();
+              if (changelog.priority) {
+                _changelog.priority.name =
+                  changelog.priority.name.en;
+              }
+              return _changelog;
+            });
+
           response.ok(servicerequest);
         }
       });
@@ -146,6 +190,16 @@ module.exports = {
           if (error) {
             next(error);
           } else {
+            //support legacy
+            servicerequest.changelogs =
+              _.map(servicerequest.changelogs, function (changelog) {
+                const _changelog = changelog.toObject();
+                if (changelog.priority) {
+                  _changelog.priority.name =
+                    changelog.priority.name.en;
+                }
+                return _changelog;
+              });
             response.ok(servicerequest);
           }
         });
