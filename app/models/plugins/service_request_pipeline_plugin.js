@@ -6,7 +6,7 @@
  * @description build individual(s) party working pipeline report
  *              i.e service request count per status over specified period of
  *              time.
- *              
+ *
  * @see {@link ServiceRequest}
  * @see {@link http://mongoosejs.com/docs/api.html#aggregate_Aggregate}
  * @see {@link http://mongoosejs.com/docs/api.html#aggregate_Aggregate-lookup}
@@ -37,7 +37,7 @@ module.exports = exports = function pipeline(schema /*, options*/ ) {
       .group({ //1. count and group by status and operator
         _id: {
           operator: '$operator._id',
-          status: '$status.name',
+          status: '$status.name.en',
         },
 
         //select status fields
@@ -68,7 +68,7 @@ module.exports = exports = function pipeline(schema /*, options*/ ) {
           const status = pipeline.status || {};
 
           pipeline.label = {
-            name: status.name,
+            name: (status.name || {}).en,
             color: status.color,
             weight: status.weight
           };

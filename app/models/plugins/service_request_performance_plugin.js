@@ -4,7 +4,7 @@
 /**
  * @name performance
  * @description build performance report per specified criteria.
- *              
+ *
  * @see {@link ServiceRequest}
  * @see {@link http://mongoosejs.com/docs/api.html#aggregate_Aggregate}
  * @see {@link http://mongoosejs.com/docs/api.html#aggregate_Aggregate-lookup}
@@ -230,7 +230,7 @@ module.exports = exports = function performance(schema /*, options*/ ) {
   const STATUS_FACET = [{ //count and group by status
     $group: {
       _id: '$status._id',
-      name: { $first: '$status.name' },
+      name: { $first: '$status.name.en' },
       weight: { $first: '$status.weight' },
       color: { $first: '$status.color' },
       count: { $sum: 1 },
@@ -302,7 +302,7 @@ module.exports = exports = function performance(schema /*, options*/ ) {
   /**
    * @name performance
    * @description run performance aggregation facets
-   * @param  {Object} [criteria] query criteria 
+   * @param  {Object} [criteria] query criteria
    * @param  {Function} done callback to invoke on success or failure
    * @return {Object}
    * @author lally elias <lallyelias87@mail.com>

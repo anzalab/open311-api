@@ -38,6 +38,10 @@ module.exports = {
                   _changelog.priority.name =
                     changelog.priority.name.en;
                 }
+                if (changelog.status) {
+                  _changelog.status.name =
+                    changelog.status.name.en;
+                }
                 return _changelog;
               });
           });
@@ -93,6 +97,10 @@ module.exports = {
               _changelog.priority.name =
                 changelog.priority.name.en;
             }
+            if (changelog.status) {
+              _changelog.status.name =
+                changelog.status.name.en;
+            }
             return _changelog;
           });
 
@@ -123,6 +131,10 @@ module.exports = {
               if (changelog.priority) {
                 _changelog.priority.name =
                   changelog.priority.name.en;
+              }
+              if (changelog.status) {
+                _changelog.status.name =
+                  changelog.status.name.en;
               }
               return _changelog;
             });
@@ -166,6 +178,10 @@ module.exports = {
                 _changelog.priority.name =
                   changelog.priority.name.en;
               }
+              if (changelog.status) {
+                _changelog.status.name =
+                  changelog.status.name.en;
+              }
               return _changelog;
             });
 
@@ -197,6 +213,10 @@ module.exports = {
                 if (changelog.priority) {
                   _changelog.priority.name =
                     changelog.priority.name.en;
+                }
+                if (changelog.status) {
+                  _changelog.status.name =
+                    changelog.status.name.en;
                 }
                 return _changelog;
               });
@@ -240,6 +260,21 @@ module.exports = {
         } else {
           //sync patches
           servicerequest.sync(upstream);
+
+          //support legacy
+          servicerequest.changelogs =
+            _.map(servicerequest.changelogs, function (changelog) {
+              const _changelog = changelog.toObject();
+              if (changelog.priority) {
+                _changelog.priority.name =
+                  changelog.priority.name.en;
+              }
+              if (changelog.status) {
+                _changelog.status.name =
+                  changelog.status.name.en;
+              }
+              return _changelog;
+            });
 
           response.ok(servicerequest);
         }
