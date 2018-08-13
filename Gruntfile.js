@@ -187,16 +187,6 @@ module.exports = function (grunt) {
         src: [
           '<%= project.test %>/bootstrap_spec.js',
           '<%= project.test %>/models/**/*.js',
-          // '<%= project.test %>/models/jurisdiction_model_spec.js',
-          // '<%= project.test %>/models/comment_model_spec.js',
-          // '<%= project.test %>/models/permission_model_spec.js',
-          // '<%= project.test %>/models/priority_model_spec.js',
-          // '<%= project.test %>/models/role_model_spec.js',
-          // '<%= project.test %>/models/service_group_model_spec.js',
-          // '<%= project.test %>/models/service_model_spec.js',
-          // '<%= project.test %>/models/service_request_model_spec.js',
-          // '<%= project.test %>/models/status_change_model_spec.js'
-          // '<%= project.test %>/models/status_model_spec.js'
         ]
       },
       counter: { // ticket number generation spec
@@ -205,8 +195,7 @@ module.exports = function (grunt) {
           timeout: 20000
         },
         src: [
-          '<%= project.test %>/bootstrap_spec.js',
-          '<%= project.test %>/models/counter_model_spec.js'
+          '<%= project.test %>/bootstrap_spec.js'
         ]
       },
       routers: {
@@ -215,10 +204,7 @@ module.exports = function (grunt) {
           timeout: 8000
         },
         src: [
-          '<%= project.test %>/bootstrap_spec.js',
-          // '<%= project.test %>/routers/jurisdiction_router_spec.js'
-          '<%= project.test %>/routers/message_router_spec.js'
-          // '<%= project.test %>/routers/**/*.js'
+          '<%= project.test %>/bootstrap_spec.js'
         ]
       },
       middlewares: {
@@ -227,8 +213,7 @@ module.exports = function (grunt) {
           timeout: 8000
         },
         src: [
-          '<%= project.test %>/bootstrap_spec.js',
-          '<%= project.test %>/middlewares/**/*.js'
+          '<%= project.test %>/bootstrap_spec.js'
         ]
       },
       libs: {

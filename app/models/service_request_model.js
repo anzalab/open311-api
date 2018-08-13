@@ -1169,7 +1169,7 @@ ServiceRequestSchema.statics.countPerPriority = function (done) {
   ServiceRequest
     .aggregated()
     .group({
-      _id: '$priority.name',
+      _id: '$priority.name.en',
       color: { $first: '$priority.color' },
       count: { $sum: 1 }
     })
@@ -1250,7 +1250,7 @@ ServiceRequestSchema.statics.standings = function (criteria, done) {
         group: '$group.name',
         service: '$service.name',
         status: '$status.name',
-        priority: '$priority.name'
+        priority: '$priority.name.en'
       },
 
       //selected jurisdiction fields
@@ -1289,6 +1289,12 @@ ServiceRequestSchema.statics.standings = function (criteria, done) {
       priority: '$_priority'
     })
     .exec(function (error, standings) {
+
+      //map pririty to support legacy
+      standings = _.map(standings, function (standing) {
+        standing.priority.name = standing.priority.name.en;
+        return standing;
+      });
 
       done(error, standings);
 
