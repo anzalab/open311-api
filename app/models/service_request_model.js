@@ -531,6 +531,12 @@ ServiceRequestSchema.methods.mapToLegacy = function mapToLegacy() {
     object.group.name =
       servicerequest.group.name.en;
   }
+  if (servicerequest.service) {
+    const Service = mongoose.model('Service');
+    const service = Service.mapToLegacy(servicerequest.service);
+    object.service =
+      _.pick(service, ['code', 'name', 'color', 'group', 'isExternal']);
+  }
   if (servicerequest.priority) {
     object.priority.name =
       servicerequest.priority.name.en;
@@ -1289,7 +1295,7 @@ ServiceRequestSchema.statics.standings = function (criteria, done) {
       _id: {
         jurisdiction: '$jurisdiction.name',
         group: '$group.name.en',
-        service: '$service.name',
+        service: '$service.name.en',
         status: '$status.name.en',
         priority: '$priority.name.en'
       },
@@ -1334,6 +1340,7 @@ ServiceRequestSchema.statics.standings = function (criteria, done) {
       //map to support legacy
       standings = _.map(standings, function (standing) {
         standing.group.name = standing.group.name.en;
+        standing.service.name = standing.service.name.en;
         standing.priority.name = standing.priority.name.en;
         standing.status.name = standing.status.name.en;
         return standing;
