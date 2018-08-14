@@ -385,7 +385,20 @@ module.exports = {
       },
 
       statuses: function (next) { //fetch statuses
-        Status.list(request, next);
+        Status.list(request, function (error, results) {
+          if (error) {
+            next(error);
+          } else {
+            //support legacy
+            results.statuses =
+              _.map(results.statuses, function (status) {
+                const _status = status.toObject();
+                _status.name = status.name.en;
+                return _status;
+              });
+            next(null, results);
+          }
+        });
       },
 
       summaries: function (next) { //fetch issue summaries

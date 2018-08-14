@@ -46,7 +46,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
     //TODO make use of status description
     //TODO make use of latest public internal notice
     //TODO introduce status note when changin a status prompt for it
-    as311.status_notes = _.get(this, 'status.name', '');
+    as311.status_notes = _.get(this, 'status.name.en', '');
 
     //The human readable name of the service request type
     as311.service_name = _.get(this, 'service.name', '');
@@ -55,7 +55,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
     as311.service_code = _.get(this, 'service.code', '');
 
     //The current status of the service request.
-    as311.status = _.get(this, 'status.name', '');
+    as311.status = _.get(this, 'status.name.en', '');
 
     //A full description of the request or report submitted.
     as311.description = this.description;

@@ -1136,7 +1136,7 @@ ServiceRequestSchema.statics.countPerStatus = function (done) {
   ServiceRequest
     .aggregated()
     .group({
-      _id: '$status.name',
+      _id: '$status.name.en',
       color: { $first: '$status.color' },
       count: { $sum: 1 }
     })
@@ -1249,7 +1249,7 @@ ServiceRequestSchema.statics.standings = function (criteria, done) {
         jurisdiction: '$jurisdiction.name',
         group: '$group.name',
         service: '$service.name',
-        status: '$status.name',
+        status: '$status.name.en',
         priority: '$priority.name.en'
       },
 
@@ -1290,9 +1290,10 @@ ServiceRequestSchema.statics.standings = function (criteria, done) {
     })
     .exec(function (error, standings) {
 
-      //map pririty to support legacy
+      //map to support legacy
       standings = _.map(standings, function (standing) {
         standing.priority.name = standing.priority.name.en;
+        standing.status.name = standing.status.name.en;
         return standing;
       });
 

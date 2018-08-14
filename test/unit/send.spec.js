@@ -4,7 +4,8 @@
 //dependencies
 const path = require('path');
 const expect = require('chai').expect;
-const Send = require(path.join(__dirname, '..', '..', 'app', 'libs', 'send'));
+const Send =
+  require(path.join(__dirname, '..', '..', 'app', 'libs', 'send'));
 
 describe('Send', function () {
 

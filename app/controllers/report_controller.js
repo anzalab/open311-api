@@ -228,7 +228,7 @@ module.exports = {
           'Area': _.get(serviceRequest, 'jurisdiction.name', ''),
           'Service Group': _.get(serviceRequest, 'group.name', ''),
           'Service': _.get(serviceRequest, 'service.name', ''),
-          'Status': _.get(serviceRequest, 'status.name', ''),
+          'Status': _.get(serviceRequest, 'status.name.en', ''),
           'Priority': _.get(serviceRequest, 'priority.name.en', ''),
           'Assignee': _.get(serviceRequest, 'assignee.name', ''),
           'Resolved Date': serviceRequest.resolvedAt ? moment(
