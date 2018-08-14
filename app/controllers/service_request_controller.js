@@ -30,21 +30,32 @@ module.exports = {
           next(error);
         } else {
           //support legacy
-          _.forEach(results.servicerequests, function (servicerequest) {
-            servicerequest.changelogs =
-              _.map(servicerequest.changelogs, function (changelog) {
-                const _changelog = changelog.toObject();
-                if (changelog.priority) {
-                  _changelog.priority.name =
-                    changelog.priority.name.en;
-                }
-                if (changelog.status) {
-                  _changelog.status.name =
-                    changelog.status.name.en;
-                }
-                return _changelog;
-              });
-          });
+          results.servicerequests =
+            _.map(results.servicerequests, function (servicerequest) {
+              const _servicerequest = servicerequest.toObject();
+              if (servicerequest.priority) {
+                _servicerequest.priority.name =
+                  servicerequest.priority.name.en;
+              }
+              if (servicerequest.status) {
+                _servicerequest.status.name =
+                  servicerequest.status.name.en;
+              }
+              _servicerequest.changelogs =
+                _.map(servicerequest.changelogs, function (changelog) {
+                  const _changelog = changelog.toObject();
+                  if (changelog.priority) {
+                    _changelog.priority.name =
+                      changelog.priority.name.en;
+                  }
+                  if (changelog.status) {
+                    _changelog.status.name =
+                      changelog.status.name.en;
+                  }
+                  return _changelog;
+                });
+              return _servicerequest;
+            });
           response.ok(results);
         }
       });
