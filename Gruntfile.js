@@ -208,9 +208,8 @@ module.exports = function (grunt) {
   //run in test environment
   grunt.registerTask('test', [
     'newer:jshint',
-    'mochaTest:all',
-    'express:test',
-    'watch'
+    'mochaTest:unit',
+    'mochaTest:integration'
   ]);
 
   //run all specifications
