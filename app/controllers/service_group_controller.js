@@ -1,6 +1,7 @@
 'use strict';
 
 //dependencies
+const _ = require('lodash');
 const mongoose = require('mongoose');
 const ServiceGroup = mongoose.model('ServiceGroup');
 
@@ -23,6 +24,14 @@ module.exports = {
         if (error) {
           next(error);
         } else {
+          //map to legacy api
+          results.servicegroups =
+            _.map(results.servicegroups, function (servicegroup) {
+              const _servicegroup = servicegroup.toObject();
+              _servicegroup.name = servicegroup.name.en;
+              _servicegroup.description = servicegroup.description.en;
+              return _servicegroup;
+            });
           response.ok(results);
         }
       });
@@ -37,12 +46,23 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   create: function (request, response, next) {
+    //support legacy
+    let body = request.body;
+    body = _.merge({}, body, {
+      name: { en: body.name },
+      description: { en: body.description || body.name }
+    });
+
     ServiceGroup
-      .create(request.body, function (error, servicegroup) {
+      .create(body, function (error, servicegroup) {
         if (error) {
           next(error);
         } else {
-          response.created(servicegroup);
+          //support legacy
+          const _servicegroup = servicegroup.toObject();
+          _servicegroup.name = servicegroup.name.en;
+          _servicegroup.description = servicegroup.description.en;
+          response.created(_servicegroup);
         }
       });
   },
@@ -61,7 +81,11 @@ module.exports = {
         if (error) {
           next(error);
         } else {
-          response.ok(servicegroup);
+          //support legacy
+          const _servicegroup = servicegroup.toObject();
+          _servicegroup.name = servicegroup.name.en;
+          _servicegroup.description = servicegroup.description.en;
+          response.ok(_servicegroup);
         }
       });
   },
@@ -75,10 +99,17 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   update: function (request, response, next) {
+    //support legacy
+    let body = request.body;
+    body = _.merge({}, body, {
+      name: { en: body.name },
+      description: { en: body.description || body.name }
+    });
+
     ServiceGroup
       .findByIdAndUpdate(
         request.params.id,
-        request.body, {
+        body, {
           upsert: true,
           new: true
         },
@@ -86,7 +117,11 @@ module.exports = {
           if (error) {
             next(error);
           } else {
-            response.ok(servicegroup);
+            //support legacy
+            const _servicegroup = servicegroup.toObject();
+            _servicegroup.name = servicegroup.name.en;
+            _servicegroup.description = servicegroup.description.en;
+            response.ok(_servicegroup);
           }
         });
   },
@@ -107,7 +142,11 @@ module.exports = {
           if (error) {
             next(error);
           } else {
-            response.ok(servicegroup);
+            //support legacy
+            const _servicegroup = servicegroup.toObject();
+            _servicegroup.name = servicegroup.name.en;
+            _servicegroup.description = servicegroup.description.en;
+            response.ok(_servicegroup);
           }
         });
   }
