@@ -188,7 +188,7 @@ module.exports = exports = function performance(schema /*, options*/ ) {
       resolved: { $sum: '$resolved' },
       late: { $sum: '$late' },
       unattended: { $sum: '$unattended' },
-      name: { $first: '$service.name' },
+      name: { $first: '$service.name.en' },
       color: { $first: '$service.color' },
       count: { $sum: 1 },
       averageResolveTime: { $avg: '$ttr.milliseconds' },

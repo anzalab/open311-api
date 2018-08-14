@@ -379,7 +379,19 @@ module.exports = {
       services: function (next) { //fetch services
         //increase limit
         request.query.limit = 100;
-        Service.list(request, next);
+        Service.list(request, function (error, results) {
+          if (error) {
+            next(error);
+          } else {
+            //support legacy
+            results.services =
+              _.map(results.services, function (service) {
+                const _service = Service.mapToLegacy(service);
+                return _service;
+              });
+            next(null, results);
+          }
+        });
       },
 
       priorities: function (next) { //fetch priorities
