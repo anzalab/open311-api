@@ -10,8 +10,8 @@ const path = require('path');
 const async = require('async');
 const faker = require('faker');
 const mongoose = require('mongoose');
-require(path.join(__dirname, '..', 'app', 'application'));
-const JWT = require(path.join(__dirname, '..', 'app', 'libs', 'jwt'));
+require(path.join(__dirname, '..', '..', 'app', 'application'));
+const JWT = require(path.join(__dirname, '..', '..', 'app', 'libs', 'jwt'));
 const Party = mongoose.model('Party');
 
 

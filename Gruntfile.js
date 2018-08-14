@@ -171,6 +171,19 @@ module.exports = function (grunt) {
           'node_modules/@codetanzania/majifix-priority/test/unit/**/*.js',
           'node_modules/@codetanzania/majifix-status/test/unit/**/*.js'
         ]
+      },
+      integration: {
+        options: {
+          reporter: 'spec',
+          timeout: 8000
+        },
+        src: [
+          '<%= project.test %>/integration/**/*.js',
+          'node_modules/@codetanzania/majifix-jurisdiction/test/integration/**/*.js',
+          'node_modules/@codetanzania/majifix-account/test/integration/**/*.js',
+          'node_modules/@codetanzania/majifix-priority/test/integration/**/*.js',
+          'node_modules/@codetanzania/majifix-status/test/integration/**/*.js'
+        ]
       }
     }
 
@@ -201,13 +214,20 @@ module.exports = function (grunt) {
   //run all specifications
   grunt.registerTask('spec', [
     'newer:jshint',
-    'mochaTest:all'
+    'mochaTest:unit',
+    'mochaTest:integration'
   ]);
 
   //run unit specifications
   grunt.registerTask('unit', [
     'newer:jshint',
     'mochaTest:unit'
+  ]);
+
+  //run integration specifications
+  grunt.registerTask('integration', [
+    'newer:jshint',
+    'mochaTest:integration'
   ]);
 
   //default run jshint and test

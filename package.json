@@ -45,7 +45,7 @@
   },
   "scripts": {
     "dev": "NODE_ENV=development node server.js",
-    "test": "grunt unit",
+    "test": "grunt spec",
     "start": "pm2 start production.json",
     "stop": "pm2 stop production.json",
     "restart": "pm2 restart production.json",
