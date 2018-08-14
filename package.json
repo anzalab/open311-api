@@ -61,6 +61,7 @@
     "@codetanzania/majifix-common": "^0.8.0",
     "@codetanzania/majifix-jurisdiction": "^1.3.3",
     "@codetanzania/majifix-priority": "^1.3.0",
+    "@codetanzania/majifix-service": "^1.0.2",
     "@codetanzania/majifix-service-group": "^1.1.2",
     "@codetanzania/majifix-status": "^1.3.0",
     "async": "^2.6.1",

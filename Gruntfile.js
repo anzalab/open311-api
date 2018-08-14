@@ -170,7 +170,8 @@ module.exports = function (grunt) {
           // 'node_modules/@codetanzania/majifix-account/test/unit/**/*.js',
           'node_modules/@codetanzania/majifix-priority/test/unit/**/*.js',
           'node_modules/@codetanzania/majifix-status/test/unit/**/*.js',
-          'node_modules/@codetanzania/majifix-service-group/test/unit/**/*.js'
+          'node_modules/@codetanzania/majifix-service-group/test/unit/**/*.js',
+          // 'node_modules/@codetanzania/majifix-service/test/unit/**/*.js'
         ]
       },
       integration: {
@@ -184,7 +185,8 @@ module.exports = function (grunt) {
           'node_modules/@codetanzania/majifix-account/test/integration/**/*.js',
           'node_modules/@codetanzania/majifix-priority/test/integration/**/*.js',
           'node_modules/@codetanzania/majifix-status/test/integration/**/*.js',
-          'node_modules/@codetanzania/majifix-service-group/test/integration/**/*.js'
+          'node_modules/@codetanzania/majifix-service-group/test/integration/**/*.js',
+          // 'node_modules/@codetanzania/majifix-service/test/integration/**/*.js'
         ]
       }
     }
