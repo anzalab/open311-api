@@ -159,71 +159,17 @@ module.exports = function (grunt) {
           '<%= project.test %>/**/*.js'
         ]
       },
-      controllers: {
+      unit: {
         options: {
           reporter: 'spec',
           timeout: 8000
         },
         src: [
-          '<%= project.test %>/bootstrap_spec.js',
-          '<%= project.test %>/controllers/**/*.js'
-        ]
-      },
-      intergration: {
-        options: {
-          reporter: 'spec',
-          timeout: 8000
-        },
-        src: [
-          '<%= project.test %>/bootstrap_spec.js',
-          '<%= project.test %>/intergration/**/*.js'
-        ]
-      },
-      models: {
-        options: {
-          reporter: 'spec',
-          timeout: 80000
-        },
-        src: [
-          '<%= project.test %>/bootstrap_spec.js',
-          '<%= project.test %>/models/**/*.js',
-        ]
-      },
-      counter: { // ticket number generation spec
-        options: {
-          reporter: 'spec',
-          timeout: 20000
-        },
-        src: [
-          '<%= project.test %>/bootstrap_spec.js'
-        ]
-      },
-      routers: {
-        options: {
-          reporter: 'spec',
-          timeout: 8000
-        },
-        src: [
-          '<%= project.test %>/bootstrap_spec.js'
-        ]
-      },
-      middlewares: {
-        options: {
-          reporter: 'spec',
-          timeout: 8000
-        },
-        src: [
-          '<%= project.test %>/bootstrap_spec.js'
-        ]
-      },
-      libs: {
-        options: {
-          reporter: 'spec',
-          timeout: 8000
-        },
-        src: [
-          '<%= project.test %>/bootstrap_spec.js',
-          '<%= project.test %>/libs/**/*.js'
+          '<%= project.test %>/unit/**/*.js',
+          // 'node_modules/@codetanzania/majifix-jurisdiction/test/unit/**/*.js',
+          // 'node_modules/@codetanzania/majifix-account/test/unit/**/*.js',
+          'node_modules/@codetanzania/majifix-priority/test/unit/**/*.js',
+          'node_modules/@codetanzania/majifix-status/test/unit/**/*.js'
         ]
       }
     }
@@ -252,45 +198,16 @@ module.exports = function (grunt) {
     'watch'
   ]);
 
-  //run specifications
+  //run all specifications
   grunt.registerTask('spec', [
     'newer:jshint',
     'mochaTest:all'
   ]);
 
-  grunt.registerTask('controllersspec', [
+  //run unit specifications
+  grunt.registerTask('unit', [
     'newer:jshint',
-    'mochaTest:controllers'
-  ]);
-
-  grunt.registerTask('intergrationsspec', [
-    'newer:jshint',
-    'mochaTest:intergration'
-  ]);
-
-  grunt.registerTask('localsspec', [
-    'newer:jshint',
-    'mochaTest:locals'
-  ]);
-
-  grunt.registerTask('modelsspec', [
-    'newer:jshint',
-    'mochaTest:models'
-  ]);
-
-  grunt.registerTask('routersspec', [
-    'newer:jshint',
-    'mochaTest:routers'
-  ]);
-
-  grunt.registerTask('middlewaresspec', [
-    'newer:jshint',
-    'mochaTest:middlewares'
-  ]);
-
-  grunt.registerTask('libsspec', [
-    'newer:jshint',
-    'mochaTest:libs'
+    'mochaTest:unit'
   ]);
 
   //default run jshint and test
