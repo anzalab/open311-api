@@ -358,7 +358,22 @@ module.exports = {
       },
 
       servicegroups: function (next) { //fetch service groups
-        ServiceGroup.list(request, next);
+        ServiceGroup.list(request, function (error, results) {
+          if (error) {
+            next(error);
+          } else {
+            //support legacy
+            results.servicegroups =
+              _.map(results.servicegroups, function (servicegroup) {
+                const _servicegroup = servicegroup.toObject();
+                _servicegroup.name = servicegroup.name.en;
+                _servicegroup.description =
+                  servicegroup.description.en;
+                return _servicegroup;
+              });
+            next(null, results);
+          }
+        });
       },
 
       services: function (next) { //fetch services

@@ -132,7 +132,10 @@ module.exports = {
           if (error) {
             next(error);
           } else {
-            response.ok(status);
+            //support legacy
+            const _status = status.toObject();
+            _status.name = status.name.en;
+            response.ok(_status);
           }
         });
   }

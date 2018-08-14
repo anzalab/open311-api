@@ -95,7 +95,6 @@ const ServiceRequestSchema = new Schema({
   jurisdiction: {
     type: ObjectId,
     ref: 'Jurisdiction',
-    autoset: true,
     required: true,
     index: true,
     exists: true,
@@ -119,7 +118,6 @@ const ServiceRequestSchema = new Schema({
     ref: 'ServiceGroup',
     required: true,
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
       select: 'code name color',
@@ -142,7 +140,6 @@ const ServiceRequestSchema = new Schema({
     ref: 'Service',
     required: true,
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
       select: 'code name color group isExternal', // remove group?
@@ -196,7 +193,6 @@ const ServiceRequestSchema = new Schema({
     type: ObjectId,
     ref: 'Party',
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
       select: 'name email phone avatar',
@@ -223,7 +219,6 @@ const ServiceRequestSchema = new Schema({
     type: ObjectId,
     ref: 'Party',
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
       select: 'name email phone',
@@ -335,7 +330,6 @@ const ServiceRequestSchema = new Schema({
   status: {
     type: ObjectId,
     ref: 'Status',
-    autoset: true,
     exists: true,
     index: true,
     autopopulate: {
@@ -359,7 +353,6 @@ const ServiceRequestSchema = new Schema({
   priority: {
     type: ObjectId,
     ref: 'Priority',
-    autoset: true,
     exists: true,
     index: true,
     autopopulate: {
@@ -520,6 +513,47 @@ ServiceRequestSchema.virtual('changelogs', {
 //-----------------------------------------------------------------------------
 // ServiceSchema Instance Methods
 //-----------------------------------------------------------------------------
+
+
+/**
+ * @name mapToLegacy
+ * @description map service request to legacy data structure
+ * @param {Function} done  a callback to invoke on success or failure
+ * @since  0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.methods.mapToLegacy = function mapToLegacy() {
+  const servicerequest = this;
+  const object = this.toObject();
+  if (servicerequest.group) {
+    object.group.name =
+      servicerequest.group.name.en;
+  }
+  if (servicerequest.priority) {
+    object.priority.name =
+      servicerequest.priority.name.en;
+  }
+  if (servicerequest.status) {
+    object.status.name =
+      servicerequest.status.name.en;
+  }
+  object.changelogs =
+    _.map(servicerequest.changelogs, function (changelog) {
+      const _changelog = changelog.toObject();
+      if (changelog.priority) {
+        _changelog.priority.name =
+          changelog.priority.name.en;
+      }
+      if (changelog.status) {
+        _changelog.status.name =
+          changelog.status.name.en;
+      }
+      return _changelog;
+    });
+  return object;
+};
 
 
 /**
@@ -755,6 +789,12 @@ ServiceRequestSchema.pre('validate', function (next) {
         Jurisdiction.findById(id, then);
       }.bind(this),
 
+      group: function (then) {
+        const ServiceGroup = mongoose.model('ServiceGroup');
+        const id = _.get(this.group, '_id', this.group);
+        ServiceGroup.findById(id, then);
+      }.bind(this),
+
       service: function (then) {
         const Service = mongoose.model('Service');
         const id = _.get(this.service, '_id', this.service);
@@ -788,7 +828,8 @@ ServiceRequestSchema.pre('validate', function (next) {
           return next(error);
         }
 
-        //set default status and priority
+        //set group, status and priority
+        this.group = (result.group || this.group || undefined);
         this.status = (this.status || result.status || undefined);
         this.priority = (this.priority || result.priority || undefined);
 
@@ -1247,7 +1288,7 @@ ServiceRequestSchema.statics.standings = function (criteria, done) {
     .group({ //1 stage: count per jurisdiction, group, service, status and priority
       _id: {
         jurisdiction: '$jurisdiction.name',
-        group: '$group.name',
+        group: '$group.name.en',
         service: '$service.name',
         status: '$status.name.en',
         priority: '$priority.name.en'
@@ -1292,6 +1333,7 @@ ServiceRequestSchema.statics.standings = function (criteria, done) {
 
       //map to support legacy
       standings = _.map(standings, function (standing) {
+        standing.group.name = standing.group.name.en;
         standing.priority.name = standing.priority.name.en;
         standing.status.name = standing.status.name.en;
         return standing;

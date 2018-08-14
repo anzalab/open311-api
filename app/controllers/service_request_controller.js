@@ -32,29 +32,7 @@ module.exports = {
           //support legacy
           results.servicerequests =
             _.map(results.servicerequests, function (servicerequest) {
-              const _servicerequest = servicerequest.toObject();
-              if (servicerequest.priority) {
-                _servicerequest.priority.name =
-                  servicerequest.priority.name.en;
-              }
-              if (servicerequest.status) {
-                _servicerequest.status.name =
-                  servicerequest.status.name.en;
-              }
-              _servicerequest.changelogs =
-                _.map(servicerequest.changelogs, function (changelog) {
-                  const _changelog = changelog.toObject();
-                  if (changelog.priority) {
-                    _changelog.priority.name =
-                      changelog.priority.name.en;
-                  }
-                  if (changelog.status) {
-                    _changelog.status.name =
-                      changelog.status.name.en;
-                  }
-                  return _changelog;
-                });
-              return _servicerequest;
+              return servicerequest.mapToLegacy();
             });
           response.ok(results);
         }
@@ -101,21 +79,9 @@ module.exports = {
         servicerequest.sync(downstream);
 
         //support legacy
-        servicerequest.changelogs =
-          _.map(servicerequest.changelogs, function (changelog) {
-            const _changelog = changelog.toObject();
-            if (changelog.priority) {
-              _changelog.priority.name =
-                changelog.priority.name.en;
-            }
-            if (changelog.status) {
-              _changelog.status.name =
-                changelog.status.name.en;
-            }
-            return _changelog;
-          });
+        const _servicerequest = servicerequest.mapToLegacy();
 
-        response.created(servicerequest);
+        response.created(_servicerequest);
       }
     });
 
@@ -136,20 +102,8 @@ module.exports = {
           next(error);
         } else {
           //support legacy
-          servicerequest.changelogs =
-            _.map(servicerequest.changelogs, function (changelog) {
-              const _changelog = changelog.toObject();
-              if (changelog.priority) {
-                _changelog.priority.name =
-                  changelog.priority.name.en;
-              }
-              if (changelog.status) {
-                _changelog.status.name =
-                  changelog.status.name.en;
-              }
-              return _changelog;
-            });
-          response.ok(servicerequest);
+          const _servicerequest = servicerequest.mapToLegacy();
+          response.ok(_servicerequest);
         }
       });
   },
@@ -182,21 +136,9 @@ module.exports = {
           servicerequest.sync(upstream);
 
           //support legacy
-          servicerequest.changelogs =
-            _.map(servicerequest.changelogs, function (changelog) {
-              const _changelog = changelog.toObject();
-              if (changelog.priority) {
-                _changelog.priority.name =
-                  changelog.priority.name.en;
-              }
-              if (changelog.status) {
-                _changelog.status.name =
-                  changelog.status.name.en;
-              }
-              return _changelog;
-            });
+          const _servicerequest = servicerequest.mapToLegacy();
 
-          response.ok(servicerequest);
+          response.ok(_servicerequest);
         }
       });
   },
@@ -218,20 +160,8 @@ module.exports = {
             next(error);
           } else {
             //support legacy
-            servicerequest.changelogs =
-              _.map(servicerequest.changelogs, function (changelog) {
-                const _changelog = changelog.toObject();
-                if (changelog.priority) {
-                  _changelog.priority.name =
-                    changelog.priority.name.en;
-                }
-                if (changelog.status) {
-                  _changelog.status.name =
-                    changelog.status.name.en;
-                }
-                return _changelog;
-              });
-            response.ok(servicerequest);
+            const _servicerequest = servicerequest.mapToLegacy();
+            response.ok(_servicerequest);
           }
         });
   },
@@ -273,21 +203,9 @@ module.exports = {
           servicerequest.sync(upstream);
 
           //support legacy
-          servicerequest.changelogs =
-            _.map(servicerequest.changelogs, function (changelog) {
-              const _changelog = changelog.toObject();
-              if (changelog.priority) {
-                _changelog.priority.name =
-                  changelog.priority.name.en;
-              }
-              if (changelog.status) {
-                _changelog.status.name =
-                  changelog.status.name.en;
-              }
-              return _changelog;
-            });
+          const _servicerequest = servicerequest.mapToLegacy();
 
-          response.ok(servicerequest);
+          response.ok(_servicerequest);
         }
       });
 
