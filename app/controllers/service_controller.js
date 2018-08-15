@@ -1,6 +1,7 @@
 'use strict';
 
 //dependencies
+const _ = require('lodash');
 const mongoose = require('mongoose');
 const Service = mongoose.model('Service');
 
@@ -23,6 +24,11 @@ module.exports = {
         if (error) {
           next(error);
         } else {
+          //map to legacy api
+          results.services =
+            _.map(results.services, function (service) {
+              return Service.mapToLegacy(service);
+            });
           response.ok(results);
         }
       });
@@ -37,12 +43,21 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   create: function (request, response, next) {
+    //support legacy
+    let body = request.body;
+    body = _.merge({}, body, {
+      name: { en: body.name },
+      description: { en: body.description || body.name },
+      flags: { external: body.isExternal }
+    });
+
     Service
-      .create(request.body, function (error, service) {
+      .create(body, function (error, service) {
         if (error) {
           next(error);
         } else {
-          response.created(service);
+          const _service = Service.mapToLegacy(service);
+          response.created(_service);
         }
       });
   },
@@ -61,7 +76,8 @@ module.exports = {
         if (error) {
           next(error);
         } else {
-          response.ok(service);
+          const _service = Service.mapToLegacy(service);
+          response.ok(_service);
         }
       });
   },
@@ -75,10 +91,18 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   update: function (request, response, next) {
+    //support legacy
+    let body = request.body;
+    body = _.merge({}, body, {
+      name: { en: body.name },
+      description: { en: body.description || body.name },
+      flags: { external: body.isExternal }
+    });
+
     Service
       .findByIdAndUpdate(
         request.params.id,
-        request.body, {
+        body, {
           upsert: true,
           new: true
         },
@@ -86,7 +110,8 @@ module.exports = {
           if (error) {
             next(error);
           } else {
-            response.ok(service);
+            const _service = Service.mapToLegacy(service);
+            response.ok(_service);
           }
         });
   },
@@ -107,7 +132,8 @@ module.exports = {
           if (error) {
             next(error);
           } else {
-            response.ok(service);
+            const _service = Service.mapToLegacy(service);
+            response.ok(_service);
           }
         });
   }

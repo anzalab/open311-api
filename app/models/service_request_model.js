@@ -69,7 +69,6 @@ const Media = require(path.join(schemaPath, 'media_schema'));
 const Duration = require(path.join(schemaPath, 'duration_schema'));
 const Call = require(path.join(schemaPath, 'call_schema'));
 const Reporter = require(path.join(schemaPath, 'reporter_schema'));
-const ChangeLog = require(path.join(schemaPath, 'changelog_schema'));
 const ContactMethod = require(path.join(schemaPath, 'contact_method_schema'));
 
 
@@ -96,12 +95,12 @@ const ServiceRequestSchema = new Schema({
   jurisdiction: {
     type: ObjectId,
     ref: 'Jurisdiction',
-    autoset: true,
     required: true,
     index: true,
     exists: true,
     autopopulate: {
-      select: 'code name phone email domain'
+      select: 'code name phone email domain',
+      maxDepth: 1
     }
   },
 
@@ -119,10 +118,10 @@ const ServiceRequestSchema = new Schema({
     ref: 'ServiceGroup',
     required: true,
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
-      select: 'code name color'
+      select: 'code name color',
+      maxDepth: 1
     }
   },
 
@@ -141,10 +140,10 @@ const ServiceRequestSchema = new Schema({
     ref: 'Service',
     required: true,
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
-      select: 'code name color group isExternal' // remove group?
+      select: 'code name color group isExternal', // remove group?
+      maxDepth: 1
     }
   },
 
@@ -194,10 +193,10 @@ const ServiceRequestSchema = new Schema({
     type: ObjectId,
     ref: 'Party',
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
-      select: 'name email phone avatar'
+      select: 'name email phone avatar',
+      maxDepth: 1
     }
   },
 
@@ -220,10 +219,10 @@ const ServiceRequestSchema = new Schema({
     type: ObjectId,
     ref: 'Party',
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
-      select: 'name email phone'
+      select: 'name email phone',
+      maxDepth: 1
     }
   },
 
@@ -331,10 +330,11 @@ const ServiceRequestSchema = new Schema({
   status: {
     type: ObjectId,
     ref: 'Status',
-    autoset: true,
     exists: true,
     index: true,
-    autopopulate: true
+    autopopulate: {
+      maxDepth: 1
+    }
   },
 
 
@@ -353,10 +353,11 @@ const ServiceRequestSchema = new Schema({
   priority: {
     type: ObjectId,
     ref: 'Priority',
-    autoset: true,
     exists: true,
     index: true,
-    autopopulate: true
+    autopopulate: {
+      maxDepth: 1
+    }
   },
 
 
@@ -408,6 +409,20 @@ const ServiceRequestSchema = new Schema({
 
 
   /**
+   * @name reopenedAt
+   * @description A time when the issue was reopened
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  reopenedAt: {
+    type: Date,
+    index: true
+  },
+
+
+  /**
    * @name ttr
    * @description A time taken to resolve the issue(service request) in duration format.
    *
@@ -429,12 +444,11 @@ const ServiceRequestSchema = new Schema({
    * @name changelogs
    * @description Associated change(s) on service request(issue)
    * @type {Array}
-   * @see {@link ChangeLogSchema}
+   * @see {@link ChangeLog}
    * @private
    * @since 0.1.0
    * @version 0.1.0
    */
-  changelogs: [ChangeLog]
 
 }, { timestamps: true, emitIndexErrors: true });
 
@@ -446,6 +460,8 @@ const ServiceRequestSchema = new Schema({
 
 //ensure `2dsphere` on service request location
 ServiceRequestSchema.index({ location: '2dsphere' });
+ServiceRequestSchema.index({ createdAt: 1 });
+ServiceRequestSchema.index({ updatedAt: 1 });
 
 
 //-----------------------------------------------------------------------------
@@ -479,9 +495,71 @@ ServiceRequestSchema.virtual('latitude').get(function () {
 });
 
 
+/**
+ * @name changelogs
+ * @description obtain service request(issue) changelogs
+ * @type {Object}
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+ServiceRequestSchema.virtual('changelogs', {
+  ref: 'ChangeLog',
+  localField: '_id',
+  foreignField: 'request',
+  autopopulate: true
+});
+
+
 //-----------------------------------------------------------------------------
 // ServiceSchema Instance Methods
 //-----------------------------------------------------------------------------
+
+
+/**
+ * @name mapToLegacy
+ * @description map service request to legacy data structure
+ * @param {Function} done  a callback to invoke on success or failure
+ * @since  0.1.0
+ * @version 0.1.0
+ * @public
+ * @type {Function}
+ */
+ServiceRequestSchema.methods.mapToLegacy = function mapToLegacy() {
+  const servicerequest = this;
+  const object = this.toObject();
+  if (servicerequest.group) {
+    object.group.name =
+      servicerequest.group.name.en;
+  }
+  if (servicerequest.service) {
+    const Service = mongoose.model('Service');
+    const service = Service.mapToLegacy(servicerequest.service);
+    object.service =
+      _.pick(service, ['code', 'name', 'color', 'group', 'isExternal']);
+  }
+  if (servicerequest.priority) {
+    object.priority.name =
+      servicerequest.priority.name.en;
+  }
+  if (servicerequest.status) {
+    object.status.name =
+      servicerequest.status.name.en;
+  }
+  object.changelogs =
+    _.map(servicerequest.changelogs, function (changelog) {
+      const _changelog = changelog.toObject();
+      if (changelog.priority) {
+        _changelog.priority.name =
+          changelog.priority.name.en;
+      }
+      if (changelog.status) {
+        _changelog.status.name =
+          changelog.status.name.en;
+      }
+      return _changelog;
+    });
+  return object;
+};
 
 
 /**
@@ -717,6 +795,12 @@ ServiceRequestSchema.pre('validate', function (next) {
         Jurisdiction.findById(id, then);
       }.bind(this),
 
+      group: function (then) {
+        const ServiceGroup = mongoose.model('ServiceGroup');
+        const id = _.get(this.group, '_id', this.group);
+        ServiceGroup.findById(id, then);
+      }.bind(this),
+
       service: function (then) {
         const Service = mongoose.model('Service');
         const id = _.get(this.service, '_id', this.service);
@@ -750,20 +834,21 @@ ServiceRequestSchema.pre('validate', function (next) {
           return next(error);
         }
 
-        //set default status and priority
+        //set group, status and priority
+        this.group = (result.group || this.group || undefined);
         this.status = (this.status || result.status || undefined);
         this.priority = (this.priority || result.priority || undefined);
 
         //ensure open status changelog
-        if (_.isEmpty(this.changelogs)) {
-          this.changelogs = [{
-            createdAt: new Date(),
-            status: this.status,
-            priority: this.priority,
-            changer: this.operator,
-            visibility: ChangeLog.VISIBILITY_PUBLIC
-          }];
-        }
+        // if (_.isEmpty(this.changelogs)) {
+        //   this.changelogs = [{
+        //     createdAt: new Date(),
+        //     status: this.status,
+        //     priority: this.priority,
+        //     changer: this.operator,
+        //     visibility: ChangeLog.VISIBILITY_PUBLIC
+        //   }];
+        // }
 
         //set service request code
         //in format (Area Code Service Code Year Sequence)
@@ -798,15 +883,15 @@ ServiceRequestSchema.pre('validate', function (next) {
   else {
 
     //ensure open status changelog
-    if (_.isEmpty(this.changelogs)) {
-      this.changelogs = [{
-        createdAt: new Date(),
-        status: this.status,
-        priority: this.priority,
-        changer: this.operator,
-        visibility: ChangeLog.VISIBILITY_PUBLIC
-      }];
-    }
+    // if (_.isEmpty(this.changelogs)) {
+    //   this.changelogs = [{
+    //     createdAt: new Date(),
+    //     status: this.status,
+    //     priority: this.priority,
+    //     changer: this.operator,
+    //     visibility: ChangeLog.VISIBILITY_PUBLIC
+    //   }];
+    // }
 
     return next(null, this);
   }
@@ -830,7 +915,6 @@ ServiceRequestSchema.statics.CONTACT_METHOD_EMAIL = ContactMethod.EMAIL;
 ServiceRequestSchema.statics.CONTACT_METHOD_MOBILE_APP =
   ContactMethod.MOBILE_APP;
 ServiceRequestSchema.statics.CONTACT_METHODS = ContactMethod.METHODS;
-
 
 
 //-----------------------------------------------------------------------------
@@ -1099,7 +1183,7 @@ ServiceRequestSchema.statics.countPerStatus = function (done) {
   ServiceRequest
     .aggregated()
     .group({
-      _id: '$status.name',
+      _id: '$status.name.en',
       color: { $first: '$status.color' },
       count: { $sum: 1 }
     })
@@ -1132,7 +1216,7 @@ ServiceRequestSchema.statics.countPerPriority = function (done) {
   ServiceRequest
     .aggregated()
     .group({
-      _id: '$priority.name',
+      _id: '$priority.name.en',
       color: { $first: '$priority.color' },
       count: { $sum: 1 }
     })
@@ -1210,10 +1294,10 @@ ServiceRequestSchema.statics.standings = function (criteria, done) {
     .group({ //1 stage: count per jurisdiction, group, service, status and priority
       _id: {
         jurisdiction: '$jurisdiction.name',
-        group: '$group.name',
-        service: '$service.name',
-        status: '$status.name',
-        priority: '$priority.name'
+        group: '$group.name.en',
+        service: '$service.name.en',
+        status: '$status.name.en',
+        priority: '$priority.name.en'
       },
 
       //selected jurisdiction fields
@@ -1252,6 +1336,15 @@ ServiceRequestSchema.statics.standings = function (criteria, done) {
       priority: '$_priority'
     })
     .exec(function (error, standings) {
+
+      //map to support legacy
+      standings = _.map(standings, function (standing) {
+        standing.group.name = standing.group.name.en;
+        standing.service.name = standing.service.name.en;
+        standing.priority.name = standing.priority.name.en;
+        standing.status.name = standing.status.name.en;
+        return standing;
+      });
 
       done(error, standings);
 

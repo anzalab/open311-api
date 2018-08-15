@@ -1,6 +1,7 @@
 'use strict';
 
 //dependencies
+const _ = require('lodash');
 const mongoose = require('mongoose');
 const Priority = mongoose.model('Priority');
 
@@ -23,6 +24,13 @@ module.exports = {
         if (error) {
           next(error);
         } else {
+          //map to legacy api
+          results.priorities =
+            _.map(results.priorities, function (priority) {
+              const _priority = priority.toObject();
+              _priority.name = priority.name.en;
+              return _priority;
+            });
           response.ok(results);
         }
       });
@@ -37,12 +45,19 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   create: function (request, response, next) {
+    //support legacy
+    let body = request.body;
+    body = _.merge({}, body, { name: { en: body.name } });
+
     Priority
-      .create(request.body, function (error, priority) {
+      .create(body, function (error, priority) {
         if (error) {
           next(error);
         } else {
-          response.created(priority);
+          //support legacy
+          const _priority = priority.toObject();
+          _priority.name = priority.name.en;
+          response.created(_priority);
         }
       });
   },
@@ -61,7 +76,10 @@ module.exports = {
         if (error) {
           next(error);
         } else {
-          response.ok(priority);
+          //support legacy
+          const _priority = priority.toObject();
+          _priority.name = priority.name.en;
+          response.ok(_priority);
         }
       });
   },
@@ -75,10 +93,14 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   update: function (request, response, next) {
+    //support legacy
+    let body = request.body;
+    body = _.merge({}, body, { name: { en: body.name } });
+
     Priority
       .findByIdAndUpdate(
         request.params.id,
-        request.body, {
+        body, {
           upsert: true,
           new: true
         },
@@ -86,7 +108,10 @@ module.exports = {
           if (error) {
             next(error);
           } else {
-            response.ok(priority);
+            //support legacy
+            const _priority = priority.toObject();
+            _priority.name = priority.name.en;
+            response.ok(_priority);
           }
         });
   },
@@ -107,7 +132,10 @@ module.exports = {
           if (error) {
             next(error);
           } else {
-            response.ok(priority);
+            //support legacy
+            const _priority = priority.toObject();
+            _priority.name = priority.name.en;
+            response.ok(_priority);
           }
         });
   }

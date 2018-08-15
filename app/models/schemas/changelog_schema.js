@@ -157,6 +157,34 @@ const ChangeLogSchema = new Schema({
 
 
   /**
+   * @name resolvedAt
+   * @description A time when the issue was resolved
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  resolvedAt: {
+    type: Date,
+    index: true
+  },
+
+
+  /**
+   * @name reopenedAt
+   * @description A time when the issue was reopened
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  reopenedAt: {
+    type: Date,
+    index: true
+  },
+
+
+  /**
    * @name shouldNotify
    * @description Signal to send notification to a service request(issue)
    *              reporter using sms, email etc. about work(progress) done

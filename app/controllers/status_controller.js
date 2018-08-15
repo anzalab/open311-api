@@ -1,6 +1,7 @@
 'use strict';
 
 //dependencies
+const _ = require('lodash');
 const mongoose = require('mongoose');
 const Status = mongoose.model('Status');
 
@@ -23,6 +24,13 @@ module.exports = {
         if (error) {
           next(error);
         } else {
+          //map to legacy api
+          results.statuses =
+            _.map(results.statuses, function (status) {
+              const _status = status.toObject();
+              _status.name = status.name.en;
+              return _status;
+            });
           response.ok(results);
         }
       });
@@ -37,11 +45,18 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   create: function (request, response, next) {
+    //support legacy
+    let body = request.body;
+    body = _.merge({}, body, { name: { en: body.name } });
+
     Status
       .create(request.body, function (error, status) {
         if (error) {
           next(error);
         } else {
+          //support legacy
+          const _status = status.toObject();
+          _status.name = status.name.en;
           response.created(status);
         }
       });
@@ -61,6 +76,9 @@ module.exports = {
         if (error) {
           next(error);
         } else {
+          //support legacy
+          const _status = status.toObject();
+          _status.name = status.name.en;
           response.ok(status);
         }
       });
@@ -75,14 +93,27 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   update: function (request, response, next) {
+    //support legacy
+    let body = request.body;
+    body = _.merge({}, body, { name: { en: body.name } });
+
     Status
-      .edit(request, function (error, status) {
-        if (error) {
-          next(error);
-        } else {
-          response.ok(status);
-        }
-      });
+      .findByIdAndUpdate(
+        request.params.id,
+        body, {
+          upsert: true,
+          new: true
+        },
+        function (error, status) {
+          if (error) {
+            next(error);
+          } else {
+            //support legacy
+            const _status = status.toObject();
+            _status.name = status.name.en;
+            response.ok(_status);
+          }
+        });
   },
 
 
@@ -101,7 +132,10 @@ module.exports = {
           if (error) {
             next(error);
           } else {
-            response.ok(status);
+            //support legacy
+            const _status = status.toObject();
+            _status.name = status.name.en;
+            response.ok(_status);
           }
         });
   }

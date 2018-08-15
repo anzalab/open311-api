@@ -1402,11 +1402,10 @@ router.delete('/servicerequests/:id', function (request, response, next) {
  *      "error":{}
  *    }
  */
-router.patch('/servicerequests/:id/changelogs', function (request, response, next) {
-  //TODO implement patch
-  //TODO use patch specifications
-  controller.changelogs(request, response, next);
-});
+router.patch('/servicerequests/:id/changelogs',
+  function (request, response, next) {
+    controller.changelogs(request, response, next);
+  });
 
 
 /**

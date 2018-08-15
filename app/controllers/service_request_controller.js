@@ -2,9 +2,9 @@
 
 //dependencies
 const _ = require('lodash');
-const async = require('async');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
+const ChangeLog = mongoose.model('ChangeLog');
 const config = require('config');
 const { downstream, upstream } = config.get('sync.strategies');
 
@@ -29,6 +29,11 @@ module.exports = {
         if (error) {
           next(error);
         } else {
+          //support legacy
+          results.servicerequests =
+            _.map(results.servicerequests, function (servicerequest) {
+              return servicerequest.mapToLegacy();
+            });
           response.ok(results);
         }
       });
@@ -73,7 +78,10 @@ module.exports = {
         //sync
         servicerequest.sync(downstream);
 
-        response.created(servicerequest);
+        //support legacy
+        const _servicerequest = servicerequest.mapToLegacy();
+
+        response.created(_servicerequest);
       }
     });
 
@@ -93,7 +101,9 @@ module.exports = {
         if (error) {
           next(error);
         } else {
-          response.ok(servicerequest);
+          //support legacy
+          const _servicerequest = servicerequest.mapToLegacy();
+          response.ok(_servicerequest);
         }
       });
   },
@@ -125,7 +135,10 @@ module.exports = {
           //sync patches
           servicerequest.sync(upstream);
 
-          response.ok(servicerequest);
+          //support legacy
+          const _servicerequest = servicerequest.mapToLegacy();
+
+          response.ok(_servicerequest);
         }
       });
   },
@@ -146,7 +159,9 @@ module.exports = {
           if (error) {
             next(error);
           } else {
-            response.ok(servicerequest);
+            //support legacy
+            const _servicerequest = servicerequest.mapToLegacy();
+            response.ok(_servicerequest);
           }
         });
   },
@@ -170,45 +185,29 @@ module.exports = {
     //TODO handle other updates
 
     //obtain changelog
-    const changelog = _.merge({}, { changer: changer }, request.body);
+    let changelog =
+      _.merge({}, { changer: changer, request: _id }, request.body);
 
-    async.waterfall([
+    //ensure server time in case its resolve
+    if (changelog.resolvedAt) {
+      changelog.resolvedAt = new Date();
+      //TODO ensure resolver & assignee
+    }
 
-      function findServiceRequest(then) {
-        ServiceRequest.findById(_id).exec(then);
-      },
-
-      function computeChanges(servicerequest, then) {
-        if (!servicerequest) {
-          let error = new Error('Service Request Not Found');
-          error.status = 404;
-          then(error);
+    ChangeLog
+      .track(changelog, function (error, servicerequest) {
+        if (error) {
+          next(error);
         } else {
-          let changelogs = servicerequest.changes(changelog);
-          changelogs =
-            ([].concat(servicerequest.changelogs).concat(changelogs));
-          changelogs = _.sortBy(changelogs, 'createdAt');
-          const changes = _.merge({}, changelog, { changelogs: changelogs });
-          ServiceRequest
-            .findByIdAndUpdate(_id, changes, { new: true })
-            .exec(then);
+          //sync patches
+          servicerequest.sync(upstream);
+
+          //support legacy
+          const _servicerequest = servicerequest.mapToLegacy();
+
+          response.ok(_servicerequest);
         }
-      },
-
-      function reload(servicerequest, then) {
-        ServiceRequest.findById(_id).exec(then);
-      }
-
-    ], function (error, servicerequest) {
-      if (error) {
-        next(error);
-      } else {
-        //sync patches
-        servicerequest.sync(upstream);
-
-        response.ok(servicerequest);
-      }
-    });
+      });
 
   }
 

@@ -21,7 +21,7 @@ const Status = mongoose.model('Status');
 const JWT = require(path.join(__dirname, '..', 'libs', 'jwt'));
 
 //TODO refactor out reports to report controller
-//TODO export /me to be able to refresh current request party profile 
+//TODO export /me to be able to refresh current request party profile
 
 module.exports = {
   /**
@@ -106,6 +106,7 @@ module.exports = {
 
         ],
         function done(error, result) {
+
           //fail to authenticate party
           //return error message
           if (error) {
@@ -116,7 +117,7 @@ module.exports = {
           }
 
           //party authenticated successfully
-          //token generated successfully 
+          //token generated successfully
           else {
             response.ok({
               success: true,
@@ -357,21 +358,74 @@ module.exports = {
       },
 
       servicegroups: function (next) { //fetch service groups
-        ServiceGroup.list(request, next);
+        ServiceGroup.list(request, function (error, results) {
+          if (error) {
+            next(error);
+          } else {
+            //support legacy
+            results.servicegroups =
+              _.map(results.servicegroups, function (servicegroup) {
+                const _servicegroup = servicegroup.toObject();
+                _servicegroup.name = servicegroup.name.en;
+                _servicegroup.description =
+                  servicegroup.description.en;
+                return _servicegroup;
+              });
+            next(null, results);
+          }
+        });
       },
 
       services: function (next) { //fetch services
         //increase limit
         request.query.limit = 100;
-        Service.list(request, next);
+        Service.list(request, function (error, results) {
+          if (error) {
+            next(error);
+          } else {
+            //support legacy
+            results.services =
+              _.map(results.services, function (service) {
+                const _service = Service.mapToLegacy(service);
+                return _service;
+              });
+            next(null, results);
+          }
+        });
       },
 
       priorities: function (next) { //fetch priorities
-        Priority.list(request, next);
+        Priority.list(request, function (error, results) {
+          if (error) {
+            next(error);
+          } else {
+            //support legacy
+            results.priorities =
+              _.map(results.priorities, function (priority) {
+                const _priority = priority.toObject();
+                _priority.name = priority.name.en;
+                return _priority;
+              });
+            next(null, results);
+          }
+        });
       },
 
       statuses: function (next) { //fetch statuses
-        Status.list(request, next);
+        Status.list(request, function (error, results) {
+          if (error) {
+            next(error);
+          } else {
+            //support legacy
+            results.statuses =
+              _.map(results.statuses, function (status) {
+                const _status = status.toObject();
+                _status.name = status.name.en;
+                return _status;
+              });
+            next(null, results);
+          }
+        });
       },
 
       summaries: function (next) { //fetch issue summaries
