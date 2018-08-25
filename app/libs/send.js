@@ -10,14 +10,14 @@
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
  * @version 0.1.0
- * @public 
+ * @public
  */
 
 
 //dependencies
 const _ = require('lodash');
 const config = require('config');
-const environment = require('execution-environment');
+const env = require('@lykmapipo/env');
 const infobip = require('open311-infobip');
 const phone = require('phone');
 const mongoose = require('mongoose');
@@ -70,7 +70,7 @@ exports.sms = function (message, done) {
   const Message = mongoose.model('Message');
 
   //obtain current execution environment
-  const isProduction = environment.isProd();
+  const { isProduction } = env;
 
   //obtain sms configuration
   const options = config.get('infobip');

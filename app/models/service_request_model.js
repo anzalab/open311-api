@@ -29,10 +29,11 @@ const path = require('path');
 const _ = require('lodash');
 const async = require('async');
 const config = require('config');
-const environment = require('execution-environment');
+const env = require('@lykmapipo/env');
 const sync = require('open311-api-sync');
 const moment = require('moment');
 const mongoose = require('mongoose');
+const actions = require('mongoose-rest-actions');
 const parseMs = require('parse-ms');
 
 
@@ -655,7 +656,7 @@ ServiceRequestSchema.methods.sync = function (strategy, done) {
   done = done || function () {};
 
   //obtain current execution environment
-  const isProduction = environment.isProd();
+  const { isProduction } = env;
 
   //obtain sync strategies
   const { downstream, upstream } = config.get('sync.strategies');
@@ -920,6 +921,7 @@ ServiceRequestSchema.statics.CONTACT_METHODS = ContactMethod.METHODS;
 //-----------------------------------------------------------------------------
 // ServiceRequestSchema Plugins
 //-----------------------------------------------------------------------------
+ServiceRequestSchema.plugin(actions);
 ServiceRequestSchema.plugin(notification);
 ServiceRequestSchema.plugin(aggregate);
 ServiceRequestSchema.plugin(open311);

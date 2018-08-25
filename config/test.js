@@ -20,7 +20,7 @@ module.exports = {
    * @description application port
    * @type {Number}
    */
-  port: 3000,
+  port: (process.env.PORT || 5000),
 
 
   /**

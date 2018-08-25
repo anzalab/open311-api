@@ -25,60 +25,29 @@
  */
 
 
-//dependencies
+/* dependencies */
 const path = require('path');
-const _ = require('lodash');
-const pkg = require(path.join(__dirname, '..', 'package.json'));
-
-
-//set environment to development by default
-if (_.isEmpty((process.env || {}).NODE_ENV)) {
-  process.env.NODE_ENV = 'development';
-}
-
-
-//suppress configuration warning
-process.env.SUPPRESS_NO_CONFIG_WARNING = true;
-
-
-require('config'); //load configurations
-const config = require('config'); //load configurations
-const environment = require('execution-environment');
+const env = require('@lykmapipo/env');
+const app = require('@lykmapipo/express-common');
 const mkdir = require('mkdir-p');
-const express = require('express');
-const bodyParser = require('body-parser');
-const methodOverride = require('method-override');
-const cors = require('cors');
-const helmet = require('helmet');
+const config = require('config');
 const respond = require('express-respond');
-const compression = require('compression');
 
 
-//register environment variables
-environment.registerEnvironments({
-  isLocal: ['test', 'dev', 'development']
-});
+/* constants */
+const BASE_PATH = env('BASE_PATH', process.cwd());
+const LOG_PATH = env('LOG_PATH', path.join(BASE_PATH, 'logs'));
 
 
-//build logs directory if does not exists
-const logPath = path.join(__dirname, '..', 'logs');
-mkdir.sync(logPath);
+// build logs directory if does not exists
+mkdir.sync(LOG_PATH);
 
-//start initializers
-
-//setup winston application logger
-let winston = require('winston');
-require('winston-daily-rotate-file');
-winston.add(new(winston.transports.DailyRotateFile)({
-  filename: path.join(logPath, 'log.log')
-}));
-winston.level = 'silly';
 
 //setup application mongoose instance
 require(path.join(__dirname, 'initializers', 'mongoose'));
 
 
-//setup messages transports
+//setup messages transports(TODO: use postman)
 const infobip = require('open311-infobip');
 let infobipOptions = config.get('infobip');
 if (process.env.REDIS_URL) {
@@ -90,57 +59,18 @@ infobip.init();
 //finish initializers
 
 
-//create an express application
-let app = express();
-
-//enable response compression
-app.use(compression());
-
-
-//setup public directories
-app.use(express.static(path.join(__dirname, '..', 'public')));
-
-
-//enable cors
-app.use(cors());
-
-
 //use express respond to force
 //response content type to json always
-app.use(respond({ types: 'json' }));
+app.use(respond({ types: 'json' })); //TODO remove
 
 
-//configure helmet
-app.use(helmet.hidePoweredBy({
-  setTo: [pkg.name, pkg.version].join(' ')
-}));
-
-
-// aplication favicon
-// un comment after adding application favicon in public directory
-// var favicon = require('serve-favicon');
-// app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')));
-
-
-//parsing body
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
-app.use(bodyParser.json({ limit: '2mb' }));
-app.use(methodOverride('_method'));
-
-
-//setup mongoose express pagination middleware
-app.use(require('express-mquery').middleware({ limit: 10, maxLimit: 1000 }));
-
-
-//bind settings loader middleware
+//bind settings loader middleware(TODO: cleanup)
 app.use(require(path.join(__dirname, 'middlewares', 'settings')));
 app.use(require(path.join(__dirname, 'middlewares', 'preloader')));
 app.use(require(path.join(__dirname, 'middlewares', 'defaults')));
 
 
-// load all routers recursively
+// load legacy routers recursively
 require('require-all')({
   dirname: path.join(__dirname, 'routers'),
   filter: /(.+_router)\.js$/,
@@ -151,58 +81,9 @@ require('require-all')({
 });
 
 
-// catch 404 and forward to error handler
-app.use(function (request, response, next) {
-  let error = new Error('Not Found');
-  error.status = 404;
-  next(error);
-});
-
-
-// error handlers
-
-/*jshint unused:false */
-// development error handlers
-if (environment.isLocal()) {
-  app.use(function (error, request, response, next) {
-
-    //log all errors
-    console.log(error);
-    winston.error(error);
-
-    //respond
-    response.status(error.status || 500);
-    response.json({
-      success: false,
-      status: error.status,
-      code: error.code,
-      message: error.message,
-      error: error
-    });
-  });
-}
-
-
-// production error handler
-if (environment.isProd()) {
-  app.use(function (error, request, response, next) {
-
-    //log all errors
-    console.log(error);
-    winston.error(error);
-
-    //respond
-    response.status(error.status || 500);
-    response.json({
-      success: false,
-      status: error.status,
-      code: error.code,
-      message: error.message
-    });
-  });
-}
-/*jshint unused:true */
+/* load modules versioned routers */
+// const { router: accountRouter } = require('@codetanzania/majifix-account');
 
 
 //export express application
-module.exports = app;
+exports = module.exports = app;

@@ -4,7 +4,7 @@
 //dependencies
 const path = require('path');
 const _ = require('lodash');
-const environment = require('execution-environment');
+const env = require('@lykmapipo/env');
 const conf = require('config');
 const winston = require('winston');
 const mongoose = require('mongoose');
@@ -23,7 +23,6 @@ const mongooseSoftDelete =
 const mongooseSearchable = require('mongoose-regex-search');
 const mongooseExists = require('mongoose-exists');
 const mongooseAutoset = require('mongoose-autoset');
-const mongoosePaginate = require('express-mquery').plugin;
 const mongooseAutopopulate = require('mongoose-autopopulate');
 const mongooseRunInBackground = require('mongoose-kue').plugin;
 const mongooseHidden = require('mongoose-hidden')({
@@ -80,7 +79,6 @@ mongoose.plugin(function (schema) {
 mongoose.plugin(mongooseAutoset);
 mongoose.plugin(mongooseExists);
 mongoose.plugin(mongooseSoftDelete);
-mongoose.plugin(mongoosePaginate);
 mongoose.plugin(mongooseAutopopulate);
 mongoose.plugin(mongooseHidden);
 mongoose.plugin(mongooseShow);
@@ -116,7 +114,7 @@ mongoose.connect(uristring, mongoOptions, function () {
   //check if seeding is enabled
   const shouldSeed = _.get(config, 'seed.enable', false);
 
-  if (!environment.isTest() && shouldSeed) {
+  if (!env.isTest && shouldSeed) {
     require('seed-mongoose')({
       suffix: '_seed',
       logger: winston,
