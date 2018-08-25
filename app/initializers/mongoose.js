@@ -20,10 +20,8 @@ const mongooseReload =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'reload'));
 const mongooseSoftDelete =
   require(path.join(__dirname, '..', 'libs', 'mongoose', 'soft_delete'));
-const mongooseSearchable = require('mongoose-regex-search');
 const mongooseExists = require('mongoose-exists');
 const mongooseAutoset = require('mongoose-autoset');
-const mongooseAutopopulate = require('mongoose-autopopulate');
 const mongooseRunInBackground = require('mongoose-kue').plugin;
 const mongooseHidden = require('mongoose-hidden')({
   defaultHidden: {
@@ -79,13 +77,11 @@ mongoose.plugin(function (schema) {
 mongoose.plugin(mongooseAutoset);
 mongoose.plugin(mongooseExists);
 mongoose.plugin(mongooseSoftDelete);
-mongoose.plugin(mongooseAutopopulate);
 mongoose.plugin(mongooseHidden);
 mongoose.plugin(mongooseShow);
 mongoose.plugin(mongooseEdit);
 mongoose.plugin(mongooseList);
 mongoose.plugin(mongooseReload);
-mongoose.plugin(mongooseSearchable);
 
 //plugin mongoose kue
 let mongooseKueOptions = { mongoose: mongoose };

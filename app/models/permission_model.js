@@ -5,10 +5,10 @@
  * @module Permission
  * @name Permission
  * @description manage party(ies) permission(s)
- * 
- *              Note!: permissions are dynamic generated during booting and 
+ *
+ *              Note!: permissions are dynamic generated during booting and
  *              are only assignable to party(user) roles.
- *              
+ *
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
  * @version 0.1.0
@@ -20,6 +20,7 @@
 const _ = require('lodash');
 const inflection = require('inflection');
 const mongoose = require('mongoose');
+const actions = require('mongoose-rest-actions');
 const Schema = mongoose.Schema;
 
 
@@ -69,7 +70,7 @@ const PermissionSchema = new Schema({
 
   /**
    * @name description
-   * @description human readable explanation about this permission 
+   * @description human readable explanation about this permission
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -85,7 +86,7 @@ const PermissionSchema = new Schema({
   /**
    * @name wildcard
    * @description system readable unique identifier of this permission
-   *              e.g jurisdiction:create 
+   *              e.g jurisdiction:create
    * @type {Object}
    * @private
    * @since 0.1.0
@@ -132,6 +133,9 @@ PermissionSchema.pre('validate', function (next) {
   next();
 
 });
+
+
+PermissionSchema.plugin(actions);
 
 
 /**

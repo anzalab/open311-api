@@ -21,8 +21,8 @@ module.exports = exports = function (schema /*, options*/ ) {
     name = inflection.pluralize(name.toLowerCase());
 
     //reference request query
-    const options = _.merge({}, request.mquery);
-    let result = {};
+    const options =
+      _.merge({}, request.mquery, { filter: { q: request.query.q } });
 
     //get
     this.get(options, function afterGet(error, results) {

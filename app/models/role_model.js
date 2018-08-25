@@ -19,6 +19,7 @@
 //dependencies
 const _ = require('lodash');
 const mongoose = require('mongoose');
+const actions = require('mongoose-rest-actions');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
@@ -144,6 +145,9 @@ RoleSchema.pre('validate', function (next) {
   next();
 
 });
+
+
+RoleSchema.plugin(actions);
 
 
 /**

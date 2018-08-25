@@ -17,6 +17,7 @@ const async = require('async');
 const config = require('config');
 const moment = require('moment');
 const mongoose = require('mongoose');
+const actions = require('mongoose-rest-actions');
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Schema.ObjectId;
 const irina = require('irina');
@@ -342,6 +343,7 @@ PartySchema.plugin(irina, {
     autoConfirm: true
   }
 });
+PartySchema.plugin(actions);
 
 
 //-----------------------------------------------------------------------------

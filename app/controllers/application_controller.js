@@ -315,6 +315,7 @@ module.exports = {
    */
   summaries: function (request, response) {
     //TODO fix jurisdiction criteria filter
+    // const criteria = _.merge({}, request.mquery || {});
     const criteria = _.merge({}, _.get(request, 'mquery.query', {}));
 
     delete request.mquery.query.jurisdiction;
@@ -336,6 +337,7 @@ module.exports = {
    */
   endpoints: function (request, response, next) {
     //TODO fix jurisdiction criteria filter
+    // const criteria = _.merge({}, request.mquery || {});
     const criteria = _.merge({}, _.get(request, 'mquery.query', {}));
 
     delete request.mquery.query.jurisdiction;

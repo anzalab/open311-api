@@ -66,6 +66,7 @@ app.use(respond({ types: 'json' })); //TODO remove
 
 //bind settings loader middleware(TODO: cleanup)
 app.use(require(path.join(__dirname, 'middlewares', 'settings')));
+app.use(require(path.join(__dirname, 'middlewares', 'settings')));
 app.use(require(path.join(__dirname, 'middlewares', 'preloader')));
 app.use(require(path.join(__dirname, 'middlewares', 'defaults')));
 
