@@ -24,6 +24,7 @@
 const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
+const actions = require('mongoose-rest-actions');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
@@ -457,6 +458,12 @@ ChangeLogSchema.statics.track = function (changes, done) {
   //handle reopened
 
 };
+
+
+//------------------------------------------------------------------------------
+// plugins
+//------------------------------------------------------------------------------
+ChangeLogSchema.plugin(actions);
 
 
 //TODO post save send notification

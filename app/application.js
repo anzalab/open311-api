@@ -82,9 +82,13 @@ require('require-all')({
 });
 
 
-/* load modules versioned routers */
-// const { router: accountRouter } = require('@codetanzania/majifix-account');
-
+/* load majifix modules versioned routers */
+app.mount(require('@codetanzania/majifix-jurisdiction').router);
+app.mount(require('@codetanzania/majifix-priority').router);
+app.mount(require('@codetanzania/majifix-status').router);
+app.mount(require('@codetanzania/majifix-service-group').router);
+app.mount(require('@codetanzania/majifix-service').router);
+app.mount(require('@codetanzania/majifix-account').router);
 
 //export express application
 exports = module.exports = app;
