@@ -131,7 +131,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
 
       //TODO use open311 as method
       const CONTACT_METHOD_MOBILE_APP =
-        ServiceRequest.CONTACT_METHOD_MOBILE_APP;
+        (serviceRequest.method || ServiceRequest.CONTACT_METHOD_MOBILE_APP);
 
       async.waterfall([
 
@@ -185,7 +185,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
             reporter: {
               name: [serviceRequest.first_name,
                 serviceRequest.last_name
-              ].join(''),
+              ].join(' '),
               phone: serviceRequest.phone,
               email: serviceRequest.email,
               account: serviceRequest.account_id

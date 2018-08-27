@@ -57,7 +57,7 @@
     "remove": "sudo update-rc.d -f pm2-init.sh remove"
   },
   "dependencies": {
-    "@codetanzania/majifix-account": "^1.3.0",
+    "@codetanzania/majifix-account": "^1.4.0",
     "@codetanzania/majifix-common": "^0.9.0",
     "@codetanzania/majifix-jurisdiction": "^1.4.0",
     "@codetanzania/majifix-priority": "^1.4.0",
