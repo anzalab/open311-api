@@ -57,7 +57,7 @@
     "remove": "sudo update-rc.d -f pm2-init.sh remove"
   },
   "dependencies": {
-    "@codetanzania/majifix-account": "^1.4.0",
+    "@codetanzania/majifix-account": "^1.4.1",
     "@codetanzania/majifix-common": "^0.9.0",
     "@codetanzania/majifix-jurisdiction": "^1.4.0",
     "@codetanzania/majifix-priority": "^1.4.0",
@@ -88,7 +88,7 @@
     "method-override": "^3.0.0",
     "mkdir-p": "0.0.7",
     "moment": "^2.22.2",
-    "mongoose": "5.2.9",
+    "mongoose": "5.2.10",
     "mongoose-autopopulate": "^0.8.0",
     "mongoose-autoset": "^0.2.0",
     "mongoose-exists": "^0.5.0",

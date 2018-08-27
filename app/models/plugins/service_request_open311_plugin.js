@@ -129,7 +129,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
       const ServiceRequest = this;
       const Service = mongoose.model('Service');
 
-      //TODO use open311 as method
+      //use open311 submitted method
       const CONTACT_METHOD_MOBILE_APP =
         (serviceRequest.method || ServiceRequest.CONTACT_METHOD_MOBILE_APP);
 
