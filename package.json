@@ -65,6 +65,7 @@
     "@codetanzania/majifix-service-group": "^1.2.0",
     "@codetanzania/majifix-status": "^1.4.0",
     "@lykmapipo/express-common": "^0.9.1",
+    "@lykmapipo/postman": "^0.1.0",
     "async": "^2.6.1",
     "body-parser": "^1.18.3",
     "compression": "^1.7.3",
