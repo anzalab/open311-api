@@ -32,7 +32,6 @@ const path = require('path');
 const env = require('@lykmapipo/env');
 const app = require('@lykmapipo/express-common');
 const mkdir = require('mkdir-p');
-const config = require('config');
 const respond = require('express-respond');
 
 
@@ -47,18 +46,6 @@ mkdir.sync(LOG_PATH);
 
 //setup application mongoose instance
 require(path.join(__dirname, 'initializers', 'mongoose'));
-
-
-//setup messages transports(TODO: use postman)
-const infobip = require('open311-infobip');
-let infobipOptions = config.get('infobip');
-if (process.env.REDIS_URL) {
-  infobipOptions.redis = process.env.REDIS_URL;
-}
-infobip.options = infobipOptions;
-infobip.init();
-
-//finish initializers
 
 
 //use express respond to force
