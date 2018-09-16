@@ -22,6 +22,7 @@ const { getBoolean } = env;
 
 
 /* constants */
+const DEFAULT_SMS_SENDER_ID = env('DEFAULT_SMS_SENDER_ID');
 const ENABLE_SYNC_TRANSPORT = getBoolean('ENABLE_SYNC_TRANSPORT', false);
 
 
@@ -58,8 +59,8 @@ exports.formatPhoneNumberToE164 = function (phoneNumber, countryCode) {
 /**
  * @name sms
  * @description send a given message as an sms
- * @param  {Message|Object}   message valid message instance or definition
- * @param  {Function} done    a callback to invoke on success or failure
+ * @param {Message|Object} message valid message instance or definition
+ * @param {Function} done a callback to invoke on success or failure
  * @see {@link Message}
  * @author lally elias <lallyelias87@mail.com>
  * @since 0.1.0
@@ -74,6 +75,9 @@ exports.sms = function (message, done) {
   //prepare sms message
   const isMessageInstance = message instanceof Message;
   message = isMessageInstance ? message.toObject() : message;
+
+  //ensure message sender
+  message.sender = (message.sender || DEFAULT_SMS_SENDER_ID);
 
   //ensure receivers number are in e.164 format
   let receivers = _.uniq(_.compact([].concat(message.to)));

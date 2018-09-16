@@ -2,9 +2,9 @@
 
 /**
  * @name notification
- * @description extend service request with notification(i.e sms, email etc) 
+ * @description extend service request with notification(i.e sms, email etc)
  *              hook points
- *              
+ *
  * @see {@link ServiceRequest}
  * @see {@link http://mongoosejs.com/docs/api.html#aggregate_Aggregate}
  * @see {@link http://mongoosejs.com/docs/api.html#aggregate_Aggregate-lookup}
@@ -40,8 +40,8 @@ module.exports = exports = function notification(schema /*, options*/ ) {
   schema.add({
     /**
      * @name wasOpenTicketSent
-     * @description tells whether a notification contain a ticket number was 
-     *              sent to a service request(issue) reporter using 
+     * @description tells whether a notification contain a ticket number was
+     *              sent to a service request(issue) reporter using
      *              sms, email etc. once a service request created.
      * @type {Object}
      * @private
@@ -56,7 +56,7 @@ module.exports = exports = function notification(schema /*, options*/ ) {
 
     /**
      * @name wasResolveTicketSent
-     * @description tells whether a notification was sent to a 
+     * @description tells whether a notification was sent to a
      *              service request(issue) reporter using sms, email etc. once
      *              a service request was marked as resolved.
      * @type {Object}
@@ -155,7 +155,7 @@ module.exports = exports = function notification(schema /*, options*/ ) {
         const template = config.get('infobip').templates.ticket.open;
         const body = parseTemplate(template, {
           ticket: serviceRequest.code,
-          service: serviceRequest.service.name,
+          service: serviceRequest.service.name.en,
           phone: config.get('phone')
         });
 
@@ -225,7 +225,7 @@ module.exports = exports = function notification(schema /*, options*/ ) {
         const template = config.get('infobip').templates.ticket.resolve;
         const body = parseTemplate(template, {
           ticket: serviceRequest.code,
-          service: serviceRequest.service.name,
+          service: serviceRequest.service.name.en,
           phone: config.get('phone')
         });
 
