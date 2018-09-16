@@ -122,7 +122,6 @@ const PartySchema = new Schema({
   jurisdiction: {
     type: ObjectId,
     ref: 'Jurisdiction',
-    autoset: true,
     exists: true,
     autopopulate: {
       select: 'code name phone email domain'
@@ -234,8 +233,7 @@ const PartySchema = new Schema({
    */
   roles: [{
     type: ObjectId,
-    ref: 'Role',
-    autoset: true
+    ref: 'Role'
   }],
 
 

@@ -150,15 +150,6 @@ module.exports = function (grunt) {
     // mocha test task configuration
     //------------------------------------------------------------
     mochaTest: {
-      all: {
-        options: {
-          reporter: 'spec',
-          timeout: 8000
-        },
-        src: [
-          '<%= project.test %>/**/*.js'
-        ]
-      },
       unit: {
         options: {
           reporter: 'spec',
@@ -200,13 +191,6 @@ module.exports = function (grunt) {
     'watch:express'
   ]);
 
-  //run in production environment
-  grunt.registerTask('prod', [
-    'newer:jshint',
-    'express:prod',
-    'watch'
-  ]);
-
   //run in test environment
   grunt.registerTask('test', [
     'newer:jshint',
@@ -236,9 +220,8 @@ module.exports = function (grunt) {
   //default run jshint and test
   grunt.registerTask('default', [
     'newer:jshint',
-    'mochaTest:all',
-    'express:dev',
-    'watch'
+    'mochaTest:unit',
+    'mochaTest:integration'
   ]);
 
 };

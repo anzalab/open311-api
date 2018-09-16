@@ -75,7 +75,6 @@ const RoleSchema = new Schema({
     type: ObjectId,
     ref: 'Permission',
     required: true,
-    autoset: true,
     autopopulate: {
       select: 'resource wildcard description'
     }

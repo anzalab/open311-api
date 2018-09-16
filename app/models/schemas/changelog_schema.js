@@ -65,7 +65,6 @@ const ChangeLogSchema = new Schema({
     type: ObjectId,
     ref: 'Status',
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
       select: 'name weight color'
@@ -86,7 +85,6 @@ const ChangeLogSchema = new Schema({
     type: ObjectId,
     ref: 'Priority',
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
       select: 'name weight color'
@@ -107,7 +105,6 @@ const ChangeLogSchema = new Schema({
     type: ObjectId,
     ref: 'Party',
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
       select: 'name email phone'
@@ -128,7 +125,6 @@ const ChangeLogSchema = new Schema({
     type: ObjectId,
     ref: 'Party',
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
       select: 'name email phone'

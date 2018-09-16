@@ -34,6 +34,7 @@ const sync = require('open311-api-sync');
 const moment = require('moment');
 const mongoose = require('mongoose');
 const actions = require('mongoose-rest-actions');
+const { Point } = require('mongoose-geojson-schemas');
 const parseMs = require('parse-ms');
 
 
@@ -65,7 +66,6 @@ const changelog =
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 const schemaPath = path.join(__dirname, 'schemas');
-const GeoJSON = require(path.join(schemaPath, 'geojson_schema'));
 const Media = require(path.join(schemaPath, 'media_schema'));
 const Duration = require(path.join(schemaPath, 'duration_schema'));
 const Call = require(path.join(schemaPath, 'call_schema'));
@@ -317,7 +317,7 @@ const ServiceRequestSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  location: GeoJSON.Point, //TODO set to jurisdiction geo point if non provided
+  location: Point, //TODO set to jurisdiction geo point if non provided
 
 
   /**
@@ -452,15 +452,6 @@ const ServiceRequestSchema = new Schema({
    */
 
 }, { timestamps: true, emitIndexErrors: true });
-
-
-//-----------------------------------------------------------------------------
-// ServiceRequestSchema Index
-//-----------------------------------------------------------------------------
-
-
-//ensure `2dsphere` on service request location
-ServiceRequestSchema.index({ location: '2dsphere' });
 
 
 //-----------------------------------------------------------------------------

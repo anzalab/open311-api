@@ -87,7 +87,7 @@
     "lodash": "^4.17.11",
     "mkdir-p": "0.0.7",
     "moment": "^2.22.2",
-    "mongoose": "5.2.15",
+    "mongoose": "^5.2.15",
     "mongoose-autopopulate": "^0.8.1",
     "mongoose-exists": "^0.6.0",
     "mongoose-geojson-schemas": "^0.6.0",
