@@ -3,6 +3,8 @@
 
 /**
  * @module application
+ * @name application
+ * @alias app
  * @description application entry point responsible to load components
  *
  * Booting Order(Sequence):
@@ -66,12 +68,11 @@ app.use(respond({ types: 'json' })); //TODO remove
 
 //bind settings loader middleware(TODO: cleanup)
 app.use(require(path.join(__dirname, 'middlewares', 'settings')));
-app.use(require(path.join(__dirname, 'middlewares', 'settings')));
 app.use(require(path.join(__dirname, 'middlewares', 'preloader')));
 app.use(require(path.join(__dirname, 'middlewares', 'defaults')));
 
 
-// load legacy routers recursively
+/* load legacy routers recursively */
 require('require-all')({
   dirname: path.join(__dirname, 'routers'),
   filter: /(.+_router)\.js$/,
@@ -90,5 +91,6 @@ app.mount(require('@codetanzania/majifix-service-group').router);
 app.mount(require('@codetanzania/majifix-service').router);
 app.mount(require('@codetanzania/majifix-account').router);
 
-//export express application
+
+/* export express application */
 exports = module.exports = app;
