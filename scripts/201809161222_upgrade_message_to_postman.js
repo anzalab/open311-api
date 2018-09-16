@@ -3,4 +3,6 @@ var conn = new Mongo();
 var db = conn.getDB('open311');
 
 //drop existing messages
-db.servicerequests.dropIndex('location_2dsphere');
+db.messages.drop();
+
+//TODO flush all redis database

@@ -3,9 +3,7 @@
 
 /* dependencies */
 const path = require('path');
-const _ = require('lodash');
 const env = require('@lykmapipo/env');
-const conf = require('config');
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 // mongoose.set('debug', true);
@@ -15,7 +13,6 @@ const mongooseEdit = require(path.join(pluginPath, 'edit'));
 const mongooseList = require(path.join(pluginPath, 'list'));
 const mongooseReload = require(path.join(pluginPath, 'reload'));
 const mongooseSoftDelete = require(path.join(pluginPath, 'soft_delete'));
-const mongooseRunInBackground = require('mongoose-kue').plugin;
 
 
 /* ensure mongodb url */
@@ -39,17 +36,8 @@ mongoose.plugin(mongooseList);
 mongoose.plugin(mongooseReload);
 
 
-/* plugin mongoose kue */
-let mongooseKueOptions = { mongoose: mongoose };
-if (process.env.REDIS_URL) {
-  mongooseKueOptions.redis = process.env.REDIS_URL;
-}
-mongoose.plugin(mongooseRunInBackground, mongooseKueOptions);
-
-
 /* require external models */
-require('open311-messages')
-  (_.merge({}, mongooseKueOptions, conf.get('infobip'))); //initialize message models
+require('@lykmapipo/postman');
 
 
 /* load all models recursively */

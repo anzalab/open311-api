@@ -21,8 +21,12 @@ module.exports = exports = function (schema /*, options*/ ) {
     name = inflection.pluralize(name.toLowerCase());
 
     //reference request query
+    const filter = { filter: { q: request.query.q } };
+    const paginate = {
+      paginate: { limit: Number((request.query || {}).limit || 10) }
+    };
     const options =
-      _.merge({}, request.mquery, { filter: { q: request.query.q } });
+      _.merge({}, request.mquery, filter, paginate);
     delete options.query;
 
     //get
