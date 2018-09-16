@@ -1,89 +1,45 @@
 'use strict';
 
 
-//dependencies
+/* dependencies */
 const path = require('path');
 const _ = require('lodash');
 const env = require('@lykmapipo/env');
 const conf = require('config');
-const winston = require('winston');
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 // mongoose.set('debug', true);
-const mongooseShow =
-  require(path.join(__dirname, '..', 'libs', 'mongoose', 'show'));
-const mongooseEdit =
-  require(path.join(__dirname, '..', 'libs', 'mongoose', 'edit'));
-const mongooseList =
-  require(path.join(__dirname, '..', 'libs', 'mongoose', 'list'));
-const mongooseReload =
-  require(path.join(__dirname, '..', 'libs', 'mongoose', 'reload'));
-const mongooseSoftDelete =
-  require(path.join(__dirname, '..', 'libs', 'mongoose', 'soft_delete'));
-const mongooseExists = require('mongoose-exists');
-const mongooseAutoset = require('mongoose-autoset');
+const pluginPath = path.join(__dirname, '..', 'libs', 'mongoose');
+const mongooseShow = require(path.join(pluginPath, 'show'));
+const mongooseEdit = require(path.join(pluginPath, 'edit'));
+const mongooseList = require(path.join(pluginPath, 'list'));
+const mongooseReload = require(path.join(pluginPath, 'reload'));
+const mongooseSoftDelete = require(path.join(pluginPath, 'soft_delete'));
 const mongooseRunInBackground = require('mongoose-kue').plugin;
-const mongooseHidden = require('mongoose-hidden')({
-  defaultHidden: {
-    password: true,
-    __v: true,
-    __t: true
-  },
-  virtuals: {
-    id: 'hideJSON',
-    runInBackgroundQueue: 'hide',
-    runInBackgroundOptions: 'hide'
-  }
-});
 
 
-/**
- * @description prepare mongo database configurations
- * @type {Object}
- */
-const config = conf.get('mongoose');
+/* ensure mongodb url */
+const MONGODB_URI = env('MONGODB_URI', 'mongodb://localhost/open311');
 
 
-/**
- * @description generate mongoose connection uri string
- * @type {String}
- */
-const port = config.port ? ':' + config.port : '';
-
-const login =
-  (config.user.length > 0) ? config.user + ':' + config.password + '@' : '';
-
-const uristring =
-  'mongodb://' + login + config.host + port + '/' + config.database;
-
-/**
- * @description mongodb options
- * @type {Object}
- */
-const mongoOptions = config.options;
-
-
-/**
- * @description plugin schema wide mongoose plugins
- */
+/* plugin global schema plugin to allow virtuals in toJSON */
 mongoose.plugin(function (schema) {
-  //allow virtuals on toJSON
   schema.set('toJSON', {
     getters: true,
     virtuals: true
   });
 });
 
-mongoose.plugin(mongooseAutoset);
-mongoose.plugin(mongooseExists);
+
+/* local plugins */
 mongoose.plugin(mongooseSoftDelete);
-mongoose.plugin(mongooseHidden);
 mongoose.plugin(mongooseShow);
 mongoose.plugin(mongooseEdit);
 mongoose.plugin(mongooseList);
 mongoose.plugin(mongooseReload);
 
-//plugin mongoose kue
+
+/* plugin mongoose kue */
 let mongooseKueOptions = { mongoose: mongoose };
 if (process.env.REDIS_URL) {
   mongooseKueOptions.redis = process.env.REDIS_URL;
@@ -91,11 +47,12 @@ if (process.env.REDIS_URL) {
 mongoose.plugin(mongooseRunInBackground, mongooseKueOptions);
 
 
-//require external models
-require('open311-messages')(_.merge({}, mongooseKueOptions, conf.get('infobip'))); //initialize message models
+/* require external models */
+require('open311-messages')
+  (_.merge({}, mongooseKueOptions, conf.get('infobip'))); //initialize message models
 
 
-// load all models recursively
+/* load all models recursively */
 require('require-all')({
   dirname: path.join(__dirname, '..', 'models'),
   filter: /(.+_model)\.js$/,
@@ -103,37 +60,12 @@ require('require-all')({
 });
 
 
-/**
- * @description establish database connection.
- */
-mongoose.connect(uristring, mongoOptions, function () {
-  //check if seeding is enabled
-  const shouldSeed = _.get(config, 'seed.enable', false);
+/* establish mongodb connection */
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 
-  if (!env.isTest && shouldSeed) {
-    require('seed-mongoose')({
-      suffix: '_seed',
-      logger: winston,
-      mongoose: mongoose
-    }, function (error /*, results*/ ) {
-      if (error && error.code !== 11000) {
-        throw error;
-      } else {
-        //seed default user(s)
-        require(path.join(__dirname, '..', '..', 'seeds'))
-          (function (error /*, party*/ ) {
-            if (1) {
-              throw error;
-            }
-          });
-      }
-    });
-  }
-
-});
 
 /**
  * @description export mongoose
  * @type {Mongoose}
  */
-module.exports = mongoose;
+exports = module.exports = mongoose;

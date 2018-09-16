@@ -23,6 +23,7 @@ module.exports = exports = function (schema /*, options*/ ) {
     //reference request query
     const options =
       _.merge({}, request.mquery, { filter: { q: request.query.q } });
+    delete options.query;
 
     //get
     this.get(options, function afterGet(error, results) {

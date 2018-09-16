@@ -19,7 +19,7 @@ const { Service } = require('@codetanzania/majifix-service');
 
 
 //static utility to map service to legacy service structure
-Service.mapToLegacy = function mapToLegacy(service) {
+Service.mapToLegacy = function _mapToLegacy(service) {
   const _service = service.toObject();
   _service.name = service.name.en;
   _service.description = (service.description || {}).en;
