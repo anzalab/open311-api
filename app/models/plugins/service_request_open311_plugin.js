@@ -199,7 +199,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
 
           /*jshint camelcase:false*/
 
-          ServiceRequest.create(serviceRequest, next);
+          ServiceRequest.createAndTrack(serviceRequest, next);
         },
 
         function prepareOpen311Response(serviceRequest, next) {
