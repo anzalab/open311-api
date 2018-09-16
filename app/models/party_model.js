@@ -17,9 +17,10 @@ const async = require('async');
 const config = require('config');
 const moment = require('moment');
 const mongoose = require('mongoose');
+const actions = require('mongoose-rest-actions');
+const irina = require('irina');
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Schema.ObjectId;
-const irina = require('irina');
 
 //relation name
 const RELATION_NAME_INTERNAL = 'Internal';
@@ -121,7 +122,6 @@ const PartySchema = new Schema({
   jurisdiction: {
     type: ObjectId,
     ref: 'Jurisdiction',
-    autoset: true,
     exists: true,
     autopopulate: {
       select: 'code name phone email domain'
@@ -233,8 +233,7 @@ const PartySchema = new Schema({
    */
   roles: [{
     type: ObjectId,
-    ref: 'Role',
-    autoset: true
+    ref: 'Role'
   }],
 
 
@@ -342,6 +341,7 @@ PartySchema.plugin(irina, {
     autoConfirm: true
   }
 });
+PartySchema.plugin(actions);
 
 
 //-----------------------------------------------------------------------------

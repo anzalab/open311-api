@@ -71,7 +71,7 @@ module.exports = {
       body.operator = request.party;
     }
 
-    ServiceRequest.create(body, function (error, servicerequest) {
+    ServiceRequest.createAndTrack(body, function (error, servicerequest) {
       if (error) {
         next(error);
       } else {

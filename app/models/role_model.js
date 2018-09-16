@@ -19,6 +19,7 @@
 //dependencies
 const _ = require('lodash');
 const mongoose = require('mongoose');
+const actions = require('mongoose-rest-actions');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
@@ -74,7 +75,6 @@ const RoleSchema = new Schema({
     type: ObjectId,
     ref: 'Permission',
     required: true,
-    autoset: true,
     autopopulate: {
       select: 'resource wildcard description'
     }
@@ -144,6 +144,9 @@ RoleSchema.pre('validate', function (next) {
   next();
 
 });
+
+
+RoleSchema.plugin(actions);
 
 
 /**

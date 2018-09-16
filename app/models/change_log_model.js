@@ -24,6 +24,7 @@
 const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
+const actions = require('mongoose-rest-actions');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
@@ -67,7 +68,6 @@ const ChangeLogSchema = new Schema({
     ref: 'ServiceRequest',
     required: true,
     index: true,
-    autoset: true,
     exists: true,
     hidden: true,
     autopopulate: {
@@ -90,7 +90,6 @@ const ChangeLogSchema = new Schema({
     type: ObjectId,
     ref: 'Status',
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
       select: 'name weight color',
@@ -112,7 +111,6 @@ const ChangeLogSchema = new Schema({
     type: ObjectId,
     ref: 'Priority',
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
       select: 'name weight color',
@@ -134,7 +132,6 @@ const ChangeLogSchema = new Schema({
     type: ObjectId,
     ref: 'Party',
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
       select: 'name email phone',
@@ -156,7 +153,6 @@ const ChangeLogSchema = new Schema({
     type: ObjectId,
     ref: 'Party',
     index: true,
-    autoset: true,
     exists: true,
     autopopulate: {
       select: 'name email phone',
@@ -267,15 +263,6 @@ const ChangeLogSchema = new Schema({
 
 
 }, { timestamps: true, emitIndexErrors: true });
-
-
-//------------------------------------------------------------------------------
-// index
-//------------------------------------------------------------------------------
-
-
-ChangeLogSchema.index({ createdAt: 1 });
-ChangeLogSchema.index({ updatedAt: 1 });
 
 
 //------------------------------------------------------------------------------
@@ -457,6 +444,12 @@ ChangeLogSchema.statics.track = function (changes, done) {
   //handle reopened
 
 };
+
+
+//------------------------------------------------------------------------------
+// plugins
+//------------------------------------------------------------------------------
+ChangeLogSchema.plugin(actions);
 
 
 //TODO post save send notification
