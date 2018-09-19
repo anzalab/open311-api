@@ -72,6 +72,7 @@ require('require-all')({
 
 /* load majifix modules versioned routers */
 app.mount(require('@lykmapipo/permission').router);
+app.mount(require('@lykmapipo/role').router);
 app.mount(require('@codetanzania/majifix-jurisdiction').router);
 app.mount(require('@codetanzania/majifix-priority').router);
 app.mount(require('@codetanzania/majifix-status').router);

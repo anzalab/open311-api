@@ -69,6 +69,7 @@
     "@lykmapipo/express-common": "^0.9.1",
     "@lykmapipo/permission": "^0.2.2",
     "@lykmapipo/postman": "^0.5.0",
+    "@lykmapipo/role": "^0.1.1",
     "async": "^2.6.1",
     "config": "^2.0.1",
     "csv": "^3.1.0",

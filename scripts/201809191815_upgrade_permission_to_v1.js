@@ -4,4 +4,4 @@ var db = conn.getDB('open311');
 
 
 //drop unused indexes
-db.services.dropIndexes();
+db.permissions.dropIndexes();
