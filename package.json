@@ -59,6 +59,7 @@
   },
   "dependencies": {
     "@codetanzania/majifix-account": "^1.5.2",
+    "@codetanzania/majifix-alert": "^1.0.0",
     "@codetanzania/majifix-common": "^0.9.1",
     "@codetanzania/majifix-jurisdiction": "^1.4.2",
     "@codetanzania/majifix-priority": "^1.4.1",

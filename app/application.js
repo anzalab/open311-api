@@ -77,6 +77,7 @@ app.mount(require('@codetanzania/majifix-status').router);
 app.mount(require('@codetanzania/majifix-service-group').router);
 app.mount(require('@codetanzania/majifix-service').router);
 app.mount(require('@codetanzania/majifix-account').router);
+app.mount(require('@codetanzania/majifix-alert').router);
 
 
 /* export express application */

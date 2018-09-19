@@ -37,6 +37,7 @@ mongoose.plugin(mongooseReload);
 
 
 /* require external models */
+require('@codetanzania/majifix-alert');
 require('@lykmapipo/postman');
 
 
