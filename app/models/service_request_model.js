@@ -1394,7 +1394,7 @@ ServiceRequestSchema.statics.summary = function (criteria, done) {
  * @version 0.1.0
  * @static
  */
-ServiceRequest.statics.getPhones = function getPhones(criteria, done) {
+ServiceRequestSchema.statics.getPhones = function getPhones(criteria, done) {
 
   //refs
   const ServiceRequest = this;
