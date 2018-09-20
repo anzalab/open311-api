@@ -9,7 +9,7 @@ const app = require(path.join(__dirname, 'app', 'application'));
 
 
 //lift up application server
-app.listen(env('PORT'), function () {
+app.start(env('PORT'), function () {
 
     console.log(
       'Application server listening on port %d in %s environment',
