@@ -71,12 +71,15 @@ require('require-all')({
 
 
 /* load majifix modules versioned routers */
+app.mount(require('@lykmapipo/permission').router);
+app.mount(require('@lykmapipo/role').router);
 app.mount(require('@codetanzania/majifix-jurisdiction').router);
 app.mount(require('@codetanzania/majifix-priority').router);
 app.mount(require('@codetanzania/majifix-status').router);
 app.mount(require('@codetanzania/majifix-service-group').router);
 app.mount(require('@codetanzania/majifix-service').router);
 app.mount(require('@codetanzania/majifix-account').router);
+app.mount(require('@codetanzania/majifix-alert').router);
 
 
 /* export express application */

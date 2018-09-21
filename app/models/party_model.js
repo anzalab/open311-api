@@ -828,5 +828,38 @@ PartySchema.statics.performances = function (options, done) {
 
 };
 
+
+/**
+ * @name getPhones
+ * @function getPhones
+ * @description pull distinct party phones
+ * @param {Object} [criteria] valid query criteria
+ * @param {function} done a callback to invoke on success or error
+ * @return {String[]|Error}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ */
+PartySchema.statics.getPhones = function getPhones(criteria, done) {
+
+  //refs
+  const Party = this;
+
+  //normalize arguments
+  const _criteria = _.isFunction(criteria) ? {} : _.merge({}, criteria);
+  const _done = _.isFunction(criteria) ? criteria : done;
+
+  Party
+    .find(_criteria)
+    .distinct('phone')
+    .exec(function onGetPhones(error, phones) {
+      if (!error) {
+        phones = _.uniq(_.compact([].concat(phones)));
+      }
+      return _done(error, phones);
+    });
+
+};
+
 //exports Party model
 module.exports = mongoose.model('Party', PartySchema);

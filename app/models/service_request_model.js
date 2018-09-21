@@ -1384,6 +1384,39 @@ ServiceRequestSchema.statics.summary = function (criteria, done) {
 
 
 /**
+ * @name getPhones
+ * @function getPhones
+ * @description pull distinct service request reporter phones
+ * @param {Object} [criteria] valid query criteria
+ * @param {function} done a callback to invoke on success or error
+ * @return {String[]|Error}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ */
+ServiceRequestSchema.statics.getPhones = function getPhones(criteria, done) {
+
+  //refs
+  const ServiceRequest = this;
+
+  //normalize arguments
+  const _criteria = _.isFunction(criteria) ? {} : _.merge({}, criteria);
+  const _done = _.isFunction(criteria) ? criteria : done;
+
+  ServiceRequest
+    .find(_criteria)
+    .distinct('reporter.phone')
+    .exec(function onGetPhones(error, phones) {
+      if (!error) {
+        phones = _.uniq(_.compact([].concat(phones)));
+      }
+      return _done(error, phones);
+    });
+
+};
+
+
+/**
  * @name ServiceRequest
  * @description register ServiceRequestSchema and initialize ServiceRequest
  *              model
