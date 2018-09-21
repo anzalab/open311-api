@@ -347,7 +347,7 @@ angular
 
 angular.module('ng311')
 
-.constant('ENV', {name:'production',owner:'DAWASCO',author:'DAWASCO',title:'DAWASCO',version:'v0.1.0',description:'Citizen Feedback System',apiEndPoint:{web:'',mobile:''},socketEndPoint:{web:'',mobile:''},socketEnable:false,settings:{locale:'sw',name:'DAWASCO',email:'lallyelias87@gmail.com',phone:'(000) 000 000 000',currency:'USD',dateFormat:'dd/MM/yyyy',timeFormat:'hh:mm:ss',defaultPassword:'guest',abbreviations:{thousand:'K',million:'M',billion:'B',trillion:'T'}}})
+.constant('ENV', {name:'production',owner:'DAWASA',author:'DAWASA',title:'DAWASA',version:'v0.1.0',description:'Citizen Feedback System',apiEndPoint:{web:'',mobile:''},socketEndPoint:{web:'',mobile:''},socketEnable:false,settings:{locale:'sw',name:'DAWASA',email:'lallyelias87@gmail.com',phone:'(000) 000 000 000',currency:'TZS',dateFormat:'dd/MM/yyyy',timeFormat:'hh:mm:ss',defaultPassword:'guest',abbreviations:{thousand:'K',million:'M',billion:'B',trillion:'T'}}})
 
 ;
 'use strict';
@@ -1436,7 +1436,7 @@ angular
 'use strict';
 
 /**
- * @ngdoc service
+ * @ngdoc service request
  * @name ng311.ServiceRequest
  * @description
  * # ServiceRequest
@@ -1452,10 +1452,10 @@ angular
     var ServiceRequest = $resource(Utils.asLink(['servicerequests', ':id']), {
       id: '@_id'
     }, {
-      update: {
-        method: 'PUT'
-      },
-    });
+        update: {
+          method: 'PUT'
+        },
+      });
 
 
     /**
@@ -1465,8 +1465,8 @@ angular
      */
     ServiceRequest.find = function (params) {
       return $http.get(Utils.asLink('servicerequests'), {
-          params: params
-        })
+        params: params
+      })
         .then(function (response) {
 
           //map plain servicerequest object to resource instances
@@ -1528,7 +1528,7 @@ angular
       try {
         time = $filter('date')(issue.createdAt, 'hh:mm:ss a');
         date = $filter('date')(issue.createdAt, 'dd/MM/yyyy');
-      } catch (error) {}
+      } catch (error) { }
 
       //prepare e-mail body
       var body = [
@@ -1690,8 +1690,14 @@ angular
 angular
   .module('ng311')
   .controller('ServiceRequestCreateCtrl', function (
-    $rootScope, $scope, $state, $stateParams,
-    ServiceRequest, endpoints, party) {
+    $rootScope,
+    $scope,
+    $state,
+    $stateParams,
+    Account,
+    ServiceRequest,
+    endpoints,
+    party) {
 
     //action performed by this controller
     $scope.action = 'Create';
@@ -1709,14 +1715,14 @@ angular
       call: {
         startedAt: new Date()
       },
-      method: { name: undefined },
       reporter: ($stateParams || {}).reporter || {},
       jurisdiction: ($stateParams || {}).jurisdiction,
       service: ($stateParams || {}).service,
       description: ($stateParams || {}).description,
       address: ($stateParams || {}).address,
-      method: ($stateParams || {}).method
+      method: _.merge({}, { name: undefined }, ($stateParams || {}).method)
     });
+
     $scope.servicerequest = new ServiceRequest(servicerequest);
 
 
@@ -1745,26 +1751,57 @@ angular
 
       updateOrSave.then(function (response) {
 
-          response = response || {};
+        response = response || {};
 
-          response.message =
-            response.message || 'Service Request Saved Successfully';
+        response.message =
+          response.message || 'Service Request Saved Successfully';
 
-          $rootScope.$broadcast('appSuccess', response);
+        $rootScope.$broadcast('appSuccess', response);
 
-          $rootScope.$broadcast('servicerequest:create:success', response);
+        $rootScope.$broadcast('servicerequest:create:success', response);
 
-          $rootScope.$broadcast('app:servicerequests:reload');
+        $rootScope.$broadcast('app:servicerequests:reload');
 
-          $state.go('app.servicerequests.list');
+        $state.go('app.servicerequests.list');
 
-        })
+      })
         .catch(function (error) {
           $rootScope.$broadcast('appError', error);
           $rootScope.$broadcast('servicerequest:create:error', error);
         });
     };
 
+
+    /**
+     * @description Launch a customer lookup details in a modal window
+     * @function
+     * @name openLookModal
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    $scope.openLookupModal = function () {
+
+      var accountNumber = $scope.servicerequest.reporter.account;
+
+      Account
+        .getDetails(accountNumber)
+        .then(function (account) {
+          account = account || {};
+          $rootScope.account = account;
+          $scope.servicerequest.reporter = _.merge({}, {
+            name: account.name,
+            email: account.email
+          }, $scope.servicerequest.reporter);
+
+          $scope.servicerequest.jurisdiction =
+            $scope.servicerequest.jurisdiction || account.jurisdiction;
+          $scope.servicerequest.address =
+            $scope.servicerequest.address || account.address;
+          $scope.servicerequest.location = account.location;
+          $state.go('account.details');
+        });
+    };
 
   });
 
@@ -1864,7 +1901,7 @@ angular
  */
 angular
   .module('ng311')
-  .controller('ServiceRequestMainCtrl', function (
+  .controller('ServiceRequestMainCtrl', function(
     $rootScope, $scope, $state, $stateParams, prompt, leafletBoundsHelpers,
     Party, ServiceRequest, Comment, Summary, endpoints, party
   ) {
@@ -1904,7 +1941,7 @@ angular
 
 
     //listen for create event
-    $rootScope.$on('servicerequest:create', function () {
+    $rootScope.$on('servicerequest:create', function() {
       $scope.servicerequest = new ServiceRequest({
         call: {
           startedAt: new Date()
@@ -1913,7 +1950,7 @@ angular
       $scope.create = true;
     });
 
-    $rootScope.$on('servicerequest:list', function () {
+    $rootScope.$on('servicerequest:list', function() {
       $scope.find();
       $scope.create = false;
     });
@@ -1922,7 +1959,7 @@ angular
      * listen for received call picked events and filter
      * issue list based on reporter details(i.e phone number)
      */
-    var callPickedDeregister = $rootScope.$on('call picked', function (event,
+    var callPickedDeregister = $rootScope.$on('call picked', function(event,
       data) {
 
       if (data && data.phone) {
@@ -1938,7 +1975,7 @@ angular
     /**
      * set current service request
      */
-    $scope.select = function (servicerequest) {
+    $scope.select = function(servicerequest) {
 
       //clear note
       $scope.note = {};
@@ -1989,7 +2026,7 @@ angular
           servicerequest.attachments.length > 0);
         if (hasAttachments) {
           servicerequest.attachments =
-            _.map(servicerequest.attachments, function (attachment) {
+            _.map(servicerequest.attachments, function(attachment) {
 
 
               //obtain media thumb url from base64 encoded image
@@ -2029,7 +2066,7 @@ angular
     /**
      * cancel create operation
      */
-    $scope.cancel = function () {
+    $scope.cancel = function() {
       // $scope.servicerequest = _.first($scope.servicerequests);
       $scope.select(_.first($scope.servicerequests));
       $scope.create = false;
@@ -2038,7 +2075,7 @@ angular
     /**
      * assign a person to work on the issue
      */
-    $scope.assign = function (assignee) {
+    $scope.assign = function(assignee) {
       if (assignee) {
         $scope.servicerequest.assignee = assignee._id;
         if (!$scope.servicerequest.resolvedAt) {
@@ -2050,7 +2087,7 @@ angular
 
           //update changelog
           var _id = $scope.servicerequest._id;
-          ServiceRequest.changelog(_id, changelog).then(function (response) {
+          ServiceRequest.changelog(_id, changelog).then(function(response) {
             // $scope.servicerequest = response;
             $scope.select(response);
             $scope.updated = true;
@@ -2063,7 +2100,7 @@ angular
     /**
      * comment on the issues
      */
-    $scope.comment = function () {
+    $scope.comment = function() {
 
       //TODO notify about the comment saved
       if ($scope.note && $scope.note.content) {
@@ -2075,12 +2112,12 @@ angular
 
         //update changelog
         var _id = $scope.servicerequest._id;
-        ServiceRequest.changelog(_id, changelog).then(function (response) {
+        ServiceRequest.changelog(_id, changelog).then(function(response) {
           //TODO notify success
           $scope.note = {};
           $scope.select(response);
           $scope.updated = true;
-        }).catch(function (error) {
+        }).catch(function(error) {
           //TODO notify error
           console.log(error);
         });
@@ -2089,7 +2126,7 @@ angular
 
     };
 
-    $scope.changePriority = function (priority) {
+    $scope.changePriority = function(priority) {
 
       if (priority._id === $scope.servicerequest.priority._id) {
         return;
@@ -2108,7 +2145,7 @@ angular
         };
         var _id = $scope.servicerequest._id;
 
-        ServiceRequest.changelog(_id, changelog).then(function (response) {
+        ServiceRequest.changelog(_id, changelog).then(function(response) {
           // $scope.servicerequest = response;
           $scope.select(response);
           $scope.updated = true;
@@ -2118,7 +2155,7 @@ angular
 
     };
 
-    $scope.changeStatus = function (status) {
+    $scope.changeStatus = function(status) {
 
       if (status._id === $scope.servicerequest.status._id) {
         return;
@@ -2135,7 +2172,7 @@ angular
         };
         var _id = $scope.servicerequest._id;
 
-        ServiceRequest.changelog(_id, changelog).then(function (response) {
+        ServiceRequest.changelog(_id, changelog).then(function(response) {
           // $scope.servicerequest = response;
           $scope.select(response);
           $scope.updated = true;
@@ -2147,7 +2184,7 @@ angular
     /**
      * close and resolve issue
      */
-    $scope.onClose = function () {
+    $scope.onClose = function() {
       prompt({
         title: 'Resolve Issue',
         message: 'Are you sure you want to mark this issue as resolved?',
@@ -2158,7 +2195,7 @@ angular
           label: 'No',
           cancel: true
         }]
-      }).then(function () {
+      }).then(function() {
         if (!$scope.servicerequest.resolvedAt) {
 
           var changelog = { //TODO flag internal or public
@@ -2168,7 +2205,7 @@ angular
 
           //update changelog
           var _id = $scope.servicerequest._id;
-          ServiceRequest.changelog(_id, changelog).then(function (
+          ServiceRequest.changelog(_id, changelog).then(function(
             response) {
             // $scope.servicerequest = response;
             $scope.select(response);
@@ -2184,13 +2221,13 @@ angular
 
           });
         }
-      }).catch(function () {});
+      }).catch(function() {});
     };
 
     /**
      * re-open close issue
      */
-    $scope.onReOpen = function () {
+    $scope.onReOpen = function() {
       prompt({
         title: 'Re-Open Issue',
         message: 'Are you sure you want to re-open this issue?',
@@ -2201,7 +2238,7 @@ angular
           label: 'No',
           cancel: true
         }]
-      }).then(function () {
+      }).then(function() {
         if ($scope.servicerequest.resolvedAt) {
 
           var changelog = { //TODO flag internal or public
@@ -2211,7 +2248,7 @@ angular
 
           //update changelog
           var _id = $scope.servicerequest._id;
-          ServiceRequest.changelog(_id, changelog).then(function (
+          ServiceRequest.changelog(_id, changelog).then(function(
             response) {
             // $scope.servicerequest = response;
             $scope.select(response);
@@ -2227,14 +2264,14 @@ angular
 
           });
         }
-      }).catch(function () {});
+      }).catch(function() {});
     };
 
 
     /**
      * Initialize new issue creation with reporter details
      */
-    $scope.onCopy = function () {
+    $scope.onCopy = function() {
       $state.go('app.create_servicerequests', {
         reporter: $scope.servicerequest.reporter,
         jurisdiction: $scope.servicerequest.jurisdiction
@@ -2244,7 +2281,7 @@ angular
     /**
      * Initialize new issue attending with operator details
      */
-    $scope.onAttend = function () {
+    $scope.onAttend = function() {
       //prevent attachements and changelogs on attending
       var servicerequest =
         _.omit($scope.servicerequest, ['attachments', 'changelogs']);
@@ -2254,10 +2291,10 @@ angular
     /**
      * @description delete servicerequest
      */
-    $scope.delete = function (servicerequest) {
+    $scope.delete = function(servicerequest) {
       servicerequest
         .$delete()
-        .then(function (response) {
+        .then(function(response) {
 
           response = response || {};
 
@@ -2272,7 +2309,7 @@ angular
           $rootScope.$broadcast('app:servicerequests:reload');
 
         })
-        .catch(function (error) {
+        .catch(function(error) {
           if (error) {
             $rootScope.$broadcast('appError', error);
             $rootScope.$broadcast('servicerequest:delete:error',
@@ -2287,7 +2324,7 @@ angular
      * search servicerequests
      * @return {[type]} [description]
      */
-    $scope.onSearch = function () {
+    $scope.onSearch = function() {
       if ($scope.search.q && $scope.search.q.length >= 2) {
         $scope.q = $scope.search.q;
         $scope.find();
@@ -2302,7 +2339,7 @@ angular
      * @param  {[type]} query [description]
      * @return {[type]}       [description]
      */
-    $scope.filterByReporter = function (q, query) {
+    $scope.filterByReporter = function(q, query) {
       $scope.search.q = q;
       $scope.load(query, true);
     };
@@ -2311,7 +2348,7 @@ angular
      * search assignes
      * @return {[type]} [description]
      */
-    $scope.onSearchAssignees = function () {
+    $scope.onSearchAssignees = function() {
       //TODO allow party where jurisdiction = null
       if ($scope.search.party && $scope.search.party.length >= 2) {
         Party.find({
@@ -2321,16 +2358,16 @@ angular
             }
           },
           q: $scope.search.party
-        }).then(function (response) {
+        }).then(function(response) {
           $scope.assignees = response.parties;
-        }).catch(function ( /*error*/ ) {
+        }).catch(function( /*error*/ ) {
           $scope.assignees = [];
         });
       }
     };
 
 
-    $scope.load = function (query, skipClearSearch) {
+    $scope.load = function(query, skipClearSearch) {
       if (!skipClearSearch) {
         $scope.search = {};
         $scope.q = undefined;
@@ -2338,10 +2375,10 @@ angular
       $scope.find(query);
     };
 
-    $scope.loadComment = function (servicerequest) {
+    $scope.loadComment = function(servicerequest) {
       var comments =
         _.orderBy($scope.servicerequest.changelogs, 'createdAt', 'desc');
-      comments = _.map(comments, function (comment) {
+      comments = _.map(comments, function(comment) {
         comment.color = undefined;
         comment.color =
           (comment.status ? comment.status.color : comment.color);
@@ -2358,7 +2395,7 @@ angular
      * Load all service request based on current filters
      * @return {[type]} [description]
      */
-    $scope.all = function () {
+    $scope.all = function() {
       $scope.page = 1;
       $scope.limit = $scope.total;
       $scope.find();
@@ -2367,12 +2404,17 @@ angular
     /**
      * @description load servicerequests
      */
-    $scope.find = function (query) {
+    $scope.find = function(query) {
 
       //ensure query
       var isSearchable = ($scope.search.q && $scope.search.q.length >= 2);
       var extras = isSearchable ? $scope.query : {};
       query = _.merge({}, { misc: $scope.misc }, extras, query);
+
+      //ensure operator _id
+      if (query.operator) {
+        query.operator = _.get(query, 'operator._id', query.operator);
+      }
 
       //start sho spinner
       $scope.spin = true;
@@ -2407,7 +2449,7 @@ angular
         },
         query: $scope.query,
         q: $scope.q
-      }).then(function (response) {
+      }).then(function(response) {
         //update scope with servicerequests when done loading
         $scope.servicerequests = response.servicerequests;
         if ($scope.updated) {
@@ -2417,14 +2459,14 @@ angular
         }
         $scope.total = response.total;
         $scope.spin = false;
-      }).catch(function (error) {
+      }).catch(function(error) {
         $scope.spin = false;
       });
     };
 
 
     //check whether servicerequests will paginate
-    $scope.willPaginate = function () {
+    $scope.willPaginate = function() {
       var willPaginate =
         ($scope.servicerequests && $scope.total && $scope.total >
           $scope.limit);
@@ -2432,19 +2474,17 @@ angular
     };
 
     //export current filtered issues
-    $scope.export = function () {
+    $scope.export = function() {
       var _exports =
-        _.map($scope.servicerequests, function (servicerequest) {
+        _.map($scope.servicerequests, function(servicerequest) {
           return {
             code: servicerequest.code,
             reportedAt: servicerequest.createdAt,
             callStart: (servicerequest.call || {}).startedAt,
             callEnd: (servicerequest.call || {}).endedAt,
-            callDurationMinutes: ((servicerequest.call || {}).duration ||
-                {})
+            callDurationMinutes: ((servicerequest.call || {}).duration || {})
               .minutes,
-            callDurationSeconds: ((servicerequest.call || {}).duration ||
-                {})
+            callDurationSeconds: ((servicerequest.call || {}).duration || {})
               .seconds,
             reporterName: (servicerequest.reporter || {}).name,
             reporterPhone: (servicerequest.reporter || {}).phone,
@@ -2469,7 +2509,7 @@ angular
     };
 
 
-    $scope.isEmpty = function (value) {
+    $scope.isEmpty = function(value) {
       return _.isEmpty(value);
     };
 
@@ -2484,7 +2524,7 @@ angular
     });
 
     //listen for events
-    $rootScope.$on('app:servicerequests:reload', function () {
+    $rootScope.$on('app:servicerequests:reload', function() {
 
       //re-load current operator service requests(inbox)
       $scope.find({
@@ -2498,9 +2538,9 @@ angular
     });
 
     //reload summaries
-    $rootScope.$on('app:servicerequests:reload', function () {
+    $rootScope.$on('app:servicerequests:reload', function() {
       //TODO pass params based on fillter
-      Summary.issues().then(function (summaries) {
+      Summary.issues().then(function(summaries) {
         $scope.summaries = summaries;
       });
     });
@@ -2657,6 +2697,662 @@ angular
                 }
               }
             });
+          }
+        }
+      });
+  });
+
+'use strict';
+
+/**
+ * @ngdoc Alert
+ * @name ng311.Alert
+ */
+angular
+  .module('ng311')
+  .factory('Alert', function ($resource, $http, Utils) {
+    // account accessors resource
+
+    var Alert = $resource(Utils.asLink(['v1', 'alerts']),
+      {
+        id: '@_id',
+      }, {
+        update: {
+          method: 'PUT'
+        }
+      }
+    );
+
+
+    /**
+     * Find alerts with pagination
+     *
+     * @function
+     * @name find
+     *
+     * @param {Object} params
+     * @returns {Object}
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    Alert.find = function (params) {
+      return $http
+        .get(Utils.asLink(['v1', 'alerts']), { params: params })
+        .then(function (response) {
+
+          var alerts = response.data.data.map(function (alert) {
+
+            return new Alert(alert);
+          });
+
+          return {
+            alerts: alerts,
+            total: response.data.total
+          };
+        });
+    };
+
+    return Alert;
+  });
+
+"use strict";
+
+/**
+ * @ngdoc function
+ * @name ng311.controller.AlertMainCtrl
+ * @description
+ * Alert Main Controller
+ */
+angular
+  .module("ng311")
+  .controller("AlertMainCtrl", function(
+    $rootScope, $scope, $uibModal,
+    endpoints, Alert
+  ) {
+    $scope.page = 1;
+    $scope.limit = 10;
+    $scope.search = {};
+    $scope.channels = [];
+    $scope._alert = { jurisdictions: [], methods: [], receivers: [] };
+    $scope.alert = $scope._alert;
+
+    $scope.jurisdictions = endpoints.jurisdictions.jurisdictions;
+    $scope.methods = [
+      { name: "SMS" },
+      { name: "Email" },
+      { name: "Push Notification" }
+    ];
+
+    $scope.priorities = [
+      { name: "High", count: 100 },
+      { name: "Normal", count: 100 },
+      { name: "Low", count: 100 }
+    ];
+
+    $scope.statuses = [
+      { name: "Sent", count: 100 },
+      { name: "Failed", count: 100 },
+      { name: "Delivered", count: 100 }
+    ];
+
+    $scope.methods = [
+      { name: "SMS", count: 100 },
+      { name: "Email", count: 100 },
+      { name: "Push Notification", count: 100 }
+    ];
+
+    $scope.receivers = [
+      { name: "Reporters" },
+      { name: "Customers" },
+      { name: "Subscribers" },
+      { name: "Employees" }
+    ];
+
+    /**
+     * Open model to compose
+     *
+     * @function
+     * @name compose
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    $scope.compose = function() {
+      //open performance reports filter modal
+      $scope.modal = $uibModal.open({
+        templateUrl: "views/alerts/_partials/compose.html",
+        scope: $scope,
+        size: "lg"
+      });
+
+      //handle modal close and dismissed
+      $scope.modal.result.then(
+        function onClose( /*selectedItem*/ ) {},
+        function onDismissed() {}
+      );
+    };
+
+    /**
+     * Send composed message
+     *
+     * @function
+     * @name send
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    $scope.send = function() {
+      // TODO support Email and Push notification
+      // normalize input
+      // $scope.alert.methods = $scope.channels.map(function(method) {
+      //   return method.toUpperCase();
+      // });
+      $scope.alert.methods = ["SMS"]; // fix SMS as the type of alert that will be sent
+
+      var alert = new Alert($scope.alert);
+
+      // save an alert
+      alert
+        .$save()
+        .then(function( /*response*/ ) {
+
+          //reset alert & dismiss modal
+          $scope.alert = $scope._alert;
+          $scope.modal.dismiss();
+
+          //TODO avoid collision with alert.message
+          var response = {};
+
+          response.message =
+            response.message || 'Alert Saved Successfully';
+
+          $rootScope.$broadcast('appSuccess', response);
+
+          $rootScope.$broadcast('app:alerts:reload');
+
+        })
+        .catch(function(error) {
+          $rootScope.$broadcast('appError', error);
+        });
+    };
+
+    /**
+     * Load initial alerts on state activation
+     *
+     * @function
+     * @name index
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    $scope.find = function() {
+      Alert.find({
+        sort: {
+          createdAt: -1
+        },
+        page: $scope.page,
+        q: $scope.q
+      }).then(function(results) {
+        $scope.alerts = results.alerts.map(function(alert) {
+          var areas =
+            _.map([].concat(alert.jurisdictions), function(jurisdiction) {
+              return jurisdiction.name;
+            });
+
+          return _.merge({}, alert, { areas: areas.toString() });
+        });
+        $scope.total = results.total;
+      });
+    };
+
+    /**
+     * Search Alert
+     *
+     * @function
+     * @name onSearch
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    $scope.onSearch = function() {
+      if ($scope.alerts && $scope.search.q && $scope.search.q.length >= 2) {
+        $scope.q = $scope.search.q;
+        $scope.find();
+      } else {
+        $scope.q = undefined;
+        $scope.find();
+      }
+    };
+
+    /**
+     * Determine whether to show pagination button
+     *
+     * @function
+     * @name willPaginate
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    $scope.willPaginate = function() {
+      return $scope.total && $scope.total > $scope.limit;
+    };
+
+    // load alerts
+    $scope.find();
+
+    //listen for events
+    $rootScope.$on('app:alerts:reload', function() {
+      $scope.alert = $scope._alert;
+      $scope.find();
+    });
+
+  });
+
+'use strict';
+
+/**
+ * @ngdoc function
+ * @name ng311.states:Alert
+ * @description Alert workflows configurations
+ */
+angular
+  .module('ng311')
+  .config(function ($stateProvider) {
+
+    $stateProvider
+      .state('app.alerts', {
+        url: '/alerts',
+        'templateUrl': 'views/alerts/main.html',
+        'controller': 'AlertMainCtrl',
+        resolve: {
+          endpoints: function (Summary) {
+            return Summary.endpoints({
+              query: {
+                deletedAt: {
+                  $eq: null
+                }
+              }
+            });
+          }
+        },
+        data: {
+          authenticated: true
+        }
+      });
+  });
+
+'use strict';
+
+/**
+ * @ngdoc account
+ * @name ng311.Account
+ */
+angular
+  .module('ng311')
+  .factory('Account', function ($http, $resource, Utils) {
+    // account accessors resource
+    var Account = $resource(
+      Utils.asLink(['v1', 'accounts']),
+      {
+        id: '@_id'
+      },
+      {
+        update: {
+          method: 'PUT'
+        }
+      }
+    );
+
+
+    /**
+     * Normalize accessor object by adding verified field
+     *
+     * @function
+     * @name normalizeAccessors
+     *
+     * @param {Array} accessors
+     * @returns {Object} normalized accessors list
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    function normalizeAccessors(accessors) {
+      return _.map(accessors, function (accessor) {
+        if (accessor.verifiedAt) {
+          return _.merge({}, accessor, { verified: true });
+        }
+
+        return _.merge({}, accessor, { verified: false });
+      });
+    }
+
+
+    /**
+     * Normalize bill items structure
+     *
+     * @function
+     * @name normalizeBillItems
+     *
+     * @param {Object[]} items
+     * @returns {Object} normalized bill items
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    function normalizeBillItems(items) {
+      return _.map(items, function (item) {
+        var defaultItem = { name: '', quantity: '', unit: '', price: 0 };
+        return _.merge({}, defaultItem, item);
+      });
+    }
+
+
+    /**
+     * Retrieve account details
+     *
+     * @param {String} accountNumber Account Number
+     * @returns {Promise} Resolves to customer Account Object
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    Account.getDetails = function (accountNumber) {
+      return $http
+        .get(Utils.asLink(['v1', 'accounts']), {
+          params: {
+            filter: {
+              number: accountNumber
+            }
+          }
+        })
+        .then(function (response) {
+          var customerAccount = _.first(response.data.data);
+
+          customerAccount.accessors = normalizeAccessors(
+            customerAccount.accessors
+          );
+
+          customerAccount.bills = _.map(customerAccount.bills, function (bill) {
+            bill.items = normalizeBillItems(bill.items);
+            return bill;
+          });
+
+          // create full address field
+          customerAccount.fullAddress =
+            customerAccount.neighborhood + ' - ' + customerAccount.address;
+
+          customerAccount.outstandingBalance =
+            _.first(customerAccount.bills).balance.outstand || 0;
+
+          return customerAccount;
+        })
+        .catch(function (/*error*/) {
+          //TODO handle error
+        });
+    };
+
+
+    /**
+     * Add new accessor to the account
+     *
+     * @param {ObjectId} id account unique identifier
+     * @param {Object} accessor new accessor to be added
+     * @returns {Promise} Resolves to accessors list
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    Account.addAccessor = function (id, accessor) {
+      var url = Utils.asLink(['v1', 'accounts', id, 'accessors']);
+      return $http.post(url, accessor).then(function (response) {
+        response.data.accessors = normalizeAccessors(response.data.accessors);
+        return response.data;
+      });
+    };
+
+
+    /**
+     * Verify account accessor by adding verifiedAt timestamp
+     *
+     * @param {ObjectId} id account unique identifier
+     * @param {String} phoneNumber
+     * @returns {Promise} Resolves to accessors list
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    Account.verifyAccessor = function (id, phoneNumber) {
+      var url = Utils.asLink(['v1', 'accounts', id, 'accessors', phoneNumber]);
+      return $http.put(url, { verifiedAt: new Date() }).then(function (response) {
+        response.data.accessors = normalizeAccessors(response.data.accessors);
+
+        return response.data;
+      });
+    };
+
+
+    /**
+     * Update account accessor details
+     *
+     * @param {ObjectId} id account unique identifier
+     * @param {String} phoneNumber
+     * @param {Object} updates
+     * @returns {Promise} Resolves to accessors list
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    Account.updateAccessor = function (id, phoneNumber, updates) {
+      var url = Utils.asLink(['v1', 'accounts', id, 'accessors', phoneNumber]);
+
+      return $http.put(url, updates).then(function (response) {
+        response.data.accessors = normalizeAccessors(response.data.accessors);
+
+        return response.data;
+      });
+    };
+
+
+    /**
+      * Delete  account accessor
+      *
+      * @param {ObjectId} id account unique identifier
+      * @param {String} phoneNumber
+      * @param {Object} updates
+      * @returns {Promise} Resolves to accessors list
+      *
+      * @version 0.1.0
+      * @since 0.1.0
+      */
+    Account.deleteAccessor = function (id, phoneNumber) {
+      var url = Utils.asLink(['v1', 'accounts', id, 'accessors', phoneNumber]);
+
+      return $http.delete(url).then(function (response) {
+        response.data.accessors = normalizeAccessors(response.data.accessors);
+
+        return response.data;
+      });
+    };
+
+    return Account;
+  });
+
+'use strict';
+
+angular
+  .module('ng311')
+  .controller('AccountIndexCtrl', function ($rootScope, $scope) {
+    $scope.account = $rootScope.account;
+  });
+
+'use strict';
+
+angular
+  .module('ng311')
+  .controller('AccountAccessorsIndexCtrl', function ($rootScope, $scope, $state, Account) {
+
+    /* declaration */
+    $scope.accessors = $rootScope.account.accessors;
+    var account = $rootScope.account;
+
+    /**
+     * Open Account details view
+     */
+    $scope.openAccountDetails = function () { $state.go('account.details'); };
+
+
+    /**
+     * Open a form for creating account accessor
+     */
+    $scope.addAccessor = function () { $state.go('account.create'); };
+
+
+    /**
+     * Open a form for editing account accessor
+     * @param {Object} accessor
+     */
+    $scope.editAccessor = function (accessor) {
+      $state.go('account.create', { accessor: accessor });
+    };
+
+
+    /**
+     * Verify account accessor
+     * @param {String} phoneNumber
+     */
+    $scope.verifyAccessor = function (phoneNumber) {
+
+      Account
+        .verifyAccessor(account._id, phoneNumber)
+        .then(function (account) {
+          $rootScope.account = account;
+          $scope.accessors = account.accessors;
+        });
+    };
+
+
+    /**
+     * Remove account accessor
+     * @param {String} phoneNumber
+     */
+    $scope.removeAccessor = function (phoneNumber) {
+      Account.deleteAccessor(account._id, phoneNumber)
+        .then(function (account) {
+          $rootScope.account = account;
+          $scope.accessors = account.accessors;
+        });
+    };
+  });
+
+'use strict';
+
+
+angular
+  .module('ng311')
+  .controller('AccountAccessorsCreateCtrl', function ($rootScope, $scope, $state, $stateParams, Account) {
+
+    var isEdit = $stateParams.accessor || false;
+    $scope.accessor = $stateParams.accessor || {};
+    $scope.title = $stateParams.accessor ? 'Edit' : 'New';
+
+    /**
+     * Navigate back to accessor list
+     * @function
+     * @name openAccessorList
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    $scope.openAccessorList = function () {
+      $state.go('account.accessors');
+    };
+
+
+    /**
+     * Create a new accessor in account
+     * @function
+     * @name addAccessor
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    $scope.addAccessor = function () {
+      var account = $rootScope.account;
+
+      if (isEdit) {
+        Account
+          .updateAccessor(account._id, $scope.accessor.phone, $scope.accessor)
+          .then(function (account) {
+            $rootScope.account = account;
+            $scope.openAccessorList();
+          }).catch(function (/*error*/) {
+            // Handle error here
+          });
+      } else {
+        Account
+          .addAccessor(account._id, $scope.accessor)
+          .then(function (account) {
+            $rootScope.account = account;
+            $scope.openAccessorList();
+          }).catch(function (/*error*/) {
+          });
+      }
+    };
+  });
+
+'use strict';
+
+/**
+ * @ngdoc function
+ * @name ng311.states:Account
+ * @description billing workflows configurations
+ */
+angular
+  .module('ng311')
+  .config(function ($stateProvider) {
+
+    $stateProvider
+      .state('account', {
+        abstract: true,
+        parent: 'app.create_servicerequests',
+        url: '',
+        onEnter: ['$uibModal', '$state', function ($uibModal, $state) {
+          $uibModal.open({
+            animation: true,
+            ariaLabelledBy: 'modal-title',
+            ariaDescribedBy: 'modal-body',
+            templateUrl: 'views/account/index.html',
+            size: 'lg'
+          }).result.finally(function () {
+            $state.go('app.create_servicerequests');
+          });
+        }],
+      })
+      .state('account.details', {
+        views: {
+          "account@": {
+            templateUrl: 'views/account/_partials/account_details.html',
+            controller: 'AccountIndexCtrl'
+          }
+        }
+      })
+      .state('account.accessors', {
+        views: {
+          "account@": {
+            templateUrl: 'views/account/_partials/accessors_list.html',
+            controller: 'AccountAccessorsIndexCtrl'
+          }
+        }
+      })
+      .state('account.create', {
+        params: {
+          accessor: null
+        },
+        views: {
+          "account@": {
+            templateUrl: 'views/account/_partials/create.html',
+            controller: 'AccountAccessorsCreateCtrl'
           }
         }
       });
@@ -7623,7 +8319,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   'use strict';
 
   $templateCache.put('views/_partials/aside.html',
-    " <div class=\"navside\" data-layout=\"column\"> <div class=\"navbar no-radius\"> <a title=\"{{ENV.title}} | {{ENV.description}}\" ui-sref=\"app.servicerequests.list\" class=\"navbar-brand\"> <img src=\"images/logo_sm.a8d78e51.png\" alt=\".\" width=\"48\" class=\"m-t-sm\"> </a> </div> <br> <div data-flex class=\"hide-scroll\"> <nav class=\"scroll nav-stacked nav-stacked-rounded nav-color\"> <ul class=\"nav\" data-ui-nav> <li class=\"nav-header hidden-folded\"> <span class=\"text-xs\">Main</span> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:view\"> <a ui-sref=\"app.servicerequests.list\" title=\"Issues & Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-chatbubble-working\"></i> </span> <span class=\"nav-text\">Issues</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:edit\"> <a ui-sref=\"app.create_servicerequests\" ui-sref-opts=\"{reload: true}\" title=\"Report New Issue or Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-plus-circled\"></i> </span> <span class=\"nav-text\">New Issue</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.overviews\" title=\"Overviews\"> <span class=\"nav-icon\"> <i class=\"ion-pie-graph\"></i> </span> <span class=\"nav-text\">Overviews</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.standings\" title=\"Standings\"> <span class=\"nav-icon\"> <i class=\"ion-arrow-graph-up-right\"></i> </span> <span class=\"nav-text\">Standings</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.performances\" title=\"Performances\"> <span class=\"nav-icon\"> <i class=\"ion-ios-pulse-strong\"></i> </span> <span class=\"nav-text\">Performances</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.exports\" title=\"Exports\"> <span class=\"nav-icon\"> <i class=\"ion-social-buffer\"></i> </span> <span class=\"nav-text\">Exports</span> </a> </li> <li show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\" ui-sref-active=\"active\"> <a ui-sref=\"app.manage.jurisdictions\" title=\"Manage System\"> <span class=\"nav-icon\"> <i class=\"ion-gear-a\"></i> </span> <span class=\"nav-text\">Manage</span> </a> </li> </ul> </nav> </div> <div data-flex-no-shrink> <div uib-dropdown class=\"nav-fold dropup\" title=\"{{party.name}}\"> <a uib-dropdown-toggle data-toggle=\"dropdown\"> <div class=\"pull-left\"> <div class=\"inline\"> <letter-avatar title=\"{{party.name}}\" data=\"{{party.name}}\" height=\"60\" width=\"60\" shape=\"round\" class=\"avatar w-40\"> </letter-avatar> </div> </div> </a> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a class=\"dropdown-item\" ui-sref=\"app.profile\" title=\"My Profile\"> <span>Profile</span> </a> <a ng-show=\"isAuthenticated\" ng-show=\"isAuthenticated\" data-signout title=\"Signout\" class=\"dropdown-item\" title=\"Signout\"> Sign out </a> </div> </div> </div> </div> "
+    " <div class=\"navside\" data-layout=\"column\"> <div class=\"navbar no-radius\"> <a title=\"{{ENV.title}} | {{ENV.description}}\" ui-sref=\"app.servicerequests.list\" class=\"navbar-brand\"> <img src=\"images/logo_sm.a8d78e51.png\" alt=\".\" width=\"48\" class=\"m-t-sm\"> </a> </div> <br> <div data-flex class=\"hide-scroll\"> <nav class=\"scroll nav-stacked nav-stacked-rounded nav-color\"> <ul class=\"nav\" data-ui-nav> <li class=\"nav-header hidden-folded\"> <span class=\"text-xs\">Main</span> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:view\"> <a ui-sref=\"app.servicerequests.list\" title=\"Issues & Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-chatbubble-working\"></i> </span> <span class=\"nav-text\">Issues</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:edit\"> <a ui-sref=\"app.create_servicerequests\" ui-sref-opts=\"{reload: true}\" title=\"Report New Issue or Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-plus-circled\"></i> </span> <span class=\"nav-text\">New Issue</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"message:create, message:edit\"> <a ui-sref=\"app.alerts\" ui-sref-opts=\"{reload: true}\" title=\"Create and Manage Alerts\"> <span class=\"nav-icon\"> <i class=\"ion-android-notifications\"></i> </span> <span class=\"nav-text\">Alerts</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.overviews\" title=\"Overviews\"> <span class=\"nav-icon\"> <i class=\"ion-pie-graph\"></i> </span> <span class=\"nav-text\">Overviews</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.standings\" title=\"Standings\"> <span class=\"nav-icon\"> <i class=\"ion-arrow-graph-up-right\"></i> </span> <span class=\"nav-text\">Standings</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.performances\" title=\"Performances\"> <span class=\"nav-icon\"> <i class=\"ion-ios-pulse-strong\"></i> </span> <span class=\"nav-text\">Performances</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.exports\" title=\"Exports\"> <span class=\"nav-icon\"> <i class=\"ion-social-buffer\"></i> </span> <span class=\"nav-text\">Exports</span> </a> </li> <li show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\" ui-sref-active=\"active\"> <a ui-sref=\"app.manage.jurisdictions\" title=\"Manage System\"> <span class=\"nav-icon\"> <i class=\"ion-gear-a\"></i> </span> <span class=\"nav-text\">Manage</span> </a> </li> </ul> </nav> </div> <div data-flex-no-shrink> <div uib-dropdown class=\"nav-fold dropup\" title=\"{{party.name}}\"> <a uib-dropdown-toggle data-toggle=\"dropdown\"> <div class=\"pull-left\"> <div class=\"inline\"> <letter-avatar title=\"{{party.name}}\" data=\"{{party.name}}\" height=\"60\" width=\"60\" shape=\"round\" class=\"avatar w-40\"> </letter-avatar> </div> </div> </a> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a class=\"dropdown-item\" ui-sref=\"app.profile\" title=\"My Profile\"> <span>Profile</span> </a> <a ng-show=\"isAuthenticated\" ng-show=\"isAuthenticated\" data-signout title=\"Signout\" class=\"dropdown-item\" title=\"Signout\"> Sign out </a> </div> </div> </div> </div> "
   );
 
 
@@ -7634,6 +8330,51 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
   $templateCache.put('views/_partials/top_navbar.html',
     " <nav class=\"site-navbar navbar navbar-default navbar-mega\" role=\"navigation\"> <div class=\"navbar-header\"> <div class=\"navbar-brand navbar-brand-center\"> <span class=\"navbar-brand-text\">ShuleDirect</span> </div> </div> <div class=\"navbar-container container-fluid\"> <ul class=\"nav navbar-toolbar navbar-right navbar-toolbar-right\"> <li> <a title=\"Notifications\" aria-expanded=\"false\" role=\"button\"> <i class=\"icon ti-bell\" aria-hidden=\"true\"></i> <span class=\"badge badge-danger up\">5</span> </a> </li> <li> <a title=\"Messages\" aria-expanded=\"false\" data-animation=\"scale-up\" role=\"button\"> <i class=\"icon ti-email\" aria-hidden=\"true\"></i> <span class=\"badge badge-info up\">3</span> </a> </li> <li> <a class=\"letter-avatar navbar-avatar\" uib-tooltip=\"Profile\" tooltip-placement=\"bottom\"> <span class=\"avatar avatar-online\"> <letter-avatar data=\"{{party.name}}\" fontfamily=\"Lato\" height=\"40\" width=\"40\" shape=\"round\"> </letter-avatar> <i></i> </span> </a> </li> </ul> </div> </nav> "
+  );
+
+
+  $templateCache.put('views/account/_partials/accessors_list.html',
+    " <div class=\"modal-header\"> <div class=\"b-b\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$close()\" aria-hidden=\"true\">×</button> <h4 class=\"modal-title\">Account Accessors</h4> </div> </div> <div class=\"modal-body\"> <div class=\"box\"> <div class=\"box-header\"> <div class=\"row\"> <div class=\"col-md-9\"> <small>List of people who can access this account billing information</small> </div> <div class=\"col-md-3\"> <a class=\"btn white pull-right\" ng-click=\"addAccessor()\"> <i class=\"ti-plus\"></i>&nbsp;Add new</a> </div> </div> </div> <table class=\"table b-t\"> <thead> <tr> <th>Name</th> <th>Phone Number</th> <th>Email</th> <th>Verified</th> <th>Actions</th> </tr> </thead> <tbody> <tr ng-repeat=\"accessor in accessors\"> <td>{{accessor.name}}</td> <td>{{accessor.phone}}</td> <td>{{accessor.email}}</td> <td>{{accessor.verified ? 'Yes':'No'}}</td> <td> <div class=\"row\"> <a class=\"btn\" title=\"Verify\" ng-click=\"verifyAccessor(accessor.phone)\"><i class=\"ti-check-box text-green-500\"></i></a> <a class=\"btn\" title=\"Edit\" ng-click=\"editAccessor(accessor)\"><i class=\"ti-pencil-alt text-blue-500\"></i></a> <a class=\"btn\" title=\"Remove\" ng-click=\"removeAccessor(accessor.phone)\"><i class=\"ti-trash text-red-500\"></i></a> </div> </td> </tr> </tbody> </table> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" ng-click=\"$close()\">Cancel</button> <button class=\"btn btn-primary\" ng-click=\"openAccountDetails()\">Back</button> </div> "
+  );
+
+
+  $templateCache.put('views/account/_partials/account_details.html',
+    " <div class=\"modal-header\"> <div class=\"b-b\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$close()\" aria-hidden=\"true\">×</button> <h4 class=\"modal-title\">Customer Details</h4> </div> </div> <div class=\"modal-body\"> <div class=\"box\"> <div class=\"box-body\"> <div ng-if=\"account\" class=\"item\"> <div class=\"p-a-md\"> <div class=\"row m-t\"> <div class=\"col-md-12\"> <a href=\"#\" class=\"pull-left m-r-md\"> <span> <letter-avatar title=\"{{account.name}}\" data=\"{{account.name}}\" height=\"96\" width=\"96\" shape=\"round\" color=\"{{account.active ? '#63D471':'#EE6352'}}\"> </letter-avatar> <i class=\"on b-white\"></i> </span> </a> <div class=\"clear m-b\"> <div class=\"row-col\"> <h4 class=\"m-a-0 m-b-sm\"> <span title=\"Name\">{{account.name}}</span> <span class=\"m-l-sm\" title=\"Account Number\">#{{account.number}}</span> </h4> </div> <p class=\"text-muted m-t-sm\"> <i class=\"fa fa-map-marker m-r-xs\"></i> <span title=\"Working Area\"> {{account.fullAddress}} </span> </p> <div class=\"block clearfix m-b\"> <span> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-phone\"></i> <i class=\"icon-phone indigo\"></i> </a> <span title=\"Phone Number\" class=\"text-muted\"> {{account.phone ? account.phone : 'N/A'}} </span> </span> <span class=\"m-l-md\"> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-envelope\"></i> <i class=\"icon-envelope light-blue\"></i> </a> <span title=\"Email Address\" class=\"text-muted\"> {{account.email ? account.email : 'N/A'}} </span> </span> <span class=\"m-l-md\"> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-list\"></i> <i class=\"icon-list light-blue\"></i> </a> <a ui-sref=\"account.accessors\" title=\"Account Accessors\" class=\"text-muted\"> View Account Accessors </a> </span> </div> </div> </div> </div> </div> </div> <div ng-if=\"account\" class=\"row m-t-lg\"> <div class=\"box box-shadow-z2\"> <div class=\"box-header\"> <h2>Mini Statement <span class=\"pull-right\">Amount Due: {{account.outstandingBalance | currency:'Tsh '}}</span></h2> </div> </div> <uib-tabset active=\"active\" class=\"m-t-lg\"> <uib-tab ng-repeat=\"(key,bill) in account.bills\" index=\"key\" heading=\"{{bill.period.billedAt | date:'MMMM yyyy'}}\"> <div class=\"list box box-shadow-z2\"> <div class=\"box-header b-b\"> <h2>Control Number : {{bill.number}} <small class=\"pull-right text-muted text-sm\">Date of Reading: {{bill.period.billedAt | date:'dd/MM/yyyy'}}</small></h2> </div> <div class=\"list-item\"> <div class=\"list-body\"> <div class=\"list-item p-t-none p-b-none\" ng-repeat=\"item in bill.items\"> <span title=\"Item Price\" class=\"pull-right text-sm\"> {{item.price | currency:''}} </span> <div class=\"item-title\"> <a href=\"#\" class=\"font-size-14\">{{item.name}} <span title=\"Quantity\" class=\"font-size-13 text-muted\"> &nbsp;{{item.quantity ? '( ' + item.quantity +' '+ item.unit + ' )' :''}} </span> </a> </div> <div class=\"list text-muted\"> <div class=\"list-item p-t-none p-b-none\" ng-repeat=\"subitem in item.items\"> <span title=\"Item Name\" class=\"pull-right text-xs\"> {{subitem.quantity}}&nbsp;{{subitem.unit}} </span> <div class=\"item-title\"> <a href=\"#\" class=\"_500\">{{subitem.name}}<br> <span title=\"Date\" class=\"text-sm text-muted\"> {{subitem.time | date:'dd/MM/yyyy'}} </span> </a> </div> </div> </div> </div> <div class=\"m-t-md\"> <span>Open Balance</span> <small class=\"text-muted pull-right\">{{bill.balance.open | currency:'Tsh '}}</small> </div> <div> <span>Periodic Charges</span> <small class=\"text-muted pull-right\">{{bill.balance.charges | currency:'Tsh '}}</small> </div> <div> <span>Loan/Debt Balance</span> <small class=\"text-muted pull-right\">{{bill.balance.debt | currency:'Tsh '}}</small> </div> <div class=\"m-b-md\"> <span>Closing Balance</span> <small class=\"text-muted pull-right\">{{bill.balance.close | currency:'Tsh '}}</small> </div> <p class=\"_500 text-muted\"> Note:&nbsp;{{bill.notes}} </p> </div> </div> </div> </uib-tab> </uib-tabset> </div> <div class=\"row-col\"> <div ng-if=\"!account\" class=\"row-cell v-m\"> <div class=\"text-center col-sm-6 offset-sm-3 p-y-lg\"> <p class=\"text-muted m-y-lg\">Account Not Found</p> </div> </div> </div> </div> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" ng-click=\"$dismiss()\">Cancel</button> <button class=\"btn btn-primary\" ng-click=\"$dismiss()\">OK</button> </div> "
+  );
+
+
+  $templateCache.put('views/account/_partials/create.html',
+    " <div class=\"modal-header\"> <div class=\"b-b\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$close()\" aria-hidden=\"true\">×</button> <h4 class=\"modal-title\">{{title}} Account Accessor</h4> </div> </div> <div class=\"modal-body\"> <div class=\"box\"> <div class=\"m-l-lg m-r-lg\"> <form role=\"form\"> <div class=\"form-group\"> <label for=\"name\">Customer Name</label> <input type=\"text\" ng-model=\"accessor.name\" class=\"form-control\" id=\"name\" placeholder=\"Enter Customer Full Name\" required> </div> <div class=\"form-group\"> <label for=\"phone\">Phone Number</label> <input type=\"text\" ng-model=\"accessor.phone\" class=\"form-control\" id=\"phone\" placeholder=\"Enter Phone Number\" required> </div> <div class=\"form-group\"> <label for=\"email\">Email Address</label> <input type=\"email\" ng-model=\"accessor.email\" class=\"form-control\" id=\"email\" placeholder=\"Enter Email Address\"> </div> </form> </div> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" ng-click=\"openAccessorList()\">Back</button> <button class=\"btn btn-primary\" ng-click=\"addAccessor()\">Save</button> </div> "
+  );
+
+
+  $templateCache.put('views/account/index.html',
+    " <div ui-view=\"account\"> </div> "
+  );
+
+
+  $templateCache.put('views/alerts/_partials/compose.html',
+    " <div class=\"modal-header\"> <div class=\"b-b\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$close()\" aria-hidden=\"true\">×</button> <h4 class=\"modal-title\">Compose An Alert</h4> </div> </div> <div class=\"modal-body\"> <div class=\"box\"> <div class=\"m-l-lg m-r-lg\"> <form role=\"form\"> <div class=\"row m-t-sm\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Subject </h6> </div> </div> <div class=\"col-md-12\"> <input type=\"text\" ng-model=\"alert.subject\" class=\"form-control\" name=\"subject\" placeholder=\"Subject\" required> </div> </div> <div class=\"row\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Message </h6> </div> </div> <div class=\"col-md-12\"> <textarea rows=\"5\" ng-model=\"alert.message\" class=\"form-control\" name=\"message\" placeholder=\"Message ...\" required></textarea> </div> </div> <div class=\"row\" ng-if=\"jurisdictions.length > 1\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Area </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"jurisdiction in jurisdictions | orderBy:'name'\"> <div class=\"p-a p-b-none p-l-none\"> <label class=\"md-check text-muted\" title=\"{{jurisdiction.name}}\"> <input type=\"checkbox\" checklist-model=\"alert.jurisdictions\" checklist-value=\"jurisdiction._id\"> <i class=\"blue\"></i> {{jurisdiction.name}} </label> </div> </div> </div> <div class=\"row m-t-sm\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Audience </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"receiver in receivers | orderBy:'name'\"> <div class=\"p-a p-b-none p-l-none\"> <label class=\"md-check text-muted\" title=\"{{receiver.name}}\"> <input type=\"checkbox\" checklist-value=\"receiver.name\" checklist-model=\"alert.receivers\"> <i class=\"blue\"></i> {{receiver.name}} </label> </div> </div> </div> </form> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" ng-click=\"$dismiss()\">Cancel</button> <button class=\"btn btn-primary\" ng-click=\"send()\">Send</button> </div> </div> "
+  );
+
+
+  $templateCache.put('views/alerts/_partials/list.html',
+    " <div class=\"row-col lt\"> <div class=\"p-a b-b list-search\"> <form> <div class=\"input-group\"> <input type=\"text\" ng-change=\"onSearch()\" ng-model=\"search.q\" class=\"form-control form-control-sm\" placeholder=\"Search Alerts ...\"> <span class=\"input-group-btn\"> <button ng-click=\"onSearch()\" class=\"btn btn-default btn-sm no-shadow\" type=\"button\"> <i class=\"ti-search\"></i> </button> </span> </div> </form> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\" id=\"scrollable-alert-list\"> <div class=\"list\" data-ui-list=\"info\"> <div ng-click=\"select(alert)\" class=\"list-item list-item-padded\" ng-repeat=\"alert in alerts\" title=\"{{alert.subject}}\"> <div class=\"list-left\"> <span class=\"w-40 avatar circle\"> <letter-avatar title=\"Priority & Alert Type\" data=\"{{alert.subject}}\" height=\"60\" width=\"60\" shape=\"round\"> </letter-avatar> </span> </div> <div class=\"list-body\"> <span title=\"Alert Issue Date\" class=\"pull-right text-xs text-muted\"> {{alert.createdAt | date:'dd MMM yyyy HH:mm'}} </span> <div class=\"item-title\"> <a href=\"#\" class=\"_500\"> {{alert.subject}} - {{alert.methods.join(', ')}} <br> <span class=\"font-size-12\"> <span class=\"text-muted\" ng-repeat=\"method in alert.methods\"> {{method}} : <span title=\"Total Sent\"> <i class=\"icon-arrow-up-circle\"></i>&nbsp;&nbsp;{{alert.statistics[method].sent}} </span> &nbsp;&nbsp; <span title=\"Total Delivered\"> <i class=\"icon-check\"></i> {{alert.statistics[method].delivered}} &nbsp;&nbsp; </span> <span title=\"Total Failed\"> <i class=\"icon-close\"></i>&nbsp;&nbsp;{{alert.statistics[method].failed}} </span> &nbsp;&nbsp;&nbsp;&nbsp; </span> </span> </a> </div> <small class=\"block text-xs text-muted text-ellipsis\"> <span title=\"Alert Message: {{alert.message}}\"> <i class=\"icon-speech\"></i>&nbsp;&nbsp;{{(alert.message) || 'NA'}} </span> <span class=\"pull-right\" title=\"Alerted Areas\"> <i class=\"icon-location-pin\"></i>&nbsp;&nbsp; {{alert.areas}} </span> </small> </div> </div> </div> </div> </div> </div> <div class=\"p-x-md p-y\"> <div class=\"btn-group pull-right list-pager\" uib-pager ng-show=\"willPaginate()\" total-items=\"$parent.total\" ng-model=\"$parent.page\" items-per-page=\"$parent.limit\" ng-change=\"find(query)\" template-url=\"views/_partials/list_pager.html\" style=\"padding-left: 12px\" role=\"group\"> </div> <span class=\"text-sm text-muted\">Total: {{total}}</span> </div> </div> "
+  );
+
+
+  $templateCache.put('views/alerts/_partials/side_subnav.html',
+    " <div class=\"row-col bg b-r\"> <div class=\"b-b\"> <div class=\"navbar\"> <ul class=\"nav navbar-nav\"> <li class=\"nav-item\"> <span class=\"navbar-item text-md\"> Alerts </span> </li> </ul> </div> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\"> <div class=\"p-a-md\"> <div class=\"m-b-md\"> <button class=\"btn btn-fw info\" ng-click=\"compose()\">Compose</button> </div> <div class=\"m-b text-muted text-xs\">Status</div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li ng-class=\"{active:misc == 'all'}\" class=\"nav-item m-b-xs\"> <a ng-click=\"load({resetPage:true, reset:true, misc:'all'})\" class=\"nav-link text-muted block\" title=\"All Reported Issues\"> All </a> </li> <li class=\"nav-item m-b-xs\" ng-repeat=\"status in statuses | orderBy:'weight'\"> <a ng-click=\"load({'status':status._id, resetPage:true})\" class=\"nav-link text-muted block\"> {{status.name}} </a> </li> </ul> </div> </div> <div class=\"p-a-md\"> <div class=\"m-b text-muted text-xs\">Priority</div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li class=\"nav-item m-b-xs\" ng-repeat=\"priority in priorities | orderBy:'weight'\"> <a ng-click=\"load({'status':status._id, resetPage:true})\" class=\"nav-link text-muted block\"> {{priority.name}} </a> </li> </ul> </div> </div> </div> </div> </div> </div> "
+  );
+
+
+  $templateCache.put('views/alerts/index.html',
+    ""
+  );
+
+
+  $templateCache.put('views/alerts/main.html',
+    " <div class=\"app-body\"> <div class=\"app-body-inner\"> <div class=\"row-col\"> <div ng-include=\"'views/alerts/_partials/side_subnav.html'\" class=\"col-xs-3 w-xxs modal fade aside aside-md alerts-aside\" id=\"subnav\"></div> <div ng-include=\"'views/alerts/_partials/list.html'\" class=\"col-xs-3 w-xl modal fade aside aside-sm b-r alerts-list\" id=\"list\"></div> </div> </div> </div> "
   );
 
 
@@ -7678,7 +8419,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/auth/signin.html',
-    " <div class=\"b-t\"> <div class=\"center-block w-xxl w-auto-xs p-y-md text-center\"> <div class=\"p-a-md\"> <div class=\"brand m-t-lg m-b-lg\"> <img src=\"images/logo_md.b4c45071.png\" alt=\".\" width=\"84\"> </div> <form ng-submit=\"signin()\" name=\"signinForm\" role=\"form\" autocomplete=\"off\"> <div class=\"md-form-group float-label\"> <input class=\"md-input\" type=\"email\" name=\"email\" ng-model=\"user.email\" focus-if=\"!user.email\" ng-required title=\"Enter your email\"> <label>Email</label> </div> <div class=\"md-form-group float-label\"> <input class=\"md-input\" type=\"password\" name=\"password\" ng-model=\"user.password\" ng-required title=\"Enter your password\"> <label>Password</label> </div> <button ng-disabled=\"signinForm.$invalid || !user.email || !user.password\" type=\"submit\" class=\"btn btn-primary btn-block m-t-sm\"> Sign in </button> </form> </div> </div> </div> "
+    " <div class=\"b-t\"> <div class=\"center-block w-xxl w-auto-xs p-y-md text-center\"> <div class=\"p-a-md\"> <div class=\"brand m-t-lg m-b-lg\"> <img src=\"images/logo_md.b4c45071.png\" alt=\".\" width=\"84\"> </div> <form ng-submit=\"signin()\" name=\"signinForm\" role=\"form\" autocomplete=\"new-password\"> <div class=\"md-form-group float-label\"> <input class=\"md-input\" type=\"email\" name=\"email\" ng-model=\"user.email\" focus-if=\"!user.email\" ng-required title=\"Enter your email\"> <label>Email</label> </div> <div class=\"md-form-group float-label\"> <input class=\"md-input\" type=\"password\" name=\"password\" ng-model=\"user.password\" ng-required title=\"Enter your password\"> <label>Password</label> </div> <button ng-disabled=\"signinForm.$invalid || !user.email || !user.password\" type=\"submit\" class=\"btn btn-primary btn-block m-t-sm\"> Sign in </button> </form> </div> </div> </div> "
   );
 
 
@@ -7858,9 +8599,9 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/jurisdictions/_partials/detail.html',
-    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/jurisdictions/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"jurisdictionForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div title=\"Jurisdiction Name\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.code\" ng-required ng-minlength=\"1\" type=\"text\" name=\"code\" class=\"form-control\"> <label title=\"Jurisdiction Code\" class=\"floating-label\">Code</label> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-6\" title=\"Jurisdiction Name\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> <label title=\"Jurisdiction Name\" class=\"floating-label\">Name</label> </div> </div> <div class=\"col-sm-6\" title=\"Jurisdiction Phone\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.phone\" ng-required ng-minlength=\"2\" type=\"text\" name=\"phone\" class=\"form-control\"> <label title=\"Mobile Phone Number\" class=\"floating-label\">Phone</label> </div> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-6\" title=\"Jurisdiction Email\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.email\" ng-required ng-minlength=\"2\" type=\"text\" name=\"email\" class=\"form-control\"> <label title=\"Email Address\" class=\"floating-label\">Email</label> </div> </div> <div class=\"col-sm-6\" title=\"Jurisdiction Website\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.website\" ng-required ng-minlength=\"2\" type=\"text\" name=\"website\" class=\"form-control\"> <label title=\"Website URL\" class=\"floating-label\">Website</label> </div> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-6\" title=\"Jurisdiction Longitude\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.longitude\" ng-required type=\"number\" name=\"longitude\" class=\"form-control\"> <label title=\"Longitude\" class=\"floating-label\">Longitude</label> </div> </div> <div class=\"col-sm-6\" title=\"Jurisdiction Latitude\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.latitude\" ng-required type=\"number\" name=\"latitude\" class=\"form-control\"> <label title=\"Latitude\" class=\"floating-label\">Latitude</label> </div> </div> </div> <div class=\"m-t-lg\" title=\"Jurisdiction Details\"> <div class=\"form-group form-material floating\"> <textarea ng-disabled=\"!edit\" ng-model=\"jurisdiction.about\" msd-elastic name=\"about\" class=\"form-control\" rows=\"2\">\n" +
-    "                                        </textarea> <label class=\"floating-label\">About</label> </div> </div> <div class=\"m-t-lg\" title=\"Jurisdiction Physical Address\"> <div class=\"form-group form-material floating\"> <textarea ng-disabled=\"!edit\" ng-model=\"jurisdiction.address\" msd-elastic name=\"about\" class=\"form-control\" rows=\"2\">\n" +
-    "                                        </textarea> <label class=\"floating-label\">Physical Address</label> </div> </div> <div class=\"m-t-lg\" title=\"Jurisdiction Color\"> <color-picker ng-model=\"jurisdiction.color\"> </color-picker> <div class=\"m-t-lg\"> <div class=\"form-group form-material floating\"> <input title=\"Jurisdiction Color\" ng-disabled=\"!edit\" ng-model=\"jurisdiction.color\" ng-required ng-minlength=\"1\" type=\"text\" name=\"color\" class=\"form-control\"> <label title=\"Jurisdiction Color\" class=\"floating-label\">Jurisdiction Color(HEX)</label> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
+    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/jurisdictions/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"jurisdictionForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div title=\"Jurisdiction Name\"> <div class=\"form-group\"> <label title=\"Jurisdiction Code\" class=\"floating-label\">Code</label> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.code\" ng-required ng-minlength=\"1\" type=\"text\" name=\"code\" class=\"form-control\"> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-6\" title=\"Jurisdiction Name\"> <div class=\"form-group\"> <label title=\"Jurisdiction Name\" class=\"floating-label\">Name</label> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"col-sm-6\" title=\"Jurisdiction Phone\"> <div class=\"form-group\"> <label title=\"Mobile Phone Number\" class=\"floating-label\">Phone</label> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.phone\" ng-required ng-minlength=\"2\" type=\"text\" name=\"phone\" class=\"form-control\"> </div> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-12\" title=\"Jurisdiction Email\"> <div class=\"form-group\"> <label title=\"Email Address\" class=\"floating-label\">Email</label> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.email\" ng-required ng-minlength=\"2\" type=\"text\" name=\"email\" class=\"form-control\"> </div> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-12\" title=\"Jurisdiction Website\"> <div class=\"form-group\"> <label title=\"Website URL\" class=\"floating-label\">Website</label> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.website\" ng-required ng-minlength=\"2\" type=\"text\" name=\"website\" class=\"form-control\"> </div> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-6\" title=\"Jurisdiction Longitude\"> <div class=\"form-group\"> <label title=\"Longitude\" class=\"floating-label\">Longitude</label> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.longitude\" ng-required type=\"number\" name=\"longitude\" class=\"form-control\"> </div> </div> <div class=\"col-sm-6\" title=\"Jurisdiction Latitude\"> <div class=\"form-group\"> <label title=\"Latitude\" class=\"floating-label\">Latitude</label> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.latitude\" ng-required type=\"number\" name=\"latitude\" class=\"form-control\"> </div> </div> </div> <div class=\"m-t-lg\" title=\"Jurisdiction Details\"> <div class=\"form-group\"> <label class=\"floating-label\">About</label> <textarea ng-disabled=\"!edit\" ng-model=\"jurisdiction.about\" msd-elastic name=\"about\" class=\"form-control\" rows=\"2\">\n" +
+    "                    </textarea> </div> </div> <div class=\"m-t-lg\" title=\"Jurisdiction Physical Address\"> <div class=\"form-group\"> <label class=\"floating-label\">Physical Address</label> <textarea ng-disabled=\"!edit\" ng-model=\"jurisdiction.address\" msd-elastic name=\"about\" class=\"form-control\" rows=\"2\">\n" +
+    "                    </textarea> </div> </div> <div class=\"m-t-lg\" title=\"Jurisdiction Color\"> <color-picker ng-model=\"jurisdiction.color\"> </color-picker> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Jurisdiction Color\" class=\"floating-label\">Jurisdiction Color(HEX)</label> <input title=\"Jurisdiction Color\" ng-disabled=\"!edit\" ng-model=\"jurisdiction.color\" ng-required ng-minlength=\"1\" type=\"text\" name=\"color\" class=\"form-control\"> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
   );
 
 
@@ -7880,12 +8621,12 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/parties/_partials/action_bar.html',
-    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Jurisdiction Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Jurisdiction\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted no-border\" title=\"Click to edit party\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit && canSave\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"save()\" class=\"nav-link text-muted no-border\" title=\"Click to save party\"> Save </a> </li> <li ng-show=\"edit && !(party.deletedAt || party.lockedAt) && party._id\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"block()\" class=\"nav-link text-muted no-border\" title=\"Click to block party\"> Block </a> </li> <li ng-show=\"edit && (party.deletedAt || party.lockedAt) && party._id\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"unblock()\" class=\"nav-link text-muted no-border\" title=\"Click to unblock party\"> Unblock </a> </li> </ul> "
+    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Jurisdiction Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Jurisdiction\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted no-border\" title=\"Click to edit party\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit && canSave\" class=\"nav-item b-l p-l\"> <a ng-click=\"save()\" class=\"nav-link text-muted no-border\" title=\"Click to save party\"> Save </a> </li> <li ng-show=\"edit && !(party.deletedAt || party.lockedAt) && party._id\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"block()\" class=\"nav-link text-muted no-border\" title=\"Click to block party\"> Block </a> </li> <li ng-show=\"edit && (party.deletedAt || party.lockedAt) && party._id\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"unblock()\" class=\"nav-link text-muted no-border\" title=\"Click to unblock party\"> Unblock </a> </li> </ul> "
   );
 
 
   $templateCache.put('views/parties/_partials/detail.html',
-    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/parties/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"partyForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Area\"> <div ng-show=\"!edit\" class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"party.jurisdiction.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"area\" class=\"form-control\"> <label title=\"Area\" class=\"floating-label\">Area</label> </div> <div ng-show=\"edit\" class=\"form-group form-material floating\"> <oi-select oi-options=\"item.name for item in jurisdictions track by item.id\" ng-model=\"party.jurisdiction\" placeholder=\"Select Area\" class=\"form-control\"></oi-select> <label title=\"Area\" class=\"floating-label\">Area</label> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-6\" title=\"Party Name\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"party.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> <label title=\"Party Name\" class=\"floating-label\">Name</label> </div> </div> <div class=\"col-sm-6\" title=\"Party Phone\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"party.phone\" ng-required ng-minlength=\"2\" type=\"text\" name=\"phone\" class=\"form-control\"> <label title=\"Mobile Phone Number\" class=\"floating-label\">Phone</label> </div> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-6\" title=\"Party Email\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"party.email\" ng-required ng-minlength=\"2\" type=\"text\" name=\"email\" class=\"form-control\"> <label title=\"Email Address\" class=\"floating-label\">Email</label> </div> </div> <div class=\"col-sm-6\" title=\"SIP Number\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"party.sipNumber\" ng-required ng-minlength=\"2\" type=\"text\" name=\"sipNumber\" class=\"form-control\"> <label title=\"SIP Phone Number\" class=\"floating-label\">SIP Number</label> </div> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-6\" title=\"Party Password\"> <div class=\"form-group form-material floating\"> <input ng-change=\"onPasswordChange()\" ng-disabled=\"!edit\" ng-model=\"party.password\" ng-required ng-minlength=\"2\" type=\"password\" name=\"password\" class=\"form-control\"> <label title=\"Password\" class=\"floating-label\">Password</label> <span ng-show=\"party.password && party.password.length < 8\" class=\"help-block text-red-700 font-weight-400\">Password length must be atleast 8 characters</span> <span ng-show=\"!edit\" class=\"help-block help-block-password font-size-20\">****************</span> </div> </div> <div ng-show=\"party.password && party.password.length >= 8\" class=\"col-sm-6\" title=\"Password Confirmation\"> <div class=\"form-group form-material floating\"> <input ng-change=\"onConfirmPassword()\" ng-disabled=\"!edit\" ng-model=\"party.confirm\" ng-required ng-minlength=\"2\" type=\"password\" name=\"confirm\" class=\"form-control\"> <label title=\"SIP Phone Number\" class=\"floating-label\">Password Confirm</label> <span ng-show=\"passwordDontMatch\" class=\"help-block text-red-700 font-weight-400\">Password does not match</span> </div> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-12\"> <div ng-show=\"!edit\" class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"party.relation.workspace\" ng-required ng-minlength=\"2\" type=\"text\" name=\"workspace\" class=\"form-control\"> <label title=\"Workspace\" class=\"floating-label\">Workspace</label> </div> <div ng-show=\"edit\" class=\"form-inputs\"> <div class=\"form-group\"> <label class=\"floating-label\">Workspace</label> <div class=\"radio-custom radio-primary\" ng-repeat=\"workspace in workspaces\"> <input type=\"radio\" ng-model=\"party.relation.workspace\" ng-value=\"workspace\"> <label>{{workspace}}</label> </div> </div> </div> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-12\"> <div ng-show=\"!edit\" class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"party._roles\" ng-required ng-minlength=\"2\" type=\"text\" name=\"_roles\" class=\"form-control\"> <label title=\"Roles\" class=\"floating-label\">Roles</label> </div> <div ng-show=\"edit\" class=\"form-inputs\"> <div class=\"form-group\"> <label class=\"floating-label\">Roles</label> <div class=\"checkbox-custom checkbox-primary\" ng-repeat=\"role in roles\"> <input type=\"checkbox\" checklist-model=\"party._assigned\" checklist-value=\"role._id\"> <label>{{role.name}}</label> </div> </div> </div> </div> </div> </div> </div></form> </div> </div> </div> </div> </div> "
+    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/parties/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"partyForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Area\"> <div ng-show=\"!edit\" class=\"form-group\"> <label title=\"Area\" class=\"floating-label\">Area</label> <input ng-disabled=\"!edit\" ng-model=\"party.jurisdiction.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"area\" class=\"form-control\"> </div> <div ng-show=\"edit\" class=\"form-group form-material floating\"> <oi-select oi-options=\"item.name for item in jurisdictions track by item.id\" ng-model=\"party.jurisdiction\" placeholder=\"Select Area\" class=\"form-control\"></oi-select> <label title=\"Area\" class=\"floating-label\">Area</label> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-6\" title=\"Party Name\"> <div class=\"form-group\"> <label title=\"Party Name\" class=\"floating-label\">Name</label> <input ng-disabled=\"!edit\" ng-model=\"party.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"col-sm-6\" title=\"Party Phone\"> <div class=\"form-group\"> <label title=\"Mobile Phone Number\" class=\"floating-label\">Phone</label> <input ng-disabled=\"!edit\" ng-model=\"party.phone\" ng-required ng-minlength=\"2\" type=\"text\" name=\"phone\" class=\"form-control\"> </div> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-6\" title=\"Party Email\"> <div class=\"form-group\"> <label title=\"Email Address\" class=\"floating-label\">Email</label> <input ng-disabled=\"!edit\" ng-model=\"party.email\" ng-required ng-minlength=\"2\" type=\"text\" name=\"email\" class=\"form-control\"> </div> </div> <div class=\"col-sm-6\" title=\"SIP Number\"> <div class=\"form-group\"> <label title=\"SIP Phone Number\" class=\"floating-label\">SIP Number</label> <input ng-disabled=\"!edit\" ng-model=\"party.sipNumber\" ng-required ng-minlength=\"2\" type=\"text\" name=\"sipNumber\" class=\"form-control\"> </div> </div> </div> <div ng-show=\"edit\" class=\"row m-t-lg\"> <div class=\"col-sm-6\" title=\"Party Password\"> <div class=\"form-group\"> <label title=\"Password\" class=\"floating-label\">Password</label> <input ng-change=\"onPasswordChange()\" ng-disabled=\"!edit\" ng-model=\"party.password\" ng-required ng-minlength=\"2\" type=\"password\" name=\"password\" class=\"form-control\"> <span ng-show=\"party.password && party.password.length < 8\" class=\"help-block text-red-700 font-weight-400\">Password length must be atleast 8 characters</span> </div> </div> <div ng-show=\"party.password && party.password.length >= 8\" class=\"col-sm-6\" title=\"Password Confirmation\"> <div class=\"form-group\"> <label title=\"Password Confirmation\" class=\"floating-label\">Password Confirm</label> <input ng-change=\"onConfirmPassword()\" ng-disabled=\"!edit\" ng-model=\"party.confirm\" ng-required ng-minlength=\"2\" type=\"password\" name=\"confirm\" class=\"form-control\"> <span ng-show=\"passwordDontMatch\" class=\"help-block text-red-700 font-weight-400\">Password does not match</span> </div> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-12\"> <div ng-show=\"!edit\" class=\"form-group\"> <label title=\"Workspace\" class=\"floating-label\">Workspace</label> <input ng-disabled=\"!edit\" ng-model=\"party.relation.workspace\" ng-required ng-minlength=\"2\" type=\"text\" name=\"workspace\" class=\"form-control\"> </div> <div ng-show=\"edit\" class=\"form-inputs\"> <div class=\"form-group\"> <label class=\"floating-label\">Workspace</label> <div class=\"radio-custom radio-primary\" ng-repeat=\"workspace in workspaces\"> <label>{{workspace}}</label> <input type=\"radio\" ng-model=\"party.relation.workspace\" ng-value=\"workspace\"> </div> </div> </div> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-12\"> <div ng-show=\"!edit\" class=\"form-group\"> <label title=\"Roles\" class=\"floating-label\">Roles</label> <input ng-disabled=\"!edit\" ng-model=\"party._roles\" ng-required ng-minlength=\"2\" type=\"text\" name=\"_roles\" class=\"form-control\"> </div> <div ng-show=\"edit\" class=\"form-inputs\"> <div class=\"form-group\"> <label class=\"floating-label\">Roles</label> <div class=\"checkbox-custom checkbox-primary\" ng-repeat=\"role in roles\"> <input type=\"checkbox\" checklist-model=\"party._assigned\" checklist-value=\"role._id\"> <label>{{role.name}}</label> </div> </div> </div> </div> </div> </div> </div></form> </div> </div> </div> </div> </div> "
   );
 
 
@@ -7900,7 +8641,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/priorities/_partials/detail.html',
-    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/priorities/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"priorityForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Priority Name\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"priority.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> <label title=\"Priority Name\" class=\"floating-label\">Name</label> </div> </div> <div class=\"m-t-lg\" title=\"Priority Weight\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"priority.weight\" ng-required type=\"number\" name=\"name\" class=\"form-control\"> <label title=\"Priority Weight\" class=\"floating-label\">Weight</label> </div> </div> <div class=\"m-t-lg\" title=\"Priority Color\"> <color-picker ng-model=\"priority.color\"> </color-picker> <div class=\"m-t-lg\"> <div class=\"form-group form-material floating\"> <input title=\"Priority Color\" ng-disabled=\"!edit\" ng-model=\"priority.color\" ng-required ng-minlength=\"1\" type=\"text\" name=\"color\" class=\"form-control\"> <label title=\"Priority Color\" class=\"floating-label\">Priority Color(HEX)</label> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
+    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/priorities/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"priorityForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Priority Name\"> <div class=\"form-group\"> <label title=\"Priority Name\" class=\"floating-label\">Name</label> <input ng-disabled=\"!edit\" ng-model=\"priority.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Priority Weight\"> <div class=\"form-group\"> <label title=\"Priority Weight\" class=\"floating-label\">Weight</label> <input ng-disabled=\"!edit\" ng-model=\"priority.weight\" ng-required type=\"number\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Priority Color\"> <color-picker ng-model=\"priority.color\"> </color-picker> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Priority Color\" class=\"floating-label\">Priority Color(HEX)</label> <input title=\"Priority Color\" ng-disabled=\"!edit\" ng-model=\"priority.color\" ng-required ng-minlength=\"1\" type=\"text\" name=\"color\" class=\"form-control\"> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
   );
 
 
@@ -7915,8 +8656,8 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/roles/_partials/detail.html',
-    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/roles/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"roleForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Role Name\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"role.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> <label title=\"Role Name\" class=\"floating-label\">Name</label> </div> </div> <div class=\"m-t-lg\" title=\"Role Description\"> <div class=\"form-group form-material floating\"> <textarea ng-disabled=\"!edit\" ng-model=\"role.description\" msd-elastic name=\"description\" class=\"form-control\" rows=\"2\">\n" +
-    "                    </textarea> <label class=\"floating-label\">Description</label> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-12\"> <div class=\"form-inputs form-inputs-material\"> <div class=\"form-group\" ng-class=\"{'form-group-disabled':!edit}\"> <label class=\"floating-label\">Permissions</label> <div class=\"row\"> <div class=\"col-md-4\" ng-repeat=\"permission in grouped\"> <h6>{{permission.resource}}</h6> <div class=\"checkbox-custom checkbox-primary\" ng-repeat=\"permit in permission.permits | orderBy : resource\"> <input ng-show=\"edit\" type=\"checkbox\" checklist-model=\"role._assigned\" checklist-value=\"permit._id\"> <label title=\"{{permit.description}}\">{{permit.resource}} {{permit.action}}</label> </div> <br> </div> </div> </div> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
+    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/roles/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"roleForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Role Name\"> <div class=\"form-group\"> <label title=\"Role Name\" class=\"floating-label\">Name</label> <input ng-disabled=\"!edit\" ng-model=\"role.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Role Description\"> <div class=\"form-group\"> <label class=\"floating-label\">Description</label> <textarea ng-disabled=\"!edit\" ng-model=\"role.description\" msd-elastic name=\"description\" class=\"form-control\" rows=\"2\">\n" +
+    "                    </textarea> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-12\"> <div class=\"form-inputs form-inputs-material\"> <div class=\"form-group\" ng-class=\"{'form-group-disabled':!edit}\"> <label class=\"floating-label\">Permissions</label> <div class=\"row\"> <div class=\"col-md-4\" ng-repeat=\"permission in grouped\"> <h6>{{permission.resource}}</h6> <div class=\"checkbox-custom checkbox-primary\" ng-repeat=\"permit in permission.permits | orderBy : resource\"> <input ng-show=\"edit\" type=\"checkbox\" checklist-model=\"role._assigned\" checklist-value=\"permit._id\"> <label title=\"{{permit.description}}\">{{permit.resource}} {{permit.action}}</label> </div> <br> </div> </div> </div> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
   );
 
 
@@ -7931,8 +8672,8 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/servicegroups/_partials/detail.html',
-    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/servicegroups/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"servicegroupForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Service Group Name\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"servicegroup.code\" ng-required ng-minlength=\"1\" type=\"text\" name=\"code\" class=\"form-control\"> <label title=\"Service Group Code\" class=\"floating-label\">Code</label> </div> </div> <div class=\"m-t-lg\" title=\"Service Group Name\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"servicegroup.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> <label title=\"Service Group Name\" class=\"floating-label\">Name</label> </div> </div> <div class=\"m-t-lg\" title=\"Service Group Weight\"> <div class=\"form-group form-material floating\"> <textarea ng-disabled=\"!edit\" ng-model=\"servicegroup.description\" msd-elastic name=\"about\" class=\"form-control\" rows=\"3\">\n" +
-    "                                        </textarea> <label class=\"floating-label\">Description</label> </div> </div> <div class=\"m-t-lg\" title=\"Service Group Color\"> <color-picker ng-model=\"servicegroup.color\"> </color-picker> <div class=\"m-t-lg\"> <div class=\"form-group form-material floating\"> <input title=\"Service Group Color\" ng-disabled=\"!edit\" ng-model=\"servicegroup.color\" ng-required ng-minlength=\"1\" type=\"text\" name=\"color\" class=\"form-control\"> <label title=\"Service Group Color\" class=\"floating-label\">Service Group Color(HEX)</label> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
+    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/servicegroups/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"servicegroupForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Service Group Name\"> <div class=\"form-group\"> <label title=\"Service Group Code\" class=\"floating-label\">Code</label> <input ng-disabled=\"!edit\" ng-model=\"servicegroup.code\" ng-required ng-minlength=\"1\" type=\"text\" name=\"code\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Service Group Name\"> <div class=\"form-group\"> <label title=\"Service Group Name\" class=\"floating-label\">Name</label> <input ng-disabled=\"!edit\" ng-model=\"servicegroup.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Service Group Weight\"> <div class=\"form-group\"> <label class=\"floating-label\">Description</label> <textarea ng-disabled=\"!edit\" ng-model=\"servicegroup.description\" msd-elastic name=\"about\" class=\"form-control\" rows=\"3\">\n" +
+    "                                        </textarea> </div> </div> <div class=\"m-t-lg\" title=\"Service Group Color\"> <color-picker ng-model=\"servicegroup.color\"> </color-picker> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Service Group Color\" class=\"floating-label\">Service Group Color(HEX)</label> <input title=\"Service Group Color\" ng-disabled=\"!edit\" ng-model=\"servicegroup.color\" ng-required ng-minlength=\"1\" type=\"text\" name=\"color\" class=\"form-control\"> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
   );
 
 
@@ -7952,9 +8693,9 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/servicerequests/_partials/create.html',
-    " <div class=\"row-col\"> <div class=\"b-b bg\"> <div class=\"box-header\" style=\"padding:1.2rem\"> <h2>Report New Issue</h2> </div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"servicerequestForm\" role=\"form\" autocomplete=\"off\"> <div class=\"box\"> <div class=\"box-header\"> <h6>Reporter Details</h6> </div> <div class=\"box-body\"> <div class=\"row m-b\"> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <input ng-model=\"servicerequest.reporter.phone\" ng-required ng-minlength=\"2\" focus-if=\"!servicerequest.reporter.phone\" type=\"text\" name=\"phone\" class=\"form-control\"> <label class=\"floating-label\">Phone</label> </div> </div> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <input ng-model=\"servicerequest.reporter.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> <label class=\"floating-label\">Name</label> </div> </div> </div> <div class=\"row m-b\"> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <input ng-model=\"servicerequest.reporter.account\" type=\"text\" name=\"account\" class=\"form-control\"> <label class=\"floating-label\">Account</label> </div> </div> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <input ng-model=\"servicerequest.reporter.email\" type=\"email\" name=\"email\" class=\"form-control\"> <label class=\"floating-label\">Email</label> </div> </div> </div> <div class=\"p-t p-b\" style=\"margin-top: 2rem\"> <h6 title=\"Method of Communication used by Reporter\"> Communication Method </h6> </div> <div class=\"row m-b\"> <div class=\"col-sm-1\" ng-repeat=\"method in methods\"> <div> <label class=\"md-check text-muted\" title=\"Method of Communication used by Reporter\"> <input type=\"radio\" ng-model=\"servicerequest.method.name\" ng-value=\"method\" name=\"method\"> <i class=\"blue\"></i> {{method}} </label> </div> </div> </div> <div class=\"p-t p-b m-t\" style=\"margin-top: 4rem\"> <h6> Issue Details </h6> </div> <div class=\"row m-b\"> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <oi-select oi-options=\"item.name for item in services track by item.id\" ng-model=\"servicerequest.service\" ng-required placeholder=\"Select Service\" class=\"form-control\"></oi-select> </div> </div> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\"> <oi-select oi-options=\"item.name for item in jurisdictions track by item.id\" ng-model=\"servicerequest.jurisdiction\" ng-required placeholder=\"Select Area\" class=\"form-control\"></oi-select> </div> </div> </div> <div class=\"form-group form-material floating\"> <textarea ng-model=\"servicerequest.address\" ng-required msd-elastic name=\"address\" class=\"form-control\" rows=\"2\">\n" +
-    "                                  </textarea> <label class=\"floating-label\">Address</label> </div> <div class=\"form-group form-material floating\"> <textarea ng-model=\"servicerequest.description\" ng-required msd-elastic name=\"description\" class=\"form-control\" rows=\"3\">\n" +
-    "                                    </textarea> <label class=\"floating-label\">Description</label> </div> </div> <div class=\"p-a text-right\"> <button ui-sref=\"app.servicerequests.list\" type=\"button\" ng-click=\"cancel()\" class=\"btn\">Cancel</button> <button ng-disabled=\"servicerequestForm.$invalid || !servicerequest.reporter.phone || !servicerequest.reporter.name || !servicerequest.service || !servicerequest.jurisdiction || !servicerequest.address || !servicerequest.description\" type=\"submit\" class=\"btn info\">Submit</button> </div> </div> </form> </div> </div> </div> </div> </div> "
+    " <div class=\"row-col\"> <div class=\"b-b bg\"> <div class=\"box-header\" style=\"padding:1.2rem\"> <h2> Report New Issue </h2> </div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"servicerequestForm\" role=\"form\" autocomplete=\"off\"> <div class=\"box\"> <div class=\"box-header\"> <h6 title=\"Reporter or Customer Details\"> Reporter Details </h6> </div> <div class=\"box-body\"> <div class=\"row m-b\"> <div class=\"col-sm-6\"> <div class=\"form-group\"> <label title=\"Reporter or Customer Phone Number\"> Phone </label> <input ng-model=\"servicerequest.reporter.phone\" ng-required ng-minlength=\"2\" focus-if=\"!servicerequest.reporter.phone\" type=\"text\" name=\"phone\" class=\"form-control\" title=\"Reporter or Customer Phone Number\"> </div> </div> <div class=\"col-sm-6\"> <div class=\"form-group\"> <label title=\"Reporter or Customer Name\"> Name </label> <input ng-model=\"servicerequest.reporter.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\" title=\"Reporter or Customer Name\"> </div> </div> </div> <div class=\"row m-b\"> <div class=\"col-sm-6\"> <label title=\"Reporter or Customer Account Number\"> Account </label> <div class=\"form-group\"> <div class=\"input-group\"> <input ng-model=\"servicerequest.reporter.account\" type=\"text\" name=\"account\" class=\"form-control\" title=\"Reporter or Customer Account Number\"> <span class=\"input-group-btn\"> <button ng-disabled=\"!servicerequest.reporter.account\" ng-click=\"openLookupModal()\" class=\"btn btn-secondary\" type=\"button\" title=\"Click to Lookup for Customer Account Details\"> <i class=\"icon-magnifier\"></i> </button> </span> </div> </div> </div> <div class=\"col-sm-6\"> <div class=\"form-group\"> <label title=\"Reporter or Customer Email Address\"> Email </label> <input ng-model=\"servicerequest.reporter.email\" type=\"email\" name=\"email\" class=\"form-control\" title=\"Reporter or Customer Email Address\"> </div> </div> </div> <div class=\"p-t p-b\" style=\"margin-top: 2rem\"> <h6 title=\"Communication Method Used by Reporter To Report\"> Communication Method </h6> </div> <div class=\"row m-b\"> <div class=\"col-sm-1\" ng-repeat=\"method in methods\"> <div> <label class=\"md-check text-muted\" title=\"Method of Communication used by Reporter\"> <input type=\"radio\" ng-model=\"servicerequest.method.name\" ng-value=\"method\" name=\"method\"> <i class=\"blue\"></i> {{method}} </label> </div> </div> </div> <div class=\"p-t p-b m-t\" style=\"margin-top: 4rem\"> <h6 title=\"Issue Details\"> Issue Details </h6> </div> <div class=\"row m-b\"> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\" title=\"Select Service\"> <oi-select oi-options=\"item.name for item in services track by item.id\" ng-model=\"servicerequest.service\" ng-required placeholder=\"Select Service\" class=\"form-control\"></oi-select> </div> </div> <div class=\"col-sm-6\"> <div class=\"form-group form-material floating\" title=\"Select Area\"> <oi-select oi-options=\"item.name for item in jurisdictions track by item.id\" ng-model=\"servicerequest.jurisdiction\" ng-required placeholder=\"Select Area\" class=\"form-control\"></oi-select> </div> </div> </div> <div class=\"row m-b\"> <div class=\"col-sm-12\"> <div class=\"form-group\"> <label title=\"Reporter or Customer Address\"> Address </label> <textarea ng-model=\"servicerequest.address\" ng-required msd-elastic name=\"address\" class=\"form-control\" rows=\"2\" title=\"Reporter or Customer Address\">\n" +
+    "                      </textarea> </div> </div> </div> <div class=\"row m-b\"> <div class=\"col-sm-12\"> <div class=\"form-group\"> <label title=\"Issue Details or Description\"> Description </label> <textarea ng-model=\"servicerequest.description\" ng-required msd-elastic name=\"description\" class=\"form-control\" rows=\"2\" title=\"Issue Details or Description\">\n" +
+    "                      </textarea> </div> </div> </div> </div> <div class=\"p-a text-right\"> <button ui-sref=\"app.servicerequests.list\" type=\"button\" ng-click=\"cancel()\" class=\"btn\" title=\"Click to Cancel\">Cancel</button> <button ng-disabled=\"servicerequestForm.$invalid || !servicerequest.reporter.phone || !servicerequest.reporter.name || !servicerequest.service || !servicerequest.jurisdiction || !servicerequest.address || !servicerequest.description\" type=\"submit\" class=\"btn info\" title=\"Click to Submit\">Submit</button> </div> </div> </form> </div> </div> </div> </div> </div> "
   );
 
 
@@ -7994,8 +8735,8 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/services/_partials/detail.html',
-    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/services/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"serviceForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Service Group\"> <div ng-show=\"!edit\" class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"service.group.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"group\" class=\"form-control\"> <label title=\"Group\" class=\"floating-label\">Group</label> </div> <div ng-show=\"edit\" class=\"form-group form-material floating\"> <oi-select oi-options=\"item.name for item in servicegroups track by item.id\" ng-model=\"service.group\" placeholder=\"Select Group\" class=\"form-control\"></oi-select> <label title=\"Group\" class=\"floating-label\">Group</label> </div> </div> <div class=\"m-t-lg\" title=\"Service Priority\"> <div ng-show=\"!edit\" class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"service.priority.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"priority\" class=\"form-control\"> <label title=\"Priority\" class=\"floating-label\">Priority</label> </div> <div ng-show=\"edit\" class=\"form-group form-material floating\"> <oi-select oi-options=\"item.name for item in priorities track by item.id\" ng-model=\"service.priority\" placeholder=\"Select Priority\" class=\"form-control\"></oi-select> <label title=\"Priority\" class=\"floating-label\">Priority</label> </div> </div> <div class=\"m-t-lg\" title=\"Service Code\"> <div class=\"form-group form-material floating\"> <input title=\"Service Code\" ng-disabled=\"!edit\" ng-model=\"service.code\" ng-required ng-minlength=\"1\" type=\"text\" name=\"code\" class=\"form-control\"> <label title=\"Service Code\" class=\"floating-label\">Code</label> </div> </div> <div class=\"m-t-lg\" title=\"Service Name\"> <div class=\"form-group form-material floating\"> <input title=\"Service Name\" ng-disabled=\"!edit\" ng-model=\"service.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> <label title=\"Service Name\" class=\"floating-label\">Name</label> </div> </div> <div class=\"m-t-lg\" title=\"Service Level Agreement\"> <div class=\"form-group form-material floating\"> <input title=\"Service Level Agreement\" ng-disabled=\"!edit\" ng-model=\"service.sla.ttr\" min=\"0\" ng-step=\"1\" type=\"number\" name=\"ttr\" class=\"form-control\"> <label title=\"Service Level Agreement\" class=\"floating-label\">Service Level Agreement</label> </div> </div> <div class=\"m-t-lg\" title=\"Service Color\"> <color-picker ng-model=\"service.color\"> </color-picker> <div class=\"m-t-lg\"> <div class=\"form-group form-material floating\"> <input title=\"Service Color\" ng-disabled=\"!edit\" ng-model=\"service.color\" ng-required ng-minlength=\"1\" type=\"text\" name=\"color\" class=\"form-control\"> <label title=\"Service Color\" class=\"floating-label\">Service Color(HEX)</label> </div> </div> </div> <div class=\"m-t-lg\" title=\"Service Description\"> <div class=\"form-group form-material floating\"> <textarea title=\"Service Description\" ng-disabled=\"!edit\" ng-model=\"service.description\" msd-elastic name=\"about\" class=\"form-control\" rows=\"3\">\n" +
-    "                                        </textarea> <label class=\"floating-label\">Description</label> </div> </div> <div class=\"m-t-lg\" title=\"External Reporting Method Support\"> <div class=\"form-group form-material floating\"> <div class=\"checkbox-custom checkbox-primary\"> <input ng-show=\"edit\" type=\"checkbox\" ng-model=\"service.isExternal\"> <label title=\"External Reporting Method Support\">Support External Reporting Methods</label> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
+    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/services/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"serviceForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Service Group\"> <div ng-show=\"!edit\" class=\"form-group\"> <label title=\"Group\" class=\"floating-label\">Group</label> <input ng-disabled=\"!edit\" ng-model=\"service.group.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"group\" class=\"form-control\"> </div> <div ng-show=\"edit\" class=\"form-group form-material floating\"> <oi-select oi-options=\"item.name for item in servicegroups track by item.id\" ng-model=\"service.group\" placeholder=\"Select Group\" class=\"form-control\"></oi-select> <label title=\"Group\" class=\"floating-label\">Group</label> </div> </div> <div class=\"m-t-lg\" title=\"Service Priority\"> <div ng-show=\"!edit\" class=\"form-group\"> <label title=\"Priority\" class=\"floating-label\">Priority</label> <input ng-disabled=\"!edit\" ng-model=\"service.priority.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"priority\" class=\"form-control\"> </div> <div ng-show=\"edit\" class=\"form-group form-material floating\"> <oi-select oi-options=\"item.name for item in priorities track by item.id\" ng-model=\"service.priority\" placeholder=\"Select Priority\" class=\"form-control\"></oi-select> <label title=\"Priority\" class=\"floating-label\">Priority</label> </div> </div> <div class=\"m-t-lg\" title=\"Service Code\"> <div class=\"form-group\"> <label title=\"Service Code\" class=\"floating-label\">Code</label> <input title=\"Service Code\" ng-disabled=\"!edit\" ng-model=\"service.code\" ng-required ng-minlength=\"1\" type=\"text\" name=\"code\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Service Name\"> <div class=\"form-group\"> <label title=\"Service Name\" class=\"floating-label\">Name</label> <input title=\"Service Name\" ng-disabled=\"!edit\" ng-model=\"service.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Service Level Agreement\"> <div class=\"form-group\"> <label title=\"Service Level Agreement\" class=\"floating-label\">Service Level Agreement</label> <input title=\"Service Level Agreement\" ng-disabled=\"!edit\" ng-model=\"service.sla.ttr\" min=\"0\" ng-step=\"1\" type=\"number\" name=\"ttr\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Service Color\"> <color-picker ng-model=\"service.color\"> </color-picker> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Service Color\" class=\"floating-label\">Service Color(HEX)</label> <input title=\"Service Color\" ng-disabled=\"!edit\" ng-model=\"service.color\" ng-required ng-minlength=\"1\" type=\"text\" name=\"color\" class=\"form-control\"> </div> </div> </div> <div class=\"m-t-lg\" title=\"Service Description\"> <div class=\"form-group\"> <label class=\"floating-label\">Description</label> <textarea title=\"Service Description\" ng-disabled=\"!edit\" ng-model=\"service.description\" msd-elastic name=\"about\" class=\"form-control\" rows=\"3\">\n" +
+    "                                        </textarea> </div> </div> <div class=\"m-t-lg\" title=\"External Reporting Method Support\"> <div class=\"form-group\"> <div class=\"checkbox-custom checkbox-primary\"> <label title=\"External Reporting Method Support\">Support External Reporting Methods</label> <input ng-show=\"edit\" type=\"checkbox\" ng-model=\"service.isExternal\"> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
   );
 
 
@@ -8020,7 +8761,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/statuses/_partials/detail.html',
-    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/statuses/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"statusForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Status Name\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"status.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> <label title=\"Status Name\" class=\"floating-label\">Name</label> </div> </div> <div class=\"m-t-lg\" title=\"Status Weight\"> <div class=\"form-group form-material floating\"> <input ng-disabled=\"!edit\" ng-model=\"status.weight\" ng-required type=\"number\" name=\"name\" class=\"form-control\"> <label title=\"Status Weight\" class=\"floating-label\">Weight</label> </div> </div> <div class=\"m-t-lg\" title=\"Status Color\"> <color-picker ng-model=\"status.color\"> </color-picker> <div class=\"m-t-lg\"> <div class=\"form-group form-material floating\"> <input title=\"Status Color\" ng-disabled=\"!edit\" ng-model=\"status.color\" ng-required ng-minlength=\"1\" type=\"text\" name=\"color\" class=\"form-control\"> <label title=\"Status Color\" class=\"floating-label\">Status Color(HEX)</label> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
+    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/statuses/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"statusForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Status Name\"> <div class=\"form-group\"> <label title=\"Status Name\" class=\"floating-label\">Name</label> <input ng-disabled=\"!edit\" ng-model=\"status.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Status Weight\"> <div class=\"form-group\"> <label title=\"Status Weight\" class=\"floating-label\">Weight</label> <input ng-disabled=\"!edit\" ng-model=\"status.weight\" ng-required type=\"number\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Status Color\"> <color-picker ng-model=\"status.color\"> </color-picker> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Status Color\" class=\"floating-label\">Status Color(HEX)</label> <input title=\"Status Color\" ng-disabled=\"!edit\" ng-model=\"status.color\" ng-required ng-minlength=\"1\" type=\"text\" name=\"color\" class=\"form-control\"> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
   );
 
 
