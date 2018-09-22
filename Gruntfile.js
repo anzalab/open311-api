@@ -157,6 +157,8 @@ module.exports = function (grunt) {
         },
         src: [
           '<%= project.test %>/unit/**/*.js',
+          'node_modules/@lykmapipo/permission/test/unit/**/*.js',
+          'node_modules/@lykmapipo/role/test/unit/**/*.js',
           // 'node_modules/@codetanzania/majifix-jurisdiction/test/unit/**/*.js',
           // 'node_modules/@codetanzania/majifix-account/test/unit/**/*.js',
           'node_modules/@codetanzania/majifix-priority/test/unit/**/*.js',
@@ -172,8 +174,10 @@ module.exports = function (grunt) {
         },
         src: [
           '<%= project.test %>/integration/**/*.js',
+          'node_modules/@lykmapipo/permission/test/integration/**/*.js',
+          'node_modules/@lykmapipo/role/test/integration/**/*.js',
           'node_modules/@codetanzania/majifix-jurisdiction/test/integration/**/*.js',
-          'node_modules/@codetanzania/majifix-account/test/integration/**/*.js',
+          // 'node_modules/@codetanzania/majifix-account/test/integration/**/*.js',
           'node_modules/@codetanzania/majifix-priority/test/integration/**/*.js',
           'node_modules/@codetanzania/majifix-status/test/integration/**/*.js',
           'node_modules/@codetanzania/majifix-service-group/test/integration/**/*.js',

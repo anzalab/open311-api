@@ -18,11 +18,11 @@ const path = require('path');
 const env = require('@lykmapipo/env');
 const { worker, httpServer } = require('@lykmapipo/postman');
 const mkdir = require('mkdir-p');
-const { getNUmber } = env;
+const { getNumber } = env;
 
 
 /* constants */
-const QUEUE_HTTP_PORT = get('QUEUE_HTTP_PORT');
+const QUEUE_HTTP_PORT = getNumber('QUEUE_HTTP_PORT');
 
 
 //build logs directory if does not exists
