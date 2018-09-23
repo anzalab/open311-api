@@ -726,6 +726,9 @@ ServiceRequestSchema.pre('validate', function _preValidate(next) {
 // ServiceRequestSchema Static Properties & Methods
 //-----------------------------------------------------------------------------
 
+ServiceRequestSchema.statics.MODEL_NAME = 'ServiceRequest';
+
+
 //contact methods constants
 ServiceRequestSchema.statics.CONTACT_METHOD_PHONE_CALL =
   ContactMethod.PHONE_CALL;

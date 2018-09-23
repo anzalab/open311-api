@@ -332,19 +332,6 @@ PartySchema.virtual('isApp').get(function () {
 
 
 //-----------------------------------------------------------------------------
-// PartySchema Plugins
-//-----------------------------------------------------------------------------
-
-//plugin irina for authentication workflows
-PartySchema.plugin(irina, {
-  registerable: {
-    autoConfirm: true
-  }
-});
-PartySchema.plugin(actions);
-
-
-//-----------------------------------------------------------------------------
 // PartySchema Hooks
 //-----------------------------------------------------------------------------
 
@@ -513,6 +500,8 @@ PartySchema.methods.jurisdictions = function (done) {
 //-----------------------------------------------------------------------------
 // PartySchema Static Methods & Properties
 //-----------------------------------------------------------------------------
+
+PartySchema.statics.MODEL_NAME = 'Party';
 
 //expose Party Relation Names
 PartySchema.statics.RELATION_NAME_INTERNAL = RELATION_NAME_INTERNAL;
@@ -860,6 +849,20 @@ PartySchema.statics.getPhones = function getPhones(criteria, done) {
     });
 
 };
+
+
+//-----------------------------------------------------------------------------
+// PartySchema Plugins
+//-----------------------------------------------------------------------------
+
+//plugin irina for authentication workflows
+PartySchema.plugin(irina, {
+  registerable: {
+    autoConfirm: true
+  }
+});
+PartySchema.plugin(actions);
+
 
 //exports Party model
 module.exports = mongoose.model('Party', PartySchema);

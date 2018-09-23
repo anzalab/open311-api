@@ -187,6 +187,7 @@ CounterSchema.methods.format = function _format() {
 // statics
 //------------------------------------------------------------------------------
 
+CounterSchema.statics.MODEL_NAME = 'Counter';
 
 /**
  * @name generate

@@ -311,6 +311,8 @@ ChangeLogSchema.virtual('isPublic').get(function () {
 // statics
 //------------------------------------------------------------------------------
 
+ChangeLogSchema.statics.MODEL_NAME = 'ChangeLog';
+
 
 /* constants */
 ChangeLogSchema.statics.VISIBILITY_PRIVATE = VISIBILITY_PRIVATE;
