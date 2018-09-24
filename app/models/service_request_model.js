@@ -526,7 +526,7 @@ ServiceRequestSchema.methods.mapToLegacy = function mapToLegacy() {
     const Service = mongoose.model('Service');
     const service = Service.mapToLegacy(servicerequest.service);
     object.service =
-      _.pick(service, ['code', 'name', 'color', 'group', 'isExternal']);
+      _.pick(service, ['_id', 'code', 'name', 'color', 'group', 'isExternal']);
   }
   if (servicerequest.priority) {
     object.priority.name =
