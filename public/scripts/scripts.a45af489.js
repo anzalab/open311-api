@@ -1689,7 +1689,7 @@ angular
  */
 angular
   .module('ng311')
-  .controller('ServiceRequestCreateCtrl', function (
+  .controller('ServiceRequestCreateCtrl', function(
     $rootScope,
     $scope,
     $state,
@@ -1729,7 +1729,7 @@ angular
     /**
      * @description save created servicerequest
      */
-    $scope.save = function () {
+    $scope.save = function() {
 
       $scope.create = false;
       $scope.updated = true;
@@ -1749,23 +1749,23 @@ angular
         (!$scope.servicerequest._id ?
           $scope.servicerequest.$save() : $scope.servicerequest.$update());
 
-      updateOrSave.then(function (response) {
+      updateOrSave.then(function(response) {
 
-        response = response || {};
+          response = response || {};
 
-        response.message =
-          response.message || 'Service Request Saved Successfully';
+          response.message =
+            response.message || 'Service Request Saved Successfully';
 
-        $rootScope.$broadcast('appSuccess', response);
+          $rootScope.$broadcast('appSuccess', response);
 
-        $rootScope.$broadcast('servicerequest:create:success', response);
+          $rootScope.$broadcast('servicerequest:create:success', response);
 
-        $rootScope.$broadcast('app:servicerequests:reload');
+          $rootScope.$broadcast('app:servicerequests:reload');
 
-        $state.go('app.servicerequests.list');
+          $state.go('app.servicerequests.list');
 
-      })
-        .catch(function (error) {
+        })
+        .catch(function(error) {
           $rootScope.$broadcast('appError', error);
           $rootScope.$broadcast('servicerequest:create:error', error);
         });
@@ -1780,14 +1780,24 @@ angular
      * @version 0.1.0
      * @since 0.1.0
      */
-    $scope.openLookupModal = function () {
+    $scope.openLookupModal = function() {
 
       var accountNumber = $scope.servicerequest.reporter.account;
 
       Account
         .getDetails(accountNumber)
-        .then(function (account) {
+        .then(function(account) {
+
           account = account || {};
+
+          // ensure bill exists
+          var bills = _.get(account, 'bills', undefined);
+
+          if (bills) {
+            var _bills = _.orderBy(bills, 'period.billedAt', 'desc');
+            account = _.merge({}, account, { bills: _bills });
+          }
+
           $rootScope.account = account;
           $scope.servicerequest.reporter = _.merge({}, {
             name: account.name,
@@ -1980,6 +1990,9 @@ angular
       //clear note
       $scope.note = {};
 
+      //clear comments
+      $scope.comments = [];
+
       //sort comments in desc order
       if (servicerequest && servicerequest._id) {
         //update scope service request ref
@@ -2017,7 +2030,6 @@ angular
               scrollWheelZoom: false
             }
           };
-
 
         }
 
@@ -3198,12 +3210,18 @@ angular
 
     /**
      * Open Account details view
+     *
+     * @version 0.1.0
+     * @since 0.1.0
      */
     $scope.openAccountDetails = function () { $state.go('account.details'); };
 
 
     /**
      * Open a form for creating account accessor
+     *
+     * @version 0.1.0
+     * @since 0.1.0
      */
     $scope.addAccessor = function () { $state.go('account.create'); };
 
@@ -3211,6 +3229,9 @@ angular
     /**
      * Open a form for editing account accessor
      * @param {Object} accessor
+     *
+     * @version 0.1.0
+     * @since 0.1.0
      */
     $scope.editAccessor = function (accessor) {
       $state.go('account.create', { accessor: accessor });
@@ -3220,6 +3241,9 @@ angular
     /**
      * Verify account accessor
      * @param {String} phoneNumber
+     *
+     * @version 0.1.0
+     * @since 0.1.0
      */
     $scope.verifyAccessor = function (phoneNumber) {
 
@@ -3235,6 +3259,9 @@ angular
     /**
      * Remove account accessor
      * @param {String} phoneNumber
+     *
+     * @version 0.1.0
+     * @since 0.1.0
      */
     $scope.removeAccessor = function (phoneNumber) {
       Account.deleteAccessor(account._id, phoneNumber)
@@ -8319,7 +8346,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   'use strict';
 
   $templateCache.put('views/_partials/aside.html',
-    " <div class=\"navside\" data-layout=\"column\"> <div class=\"navbar no-radius\"> <a title=\"{{ENV.title}} | {{ENV.description}}\" ui-sref=\"app.servicerequests.list\" class=\"navbar-brand\"> <img src=\"images/logo_sm.a8d78e51.png\" alt=\".\" width=\"48\" class=\"m-t-sm\"> </a> </div> <br> <div data-flex class=\"hide-scroll\"> <nav class=\"scroll nav-stacked nav-stacked-rounded nav-color\"> <ul class=\"nav\" data-ui-nav> <li class=\"nav-header hidden-folded\"> <span class=\"text-xs\">Main</span> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:view\"> <a ui-sref=\"app.servicerequests.list\" title=\"Issues & Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-chatbubble-working\"></i> </span> <span class=\"nav-text\">Issues</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:edit\"> <a ui-sref=\"app.create_servicerequests\" ui-sref-opts=\"{reload: true}\" title=\"Report New Issue or Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-plus-circled\"></i> </span> <span class=\"nav-text\">New Issue</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"message:create, message:edit\"> <a ui-sref=\"app.alerts\" ui-sref-opts=\"{reload: true}\" title=\"Create and Manage Alerts\"> <span class=\"nav-icon\"> <i class=\"ion-android-notifications\"></i> </span> <span class=\"nav-text\">Alerts</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.overviews\" title=\"Overviews\"> <span class=\"nav-icon\"> <i class=\"ion-pie-graph\"></i> </span> <span class=\"nav-text\">Overviews</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.standings\" title=\"Standings\"> <span class=\"nav-icon\"> <i class=\"ion-arrow-graph-up-right\"></i> </span> <span class=\"nav-text\">Standings</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.performances\" title=\"Performances\"> <span class=\"nav-icon\"> <i class=\"ion-ios-pulse-strong\"></i> </span> <span class=\"nav-text\">Performances</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.exports\" title=\"Exports\"> <span class=\"nav-icon\"> <i class=\"ion-social-buffer\"></i> </span> <span class=\"nav-text\">Exports</span> </a> </li> <li show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\" ui-sref-active=\"active\"> <a ui-sref=\"app.manage.jurisdictions\" title=\"Manage System\"> <span class=\"nav-icon\"> <i class=\"ion-gear-a\"></i> </span> <span class=\"nav-text\">Manage</span> </a> </li> </ul> </nav> </div> <div data-flex-no-shrink> <div uib-dropdown class=\"nav-fold dropup\" title=\"{{party.name}}\"> <a uib-dropdown-toggle data-toggle=\"dropdown\"> <div class=\"pull-left\"> <div class=\"inline\"> <letter-avatar title=\"{{party.name}}\" data=\"{{party.name}}\" height=\"60\" width=\"60\" shape=\"round\" class=\"avatar w-40\"> </letter-avatar> </div> </div> </a> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a class=\"dropdown-item\" ui-sref=\"app.profile\" title=\"My Profile\"> <span>Profile</span> </a> <a ng-show=\"isAuthenticated\" ng-show=\"isAuthenticated\" data-signout title=\"Signout\" class=\"dropdown-item\" title=\"Signout\"> Sign out </a> </div> </div> </div> </div> "
+    " <div class=\"navside\" data-layout=\"column\"> <div class=\"navbar no-radius\"> <a title=\"{{ENV.title}} | {{ENV.description}}\" ui-sref=\"app.servicerequests.list\" class=\"navbar-brand\"> <img src=\"images/logo_sm.a8d78e51.png\" alt=\".\" width=\"48\" class=\"m-t-sm\"> </a> </div> <br> <div data-flex class=\"hide-scroll\"> <nav class=\"scroll nav-stacked nav-stacked-rounded nav-color\"> <ul class=\"nav\" data-ui-nav> <li class=\"nav-header hidden-folded\"> <span class=\"text-xs\">Main</span> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:view\"> <a ui-sref=\"app.servicerequests.list\" title=\"Issues & Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-chatbubble-working\"></i> </span> <span class=\"nav-text\">Issues</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:edit\"> <a ui-sref=\"app.create_servicerequests\" ui-sref-opts=\"{reload: true}\" title=\"Report New Issue or Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-plus-circled\"></i> </span> <span class=\"nav-text\">New Issue</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"alert:create, alert:view\"> <a ui-sref=\"app.alerts\" ui-sref-opts=\"{reload: true}\" title=\"Create and Manage Alerts\"> <span class=\"nav-icon\"> <i class=\"ion-android-notifications\"></i> </span> <span class=\"nav-text\">Alerts</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.overviews\" title=\"Overviews\"> <span class=\"nav-icon\"> <i class=\"ion-pie-graph\"></i> </span> <span class=\"nav-text\">Overviews</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.standings\" title=\"Standings\"> <span class=\"nav-icon\"> <i class=\"ion-arrow-graph-up-right\"></i> </span> <span class=\"nav-text\">Standings</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.performances\" title=\"Performances\"> <span class=\"nav-icon\"> <i class=\"ion-ios-pulse-strong\"></i> </span> <span class=\"nav-text\">Performances</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:export\"> <a ui-sref=\"app.exports\" title=\"Exports\"> <span class=\"nav-icon\"> <i class=\"ion-social-buffer\"></i> </span> <span class=\"nav-text\">Exports</span> </a> </li> <li show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\" ui-sref-active=\"active\"> <a ui-sref=\"app.manage.jurisdictions\" title=\"Manage System\"> <span class=\"nav-icon\"> <i class=\"ion-gear-a\"></i> </span> <span class=\"nav-text\">Manage</span> </a> </li> </ul> </nav> </div> <div data-flex-no-shrink> <div uib-dropdown class=\"nav-fold dropup\" title=\"{{party.name}}\"> <a uib-dropdown-toggle data-toggle=\"dropdown\"> <div class=\"pull-left\"> <div class=\"inline\"> <letter-avatar title=\"{{party.name}}\" data=\"{{party.name}}\" height=\"60\" width=\"60\" shape=\"round\" class=\"avatar w-40\"> </letter-avatar> </div> </div> </a> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a class=\"dropdown-item\" ui-sref=\"app.profile\" title=\"My Profile\"> <span>Profile</span> </a> <a ng-show=\"isAuthenticated\" ng-show=\"isAuthenticated\" data-signout title=\"Signout\" class=\"dropdown-item\" title=\"Signout\"> Sign out </a> </div> </div> </div> </div> "
   );
 
 
@@ -8683,7 +8710,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/servicerequests/_partials/action_bar.html',
-    " <ul class=\"nav navbar-nav\"> <li ng-if=\"!servicerequest.operator\" class=\"nav-item b-r p-r\"> <a show-if-has-permit=\"servicerequest:attend\" class=\"nav-link text-muted no-border\" title=\"Click To Attend Issue\" ng-click=\"onAttend()\"> <span class=\"nav-text\"> <i class=\"ion-ios-shuffle-strong\"></i> </span> </a> </li> <li class=\"nav-item\"> <a ng-if=\"mailTo\" href=\"{{mailTo}}\" class=\"nav-link text-muted\" title=\"Send Issue to Area\"> <span class=\"nav-text\"> <i class=\"icon-action-redo\"></i> </span> </a> </li> <li ng-if=\"!servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:resolve\" ng-click=\"onClose()\" class=\"nav-link text-muted no-border\" title=\"Click To Resolve and Signal Feedback Provided To Reporter\"> <span class=\"nav-text\"> <i class=\"icon-call-out\"></i> </span> </a> </li> <li ng-if=\"servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ng-click=\"onReOpen()\" class=\"nav-link text-muted no-border\" title=\"Click To Re-Open The Issue\"> <span class=\"nav-text\"> <i class=\"icon-call-in\"></i> </span> </a> </li> <li class=\"nav-item b-l p-l\"> <a ng-click=\"onCopy()\" class=\"nav-link text-muted no-border\" title=\"Click To Copy Reporter Information & Create New Issue\"> <span class=\"nav-text\"> <i class=\"ti-cut\"></i> </span> </a> </li> <li class=\"nav-item b-l p-l p-r\"> <a print-btn class=\"nav-link text-muted no-border\" title=\"Click To Print Issue\"> <span class=\"nav-text\"> <i class=\"icon-printer\"></i> </span> </a> </li> </ul> "
+    " <ul class=\"nav navbar-nav\"> <li ng-if=\"!servicerequest.operator\" class=\"nav-item b-r p-r\"> <a show-if-has-permit=\"servicerequest:attend\" class=\"nav-link text-muted no-border\" title=\"Click To Attend Issue\" ng-click=\"onAttend()\"> <span class=\"nav-text\"> <i class=\"ion-ios-shuffle-strong\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item\"> <a ng-if=\"mailTo\" href=\"{{mailTo}}\" class=\"nav-link text-muted\" title=\"Send Issue to Area\"> <span class=\"nav-text\"> <i class=\"icon-action-redo\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:resolve\" ng-click=\"onClose()\" class=\"nav-link text-muted no-border\" title=\"Click To Resolve and Signal Feedback Provided To Reporter\"> <span class=\"nav-text\"> <i class=\"icon-call-out\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ng-click=\"onReOpen()\" class=\"nav-link text-muted no-border\" title=\"Click To Re-Open The Issue\"> <span class=\"nav-text\"> <i class=\"icon-call-in\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item b-l p-l\"> <a ng-click=\"onCopy()\" class=\"nav-link text-muted no-border\" title=\"Click To Copy Reporter Information & Create New Issue\"> <span class=\"nav-text\"> <i class=\"ti-cut\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item b-l p-l p-r\"> <a print-btn class=\"nav-link text-muted no-border\" title=\"Click To Print Issue\"> <span class=\"nav-text\"> <i class=\"icon-printer\"></i> </span> </a> </li> </ul> "
   );
 
 
@@ -8700,7 +8727,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/servicerequests/_partials/detail.html',
-    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/servicerequests/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\" print-section> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <h4 class=\"_600\"> <span title=\"Issue Nature\"> {{servicerequest.service.name}} </span> - <span title=\"Issue Number\"> #{{servicerequest.code}} </span> <span class=\"pull-right font-size-14\"> <span title=\"Issue Group/Category\"> <span class=\"text-muted font-size-10\">Group</span> {{servicerequest.group.name}} </span> <br> <span title=\"Area Responsible\"> <span class=\"text-muted font-size-10\">Area</span> {{servicerequest.jurisdiction.name}} </span> <br> <span ng-if=\"servicerequest.jurisdiction.phone && servicerequest.jurisdiction.phone != 'N/A'\" title=\"Area Phone Number\"> <span class=\"text-muted font-size-10\">Phone</span> {{servicerequest.jurisdiction.phone}} </span> </span> </h4> <div class=\"p-y\"> <div title=\"Reporter Name\"> <span class=\"text-muted font-size-12\">From: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.name, {'reporter.name':servicerequest.reporter.name, resolvedAt:null, operator:servicerequest.operator})\">{{servicerequest.reporter.name}}</span> </div> <div title=\"Reporter Account Number\"> <span class=\"text-muted font-size-12\">Account #: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.account, {'reporter.account':servicerequest.reporter.account, resolvedAt:null, operator:servicerequest.operator})\">{{servicerequest.reporter.account}}</span> </div> <div title=\"Reporter Phone Number\"> <span class=\"text-muted font-size-12\">Phone #: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.phone, {'reporter.phone':servicerequest.reporter.phone, resolvedAt:null, operator:servicerequest.operator})\">{{servicerequest.reporter.phone}}</span> </div> <div title=\"Reporter Address\"> <span class=\"text-muted font-size-12\">Address: </span> <span>{{servicerequest.address}}</span> </div> <div title=\"Communication Method\"> <span class=\"text-muted font-size-12\">Method: </span> <span>{{servicerequest.method.name}}</span> </div> </div> <div class=\"p-y b-t\" ng-show=\"servicerequest.call.startedAt && servicerequest.call.endedAt\"> <span title=\"Call Start Time\"> <span class=\"text-muted font-size-12\"> Call Start: </span> <span class=\"font-size-12\">{{servicerequest.call.startedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span title=\"Call End Time\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Call End: </span> <span class=\"font-size-12\">{{servicerequest.call.endedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span title=\"Call Duration\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Call Duration: </span> <span class=\"font-size-12\">{{servicerequest.call.duration.human}}</span> </span> </div> <div class=\"p-b\" ng-class=\"{'p-y b-t':!servicerequest.call}\"> <span title=\"Date Issue Reported\"> <span class=\"text-muted font-size-12\">Reported: </span> <span class=\"font-size-12\">{{servicerequest.createdAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span ng-if=\"servicerequest.resolvedAt\" title=\"Date Issue Resolved\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Resolved: </span> <span class=\"font-size-12\">{{servicerequest.resolvedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span ng-if=\"servicerequest.resolvedAt\" title=\"Time Taken To Resolve\" class=\"p-l\"> <span class=\"text-muted font-size-12\">TTR: </span> <span class=\"font-size-12\"> {{servicerequest.ttr.human}} </span> </span> </div> <div class=\"p-y b-t\"> <span title=\"Operator Responsible\"> <span class=\"text-muted font-size-12\">Operator: </span> <span>{{servicerequest.operator.name}}</span> </span> <span title=\"Assignee\" uib-dropdown auto-close=\"outsideClick\" class=\"m-l\"> <span uib-dropdown-toggle class=\"text-muted font-size-12\">Assignee: </span> <span>{{servicerequest.assignee.name || 'N/A'}}</span> <div ng-if=\"!servicerequest.resolvedAt\" uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <ul class=\"list no-border p-b\"> <li class=\"list-item\" title=\"Type To Search Assignee\"> <input ng-change=\"onSearchAssignees()\" ng-model=\"search.party\" type=\"text\" class=\"form-control form-control-sm\" placeholder=\"Search Assignee ...\"> </li> <li class=\"list-item\" ng-repeat=\"assignee in assignees\" ng-click=\"assign(assignee)\"> <div class=\"list-body\"> <div> <a href=\"#\">{{assignee.name}}</a> </div> <small class=\"text-muted text-ellipsis\"> {{assignee.relation.type}} </small> </div> </li> </ul> </div> </span> <span ng-if=\"!servicerequest.resolvedAt\" uib-dropdown class=\"label primary m-l\" title=\"Status\" style=\"background-color:{{servicerequest.status.color}}\"> <span uib-dropdown-toggle class=\"font-size-12 text-white\">Status: {{servicerequest.status.name}} </span> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a ng-repeat=\"status in statuses\" ng-click=\"changeStatus(status)\" class=\"dropdown-item\" href=\"#\" title=\"Status - {{status.name}}\"> <span>{{status.name}}</span> </a> </div> </span> <span ng-if=\"!servicerequest.resolvedAt\" uib-dropdown class=\"label danger m-l\" title=\"Priority\" style=\"background-color:{{servicerequest.priority.color}}\"> <span uib-dropdown-toggle class=\"font-size-12 text-white\">Priority: {{servicerequest.priority.name}}</span> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a ng-repeat=\"priority in priorities\" ng-click=\"changePriority(priority)\" class=\"dropdown-item\" href=\"#\" title=\"Priority {{priority.name}}\"> <span>{{priority.name}}</span> </a> </div> </span> <span ng-if=\"servicerequest.resolvedAt\" class=\"label danger m-l\" style=\"background-color: #4CAF50\"> <span class=\"font-size-12 text-white\">Resolved</span> </span> </div> </div> <div class=\"padding b-t\"> <h6 class=\"m-b\" title=\"Issue Description\">Description</h6> <p class=\"text-lt\"> {{servicerequest.description}} </p> <p>&nbsp;</p> </div> <div class=\"padding b-t\" ng-show=\"servicerequest.longitude && servicerequest.latitude\"> <h6 class=\"m-b\" title=\"Issue Map\">Map</h6> <leaflet id=\"servicerequest-map\" center=\"map.center\" markers=\"map.markers\" bounds=\"map.bounds\" defaults=\"map.defaults\" height=\"280px\" width=\"100%\"></leaflet> <p>&nbsp;</p> </div> <div class=\"padding b-t\" ng-show=\"servicerequest.attachments && servicerequest.attachments.length > 0\"> <h6 class=\"m-b\" title=\"Issue Attachements\">Attachments</h6> <ng-gallery images=\"servicerequest.attachments\"></ng-gallery> </div> <div ng-include=\"'views/servicerequests/_partials/comments.html'\"></div> </div> </div> </div> </div> "
+    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/servicerequests/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\" print-section> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <h4 class=\"_600\"> <span title=\"Issue Nature\"> {{servicerequest.service.name}} </span> - <span title=\"Issue Number\"> #{{servicerequest.code}} </span> <span class=\"pull-right font-size-14\"> <span title=\"Issue Group/Category\"> <span class=\"text-muted font-size-10\">Group</span> {{servicerequest.group.name}} </span> <br> <span title=\"Area Responsible\"> <span class=\"text-muted font-size-10\">Area</span> {{servicerequest.jurisdiction.name}} </span> <br> <span ng-if=\"servicerequest.jurisdiction.phone && servicerequest.jurisdiction.phone != 'N/A'\" title=\"Area Phone Number\"> <span class=\"text-muted font-size-10\">Phone</span> {{servicerequest.jurisdiction.phone}} </span> </span> </h4> <div class=\"p-y\"> <div title=\"Reporter Name\"> <span class=\"text-muted font-size-12\">From: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.name, {'reporter.name':servicerequest.reporter.name, resolvedAt:null, operator:servicerequest.operator})\">{{servicerequest.reporter.name}}</span> </div> <div title=\"Reporter Account Number\"> <span class=\"text-muted font-size-12\">Account #: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.account, {'reporter.account':servicerequest.reporter.account, resolvedAt:null, operator:servicerequest.operator})\">{{servicerequest.reporter.account}}</span> </div> <div title=\"Reporter Phone Number\"> <span class=\"text-muted font-size-12\">Phone #: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.phone, {'reporter.phone':servicerequest.reporter.phone, resolvedAt:null, operator:servicerequest.operator})\">{{servicerequest.reporter.phone}}</span> </div> <div title=\"Reporter Address\"> <span class=\"text-muted font-size-12\">Address: </span> <span>{{servicerequest.address}}</span> </div> <div title=\"Communication Method\"> <span class=\"text-muted font-size-12\">Method: </span> <span>{{servicerequest.method.name}}</span> </div> </div> <div class=\"p-y b-t\" ng-show=\"servicerequest.call.startedAt && servicerequest.call.endedAt\"> <span title=\"Call Start Time\"> <span class=\"text-muted font-size-12\"> Call Start: </span> <span class=\"font-size-12\">{{servicerequest.call.startedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span title=\"Call End Time\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Call End: </span> <span class=\"font-size-12\">{{servicerequest.call.endedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span title=\"Call Duration\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Call Duration: </span> <span class=\"font-size-12\">{{servicerequest.call.duration.human}}</span> </span> </div> <div class=\"p-b\" ng-class=\"{'p-y b-t':!servicerequest.call}\"> <span title=\"Date Issue Reported\"> <span class=\"text-muted font-size-12\">Reported: </span> <span class=\"font-size-12\">{{servicerequest.createdAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span ng-if=\"servicerequest.resolvedAt\" title=\"Date Issue Resolved\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Resolved: </span> <span class=\"font-size-12\">{{servicerequest.resolvedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span ng-if=\"servicerequest.resolvedAt\" title=\"Time Taken To Resolve\" class=\"p-l\"> <span class=\"text-muted font-size-12\">TTR: </span> <span class=\"font-size-12\"> {{servicerequest.ttr.human}} </span> </span> </div> <div class=\"p-y b-t\"> <span title=\"Operator Responsible\"> <span class=\"text-muted font-size-12\">Operator: </span> <span>{{servicerequest.operator.name}}</span> </span> <span title=\"Assignee\" uib-dropdown auto-close=\"outsideClick\" class=\"m-l\"> <span uib-dropdown-toggle class=\"text-muted font-size-12\">Assignee: </span> <span>{{servicerequest.assignee.name || 'N/A'}}</span> <div ng-if=\"!servicerequest.resolvedAt\" uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <ul class=\"list no-border p-b\"> <li class=\"list-item\" title=\"Type To Search Assignee\"> <input ng-change=\"onSearchAssignees()\" ng-model=\"search.party\" type=\"text\" class=\"form-control form-control-sm\" placeholder=\"Search Assignee ...\"> </li> <li class=\"list-item\" ng-repeat=\"assignee in assignees\" ng-click=\"assign(assignee)\"> <div class=\"list-body\"> <div> <a href=\"#\">{{assignee.name}}</a> </div> <small class=\"text-muted text-ellipsis\"> {{assignee.relation.type}} </small> </div> </li> </ul> </div> </span> <span ng-if=\"!servicerequest.resolvedAt\" uib-dropdown class=\"label primary m-l\" title=\"Status\" style=\"background-color:{{servicerequest.status.color}}\"> <span uib-dropdown-toggle class=\"font-size-12 text-white\">Status: {{servicerequest.status.name}} </span> <div ng-if=\"servicerequest.operator\" uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a ng-repeat=\"status in statuses\" ng-click=\"changeStatus(status)\" class=\"dropdown-item\" href=\"#\" title=\"Status - {{status.name}}\"> <span>{{status.name}}</span> </a> </div> </span> <span ng-if=\"!servicerequest.resolvedAt\" uib-dropdown class=\"label danger m-l\" title=\"Priority\" style=\"background-color:{{servicerequest.priority.color}}\"> <span uib-dropdown-toggle class=\"font-size-12 text-white\">Priority: {{servicerequest.priority.name}}</span> <div ng-if=\"servicerequest.operator\" uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a ng-repeat=\"priority in priorities\" ng-click=\"changePriority(priority)\" class=\"dropdown-item\" href=\"#\" title=\"Priority {{priority.name}}\"> <span>{{priority.name}}</span> </a> </div> </span> <span ng-if=\"servicerequest.resolvedAt\" class=\"label danger m-l\" style=\"background-color: #4CAF50\"> <span class=\"font-size-12 text-white\">Resolved</span> </span> </div> </div> <div class=\"padding b-t\"> <h6 class=\"m-b\" title=\"Issue Description\">Description</h6> <p class=\"text-lt\"> {{servicerequest.description}} </p> <p>&nbsp;</p> </div> <div class=\"padding b-t\" ng-show=\"servicerequest.longitude && servicerequest.latitude\"> <h6 class=\"m-b\" title=\"Issue Map\">Map</h6> <leaflet id=\"servicerequest-map\" center=\"map.center\" markers=\"map.markers\" bounds=\"map.bounds\" defaults=\"map.defaults\" height=\"280px\" width=\"100%\"></leaflet> <p>&nbsp;</p> </div> <div class=\"padding b-t\" ng-show=\"servicerequest.attachments && servicerequest.attachments.length > 0\"> <h6 class=\"m-b\" title=\"Issue Attachements\">Attachments</h6> <ng-gallery images=\"servicerequest.attachments\"></ng-gallery> </div> <div ng-include=\"'views/servicerequests/_partials/comments.html'\"></div> </div> </div> </div> </div> "
   );
 
 
