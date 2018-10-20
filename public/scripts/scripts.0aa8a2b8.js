@@ -5137,7 +5137,7 @@ angular
  */
 angular
   .module('ng311')
-  .controller('PartyIndexCtrl', function (
+  .controller('PartyIndexCtrl', function(
     $rootScope, $scope, $state, Party
   ) {
 
@@ -5150,7 +5150,7 @@ angular
 
     $scope.search = {};
 
-    $scope.onSearch = function () {
+    $scope.onSearch = function() {
       if ($scope.search.q && $scope.search.q.length >= 2) {
         $scope.q = $scope.search.q;
         $scope.find();
@@ -5164,7 +5164,7 @@ angular
     /**
      * set current service request
      */
-    $scope.select = function (party) {
+    $scope.select = function(party) {
 
       //sort comments in desc order
       if (party && party._id) {
@@ -5176,6 +5176,9 @@ angular
 
         //deduce assigned roles
         party._assigned = _.map(party.roles, '_id');
+
+        //ensure relation
+        party.relation = party.relation || {};
 
         //update scope service request ref
         $scope.party = party;
@@ -5191,7 +5194,7 @@ angular
     /**
      * @description load parties
      */
-    $scope.find = function () {
+    $scope.find = function() {
       //start sho spinner
       $scope.spin = true;
 
@@ -5203,7 +5206,7 @@ angular
         },
         query: {},
         q: $scope.q
-      }).then(function (response) {
+      }).then(function(response) {
         //update scope with parties when done loading
         $scope.parties = response.parties;
         if ($scope.updated) {
@@ -5213,14 +5216,14 @@ angular
         }
         $scope.total = response.total;
         $scope.spin = false;
-      }).catch(function (error) {
+      }).catch(function(error) {
         $scope.spin = false;
       });
     };
 
 
     //check whether parties will paginate
-    $scope.willPaginate = function () {
+    $scope.willPaginate = function() {
       var willPaginate =
         ($scope.parties && $scope.total && $scope.total > $scope.limit);
       return willPaginate;
@@ -5231,7 +5234,7 @@ angular
     $scope.find();
 
     //listen for events
-    $rootScope.$on('app:parties:reload', function () {
+    $rootScope.$on('app:parties:reload', function() {
       $scope.find();
     });
 
@@ -5248,7 +5251,7 @@ angular
  */
 angular
   .module('ng311')
-  .controller('PartyShowCtrl', function (
+  .controller('PartyShowCtrl', function(
     $rootScope, $scope, $state, $stateParams, Party,
     jurisdictions, roles, party
   ) {
@@ -5261,17 +5264,18 @@ angular
 
     $scope.workspaces = party.settings.party.relation.workspaces;
 
-    $scope.onEdit = function () {
+    $scope.onEdit = function() {
       $scope.edit = true;
     };
 
-    $scope.onCancel = function () {
+    $scope.onCancel = function() {
       $scope.edit = false;
       $rootScope.$broadcast('app:parties:reload');
     };
 
-    $scope.onNew = function () {
+    $scope.onNew = function() {
       $scope.party = new Party({
+        relation: {},
         roles: [],
         _assigned: []
       });
@@ -5281,7 +5285,7 @@ angular
     /**
      * @description block created party
      */
-    $scope.block = function () {
+    $scope.block = function() {
       //TODO show input prompt
       //TODO show loading mask
       $scope.party.deletedAt = new Date();
@@ -5293,7 +5297,7 @@ angular
     /**
      * @description unblock created party
      */
-    $scope.unblock = function () {
+    $scope.unblock = function() {
       //TODO show input prompt
       //TODO show loading mask
       //clear soft delete data
@@ -5316,14 +5320,14 @@ angular
 
     //TODO show empty state if no party selected
     //listen for selected juridiction
-    $rootScope.$on('party:selected', function (event, party) {
+    $rootScope.$on('party:selected', function(event, party) {
       $scope.party = party;
     });
 
     /**
      * Listen for password confirmation input changes
      */
-    $scope.onConfirmPassword = function () {
+    $scope.onConfirmPassword = function() {
       if (!$scope.party.confirm || !$scope.party.password) {
         $scope.passwordDontMatch = false;
       } else {
@@ -5338,7 +5342,7 @@ angular
     /**
      * Listen for password input changes
      */
-    $scope.onPasswordChange = function () {
+    $scope.onPasswordChange = function() {
       if (!$scope.party.password) {
         $scope.canSave = true;
       } else {
@@ -5351,7 +5355,7 @@ angular
     /**
      * @description save created party
      */
-    $scope.save = function () {
+    $scope.save = function() {
       //TODO show input prompt
       //TODO show loading mask
 
@@ -5362,7 +5366,7 @@ angular
       var updateOrSave =
         (!$scope.party._id ? $scope.party.$save() : $scope.party.$update());
 
-      updateOrSave.then(function (response) {
+      updateOrSave.then(function(response) {
 
           response = response || {};
 
@@ -5379,7 +5383,7 @@ angular
           $scope.edit = false;
 
         })
-        .catch(function (error) {
+        .catch(function(error) {
           $rootScope.$broadcast('appError', error);
         });
     };
