@@ -1689,7 +1689,7 @@ angular
  */
 angular
   .module('ng311')
-  .controller('ServiceRequestCreateCtrl', function(
+  .controller('ServiceRequestCreateCtrl', function (
     $rootScope,
     $scope,
     $state,
@@ -1729,7 +1729,7 @@ angular
     /**
      * @description save created servicerequest
      */
-    $scope.save = function() {
+    $scope.save = function () {
 
       $scope.create = false;
       $scope.updated = true;
@@ -1749,23 +1749,23 @@ angular
         (!$scope.servicerequest._id ?
           $scope.servicerequest.$save() : $scope.servicerequest.$update());
 
-      updateOrSave.then(function(response) {
+      updateOrSave.then(function (response) {
 
-          response = response || {};
+        response = response || {};
 
-          response.message =
-            response.message || 'Service Request Saved Successfully';
+        response.message =
+          response.message || 'Service Request Saved Successfully';
 
-          $rootScope.$broadcast('appSuccess', response);
+        $rootScope.$broadcast('appSuccess', response);
 
-          $rootScope.$broadcast('servicerequest:create:success', response);
+        $rootScope.$broadcast('servicerequest:create:success', response);
 
-          $rootScope.$broadcast('app:servicerequests:reload');
+        $rootScope.$broadcast('app:servicerequests:reload');
 
-          $state.go('app.servicerequests.list');
+        $state.go('app.servicerequests.list');
 
-        })
-        .catch(function(error) {
+      })
+        .catch(function (error) {
           $rootScope.$broadcast('appError', error);
           $rootScope.$broadcast('servicerequest:create:error', error);
         });
@@ -1780,13 +1780,13 @@ angular
      * @version 0.1.0
      * @since 0.1.0
      */
-    $scope.openLookupModal = function() {
+    $scope.openLookupModal = function () {
 
       var accountNumber = $scope.servicerequest.reporter.account;
 
       Account
         .getDetails(accountNumber)
-        .then(function(account) {
+        .then(function (account) {
 
           account = account || {};
 
@@ -1796,6 +1796,9 @@ angular
           if (bills) {
             var _bills = _.orderBy(bills, 'period.billedAt', 'desc');
             account = _.merge({}, account, { bills: _bills });
+
+            /* pick closing balance of the latest bill */
+            account = _.merge({}, account, { closingBalance: _.first(account.bills).balance.close });
           }
 
           $rootScope.account = account;
@@ -8370,7 +8373,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/account/_partials/account_details.html',
-    " <div class=\"modal-header\"> <div class=\"b-b\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$close()\" aria-hidden=\"true\">×</button> <h4 class=\"modal-title\">Customer Details</h4> </div> </div> <div class=\"modal-body\"> <div class=\"box\"> <div class=\"box-body\"> <div ng-if=\"account\" class=\"item\"> <div class=\"p-a-md\"> <div class=\"row m-t\"> <div class=\"col-md-12\"> <a href=\"#\" class=\"pull-left m-r-md\"> <span> <letter-avatar title=\"{{account.name}}\" data=\"{{account.name}}\" height=\"96\" width=\"96\" shape=\"round\" color=\"{{account.active ? '#63D471':'#EE6352'}}\"> </letter-avatar> <i class=\"on b-white\"></i> </span> </a> <div class=\"clear m-b\"> <div class=\"row-col\"> <h4 class=\"m-a-0 m-b-sm\"> <span title=\"Name\">{{account.name}}</span> <span class=\"m-l-sm\" title=\"Account Number\">#{{account.number}}</span> </h4> </div> <p class=\"text-muted m-t-sm\"> <i class=\"fa fa-map-marker m-r-xs\"></i> <span title=\"Working Area\"> {{account.fullAddress}} </span> </p> <div class=\"block clearfix m-b\"> <span> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-phone\"></i> <i class=\"icon-phone indigo\"></i> </a> <span title=\"Phone Number\" class=\"text-muted\"> {{account.phone ? account.phone : 'N/A'}} </span> </span> <span class=\"m-l-md\"> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-envelope\"></i> <i class=\"icon-envelope light-blue\"></i> </a> <span title=\"Email Address\" class=\"text-muted\"> {{account.email ? account.email : 'N/A'}} </span> </span> <span class=\"m-l-md\"> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-list\"></i> <i class=\"icon-list light-blue\"></i> </a> <a ui-sref=\"account.accessors\" title=\"Account Accessors\" class=\"text-muted\"> View Account Accessors </a> </span> </div> </div> </div> </div> </div> </div> <div ng-if=\"account\" class=\"row m-t-lg\"> <div class=\"box box-shadow-z2\"> <div class=\"box-header\"> <h2>Mini Statement <span class=\"pull-right\">Amount Due: {{account.outstandingBalance | currency:'Tsh '}}</span></h2> </div> </div> <uib-tabset active=\"active\" class=\"m-t-lg\"> <uib-tab ng-repeat=\"(key,bill) in account.bills\" index=\"key\" heading=\"{{bill.period.billedAt | date:'MMMM yyyy'}}\"> <div class=\"list box box-shadow-z2\"> <div class=\"box-header b-b\"> <h2>Control Number : {{bill.number}} <small class=\"pull-right text-muted text-sm\">Date of Reading: {{bill.period.billedAt | date:'dd/MM/yyyy'}}</small></h2> </div> <div class=\"list-item\"> <div class=\"list-body\"> <div class=\"list-item p-t-none p-b-none\" ng-repeat=\"item in bill.items\"> <span title=\"Item Price\" class=\"pull-right text-sm\"> {{item.price | currency:''}} </span> <div class=\"item-title\"> <a href=\"#\" class=\"font-size-14\">{{item.name}} <span title=\"Quantity\" class=\"font-size-13 text-muted\"> &nbsp;{{item.quantity ? '( ' + item.quantity +' '+ item.unit + ' )' :''}} </span> </a> </div> <div class=\"list text-muted\"> <div class=\"list-item p-t-none p-b-none\" ng-repeat=\"subitem in item.items\"> <span title=\"Item Name\" class=\"pull-right text-xs\"> {{subitem.quantity}}&nbsp;{{subitem.unit}} </span> <div class=\"item-title\"> <a href=\"#\" class=\"_500\">{{subitem.name}}<br> <span title=\"Date\" class=\"text-sm text-muted\"> {{subitem.time | date:'dd/MM/yyyy'}} </span> </a> </div> </div> </div> </div> <div class=\"m-t-md\"> <span>Open Balance</span> <small class=\"text-muted pull-right\">{{bill.balance.open | currency:'Tsh '}}</small> </div> <div> <span>Periodic Charges</span> <small class=\"text-muted pull-right\">{{bill.balance.charges | currency:'Tsh '}}</small> </div> <div> <span>Loan/Debt Balance</span> <small class=\"text-muted pull-right\">{{bill.balance.debt | currency:'Tsh '}}</small> </div> <div class=\"m-b-md\"> <span>Closing Balance</span> <small class=\"text-muted pull-right\">{{bill.balance.close | currency:'Tsh '}}</small> </div> <p class=\"_500 text-muted\"> Note:&nbsp;{{bill.notes}} </p> </div> </div> </div> </uib-tab> </uib-tabset> </div> <div class=\"row-col\"> <div ng-if=\"!account\" class=\"row-cell v-m\"> <div class=\"text-center col-sm-6 offset-sm-3 p-y-lg\"> <p class=\"text-muted m-y-lg\">Account Not Found</p> </div> </div> </div> </div> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" ng-click=\"$dismiss()\">Cancel</button> <button class=\"btn btn-primary\" ng-click=\"$dismiss()\">OK</button> </div> "
+    " <div class=\"modal-header\"> <div class=\"b-b\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$close()\" aria-hidden=\"true\">×</button> <h4 class=\"modal-title\">Customer Details</h4> </div> </div> <div class=\"modal-body\"> <div class=\"box\"> <div class=\"box-body\"> <div ng-if=\"account\" class=\"item\"> <div class=\"p-a-md\"> <div class=\"row m-t\"> <div class=\"col-md-12\"> <a href=\"#\" class=\"pull-left m-r-md\"> <span> <letter-avatar title=\"{{account.name}}\" data=\"{{account.name}}\" height=\"96\" width=\"96\" shape=\"round\" color=\"{{account.active ? '#63D471':'#EE6352'}}\"> </letter-avatar> <i class=\"on b-white\"></i> </span> </a> <div class=\"clear m-b\"> <div class=\"row-col\"> <h4 class=\"m-a-0 m-b-sm\"> <span title=\"Name\">{{account.name}}</span> <span class=\"m-l-sm\" title=\"Account Number\">#{{account.number}}</span> </h4> </div> <p class=\"text-muted m-t-sm\"> <i class=\"fa fa-map-marker m-r-xs\"></i> <span title=\"Working Area\"> {{account.fullAddress}} </span> </p> <div class=\"block clearfix m-b\"> <span> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-phone\"></i> <i class=\"icon-phone indigo\"></i> </a> <span title=\"Phone Number\" class=\"text-muted\"> {{account.phone ? account.phone : 'N/A'}} </span> </span> <span class=\"m-l-md\"> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-envelope\"></i> <i class=\"icon-envelope light-blue\"></i> </a> <span title=\"Email Address\" class=\"text-muted\"> {{account.email ? account.email : 'N/A'}} </span> </span> <span class=\"m-l-md\"> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-list\"></i> <i class=\"icon-list light-blue\"></i> </a> <a ui-sref=\"account.accessors\" title=\"Account Accessors\" class=\"text-muted\"> View Account Accessors </a> </span> </div> </div> </div> </div> </div> </div> <div ng-if=\"account\" class=\"row m-t-lg\"> <div class=\"box box-shadow-z2\"> <div class=\"box-header\"> <h2>Mini Statement <span class=\"pull-right\">Amount Due: {{account.closingBalance | currency:'Tsh '}}</span></h2> </div> </div> <uib-tabset active=\"active\" class=\"m-t-lg\"> <uib-tab ng-repeat=\"(key,bill) in account.bills\" index=\"key\" heading=\"{{bill.period.billedAt | date:'MMMM yyyy'}}\"> <div class=\"list box box-shadow-z2\"> <div class=\"box-header b-b\"> <h2>Control Number : {{bill.number}} <small class=\"pull-right text-muted text-sm\">Date of Reading: {{bill.period.billedAt | date:'dd/MM/yyyy'}}</small></h2> </div> <div class=\"list-item\"> <div class=\"list-body\"> <div class=\"list-item p-t-none p-b-none\" ng-repeat=\"item in bill.items\"> <span title=\"Item Price\" class=\"pull-right text-sm\"> {{item.price | currency:''}} </span> <div class=\"item-title\"> <a href=\"#\" class=\"font-size-14\">{{item.name}} <span title=\"Quantity\" class=\"font-size-13 text-muted\"> &nbsp;{{item.quantity ? '( ' + item.quantity +' '+ item.unit + ' )' :''}} </span> </a> </div> <div class=\"list text-muted\"> <div class=\"list-item p-t-none p-b-none\" ng-repeat=\"subitem in item.items\"> <span title=\"Item Name\" class=\"pull-right text-xs\"> {{subitem.quantity}}&nbsp;{{subitem.unit}} </span> <div class=\"item-title\"> <a href=\"#\" class=\"_500\">{{subitem.name}}<br> <span title=\"Date\" class=\"text-sm text-muted\"> {{subitem.time | date:'dd/MM/yyyy'}} </span> </a> </div> </div> </div> </div> <div class=\"m-t-md\"> <span>Open Balance</span> <small class=\"text-muted pull-right\">{{bill.balance.open | currency:'Tsh '}}</small> </div> <div> <span>Periodic Charges</span> <small class=\"text-muted pull-right\">{{bill.balance.charges | currency:'Tsh '}}</small> </div> <div> <span>Loan/Debt Balance</span> <small class=\"text-muted pull-right\">{{bill.balance.debt | currency:'Tsh '}}</small> </div> <div class=\"m-b-md\"> <span>Closing Balance</span> <small class=\"text-muted pull-right\">{{bill.balance.close | currency:'Tsh '}}</small> </div> <p class=\"_500 text-muted\"> Note:&nbsp;{{bill.notes}} </p> </div> </div> </div> </uib-tab> </uib-tabset> </div> <div class=\"row-col\"> <div ng-if=\"!account\" class=\"row-cell v-m\"> <div class=\"text-center col-sm-6 offset-sm-3 p-y-lg\"> <p class=\"text-muted m-y-lg\">Account Not Found</p> </div> </div> </div> </div> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" ng-click=\"$dismiss()\">Cancel</button> <button class=\"btn btn-primary\" ng-click=\"$dismiss()\">OK</button> </div> "
   );
 
 
