@@ -157,5 +157,9 @@ SettingSchema.statics.bulkUpdate = function (settings, done) {
 };
 
 
+SettingSchema.statics.MODEL_NAME = 'Setting';
+
+
+
 //exports Setting model
 module.exports = mongoose.model('Setting', SettingSchema);

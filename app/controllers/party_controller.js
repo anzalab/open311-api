@@ -21,6 +21,10 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   index: function (request, response, next) {
+
+    //TODO check why mongoose-hidden does not hide password
+    request.mquery.select = _.merge({}, { password: 0 }, request.mquery.select);
+
     Party
       .list(request, function (error, results) {
         if (error) {

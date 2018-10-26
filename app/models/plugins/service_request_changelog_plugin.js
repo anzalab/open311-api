@@ -18,6 +18,8 @@
 //global dependencies(or import)
 const path = require('path');
 const _ = require('lodash');
+const async = require('async');
+const mongoose = require('mongoose');
 
 
 //local dependencies(or import)
@@ -153,6 +155,48 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
       //TODO send changelog notification on changelog post save
       return changelog;
     }
+
+  };
+
+
+  /**
+   * @name createAndTrack
+   * @function createAndTrack
+   * @param {Object} request valid servicerequest payload
+   * @param {Function} done a callback to invoke on success or failure
+   * @since  0.1.0
+   * @version 0.1.0
+   * @public
+   */
+  schema.statics.createAndTrack = function (request, done) {
+    //ref
+    const ServiceRequest = mongoose.model('ServiceRequest');
+    const ChangeLog = mongoose.model('ChangeLog');
+
+    async.waterfall([
+
+      function createServiceRequest(next) {
+        ServiceRequest.create(request, next);
+      },
+
+      function createInitialChangelog(servicerequest, next) {
+        //prepare changelogs
+        const changelogs = [{
+          request: servicerequest,
+          status: servicerequest.status,
+          priority: servicerequest.priority,
+          changer: servicerequest.operator,
+          visibility: ChangeLog.VISIBILITY_PUBLIC,
+          createdAt: new Date()
+        }];
+
+        //record changelogs
+        ChangeLog.create(changelogs, function ( /*error, changelogs*/ ) {
+          next(null, servicerequest);
+        });
+
+      }
+    ], done);
 
   };
 

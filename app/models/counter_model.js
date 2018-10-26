@@ -6,15 +6,15 @@
  * @name Counter
  * @description A record of service request(issue) ticket number.
  *
- *              Used to generate sequencial ticket number for 
- *              service request(issue) based on jurisdiction, service and year.
+ * Used to generate sequencial ticket number for service request(issue)
+ * based on jurisdiction, service and year.
  *
- *              The format for the ticket number is as below:
- *              jurisdiction code - service code - year(2digits) - sequence(4digits)
- *              i.e ILLK170001
- *              
- *              At any time the above combo is ensured to be unique for better
- *              ticket number generation.
+ * The format for the ticket number is as below:
+ * jurisdiction code - service code - year(2digits) - sequence(4digits)
+ * i.e ILLK170001
+ *
+ * At any time the above combo is ensured to be unique for better
+ * ticket number generation.
  *
  * @see {@link ServiceRequest}
  * @see {@link Jurisdiction}
@@ -28,17 +28,21 @@
  */
 
 
-//dependencies
+/* dependencies */
 const _ = require('lodash');
 const moment = require('moment');
-const config = require('config');
+const env = require('@lykmapipo/env');
 const mongoose = require('mongoose');
+const actions = require('mongoose-rest-actions');
 const Schema = mongoose.Schema;
+const { getNumber } = env;
 
 
-//default year digits to use
-const YEAR_FORMAT = 'YY'; //TODO move this to configurations
-const COUNTER_PREFIX = config.get('counter.prefix');
+/* constants */
+const COUNTER_YEAR_FORMAT = env('COUNTER_YEAR_FORMAT', 'YY');
+const COUNTER_PREFIX = env('COUNTER_PREFIX', '');
+const COUNTER_PAD_SIZE = getNumber('COUNTER_PAD_SIZE', 4);
+
 
 /**
  * @name CounterSchema
@@ -50,15 +54,15 @@ const COUNTER_PREFIX = config.get('counter.prefix');
 const CounterSchema = new Schema({
   /**
    * @name area
-   * @description A jurisdiction code for the counter e.g if a jurisdiction 
-   *              called Ilala and has a code IL the IL will be used in
-   *              generating next ticket number
-   *               
+   * @description A jurisdiction code for the counter e.g if a jurisdiction
+   * called Ilala and has a code IL the IL will be used in
+   * generating next ticket number
+   *
    * @type {Object}
    * @see {@link Jurisdiction}
-   * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @instance
    */
   jurisdiction: {
     type: String,
@@ -71,15 +75,15 @@ const CounterSchema = new Schema({
 
   /**
    * @name service
-   * @description A service code for the counter e.g if a service 
-   *              called Leakage and has a code LK the LK will be used in
-   *              generating next ticket number.
-   *               
+   * @description A service code for the counter e.g if a service
+   * called Leakage and has a code LK the LK will be used in
+   * generating next ticket number.
+   *
    * @type {Object}
    * @see {@link Jurisdiction}
-   * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @instance
    */
   service: {
     type: String,
@@ -92,21 +96,20 @@ const CounterSchema = new Schema({
 
   /**
    * @name year
-   * @description A 2-digit year used in generating next ticket number. 
-   *              
-   *              So if year is 2017 the 17 will be used in generating ticket number.
-   *              
-   *              If not provide current year will be used as default year.
-   *               
+   * @description A 2-digit year used in generating next ticket number.
+   *
+   * So if year is 2017 the 17 will be used in generating ticket number.
+   * If not provide current year will be used as default year.
+   *
    * @type {Object}
    * @see {@link Jurisdiction}
-   * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @instance
    */
   year: {
     type: Number,
-    default: Number(moment(new Date()).format(YEAR_FORMAT)),
+    default: Number(moment(new Date()).format(COUNTER_YEAR_FORMAT)),
     searchable: true
   },
 
@@ -114,14 +117,14 @@ const CounterSchema = new Schema({
   /**
    * @name sequence
    * @description Latest ticket number generated. It will be used as a suffix
-   *              for the full ticke number i.e if the last sequence is 999 then
-   *              a full ticket number will be formatted as below:
-   *              jurisdction-service-year(2digit)-0999
-   *              
+   * for the full ticke number i.e if the last sequence is 999 then
+   * a full ticket number will be formatted as below:
+   * jurisdction-service-year(2digit)-0999
+   *
    * @type {Object}
-   * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @instance
    */
   sequence: {
     type: Number,
@@ -132,10 +135,13 @@ const CounterSchema = new Schema({
 }, { timestamps: true, emitIndexErrors: true });
 
 
-/**
- * force uniqueness of the ticket key per jurisdiction, per service per year
- * and sequence
- */
+//------------------------------------------------------------------------------
+// index
+//------------------------------------------------------------------------------
+
+
+/* force uniqueness of the ticket key per jurisdiction,
+per service per year and sequence */
 CounterSchema.index({
   jurisdiction: 1,
   service: 1,
@@ -144,49 +150,59 @@ CounterSchema.index({
 }, { unique: true });
 
 
+//------------------------------------------------------------------------------
+// instance
+//------------------------------------------------------------------------------
+
+
 /**
  * @name format
+ * @function format
  * @description format a counter to meaningful(human readable) ticket number
  * @return {String} formatted ticket number
- * @see  {@link https://lodash.com/docs/4.17.4#padStart}
+ * @see {@link https://lodash.com/docs/4.17.4#padStart}
  * @since 0.1.0
  * @version 0.1.0
- * @private
+ * @instance
  */
-CounterSchema.methods.format = function () {
+CounterSchema.methods.format = function _format() {
 
   //format ticket number to whole meaningful(human readable) number
 
-  //TODO move this to configurations
-  let padSize = 4; //we envision four digit sequence number
+  //1. format a sequence by padding 0's at the begin of it
+  const sequence = _.padStart(this.sequence, COUNTER_PAD_SIZE, '0');
 
-  //format a sequence by padding 0's at the begin of it
-  const sequence = _.padStart(this.sequence, padSize, '0');
-
-  //format the ticket number as (jurisdiction code)(service code)(year)(sequence)
+  //2. format the ticket number as (jurisdiction code)(service code)(year)(sequence)
   const ticketNumber = [
     this.jurisdiction, this.service, this.year, sequence
   ].join('');
+
 
   return ticketNumber;
 
 };
 
 
+//------------------------------------------------------------------------------
+// statics
+//------------------------------------------------------------------------------
+
+CounterSchema.statics.MODEL_NAME = 'Counter';
+
 /**
  * @name generate
- * @param  {Object}   options valid counter options
- * @param  {String}   options.jurisdiction valid jurisdiction code
- * @param  {String}   options.service valid service code
- * @param  {String}   [options.year] optional year to be used. default to current
- *                                   year
- * @param  {Function} done    a callback to invoke on success or error
- * @return {String|Error}     next ticket number or error
+ * @function generate
+ * @param {Object} options valid counter options
+ * @param {String} options.jurisdiction valid jurisdiction code
+ * @param {String} options.service valid service code
+ * @param {String} [options.year] optional year to be used. default to current
+ * year
+ * @param {Function} done a callback to invoke on success or error
+ * @return {String|Error} next ticket number or error
  * @see {@link https://docs.mongodb.com/v3.0/tutorial/create-an-auto-incrementing-field/}
  * @since 0.1.0
  * @version 0.1.0
  * @public
- * @type {Function}
  */
 CounterSchema.statics.generate = function (options, done) {
   //reference counter
@@ -194,7 +210,7 @@ CounterSchema.statics.generate = function (options, done) {
 
   //ensure options
   options = _.merge({
-    year: Number(moment(new Date()).format(YEAR_FORMAT))
+    year: Number(moment(new Date()).format(COUNTER_YEAR_FORMAT))
   }, options);
 
 
@@ -218,11 +234,11 @@ CounterSchema.statics.generate = function (options, done) {
       '') : options.jurisdiction);
 
   /**
-   * 
+   *
    * atomically upsert & increment sequence
    * first start with counter collection by increment the sequent
    * if we encounter error we loop till we succeed
-   * 
+   *
    * @see {@link https://docs.mongodb.com/v3.0/tutorial/create-an-auto-incrementing-field/#counter-collection-implementation}
    * @see {@link https://docs.mongodb.com/v3.0/tutorial/create-an-auto-incrementing-field/#optimistic-loop}
    */
@@ -258,10 +274,15 @@ CounterSchema.statics.generate = function (options, done) {
 };
 
 
+//------------------------------------------------------------------------------
+// plugins
+//------------------------------------------------------------------------------
+CounterSchema.plugin(actions);
+
+
 /**
  * @name Counter
- * @description register CounterSchema and initialize Counter
- *              model
+ * @description register and initialize Counter model
  * @type {Model}
  * @since 0.1.0
  * @version 0.1.0

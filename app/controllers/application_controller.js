@@ -315,9 +315,10 @@ module.exports = {
    */
   summaries: function (request, response) {
     //TODO fix jurisdiction criteria filter
-    const criteria = _.merge({}, _.get(request, 'mquery.query', {}));
+    // const criteria = _.merge({}, request.mquery || {});
+    const criteria = _.merge({}, _.get(request, 'mquery.filter', {}));
 
-    delete request.mquery.query.jurisdiction;
+    delete request.mquery.filter.jurisdiction;
 
     ServiceRequest
       .summary(criteria, function (error, summaries) {
@@ -336,9 +337,9 @@ module.exports = {
    */
   endpoints: function (request, response, next) {
     //TODO fix jurisdiction criteria filter
-    const criteria = _.merge({}, _.get(request, 'mquery.query', {}));
+    const criteria = _.merge({}, _.get(request, 'mquery.filter', {}));
 
-    delete request.mquery.query.jurisdiction;
+    delete request.mquery.filter.jurisdiction;
 
     async.parallel({
 

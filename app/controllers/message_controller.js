@@ -5,7 +5,7 @@
 const path = require('path');
 const _ = require('lodash');
 const config = require('config');
-const mongoose = require('mongoose');
+const { Message } = require('@lykmapipo/postman');
 const parseTemplate = require('string-template');
 
 //libs
@@ -26,17 +26,26 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   index: function (request, response, next) {
-    //lazy load Message model
-    const Message = mongoose.model('Message');
+
+    //obtain request options
+    const options = _.merge({}, request.mquery);
 
     Message
-      .list(request, function (error, results) {
+      .get(options, function onGetMessages(error, results) {
+
+        //forward error
         if (error) {
           next(error);
-        } else {
-          response.ok(results);
         }
+
+        //handle response
+        else {
+          response.status(200);
+          response.json(results);
+        }
+
       });
+
   },
 
 
@@ -48,10 +57,6 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   create: function (request, response, next) {
-    //TODO handle message type i.e sms, email etc
-
-    //lazy load Message model
-    const Message = mongoose.model('Message');
 
     //send sms by default
     let message = request.body;
@@ -84,17 +89,29 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   show: function (request, response, next) {
-    //lazy load Message model
-    const Message = mongoose.model('Message');
+
+    //obtain request options
+    const options = _.merge({}, request.mquery);
+
+    //obtain jurisdiction id
+    options._id = request.params.id;
 
     Message
-      .show(request, function (error, message) {
+      .getById(options, function onGetMessage(error, found) {
+
+        //forward error
         if (error) {
           next(error);
-        } else {
-          response.ok(message);
         }
+
+        //handle response
+        else {
+          response.status(200);
+          response.json(found);
+        }
+
       });
+
   },
 
 

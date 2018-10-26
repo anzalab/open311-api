@@ -27,7 +27,8 @@ module.exports = {
   standings: function (request, response, next) {
     //TODO pass request options(i.e query params to extras)
     //TODO support mongodb aggregation pipelines from request(express-mquery)
-    const criteria = _.merge({}, (request.mquery || {}).query);
+    let criteria = _.merge({}, request.mquery);
+    criteria = (criteria.filter || {});
 
     ServiceRequest
       .standings(criteria, function (error, standings) {
@@ -52,7 +53,8 @@ module.exports = {
   overviews: function (request, response, next) {
     //TODO pass request options(i.e query params to extras)
     //TODO support mongodb aggregation pipelines from request(express-mquery)
-    const criteria = _.merge({}, (request.mquery || {}).query);
+    let criteria = _.merge({}, request.mquery);
+    criteria = (criteria.filter || {});
 
     ServiceRequest
       .overview(criteria, function (error, overviews) {
@@ -80,7 +82,8 @@ module.exports = {
     //TODO pass request options(i.e query params to extras)
     //TODO support mongodb aggregation pipelines from request(express-mquery)
 
-    const criteria = _.merge({}, (request.mquery || {}).query);
+    let criteria = _.merge({}, request.mquery);
+    criteria = (criteria.filter || {});
 
     ServiceRequest
       .performance(criteria, function (error, performances) {
@@ -108,7 +111,8 @@ module.exports = {
 
     //TODO pass request options(i.e query params to extras)
     //TODO support mongodb aggregation pipelines from request(express-mquery)
-    const criteria = _.merge({}, (request.mquery || {}).query);
+    let criteria = _.merge({}, request.mquery);
+    criteria = (criteria.filter || {});
 
     ServiceRequest
       .pipeline(criteria, function (error, pipelines) {
@@ -136,7 +140,8 @@ module.exports = {
 
     //TODO pass request options(i.e query params to extras)
     //TODO support mongodb aggregation works from request(express-mquery)
-    const criteria = _.merge({}, (request.mquery || {}).query);
+    let criteria = _.merge({}, request.mquery);
+    criteria = (criteria.filter || {});
 
     ServiceRequest
       .work(criteria, function (error, works) {
@@ -164,7 +169,8 @@ module.exports = {
 
     //TODO pass request options(i.e query params to extras)
     //TODO support mongodb aggregation durations from request(express-mquery)
-    const criteria = _.merge({}, (request.mquery || {}).query);
+    let criteria = _.merge({}, request.mquery);
+    criteria = (criteria.filter || {});
 
     ServiceRequest
       .duration(criteria, function (error, durations) {
@@ -192,7 +198,8 @@ module.exports = {
     //TODO implement plugin for other models(schemas)
 
     //prepare criteria
-    const criteria = _.merge({}, (request.mquery || {}).query);
+    let criteria = _.merge({}, request.mquery);
+    criteria = (criteria.filter || {});
 
     //prepare query cursor/stream
     const serviceRequests =

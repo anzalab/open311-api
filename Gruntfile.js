@@ -150,15 +150,6 @@ module.exports = function (grunt) {
     // mocha test task configuration
     //------------------------------------------------------------
     mochaTest: {
-      all: {
-        options: {
-          reporter: 'spec',
-          timeout: 8000
-        },
-        src: [
-          '<%= project.test %>/**/*.js'
-        ]
-      },
       unit: {
         options: {
           reporter: 'spec',
@@ -166,6 +157,8 @@ module.exports = function (grunt) {
         },
         src: [
           '<%= project.test %>/unit/**/*.js',
+          'node_modules/@lykmapipo/permission/test/unit/**/*.js',
+          'node_modules/@lykmapipo/role/test/unit/**/*.js',
           // 'node_modules/@codetanzania/majifix-jurisdiction/test/unit/**/*.js',
           // 'node_modules/@codetanzania/majifix-account/test/unit/**/*.js',
           'node_modules/@codetanzania/majifix-priority/test/unit/**/*.js',
@@ -181,8 +174,10 @@ module.exports = function (grunt) {
         },
         src: [
           '<%= project.test %>/integration/**/*.js',
+          'node_modules/@lykmapipo/permission/test/integration/**/*.js',
+          'node_modules/@lykmapipo/role/test/integration/**/*.js',
           'node_modules/@codetanzania/majifix-jurisdiction/test/integration/**/*.js',
-          'node_modules/@codetanzania/majifix-account/test/integration/**/*.js',
+          // 'node_modules/@codetanzania/majifix-account/test/integration/**/*.js',
           'node_modules/@codetanzania/majifix-priority/test/integration/**/*.js',
           'node_modules/@codetanzania/majifix-status/test/integration/**/*.js',
           'node_modules/@codetanzania/majifix-service-group/test/integration/**/*.js',
@@ -198,13 +193,6 @@ module.exports = function (grunt) {
     'newer:jshint',
     'express:dev',
     'watch:express'
-  ]);
-
-  //run in production environment
-  grunt.registerTask('prod', [
-    'newer:jshint',
-    'express:prod',
-    'watch'
   ]);
 
   //run in test environment
@@ -236,9 +224,8 @@ module.exports = function (grunt) {
   //default run jshint and test
   grunt.registerTask('default', [
     'newer:jshint',
-    'mochaTest:all',
-    'express:dev',
-    'watch'
+    'mochaTest:unit',
+    'mochaTest:integration'
   ]);
 
 };

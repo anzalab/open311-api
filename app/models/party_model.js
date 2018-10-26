@@ -17,9 +17,10 @@ const async = require('async');
 const config = require('config');
 const moment = require('moment');
 const mongoose = require('mongoose');
+const actions = require('mongoose-rest-actions');
+const irina = require('irina');
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Schema.ObjectId;
-const irina = require('irina');
 
 //relation name
 const RELATION_NAME_INTERNAL = 'Internal';
@@ -121,7 +122,6 @@ const PartySchema = new Schema({
   jurisdiction: {
     type: ObjectId,
     ref: 'Jurisdiction',
-    autoset: true,
     exists: true,
     autopopulate: {
       select: 'code name phone email domain'
@@ -233,8 +233,7 @@ const PartySchema = new Schema({
    */
   roles: [{
     type: ObjectId,
-    ref: 'Role',
-    autoset: true
+    ref: 'Role'
   }],
 
 
@@ -329,18 +328,6 @@ PartySchema.virtual('isApp').get(function () {
 
   return isApp;
 
-});
-
-
-//-----------------------------------------------------------------------------
-// PartySchema Plugins
-//-----------------------------------------------------------------------------
-
-//plugin irina for authentication workflows
-PartySchema.plugin(irina, {
-  registerable: {
-    autoConfirm: true
-  }
 });
 
 
@@ -513,6 +500,8 @@ PartySchema.methods.jurisdictions = function (done) {
 //-----------------------------------------------------------------------------
 // PartySchema Static Methods & Properties
 //-----------------------------------------------------------------------------
+
+PartySchema.statics.MODEL_NAME = 'Party';
 
 //expose Party Relation Names
 PartySchema.statics.RELATION_NAME_INTERNAL = RELATION_NAME_INTERNAL;
@@ -827,6 +816,53 @@ PartySchema.statics.performances = function (options, done) {
   ], done);
 
 };
+
+
+/**
+ * @name getPhones
+ * @function getPhones
+ * @description pull distinct party phones
+ * @param {Object} [criteria] valid query criteria
+ * @param {function} done a callback to invoke on success or error
+ * @return {String[]|Error}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ */
+PartySchema.statics.getPhones = function getPhones(criteria, done) {
+
+  //refs
+  const Party = this;
+
+  //normalize arguments
+  const _criteria = _.isFunction(criteria) ? {} : _.merge({}, criteria);
+  const _done = _.isFunction(criteria) ? criteria : done;
+
+  Party
+    .find(_criteria)
+    .distinct('phone')
+    .exec(function onGetPhones(error, phones) {
+      if (!error) {
+        phones = _.uniq(_.compact([].concat(phones)));
+      }
+      return _done(error, phones);
+    });
+
+};
+
+
+//-----------------------------------------------------------------------------
+// PartySchema Plugins
+//-----------------------------------------------------------------------------
+
+//plugin irina for authentication workflows
+PartySchema.plugin(irina, {
+  registerable: {
+    autoConfirm: true
+  }
+});
+PartySchema.plugin(actions);
+
 
 //exports Party model
 module.exports = mongoose.model('Party', PartySchema);

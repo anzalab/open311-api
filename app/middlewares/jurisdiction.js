@@ -14,22 +14,22 @@ module.exports = function (request, response, next) {
 
   if (request && request.party) {
 
-    //obtain request query criteria
-    const criteria = _.get(request, 'mquery.query', {});
+    //obtain request filter
+    const filter = _.get(request, 'mquery.filter', {});
 
     //ensure filtered by jurisdiction
-    if (!criteria.jurisdiction) {
+    if (!filter.jurisdiction) {
 
       //obtain party jurisdictions
       request.party.jurisdictions(function (error, jurisdictions) {
 
         if (!error && !_.isEmpty(jurisdictions)) {
           jurisdictions = _.map(jurisdictions, '_id');
-          criteria.jurisdiction = { $in: jurisdictions };
+          filter.jurisdiction = { $in: jurisdictions };
         }
 
-        //restore criteria
-        request.mquery.query = criteria;
+        //restore filter
+        request.mquery.filter = filter;
         next();
 
       });
