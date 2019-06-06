@@ -33,6 +33,7 @@ const { getString } = require('@lykmapipo/env');
 const { app, mount } = require('@lykmapipo/express-common');
 const mkdir = require('mkdir-p');
 
+
 /* constants */
 const BASE_PATH = getString('BASE_PATH', process.cwd());
 const LOG_PATH = getString('LOG_PATH', path.join(BASE_PATH, 'logs'));
@@ -64,8 +65,10 @@ require('require-all')({
 
 
 /* load majifix modules versioned routers */
-mount(require('@lykmapipo/permission').router);
-mount(require('@lykmapipo/role').router);
+mount(require('@lykmapipo/permission').permissionRouter);
+mount(require('@lykmapipo/role').roleRouter);
+mount(require('@lykmapipo/predefine').predefineRouter);
+mount(require('@lykmapipo/file').fileRouter);
 mount(require('@codetanzania/majifix-jurisdiction').router);
 mount(require('@codetanzania/majifix-priority').router);
 mount(require('@codetanzania/majifix-status').router);
