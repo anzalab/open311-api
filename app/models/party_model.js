@@ -66,7 +66,8 @@ const PartyRelation = new Schema({
       RELATION_NAME_AGENCY,
       RELATION_NAME_APP
     ],
-    searchable: true
+    searchable: true,
+    taggable: true
   },
 
 
@@ -88,7 +89,8 @@ const PartyRelation = new Schema({
       RELATION_TYPE_ORGANIZATION,
       RELATION_TYPE_APP
     ],
-    searchable: true
+    searchable: true,
+    taggable: true
   },
 
   /**
@@ -103,7 +105,8 @@ const PartyRelation = new Schema({
     type: String,
     index: true,
     default: RELATION_WORKSPACE_OTHER,
-    searchable: true
+    searchable: true,
+    taggable: true
   }
 
 }, { _id: false, id: false, timestamps: false, emitIndexErrors: true });
@@ -130,6 +133,23 @@ const PartySchema = new Schema({
   },
 
   /**
+   * @name zone
+   * @description A zone(or branch, neighbourhood) which a party serving
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  zone: {
+    type: ObjectId,
+    ref: 'Predefine',
+    exists: true,
+    autopopulate: {
+      select: 'code name'
+    }
+  },
+
+  /**
    * @name name
    * @description human readable name used to identify a party
    *
@@ -145,7 +165,8 @@ const PartySchema = new Schema({
     required: true,
     index: true,
     trim: true,
-    searchable: true
+    searchable: true,
+    taggable: true,
   },
 
 
@@ -160,7 +181,7 @@ const PartySchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  avatar: {
+  avatar: { // TODO: migrate to image file
     type: String
   },
 
@@ -197,7 +218,8 @@ const PartySchema = new Schema({
     required: true,
     unique: true,
     trim: true,
-    searchable: true
+    searchable: true,
+    taggable: true
   },
 
 
@@ -216,7 +238,28 @@ const PartySchema = new Schema({
     // required: true,
     // unique: true,
     trim: true,
-    searchable: true
+    searchable: true,
+    taggable: true
+  },
+
+
+  /**
+   * @name pushToken
+   * @description valid latest push registration tokn for the party. Mainly
+   * used to send push notifications to mobile device.
+   *
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  pushToken: {
+    type: String,
+    // required: true,
+    // unique: true,
+    trim: true,
+    searchable: true,
+    taggable: true
   },
 
 
