@@ -32,6 +32,7 @@ const path = require('path');
 const { getString } = require('@lykmapipo/env');
 const { app, mount } = require('@lykmapipo/express-common');
 const mkdir = require('mkdir-p');
+const respond = require('express-respond');
 
 
 /* constants */
@@ -45,6 +46,11 @@ mkdir.sync(LOG_PATH);
 
 //setup application mongoose instance
 require(path.join(__dirname, 'initializers', 'mongoose'));
+
+
+//use express respond to force
+//response content type to json always
+app.use(respond);
 
 
 //bind settings loader middleware(TODO: cleanup)

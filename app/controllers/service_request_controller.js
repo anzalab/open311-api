@@ -75,9 +75,6 @@ module.exports = {
       if (error) {
         next(error);
       } else {
-        //sync
-        servicerequest.sync(downstream);
-
         //support legacy
         const _servicerequest = servicerequest.mapToLegacy();
 
@@ -132,9 +129,6 @@ module.exports = {
         if (error) {
           next(error);
         } else {
-          //sync patches
-          servicerequest.sync(upstream);
-
           //support legacy
           const _servicerequest = servicerequest.mapToLegacy();
 
@@ -199,12 +193,10 @@ module.exports = {
         if (error) {
           next(error);
         } else {
-          //sync patches
-          servicerequest.sync(upstream);
-
           //support legacy
           const _servicerequest = servicerequest.mapToLegacy();
 
+          console.log(_servicerequest);
           response.ok(_servicerequest);
         }
       });
