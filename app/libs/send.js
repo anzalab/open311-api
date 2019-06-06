@@ -15,7 +15,7 @@
 
 //dependencies
 const _ = require('lodash');
-const { getString, getBoolean } = require('@lykmapipo/env');
+const { getString, getBoolean, isProduction } = require('@lykmapipo/env');
 const { Message, SMS } = require('@lykmapipo/postman');
 const phone = require('phone');
 
@@ -67,9 +67,6 @@ exports.formatPhoneNumberToE164 = function (phoneNumber, countryCode) {
  * @public
  */
 exports.sms = function (message, done) {
-
-  //obtain current execution environment
-  const { isProduction } = env;
 
   //prepare sms message
   const isMessageInstance = message instanceof Message;

@@ -30,10 +30,8 @@
 /* dependencies */
 const path = require('path');
 const { getString } = require('@lykmapipo/env');
-const app = require('@lykmapipo/express-common');
+const { app, mount } = require('@lykmapipo/express-common');
 const mkdir = require('mkdir-p');
-const respond = require('express-respond');
-
 
 /* constants */
 const BASE_PATH = getString('BASE_PATH', process.cwd());
@@ -46,11 +44,6 @@ mkdir.sync(LOG_PATH);
 
 //setup application mongoose instance
 require(path.join(__dirname, 'initializers', 'mongoose'));
-
-
-//use express respond to force
-//response content type to json always
-app.use(respond);
 
 
 //bind settings loader middleware(TODO: cleanup)
@@ -71,15 +64,15 @@ require('require-all')({
 
 
 /* load majifix modules versioned routers */
-app.mount(require('@lykmapipo/permission').router);
-app.mount(require('@lykmapipo/role').router);
-app.mount(require('@codetanzania/majifix-jurisdiction').router);
-app.mount(require('@codetanzania/majifix-priority').router);
-app.mount(require('@codetanzania/majifix-status').router);
-app.mount(require('@codetanzania/majifix-service-group').router);
-app.mount(require('@codetanzania/majifix-service').router);
-app.mount(require('@codetanzania/majifix-account').router);
-app.mount(require('@codetanzania/majifix-alert').router);
+mount(require('@lykmapipo/permission').router);
+mount(require('@lykmapipo/role').router);
+mount(require('@codetanzania/majifix-jurisdiction').router);
+mount(require('@codetanzania/majifix-priority').router);
+mount(require('@codetanzania/majifix-status').router);
+mount(require('@codetanzania/majifix-service-group').router);
+mount(require('@codetanzania/majifix-service').router);
+mount(require('@codetanzania/majifix-account').router);
+mount(require('@codetanzania/majifix-alert').router);
 
 
 /* export express application */

@@ -44,6 +44,7 @@
     "url": "https://github.com/CodeTanzania/open311-api/"
   },
   "scripts": {
+    "worker:dev": "BASE_PATH=./ NODE_ENV=development node worker.js",
     "dev": "BASE_PATH=./ NODE_ENV=development node server.js",
     "prod": "BASE_PATH=./ NODE_ENV=production node server.js",
     "test": "grunt spec",
