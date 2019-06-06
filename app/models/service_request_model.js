@@ -107,6 +107,25 @@ const ServiceRequestSchema = new Schema({
   },
 
   /**
+   * @name zone
+   * @description A jurisdiction zone(or branch, neighbourhood) responsible
+   * in handling service request(issue)
+   *
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  zone: {
+    type: ObjectId,
+    ref: 'Predefine',
+    exists: true,
+    autopopulate: {
+      select: 'code name'
+    }
+  },
+
+  /**
    * @name group
    * @description A service group undewhich request(issue) belongs to
    * @type {Object}
@@ -248,7 +267,8 @@ const ServiceRequestSchema = new Schema({
     required: true,
     trim: true,
     uppercase: true,
-    searchable: true
+    searchable: true,
+    taggable: true
   },
 
 
@@ -285,7 +305,8 @@ const ServiceRequestSchema = new Schema({
     type: String,
     trim: true,
     index: true,
-    searchable: true
+    searchable: true,
+    taggable: true
   },
 
 
