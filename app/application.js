@@ -29,15 +29,15 @@
 
 /* dependencies */
 const path = require('path');
-const env = require('@lykmapipo/env');
+const { getString } = require('@lykmapipo/env');
 const app = require('@lykmapipo/express-common');
 const mkdir = require('mkdir-p');
 const respond = require('express-respond');
 
 
 /* constants */
-const BASE_PATH = env('BASE_PATH', process.cwd());
-const LOG_PATH = env('LOG_PATH', path.join(BASE_PATH, 'logs'));
+const BASE_PATH = getString('BASE_PATH', process.cwd());
+const LOG_PATH = getString('LOG_PATH', path.join(BASE_PATH, 'logs'));
 
 
 // build logs directory if does not exists
@@ -50,7 +50,7 @@ require(path.join(__dirname, 'initializers', 'mongoose'));
 
 //use express respond to force
 //response content type to json always
-app.use(respond({ types: 'json' })); //TODO remove
+app.use(respond);
 
 
 //bind settings loader middleware(TODO: cleanup)

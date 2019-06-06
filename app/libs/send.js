@@ -15,14 +15,13 @@
 
 //dependencies
 const _ = require('lodash');
-const env = require('@lykmapipo/env');
+const { getString, getBoolean } = require('@lykmapipo/env');
 const { Message, SMS } = require('@lykmapipo/postman');
 const phone = require('phone');
-const { getBoolean } = env;
 
 
 /* constants */
-const DEFAULT_SMS_SENDER_ID = env('DEFAULT_SMS_SENDER_ID');
+const DEFAULT_SMS_SENDER_ID = getString('DEFAULT_SMS_SENDER_ID');
 const ENABLE_SYNC_TRANSPORT = getBoolean('ENABLE_SYNC_TRANSPORT', false);
 
 
@@ -42,7 +41,7 @@ exports.formatPhoneNumberToE164 = function (phoneNumber, countryCode) {
 
   //try convert give phone number to e.164
   try {
-    countryCode = countryCode || env('DEFAULT_COUNTRY_CODE', 'TZ');
+    countryCode = countryCode || getString('DEFAULT_COUNTRY_CODE', 'TZ');
     phoneNumber = phone(phoneNumber, countryCode);
     phoneNumber = _.first(phoneNumber).replace(/\+/g, '');
     return phoneNumber;

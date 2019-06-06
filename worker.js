@@ -15,10 +15,9 @@
 
 /* dependencies */
 const path = require('path');
-const env = require('@lykmapipo/env');
+const { getNumber } = require('@lykmapipo/env');
 const { worker, httpServer } = require('@lykmapipo/postman');
 const mkdir = require('mkdir-p');
-const { getNumber } = env;
 
 
 /* constants */

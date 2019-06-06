@@ -3,7 +3,7 @@
 
 /* dependencies */
 const path = require('path');
-const env = require('@lykmapipo/env');
+const { getString } = require('@lykmapipo/env');
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 // mongoose.set('debug', true);
@@ -16,7 +16,7 @@ const mongooseSoftDelete = require(path.join(pluginPath, 'soft_delete'));
 
 
 /* ensure mongodb url */
-const MONGODB_URI = env('MONGODB_URI', 'mongodb://localhost/open311');
+const MONGODB_URI = getString('MONGODB_URI', 'mongodb://localhost/open311');
 
 
 /* plugin global schema plugin to allow virtuals in toJSON */

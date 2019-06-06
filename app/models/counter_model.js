@@ -31,16 +31,15 @@
 /* dependencies */
 const _ = require('lodash');
 const moment = require('moment');
-const env = require('@lykmapipo/env');
+const { getString, getNumber } = require('@lykmapipo/env');
 const mongoose = require('mongoose');
 const actions = require('mongoose-rest-actions');
 const Schema = mongoose.Schema;
-const { getNumber } = env;
 
 
 /* constants */
-const COUNTER_YEAR_FORMAT = env('COUNTER_YEAR_FORMAT', 'YY');
-const COUNTER_PREFIX = env('COUNTER_PREFIX', '');
+const COUNTER_YEAR_FORMAT = getString('COUNTER_YEAR_FORMAT', 'YY');
+const COUNTER_PREFIX = getString('COUNTER_PREFIX', '');
 const COUNTER_PAD_SIZE = getNumber('COUNTER_PAD_SIZE', 4);
 
 
