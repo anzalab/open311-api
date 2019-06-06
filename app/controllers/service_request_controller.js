@@ -5,8 +5,6 @@ const _ = require('lodash');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
 const ChangeLog = mongoose.model('ChangeLog');
-const config = require('config');
-const { downstream, upstream } = config.get('sync.strategies');
 
 
 /**
@@ -196,7 +194,6 @@ module.exports = {
           //support legacy
           const _servicerequest = servicerequest.mapToLegacy();
 
-          console.log(_servicerequest);
           response.ok(_servicerequest);
         }
       });
