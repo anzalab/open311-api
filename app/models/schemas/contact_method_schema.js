@@ -5,8 +5,8 @@
  * @module ChangeLog
  * @name ChangeLog
  * @description Representing a method used by reporter or workspace
- *              to receive(or report) service request. 
- *              
+ *              to receive(or report) service request.
+ *
  *              Example a customer may call call center and operator log the service request, then
  *              a contact method is a call and workspace is call center.
  *
@@ -35,10 +35,11 @@ const VISIT = 'Visit';
 const LETTER = 'Letter';
 const FAX = 'Fax';
 const MOBILE_APP = 'Mobile';
+const WEBSITE = 'Website';
 const METHODS = [
   PHONE_CALL, EMAIL,
   SMS, USSD, VISIT,
-  LETTER, FAX, MOBILE_APP
+  LETTER, FAX, MOBILE_APP, WEBSITE
 ];
 
 
@@ -115,6 +116,9 @@ ContactMethod.FAX =
 
 ContactMethod.MOBILE_APP =
   ContactMethod.statics.MOBILE_APP = MOBILE_APP;
+
+ContactMethod.WEBSITE =
+  ContactMethod.statics.WEBSITE = WEBSITE;
 
 ContactMethod.METHODS =
   ContactMethod.statics.METHODS = METHODS;
