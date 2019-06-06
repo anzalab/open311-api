@@ -25,8 +25,7 @@ module.exports = exports = function (schema /*, options*/ ) {
     const paginate = {
       paginate: { limit: Number((request.query || {}).limit || 10) }
     };
-    const options =
-      _.merge({}, request.mquery, filter, paginate);
+    const options = _.merge({}, filter, request.mquery, paginate);
     delete options.query;
 
     //get
