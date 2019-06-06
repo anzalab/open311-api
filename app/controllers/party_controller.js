@@ -90,6 +90,8 @@ module.exports = {
   update: function (request, response, next) {
     //reference party id
     var id = request.body._id || request.params.id;
+    request.body.jurisdiction = request.body.jurisdiction || null;
+    request.body.zone = request.body.zone || null;
 
     delete request.body._id;
 

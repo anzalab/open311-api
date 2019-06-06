@@ -98,6 +98,8 @@ module.exports = {
       description: { en: body.description || body.name },
       flags: { external: body.isExternal }
     });
+    body.group = body.group || null;
+    body.priority = body.priority || null;
 
     Service
       .findByIdAndUpdate(

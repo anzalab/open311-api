@@ -393,7 +393,7 @@ const ServiceRequestSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  attachments: {
+  attachments: { // TODO: deprecate and use image, audio and video files
     type: [Media],
     index: true
   },
