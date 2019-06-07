@@ -34,7 +34,7 @@ const sync = require('open311-api-sync');
 const mongoose = require('mongoose');
 const actions = require('mongoose-rest-actions');
 const { Point } = require('mongoose-geojson-schemas');
-const { FileTypes } = require('@lykmapipo/file');
+// const { FileTypes } = require('@lykmapipo/file');
 const parseMs = require('parse-ms');
 
 
@@ -408,7 +408,7 @@ const ServiceRequestSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  image: FileTypes.Image,
+  // image: FileTypes.Image,
 
   /**
    * @name audio
@@ -418,7 +418,7 @@ const ServiceRequestSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  audio: FileTypes.Audio,
+  // audio: FileTypes.Audio,
 
   /**
    * @name document
@@ -428,7 +428,7 @@ const ServiceRequestSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  document: FileTypes.Document,
+  // document: FileTypes.Document,
 
   /**
    * @name expectedAt
