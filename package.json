@@ -115,7 +115,7 @@
     "@benmaruchu/faker": "^4.2.1",
     "chai": "^4.2.0",
     "faker": "^4.1.0",
-    "grunt": "^1.0.3",
+    "grunt": "^1.0.4",
     "grunt-concurrent": "^2.3.1",
     "grunt-contrib-clean": "^2.0.0",
     "grunt-contrib-copy": "^1.0.0",
