@@ -186,6 +186,21 @@ module.exports = {
       //TODO ensure resolver & assignee
     }
 
+    //ensure server time in case its completed
+    if (changelog.completedAt) {
+      changelog.completedAt = new Date();
+    }
+
+    //ensure server time in case its verified
+    if (changelog.verifiedAt) {
+      changelog.verifiedAt = new Date();
+    }
+
+    //ensure server time in case its approved
+    if (changelog.approvedAt) {
+      changelog.approvedAt = new Date();
+    }
+
     ChangeLog
       .track(changelog, function (error, servicerequest) {
         if (error) {
