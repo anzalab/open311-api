@@ -420,10 +420,28 @@ ChangeLogSchema.statics.track = function (changes, done) {
         //clear or set resolve time
         servicerequest.resolvedAt = changelog.resolvedAt;
 
+        // ensure flow timestamps
+        if (changelog.resolvedAt) {
+          if (!servicerequest.completedAt) {
+            servicerequest.completedAt = changelog.resolvedAt;
+          }
+          if (!servicerequest.verifiedAt) {
+            servicerequest.verifiedAt = changelog.resolvedAt;
+          }
+          if (!servicerequest.approvedAt) {
+            servicerequest.approvedAt = changelog.resolvedAt;
+          }
+        }
+
         if (!changelog.resolvedAt) {
 
           //clear resolve time
           servicerequest.ttr = undefined;
+
+          // clear flow timestamps
+          servicerequest.completedAt = undefined;
+          servicerequest.verifiedAt = undefined;
+          servicerequest.approvedAt = undefined;
 
           //set reopen time
           const reopenedAt = new Date();
