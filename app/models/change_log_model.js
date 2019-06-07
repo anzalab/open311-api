@@ -315,9 +315,7 @@ const ChangeLogSchema = new Schema({
     type: ObjectId,
     ref: 'Predefine',
     exists: true,
-    autopopulate: {
-      select: 'code name unit'
-    }
+    autopopulate: true
   },
 
   /**
@@ -330,8 +328,8 @@ const ChangeLogSchema = new Schema({
    * @version 0.1.0
    */
   quantity: {
-    type:Number,
-    min:1
+    type: Number,
+    min: 1
   }
 
 
