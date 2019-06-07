@@ -444,6 +444,47 @@ const ServiceRequestSchema = new Schema({
     index: true
   },
 
+  /**
+   * @name completedAt
+   * @description A time when the issue was marked as complete(or done) by
+   * latest assignee.
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  completedAt: {
+    type: Date,
+    index: true
+  },
+
+  /**
+   * @name verifiedAt
+   * @description A time when the issue was verified by immediate
+   * supervisor(technician).
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  verifiedAt: {
+    type: Date,
+    index: true
+  },
+
+  /**
+   * @name approvedAt
+   * @description A time when the issue was approved by final
+   * supervisor(engineer).
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  approvedAt: {
+    type: Date,
+    index: true
+  },
 
   /**
    * @name ttr
