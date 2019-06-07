@@ -481,7 +481,6 @@ ChangeLogSchema.statics.track = function (changes, done) {
 
     //update service request
     function updateServiceRequest(servicerequest, next) {
-
       //update
       _.forEach(changelog, function (value, key) {
         servicerequest.set(key, value);
