@@ -11,6 +11,6 @@ var roles = [{
 
 //upsert roles
 roles.forEach(function (role) {
-  const query = { name: role.name };
+  var query = { name: role.name };
   db.roles.update(query, role, { upsert: true });
 });
