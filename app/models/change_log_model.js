@@ -423,12 +423,15 @@ ChangeLogSchema.statics.track = function (changes, done) {
         // ensure flow timestamps
         if (changelog.resolvedAt) {
           if (!servicerequest.completedAt) {
+            changelog.completedAt = changelog.resolvedAt;
             servicerequest.completedAt = changelog.resolvedAt;
           }
           if (!servicerequest.verifiedAt) {
+            changelog.verifiedAt = changelog.resolvedAt;
             servicerequest.verifiedAt = changelog.resolvedAt;
           }
           if (!servicerequest.approvedAt) {
+            changelog.approvedAt = changelog.resolvedAt;
             servicerequest.approvedAt = changelog.resolvedAt;
           }
         }
