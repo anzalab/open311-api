@@ -300,6 +300,38 @@ const ChangeLogSchema = new Schema({
     index: true,
     enum: VISIBILITIES,
     default: VISIBILITY_PRIVATE
+  },
+
+  /**
+   * @name item
+   * @description A item(material, equipment etc) used on work on service
+   * request
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  item: {
+    type: ObjectId,
+    ref: 'Predefine',
+    exists: true,
+    autopopulate: {
+      select: 'code name unit'
+    }
+  },
+
+  /**
+   * @name quantity
+   * @description Amount of item(material, equipment etc) used on work
+   * on service request
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  quantity: {
+    type:Number,
+    min:1
   }
 
 

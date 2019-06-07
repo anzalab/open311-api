@@ -148,7 +148,7 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
         changelog.assignee || changelog.comment ||
         changelog.resolvedAt || changelog.reopenedAt ||
         changelog.completedAt || changelog.verifiedAt ||
-        changelog.approvedAt
+        changelog.approvedAt || changelog.item
       );
       changelog = isValid ? [].concat(changelog) : [];
       changelog = [].concat(dirtyChanges).concat(changelog);
