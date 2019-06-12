@@ -27,6 +27,7 @@ const mongoose = require('mongoose');
 const actions = require('mongoose-rest-actions');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
+const { createModels } = require('@lykmapipo/file');
 // const { FileTypes } = require('@lykmapipo/file');
 
 
