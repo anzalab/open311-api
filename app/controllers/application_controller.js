@@ -19,6 +19,7 @@ const Service = mongoose.model('Service');
 const Priority = mongoose.model('Priority');
 const Status = mongoose.model('Status');
 const JWT = require(path.join(__dirname, '..', 'libs', 'jwt'));
+const { formatPhoneNumberToE164 } = require('../libs/send');
 
 //TODO refactor out reports to report controller
 //TODO export /me to be able to refresh current request party profile
@@ -32,8 +33,7 @@ module.exports = {
   signup: function (request, response, next) {
 
     //prevent invalid registration details
-    if (_.isEmpty(request.body) || _.isEmpty(request.body.email) ||
-      _.isEmpty(request.body.password)) {
+    if (_.isEmpty(request.body) || _.isEmpty(request.body.password)) {
       next(new Error('Invalid signup details'));
     }
 
@@ -59,15 +59,21 @@ module.exports = {
   signin: function (request, response, next) {
 
     //prevent invalid signin details
-    if (_.isEmpty(request.body) || _.isEmpty(request.body.email) ||
-      _.isEmpty(request.body.password)) {
+    if (_.isEmpty(request.body) || _.isEmpty(request.body.password)) {
       next(new Error('Invalid signin details'));
     }
 
     //continue with signin
     else {
       //normalize email
-      request.body.email = request.body.email.toLowerCase();
+      if (request.body.email) {
+        request.body.email = request.body.email.toLowerCase();
+      }
+
+      // format phone to E.164
+      if (request.body.phone) {
+        request.body.phone = formatPhoneNumberToE164(request.body.phone);
+      }
 
       async.waterfall([
 
