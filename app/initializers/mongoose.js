@@ -13,7 +13,7 @@ const mongooseEdit = require(path.join(pluginPath, 'edit'));
 const mongooseList = require(path.join(pluginPath, 'list'));
 const mongooseReload = require(path.join(pluginPath, 'reload'));
 const mongooseSoftDelete = require(path.join(pluginPath, 'soft_delete'));
-
+const { createModels } = require('@lykmapipo/file');
 
 /* ensure mongodb url */
 const MONGODB_URI = getString('MONGODB_URI', 'mongodb://localhost/open311');
@@ -50,8 +50,10 @@ require('require-all')({
 
 
 /* establish mongodb connection */
-mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
-
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true }, () => {
+  // initialize common file models
+  createModels();
+});
 
 /**
  * @description export mongoose

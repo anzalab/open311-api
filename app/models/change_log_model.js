@@ -27,8 +27,7 @@ const mongoose = require('mongoose');
 const actions = require('mongoose-rest-actions');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
-const { createModels } = require('@lykmapipo/file');
-// const { FileTypes } = require('@lykmapipo/file');
+const { FileTypes } = require('@lykmapipo/file');
 
 
 //constants
@@ -342,7 +341,7 @@ const ChangeLogSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  // image: FileTypes.Image,
+  image: FileTypes.Image,
 
   /**
    * @name audio
@@ -352,7 +351,17 @@ const ChangeLogSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  // audio: FileTypes.Audio,
+  audio: FileTypes.Audio,
+
+  /**
+   * @name video
+   * @description Associated video for service request(issue) changes
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  video: FileTypes.Audio,
 
   /**
    * @name document
@@ -362,7 +371,7 @@ const ChangeLogSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  // document: FileTypes.Document
+  document: FileTypes.Document
 
 
 }, { timestamps: true, emitIndexErrors: true });
