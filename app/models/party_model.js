@@ -18,6 +18,7 @@ const config = require('config');
 const moment = require('moment');
 const mongoose = require('mongoose');
 const actions = require('mongoose-rest-actions');
+const { formatPhoneNumberToE164 } = require('../libs/send');
 const irina = require('irina');
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Schema.ObjectId;
@@ -402,6 +403,9 @@ PartySchema.pre('validate', function (next) {
   if (!this.relation.type) {
     this.relation.type = RELATION_TYPE_WORKER;
   }
+
+  // format phone to E.164
+  this.phone = formatPhoneNumberToE164(this.phone);
 
   next();
 

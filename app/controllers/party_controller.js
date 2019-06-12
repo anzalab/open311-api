@@ -6,6 +6,7 @@ const async = require('async');
 const mongoose = require('mongoose');
 const Party = mongoose.model('Party');
 const irinaUtils = require('irina/lib/utils.js');
+const { formatPhoneNumberToE164 } = require('../libs/send');
 
 /**
  * Party Controller
@@ -50,6 +51,11 @@ module.exports = {
       request.body.password = request.settings.defaultPassword;
     }
 
+    // format phone to E.164
+    if (request.body.phone) {
+      request.body.phone = formatPhoneNumberToE164(request.body.phone);
+    }
+
     Party
       .register(request.body, function (error, party) {
         if (error) {
@@ -92,6 +98,11 @@ module.exports = {
     var id = request.body._id || request.params.id;
     request.body.jurisdiction = request.body.jurisdiction || null;
     request.body.zone = request.body.zone || null;
+
+    // format phone to E.164
+    if (request.body.phone) {
+      request.body.phone = formatPhoneNumberToE164(request.body.phone);
+    }
 
     delete request.body._id;
 
