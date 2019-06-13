@@ -42,9 +42,10 @@ exports.formatPhoneNumberToE164 = function (phoneNumber, countryCode) {
   //try convert give phone number to e.164
   try {
     countryCode = countryCode || getString('DEFAULT_COUNTRY_CODE', 'TZ');
-    phoneNumber = phone(phoneNumber, countryCode);
-    phoneNumber = _.first(phoneNumber).replace(/\+/g, '');
-    return phoneNumber;
+    let mobileNumber = phone(phoneNumber, countryCode);
+    mobileNumber = _.first(mobileNumber).replace(/\+/g, '');
+    mobileNumber = _.isEmpty(mobileNumber) ? phoneNumber : mobileNumber;
+    return mobileNumber;
   }
 
   //fail to convert, return original format

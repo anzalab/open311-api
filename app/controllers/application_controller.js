@@ -59,33 +59,29 @@ module.exports = {
   signin: function (request, response, next) {
 
     //prevent invalid signin details
-    if (_.isEmpty(request.body) || _.isEmpty(request.body.password)) {
+    if (_.isEmpty(request.body) || _.isEmpty(request.body.username) ||
+      _.isEmpty(request.body.password)) {
       next(new Error('Invalid signin details'));
     }
 
     //continue with signin
     else {
-      //normalize email
-      if (request.body.email) {
-        request.body.email = request.body.email.toLowerCase();
-      }
+      //normalize credentials
+      const { username } = _.merge({}, request.body);
+      const email = username.toLowerCase();
+      const phone = formatPhoneNumberToE164(username);
 
-      // format phone to E.164
-      if (request.body.phone) {
-        request.body.phone = formatPhoneNumberToE164(request.body.phone);
-      }
+      const credentials = {
+        $or: [{ email: email }, { phone: phone }],
+        deletedAt: { $eq: null },
+        password: request.body.password
+      };
 
       async.waterfall([
 
           function authenticateParty(then) {
             //authenticate active party only
-            request.body = _.merge(request.body, {
-              deletedAt: {
-                $eq: null
-              }
-            });
-
-            Party.authenticate(request.body, then);
+            Party.authenticate(credentials, then);
           },
 
           //ensure roles & permissions
