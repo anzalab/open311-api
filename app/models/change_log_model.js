@@ -567,7 +567,11 @@ ChangeLogSchema.statics.track = function (changes, done) {
     function updateServiceRequest(servicerequest, next) {
       //update
       _.forEach(changelog, function (value, key) {
-        servicerequest.set(key, value);
+        const allowedKey =
+          (!_.includes(['image', 'audio', 'video', 'document'], key));
+        if (allowedKey) {
+          servicerequest.set(key, value);
+        }
       });
 
       //update
