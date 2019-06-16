@@ -22,12 +22,11 @@
 
 //dependencies
 const _ = require('lodash');
-const async = require('async');
-const mongoose = require('mongoose');
+const { waterfall } = require('async');
+const { model, Schema, ObjectId } = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
-const Schema = mongoose.Schema;
-const ObjectId = Schema.Types.ObjectId;
 const { FileTypes } = require('@lykmapipo/file');
+const { Point } = require('mongoose-geojson-schemas');
 
 
 //constants
@@ -371,8 +370,22 @@ const ChangeLogSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  document: FileTypes.Document
+  document: FileTypes.Document,
 
+  /**
+   * @name centroid
+   * @description A geo-point where changes happened.
+   *
+   * @since 0.1.0
+   * @version 0.1.0
+   * @instance
+   * @example
+   * {
+   *    type: 'Point',
+   *    coordinates: [-76.80207859497996, 55.69469494228919]
+   * }
+   */
+  location: Point
 
 }, { timestamps: true, emitIndexErrors: true });
 
@@ -458,9 +471,9 @@ ChangeLogSchema.statics.track = function (changes, done) {
 
 
   //refs
-  const ServiceRequest = mongoose.model('ServiceRequest');
+  const ServiceRequest = model('ServiceRequest');
 
-  async.waterfall([
+  waterfall([
 
     //obtain service requests
     function findServiceRequest(next) {
@@ -594,4 +607,4 @@ ChangeLogSchema.plugin(actions);
 
 
 /* export changelog model */
-module.exports = mongoose.model('ChangeLog', ChangeLogSchema);
+module.exports = exports = model('ChangeLog', ChangeLogSchema);
