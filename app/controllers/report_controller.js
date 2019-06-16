@@ -10,8 +10,8 @@
 const _ = require('lodash');
 const csv = require('csv');
 const moment = require('moment');
-const mongoose = require('mongoose');
-const ServiceRequest = mongoose.model('ServiceRequest');
+const { model } = require('@lykmapipo/mongoose-common');
+const ServiceRequest = model('ServiceRequest');
 
 module.exports = {
 
