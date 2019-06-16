@@ -11,14 +11,12 @@
 const path = require('path');
 const express = require('express');
 const router = express.Router();
-const controller =
-  require(path.join(__dirname, '..', 'controllers',
-    'service_request_controller'));
+const controller = require('../controllers/service_request_controller');
+const { uploaderFor } = require('@lykmapipo/file');
 
 // enable token authentication
-const jwtAuth = require(path.join(__dirname, '..', 'middlewares', 'jwtAuth'));
-const jurisdiction =
-  require(path.join(__dirname, '..', 'middlewares', 'jurisdiction'));
+const jwtAuth = require('../middlewares/jwtAuth');
+const jurisdiction = require('../middlewares/jurisdiction');
 
 // add specific middlewares to servicerequests router
 router.all('/servicerequests*', jwtAuth);
@@ -531,9 +529,10 @@ router.get('/servicerequests', jurisdiction, function (request, response, next) 
  *      "error":{}
  *    }
  */
-router.post('/servicerequests', function (request, response, next) {
-  controller.create(request, response, next);
-});
+router.post('/servicerequests', uploaderFor(),
+  function (request, response, next) {
+    controller.create(request, response, next);
+  });
 
 
 /**
@@ -1402,7 +1401,12 @@ router.delete('/servicerequests/:id', function (request, response, next) {
  *      "error":{}
  *    }
  */
-router.patch('/servicerequests/:id/changelogs',
+router.patch('/servicerequests/:id/changelogs', uploaderFor(),
+  function (request, response, next) {
+    controller.changelogs(request, response, next);
+  });
+
+router.post('/servicerequests/:id/changelogs', uploaderFor(),
   function (request, response, next) {
     controller.changelogs(request, response, next);
   });
