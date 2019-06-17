@@ -17,7 +17,7 @@
 const _ = require('lodash');
 const { getString, getBoolean, isProduction } = require('@lykmapipo/env');
 const { Message, SMS } = require('@lykmapipo/postman');
-const phone = require('phone');
+const { toE164 } = require('@lykmapipo/phone');
 
 
 /* constants */
@@ -37,23 +37,7 @@ const ENABLE_SYNC_TRANSPORT = getBoolean('ENABLE_SYNC_TRANSPORT', false);
  * @version 0.1.0
  * @public
  */
-exports.formatPhoneNumberToE164 = function (phoneNumber, countryCode) {
-
-  //try convert give phone number to e.164
-  try {
-    countryCode = countryCode || getString('DEFAULT_COUNTRY_CODE', 'TZ');
-    let mobileNumber = phone(phoneNumber, countryCode);
-    mobileNumber = _.first(mobileNumber).replace(/\+/g, '');
-    mobileNumber = _.isEmpty(mobileNumber) ? phoneNumber : mobileNumber;
-    return mobileNumber;
-  }
-
-  //fail to convert, return original format
-  catch (error) {
-    return phoneNumber;
-  }
-
-};
+exports.formatPhoneNumberToE164 = toE164;
 
 
 /**
@@ -79,7 +63,7 @@ exports.sms = function (message, done) {
   //ensure receivers number are in e.164 format
   let receivers = _.uniq(_.compact([].concat(message.to)));
   receivers = _.map(receivers, function (receiver) {
-    return exports.formatPhoneNumberToE164(receiver);
+    return toE164(receiver);
   });
   message.to = receivers;
 

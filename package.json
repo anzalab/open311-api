@@ -71,6 +71,7 @@
     "@lykmapipo/express-common": ">=0.17.7",
     "@lykmapipo/file": ">=0.1.4",
     "@lykmapipo/permission": ">=0.8.3",
+    "@lykmapipo/phone": ">=0.5.0",
     "@lykmapipo/postman": ">=0.9.0",
     "@lykmapipo/predefine": ">=0.3.0",
     "@lykmapipo/role": ">=0.3.4",

@@ -6,7 +6,8 @@ const async = require('async');
 const mongoose = require('mongoose');
 const Party = mongoose.model('Party');
 const irinaUtils = require('irina/lib/utils.js');
-const { formatPhoneNumberToE164 } = require('../libs/send');
+const { toE164 } = require('@lykmapipo/phone');
+
 
 /**
  * Party Controller
@@ -53,7 +54,7 @@ module.exports = {
 
     // format phone to E.164
     if (request.body.phone) {
-      request.body.phone = formatPhoneNumberToE164(request.body.phone);
+      request.body.phone = toE164(request.body.phone);
     }
 
     Party
@@ -101,7 +102,7 @@ module.exports = {
 
     // format phone to E.164
     if (request.body.phone) {
-      request.body.phone = formatPhoneNumberToE164(request.body.phone);
+      request.body.phone = toE164(request.body.phone);
     }
 
     delete request.body._id;

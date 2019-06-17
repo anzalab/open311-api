@@ -19,7 +19,7 @@ const Service = mongoose.model('Service');
 const Priority = mongoose.model('Priority');
 const Status = mongoose.model('Status');
 const JWT = require(path.join(__dirname, '..', 'libs', 'jwt'));
-const { formatPhoneNumberToE164 } = require('../libs/send');
+const { toE164 } = require('@lykmapipo/phone');
 
 //TODO refactor out reports to report controller
 //TODO export /me to be able to refresh current request party profile
@@ -69,7 +69,7 @@ module.exports = {
       //normalize credentials
       const { username } = _.merge({}, request.body);
       const email = username.toLowerCase();
-      const phone = formatPhoneNumberToE164(username);
+      const phone = toE164(username);
 
       const credentials = {
         $or: [{ email: email }, { phone: phone }],

@@ -18,7 +18,7 @@ const config = require('config');
 const moment = require('moment');
 const mongoose = require('mongoose');
 const actions = require('mongoose-rest-actions');
-const { formatPhoneNumberToE164 } = require('../libs/send');
+const { toE164 } = require('@lykmapipo/phone');
 const irina = require('irina');
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Schema.ObjectId;
@@ -405,7 +405,7 @@ PartySchema.pre('validate', function (next) {
   }
 
   // format phone to E.164
-  this.phone = formatPhoneNumberToE164(this.phone);
+  this.phone = toE164(this.phone);
 
   next();
 
