@@ -239,14 +239,15 @@ const PartySchema = new Schema({
     // required: true,
     // unique: true,
     trim: true,
+    index: true,
     searchable: true,
     taggable: true
   },
 
 
   /**
-   * @name pushToken
-   * @description valid latest push registration tokn for the party. Mainly
+   * @name pushTokens
+   * @description valid latest push registration tokens for the party. Mainly
    * used to send push notifications to mobile device.
    *
    * @type {Object}
@@ -254,13 +255,13 @@ const PartySchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  pushToken: {
-    type: String,
-    // required: true,
-    // unique: true,
+  pushTokens: {
+    type: [String],
     trim: true,
-    searchable: true,
-    taggable: true
+    compact: true,
+    duplicate: false,
+    index: true,
+    searchable: true
   },
 
 
@@ -403,6 +404,9 @@ PartySchema.pre('validate', function (next) {
   if (!this.relation.type) {
     this.relation.type = RELATION_TYPE_WORKER;
   }
+
+  // ensure push tokens
+  this.pushTokens = [].concat(this.pushTokens);
 
   // format phone to E.164
   this.phone = toE164(this.phone);

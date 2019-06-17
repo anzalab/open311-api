@@ -137,6 +137,33 @@ module.exports = {
       });
   },
 
+  /**
+   * @function
+   * @name parties.updateDevices()
+   * @description update a specific party devices details
+   * @param  {HttpRequest} request  a http request
+   * @param  {HttpResponse} response a http response
+   */
+  updateDevices: function (request, response, next) {
+    // ensure body
+    const body = _.merge({ extras: {} }, request.body);
+
+    // obtain party id
+    const id = body.extras.party;
+
+    //prepare push token updates
+    const pushTokens = _.compact([body.registrationToken]);
+
+    // update party and echo device details
+    Party.put(id, { pushTokens }, function (error, party) {
+      if (error) {
+        next(error);
+      } else {
+        response.ok(body);
+      }
+    });
+  },
+
 
   /**
    * @function
