@@ -27,6 +27,7 @@ const { model, Schema, ObjectId } = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
 const { FileTypes } = require('@lykmapipo/file');
 const { Point } = require('mongoose-geojson-schemas');
+const Send = require('../libs/send');
 
 
 //constants
@@ -444,6 +445,52 @@ ChangeLogSchema.statics.VISIBILITY_PRIVATE = VISIBILITY_PRIVATE;
 ChangeLogSchema.statics.VISIBILITY_PUBLIC = VISIBILITY_PUBLIC;
 ChangeLogSchema.statics.VISIBILITIES = VISIBILITIES;
 
+/**
+ * @name notifyAssignee
+ * @type Function
+ * @description notify assignee on assigned service request
+ * @param {Function} done a callback to invoke on success or failure
+ * @return {Object} latest service request
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ * @public
+ */
+ChangeLogSchema.statics.notifyAssignee =
+  function (changelog, servicerequest, done) {
+    // refs
+    const Party = model('Party');
+
+    // map service request to legacy
+    const legacy = servicerequest.mapToLegacy();
+
+    // prepare message content
+    const body = 'Hello, Please assist in resolving assigned customer complaint';
+
+    // initialize message
+    const message = {
+      subject: [legacy.service.name, legacy.code].join(' - #'),
+      body: body
+    };
+
+    // send push
+    waterfall([
+      function findAssignee(next) {
+        const id = _.get(changelog, 'assignee._id', changelog.assignee);
+        Party.findById(id, next);
+      },
+      function sendPush(assignee, next) {
+        if (assignee && !_.isEmpty(assignee.pushTokens)) {
+          message.to = assignee.pushTokens;
+          Send.push(message, next);
+        } else {
+          next(null, null);
+        }
+      }
+    ], function afterNotifyAssignee( /*error, results*/ ) {
+      done(null, servicerequest);
+    });
+  };
 
 /**
  * @name track
@@ -472,6 +519,7 @@ ChangeLogSchema.statics.track = function (changes, done) {
 
   //refs
   const ServiceRequest = model('ServiceRequest');
+  const ChangeLog = model('ChangeLog');
 
   waterfall([
 
@@ -586,6 +634,11 @@ ChangeLogSchema.statics.track = function (changes, done) {
       ServiceRequest
         .findById(changelog.request)
         .exec(next);
+    },
+
+    // notify assignee
+    function notify(servicerequest, next) {
+      ChangeLog.notifyAssignee(changelog, servicerequest, next);
     }
 
 
