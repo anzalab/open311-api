@@ -16,11 +16,12 @@
 //dependencies
 const _ = require('lodash');
 const { getString, getBoolean, isProduction } = require('@lykmapipo/env');
-const { Message, SMS } = require('@lykmapipo/postman');
+const { Message, SMS, Email, Push } = require('@lykmapipo/postman');
 const { toE164 } = require('@lykmapipo/phone');
 
 
 /* constants */
+const DEFAULT_EMAIL_SENDER = getString('SMTP_FROM');
 const DEFAULT_SMS_SENDER_ID = getString('DEFAULT_SMS_SENDER_ID');
 const ENABLE_SYNC_TRANSPORT = getBoolean('ENABLE_SYNC_TRANSPORT', false);
 
@@ -52,10 +53,12 @@ exports.formatPhoneNumberToE164 = toE164;
  * @public
  */
 exports.sms = function (message, done) {
-
   //prepare sms message
   const isMessageInstance = message instanceof Message;
   message = isMessageInstance ? message.toObject() : message;
+
+  // force message type to sms
+  message.type = Message.TYPE_SMS;
 
   //ensure message sender
   message.sender = (message.sender || DEFAULT_SMS_SENDER_ID);
@@ -80,6 +83,89 @@ exports.sms = function (message, done) {
   //direct sms send in development & test
   else {
     sms.send(done);
+  }
+
+};
+
+/**
+ * @name push
+ * @description send a given message as push notification
+ * @param {Message|Object} message valid message instance or definition
+ * @param {Function} done a callback to invoke on success or failure
+ * @see {@link Message}
+ * @author lally elias <lallyelias87@mail.com>
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ */
+exports.push = function (message, done) {
+  //prepare sms message
+  const isMessageInstance = message instanceof Message;
+  message = isMessageInstance ? message.toObject() : message;
+
+  // force message type to push
+  message.type = Message.TYPE_PUSH;
+
+  //ensure receivers push token
+  let receivers = _.uniq(_.compact([].concat(message.to)));
+  message.to = receivers;
+
+  //instantiate push
+  const push = new Push(message);
+
+  //queue message in production
+  //or if is asynchronous send
+  if (isProduction && !ENABLE_SYNC_TRANSPORT) {
+    push.queue();
+    done(null, push);
+  }
+
+  //direct push send in development & test
+  else {
+    push.send(done);
+  }
+
+};
+
+/**
+ * @name email
+ * @description send a given message as email
+ * @param {Message|Object} message valid message instance or definition
+ * @param {Function} done a callback to invoke on success or failure
+ * @see {@link Message}
+ * @author lally elias <lallyelias87@mail.com>
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ */
+exports.email = function (message, done) {
+  //prepare sms message
+  const isMessageInstance = message instanceof Message;
+  message = isMessageInstance ? message.toObject() : message;
+
+  // force message type to push
+  message.type = Message.TYPE_EMAIL;
+
+  // ensure message sender
+  message.sender = (message.sender || DEFAULT_EMAIL_SENDER);
+
+  //ensure receivers emails
+  let receivers = _.uniq(_.compact([].concat(message.to)));
+  message.to = receivers;
+
+  //instantiate email
+  const email = new Email(message);
+
+  //queue message in production
+  //or if is asynchronous send
+  if (isProduction && !ENABLE_SYNC_TRANSPORT) {
+    email.queue();
+    done(null, email);
+  }
+
+  //direct email send in development & test
+  else {
+    email.send(done);
   }
 
 };

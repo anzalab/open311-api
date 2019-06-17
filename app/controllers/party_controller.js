@@ -155,7 +155,7 @@ module.exports = {
     const pushTokens = _.compact([body.registrationToken]);
 
     // update party and echo device details
-    Party.put(id, { pushTokens }, function (error, party) {
+    Party.put(id, { pushTokens }, function (error /*, party*/ ) {
       if (error) {
         next(error);
       } else {
