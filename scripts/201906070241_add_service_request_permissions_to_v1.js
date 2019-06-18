@@ -30,6 +30,13 @@ var permissions = [{
   "action": "complete",
   "description": "Complete servicerequest",
   "wildcard": "servicerequest:complete",
+}, {
+  "updatedAt": ISODate("2019-06-06T23:53:03.432Z"),
+  "createdAt": ISODate("2019-06-06T23:53:03.432Z"),
+  "resource": "ServiceRequest",
+  "action": "attend",
+  "description": "Complete servicerequest",
+  "wildcard": "servicerequest:attend",
 }];
 
 //upsert zone permissions
