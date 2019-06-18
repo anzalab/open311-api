@@ -2,6 +2,7 @@
 
 //dependencies
 const _ = require('lodash');
+const parseBody = require('auto-parse');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
 const ChangeLog = mongoose.model('ChangeLog');
@@ -179,6 +180,9 @@ module.exports = {
     //obtain changelog
     let changelog =
       _.merge({}, { changer: changer, request: _id }, request.body);
+    if (changelog.resolvedAt) {
+      changelog.resolvedAt = parseBody(changelog.resolvedAt);
+    }
 
     //ensure server time in case its resolve
     if (changelog.resolvedAt) {

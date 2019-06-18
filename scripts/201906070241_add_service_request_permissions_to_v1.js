@@ -34,9 +34,9 @@ var permissions = [{
   "updatedAt": ISODate("2019-06-06T23:53:03.432Z"),
   "createdAt": ISODate("2019-06-06T23:53:03.432Z"),
   "resource": "ServiceRequest",
-  "action": "attend",
+  "action": "work",
   "description": "Complete servicerequest",
-  "wildcard": "servicerequest:attend",
+  "wildcard": "servicerequest:work",
 }];
 
 //upsert zone permissions
