@@ -209,6 +209,20 @@ const ChangeLogSchema = new Schema({
   },
 
   /**
+   * @name attendedAt
+   * @description A latest time when the issue was marked as
+   * work in progress by latest assignee.
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  attendedAt: {
+    type: Date,
+    index: true
+  },
+
+  /**
    * @name completedAt
    * @description A time when the issue was marked as complete(or done) by
    * latest assignee.
@@ -465,7 +479,8 @@ ChangeLogSchema.statics.notifyAssignee =
     const legacy = servicerequest.mapToLegacy();
 
     // prepare message content
-    const body = 'Hello, Please assist in resolving assigned customer complaint';
+    const body =
+      'Hello, Please assist in resolving assigned customer complaint';
 
     // initialize message
     const message = {
@@ -554,6 +569,10 @@ ChangeLogSchema.statics.track = function (changes, done) {
 
         // ensure flow timestamps
         if (changelog.resolvedAt) {
+          if (!servicerequest.attendedAt) {
+            changelog.attendedAt = changelog.resolvedAt;
+            servicerequest.attendedAt = changelog.resolvedAt;
+          }
           if (!servicerequest.completedAt) {
             changelog.completedAt = changelog.resolvedAt;
             servicerequest.completedAt = changelog.resolvedAt;
@@ -574,6 +593,7 @@ ChangeLogSchema.statics.track = function (changes, done) {
           servicerequest.ttr = undefined;
 
           // clear flow timestamps
+          servicerequest.attendedAt = undefined;
           servicerequest.completedAt = undefined;
           servicerequest.verifiedAt = undefined;
           servicerequest.approvedAt = undefined;

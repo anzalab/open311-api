@@ -486,6 +486,20 @@ const ServiceRequestSchema = new Schema({
   },
 
   /**
+   * @name attendedAt
+   * @description A latest time when the issue was marked as
+   * work in progress by latest assignee.
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  attendedAt: {
+    type: Date,
+    index: true
+  },
+
+  /**
    * @name completedAt
    * @description A time when the issue was marked as complete(or done) by
    * latest assignee.

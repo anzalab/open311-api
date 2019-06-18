@@ -186,6 +186,11 @@ module.exports = {
       //TODO ensure resolver & assignee
     }
 
+    //ensure server time in case its attended
+    if (changelog.attendedAt) {
+      changelog.attendedAt = new Date();
+    }
+
     //ensure server time in case its completed
     if (changelog.completedAt) {
       changelog.completedAt = new Date();
