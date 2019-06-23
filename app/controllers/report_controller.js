@@ -202,8 +202,9 @@ module.exports = {
     criteria = (criteria.filter || {});
 
     //prepare query cursor/stream
-    const serviceRequests =
-      ServiceRequest.find(criteria).sort({ createdAt: -1 }).cursor();
+    const query =
+      ServiceRequest.aggregated(criteria).sort({ createdAt: -1 }).cursor();
+    const serviceRequests = query.exec();
 
     //prepare file name
     const fileName = 'service_requests_exports_' + Date.now() + '.csv';
@@ -268,7 +269,6 @@ module.exports = {
       }))
       .pipe(csv.stringify({ header: true }))
       .pipe(response);
-
   }
 
 };

@@ -120,6 +120,7 @@ const ServiceRequestSchema = new Schema({
   zone: {
     type: ObjectId,
     ref: 'Predefine',
+    index: true,
     exists: true,
     autopopulate: {
       select: 'code name'
@@ -355,8 +356,8 @@ const ServiceRequestSchema = new Schema({
   status: {
     type: ObjectId,
     ref: 'Status',
-    exists: true,
     index: true,
+    exists: true,
     autopopulate: {
       maxDepth: 1
     }
@@ -378,8 +379,8 @@ const ServiceRequestSchema = new Schema({
   priority: {
     type: ObjectId,
     ref: 'Priority',
-    exists: true,
     index: true,
+    exists: true,
     autopopulate: {
       maxDepth: 1
     }
