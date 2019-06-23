@@ -15,14 +15,13 @@
 
 /* dependencies */
 const path = require('path');
-const env = require('@lykmapipo/env');
-const { worker, httpServer } = require('@lykmapipo/postman');
+const { getNumber } = require('@lykmapipo/env');
+const { worker, listen } = require('@lykmapipo/postman');
 const mkdir = require('mkdir-p');
-const { getNumber } = env;
 
 
 /* constants */
-const QUEUE_HTTP_PORT = getNumber('QUEUE_HTTP_PORT');
+const KUE_HTTP_PORT = getNumber('KUE_HTTP_PORT');
 
 
 //build logs directory if does not exists
@@ -39,6 +38,6 @@ worker.start();
 
 
 /* open web interface to monitor jobs */
-if (QUEUE_HTTP_PORT) {
-  httpServer.listen(QUEUE_HTTP_PORT);
+if (KUE_HTTP_PORT) {
+  listen();
 }

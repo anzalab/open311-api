@@ -146,7 +146,13 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
       const isValid = (
         changelog.status || changelog.priority ||
         changelog.assignee || changelog.comment ||
-        changelog.resolvedAt || changelog.reopenedAt
+        changelog.resolvedAt || changelog.reopenedAt ||
+        changelog.assignedAt ||
+        changelog.attendedAt || changelog.completedAt ||
+        changelog.verifiedAt || changelog.approvedAt ||
+        changelog.item || changelog.image ||
+        changelog.audio || changelog.video ||
+        changelog.document || changelog.location
       );
       changelog = isValid ? [].concat(changelog) : [];
       changelog = [].concat(dirtyChanges).concat(changelog);

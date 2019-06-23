@@ -300,6 +300,21 @@ router.get('/parties/:id/performances', function (request, response, next) {
   controller.performances(request, response, next);
 });
 
+/**
+ * register new device details received
+ */
+router.post('/devices', function (request, response, next) {
+  controller.updateDevices(request, response, next);
+});
+
+
+/**
+ * update existing device details received
+ */
+router.put('/devices', function (request, response, next) {
+  controller.updateDevices(request, response, next);
+});
+
 
 /**
  * exports parties router

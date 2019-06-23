@@ -10,8 +10,8 @@
 const _ = require('lodash');
 const csv = require('csv');
 const moment = require('moment');
-const mongoose = require('mongoose');
-const ServiceRequest = mongoose.model('ServiceRequest');
+const { model } = require('@lykmapipo/mongoose-common');
+const ServiceRequest = model('ServiceRequest');
 
 module.exports = {
 
@@ -202,8 +202,9 @@ module.exports = {
     criteria = (criteria.filter || {});
 
     //prepare query cursor/stream
-    const serviceRequests =
-      ServiceRequest.find(criteria).sort({ createdAt: -1 }).cursor();
+    const query =
+      ServiceRequest.aggregated(criteria).sort({ createdAt: -1 }).cursor();
+    const serviceRequests = query.exec();
 
     //prepare file name
     const fileName = 'service_requests_exports_' + Date.now() + '.csv';
@@ -268,7 +269,6 @@ module.exports = {
       }))
       .pipe(csv.stringify({ header: true }))
       .pipe(response);
-
   }
 
 };

@@ -18,6 +18,7 @@ const config = require('config');
 const moment = require('moment');
 const mongoose = require('mongoose');
 const actions = require('mongoose-rest-actions');
+const { toE164 } = require('@lykmapipo/phone');
 const irina = require('irina');
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Schema.ObjectId;
@@ -38,6 +39,7 @@ const RELATION_TYPE_APP = 'App';
 //relation workspace
 const RELATION_WORKSPACE_CALL_CENTER = 'Call Center';
 const RELATION_WORKSPACE_CUSTOMER_CARE = 'Customer Care';
+const RELATION_WORKSPACE_TECHNICIAN = 'Technician';
 const RELATION_WORKSPACE_OTHER = 'Other';
 
 const BASIC_FIELDS = ['_id', 'name', 'email', 'phone', 'relation'];
@@ -65,7 +67,8 @@ const PartyRelation = new Schema({
       RELATION_NAME_AGENCY,
       RELATION_NAME_APP
     ],
-    searchable: true
+    searchable: true,
+    taggable: true
   },
 
 
@@ -87,7 +90,8 @@ const PartyRelation = new Schema({
       RELATION_TYPE_ORGANIZATION,
       RELATION_TYPE_APP
     ],
-    searchable: true
+    searchable: true,
+    taggable: true
   },
 
   /**
@@ -102,7 +106,8 @@ const PartyRelation = new Schema({
     type: String,
     index: true,
     default: RELATION_WORKSPACE_OTHER,
-    searchable: true
+    searchable: true,
+    taggable: true
   }
 
 }, { _id: false, id: false, timestamps: false, emitIndexErrors: true });
@@ -129,6 +134,23 @@ const PartySchema = new Schema({
   },
 
   /**
+   * @name zone
+   * @description A zone(or branch, neighbourhood) which a party serving
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  zone: {
+    type: ObjectId,
+    ref: 'Predefine',
+    exists: true,
+    autopopulate: {
+      select: 'code name'
+    }
+  },
+
+  /**
    * @name name
    * @description human readable name used to identify a party
    *
@@ -144,7 +166,8 @@ const PartySchema = new Schema({
     required: true,
     index: true,
     trim: true,
-    searchable: true
+    searchable: true,
+    taggable: true,
   },
 
 
@@ -159,7 +182,7 @@ const PartySchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  avatar: {
+  avatar: { // TODO: migrate to image file
     type: String
   },
 
@@ -196,7 +219,8 @@ const PartySchema = new Schema({
     required: true,
     unique: true,
     trim: true,
-    searchable: true
+    searchable: true,
+    taggable: true
   },
 
 
@@ -215,6 +239,28 @@ const PartySchema = new Schema({
     // required: true,
     // unique: true,
     trim: true,
+    index: true,
+    searchable: true,
+    taggable: true
+  },
+
+
+  /**
+   * @name pushTokens
+   * @description valid latest push registration tokens for the party. Mainly
+   * used to send push notifications to mobile device.
+   *
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  pushTokens: {
+    type: [String],
+    trim: true,
+    compact: true,
+    duplicate: false,
+    index: true,
     searchable: true
   },
 
@@ -358,6 +404,12 @@ PartySchema.pre('validate', function (next) {
   if (!this.relation.type) {
     this.relation.type = RELATION_TYPE_WORKER;
   }
+
+  // ensure push tokens
+  this.pushTokens = [].concat(this.pushTokens);
+
+  // format phone to E.164
+  this.phone = toE164(this.phone);
 
   next();
 
@@ -535,11 +587,14 @@ PartySchema.statics.RELATION_WORKSPACE_CALL_CENTER =
   RELATION_WORKSPACE_CALL_CENTER;
 PartySchema.statics.RELATION_WORKSPACE_CUSTOMER_CARE =
   RELATION_WORKSPACE_CUSTOMER_CARE;
+PartySchema.statics.RELATION_WORKSPACE_TECHNICIAN =
+  RELATION_WORKSPACE_TECHNICIAN;
 PartySchema.statics.RELATION_WORKSPACE_OTHER =
   RELATION_WORKSPACE_OTHER;
 PartySchema.statics.RELATION_WORKSPACES = [
   RELATION_WORKSPACE_CALL_CENTER,
   RELATION_WORKSPACE_CUSTOMER_CARE,
+  RELATION_WORKSPACE_TECHNICIAN,
   RELATION_WORKSPACE_OTHER
 ];
 
