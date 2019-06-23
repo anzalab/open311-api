@@ -147,6 +147,7 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
         changelog.status || changelog.priority ||
         changelog.assignee || changelog.comment ||
         changelog.resolvedAt || changelog.reopenedAt ||
+        changelog.assignedAt ||
         changelog.attendedAt || changelog.completedAt ||
         changelog.verifiedAt || changelog.approvedAt ||
         changelog.item || changelog.image ||

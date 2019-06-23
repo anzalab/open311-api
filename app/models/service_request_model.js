@@ -178,6 +178,7 @@ const ServiceRequestSchema = new Schema({
    * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @deprecated
    */
   call: Call,
 
@@ -192,7 +193,7 @@ const ServiceRequestSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  reporter: Reporter,
+  reporter: Reporter, //TODO refactor to party
 
 
   /**
@@ -481,6 +482,20 @@ const ServiceRequestSchema = new Schema({
    * @version 0.1.0
    */
   reopenedAt: {
+    type: Date,
+    index: true
+  },
+
+  /**
+   * @name assignedAt
+   * @description A latest time when the issue was assigned to latest assignee
+   * to work on it.
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  assignedAt: {
     type: Date,
     index: true
   },

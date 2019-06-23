@@ -209,6 +209,20 @@ const ChangeLogSchema = new Schema({
   },
 
   /**
+   * @name assignedAt
+   * @description A latest time when the issue was assigned to latest assignee
+   * to work on it.
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  assignedAt: {
+    type: Date,
+    index: true
+  },
+
+  /**
    * @name attendedAt
    * @description A latest time when the issue was marked as
    * work in progress by latest assignee.
@@ -593,6 +607,7 @@ ChangeLogSchema.statics.track = function (changes, done) {
           servicerequest.ttr = undefined;
 
           // clear flow timestamps
+          servicerequest.assignedAt = undefined;
           servicerequest.attendedAt = undefined;
           servicerequest.completedAt = undefined;
           servicerequest.verifiedAt = undefined;
@@ -619,6 +634,11 @@ ChangeLogSchema.statics.track = function (changes, done) {
         return _.isUndefined(value) || _.isNull(value);
       });
 
+      // ensure assigned date if assignee available
+      if (changelog.assignee) {
+        changelog.assignedAt = new Date();
+      }
+
       //compute changelogs
       let changelogs = servicerequest.changes(changelog);
       changelogs =
@@ -633,6 +653,9 @@ ChangeLogSchema.statics.track = function (changes, done) {
 
     //update service request
     function updateServiceRequest(servicerequest, next) {
+      // TODO ensure assignee if resolving changelog and there were no
+      // assigned worker
+
       //update
       _.forEach(changelog, function (value, key) {
         const allowedKey =
