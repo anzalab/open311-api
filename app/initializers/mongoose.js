@@ -50,10 +50,17 @@ require('require-all')({
 
 
 /* establish mongodb connection */
-mongoose.connect(MONGODB_URI, { useNewUrlParser: true }, () => {
-  // initialize common file models
-  createModels();
-});
+const isConnected = (
+  mongoose.connection &&
+  mongoose.connection.readyState !== mongoose.STATES.disconnected
+);
+if (!isConnected) {
+  mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
+  mongoose.connection.once('open', function () {
+    // initialize common file models
+    createModels();
+  });
+}
 
 /**
  * @description export mongoose
