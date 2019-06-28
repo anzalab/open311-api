@@ -22,6 +22,7 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   index: function (request, response, next) {
+    console.log("Query:", new Date(), request.mquery);
 
     ServiceRequest
       .list(request, function (error, results) {
@@ -209,6 +210,8 @@ module.exports = {
     if (changelog.approvedAt) {
       changelog.approvedAt = new Date();
     }
+
+    console.log("Changelog:", new Date(), changelog);
 
     ChangeLog
       .track(changelog, function (error, servicerequest) {
