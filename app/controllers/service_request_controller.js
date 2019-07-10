@@ -2,11 +2,10 @@
 
 //dependencies
 const _ = require('lodash');
+const parseBody = require('auto-parse');
 const mongoose = require('mongoose');
 const ServiceRequest = mongoose.model('ServiceRequest');
 const ChangeLog = mongoose.model('ChangeLog');
-const config = require('config');
-const { downstream, upstream } = config.get('sync.strategies');
 
 
 /**
@@ -75,9 +74,6 @@ module.exports = {
       if (error) {
         next(error);
       } else {
-        //sync
-        servicerequest.sync(downstream);
-
         //support legacy
         const _servicerequest = servicerequest.mapToLegacy();
 
@@ -132,9 +128,6 @@ module.exports = {
         if (error) {
           next(error);
         } else {
-          //sync patches
-          servicerequest.sync(upstream);
-
           //support legacy
           const _servicerequest = servicerequest.mapToLegacy();
 
@@ -187,6 +180,9 @@ module.exports = {
     //obtain changelog
     let changelog =
       _.merge({}, { changer: changer, request: _id }, request.body);
+    if (changelog.resolvedAt) {
+      changelog.resolvedAt = parseBody(changelog.resolvedAt);
+    }
 
     //ensure server time in case its resolve
     if (changelog.resolvedAt) {
@@ -194,14 +190,31 @@ module.exports = {
       //TODO ensure resolver & assignee
     }
 
+    //ensure server time in case its attended
+    if (changelog.attendedAt) {
+      changelog.attendedAt = new Date();
+    }
+
+    //ensure server time in case its completed
+    if (changelog.completedAt) {
+      changelog.completedAt = new Date();
+    }
+
+    //ensure server time in case its verified
+    if (changelog.verifiedAt) {
+      changelog.verifiedAt = new Date();
+    }
+
+    //ensure server time in case its approved
+    if (changelog.approvedAt) {
+      changelog.approvedAt = new Date();
+    }
+
     ChangeLog
       .track(changelog, function (error, servicerequest) {
         if (error) {
           next(error);
         } else {
-          //sync patches
-          servicerequest.sync(upstream);
-
           //support legacy
           const _servicerequest = servicerequest.mapToLegacy();
 

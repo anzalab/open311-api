@@ -3,9 +3,9 @@
 
 /**
  * @module Reporter
- * @description reporter schema used to log issue(service request) 
+ * @description reporter schema used to log issue(service request)
  *              reporter(customer or civilian)
- *               
+ *
  * @see {@link ServiceRequest}
  * @author lally elias<lallyelias87@gmail.com>
  * @since  0.1.0
@@ -41,7 +41,8 @@ const ReporterSchema = new Schema({
     trim: true,
     index: true,
     // required:true,
-    searchable: true
+    searchable: true,
+    taggable: true
   },
 
 
@@ -57,7 +58,8 @@ const ReporterSchema = new Schema({
     type: String,
     required: true,
     index: true,
-    searchable: true
+    searchable: true,
+    taggable: true
   },
 
 
@@ -74,7 +76,8 @@ const ReporterSchema = new Schema({
     trim: true,
     lowercase: true,
     index: true,
-    searchable: true
+    searchable: true,
+    taggable: true
   },
 
 
@@ -98,7 +101,8 @@ const ReporterSchema = new Schema({
     type: String,
     trim: true,
     index: true,
-    searchable: true
+    searchable: true,
+    taggable: true
   }
 
 }, { _id: false, timestamps: false });

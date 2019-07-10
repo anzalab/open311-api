@@ -22,11 +22,12 @@
 
 //dependencies
 const _ = require('lodash');
-const async = require('async');
-const mongoose = require('mongoose');
+const { waterfall } = require('async');
+const { model, Schema, ObjectId } = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
-const Schema = mongoose.Schema;
-const ObjectId = Schema.Types.ObjectId;
+const { FileTypes } = require('@lykmapipo/file');
+const { Point } = require('mongoose-geojson-schemas');
+const Send = require('../libs/send');
 
 
 //constants
@@ -207,6 +208,75 @@ const ChangeLogSchema = new Schema({
     index: true
   },
 
+  /**
+   * @name assignedAt
+   * @description A latest time when the issue was assigned to latest assignee
+   * to work on it.
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  assignedAt: {
+    type: Date,
+    index: true
+  },
+
+  /**
+   * @name attendedAt
+   * @description A latest time when the issue was marked as
+   * work in progress by latest assignee.
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  attendedAt: {
+    type: Date,
+    index: true
+  },
+
+  /**
+   * @name completedAt
+   * @description A time when the issue was marked as complete(or done) by
+   * latest assignee.
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  completedAt: {
+    type: Date,
+    index: true
+  },
+
+  /**
+   * @name verifiedAt
+   * @description A time when the issue was verified by immediate
+   * supervisor(technician).
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  verifiedAt: {
+    type: Date,
+    index: true
+  },
+
+  /**
+   * @name approvedAt
+   * @description A time when the issue was approved by final
+   * supervisor(engineer).
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  approvedAt: {
+    type: Date,
+    index: true
+  },
 
   /**
    * @name shouldNotify
@@ -259,8 +329,92 @@ const ChangeLogSchema = new Schema({
     index: true,
     enum: VISIBILITIES,
     default: VISIBILITY_PRIVATE
-  }
+  },
 
+  /**
+   * @name item
+   * @description A item(material, equipment etc) used on work on service
+   * request
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  item: {
+    type: ObjectId,
+    ref: 'Predefine',
+    exists: true,
+    autopopulate: true
+  },
+
+  /**
+   * @name quantity
+   * @description Amount of item(material, equipment etc) used on work
+   * on service request
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  quantity: {
+    type: Number,
+    min: 1
+  },
+
+  /**
+   * @name image
+   * @description Associated image for service request(issue) changes
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  image: FileTypes.Image,
+
+  /**
+   * @name audio
+   * @description Associated audio for service request(issue) changes
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  audio: FileTypes.Audio,
+
+  /**
+   * @name video
+   * @description Associated video for service request(issue) changes
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  video: FileTypes.Video,
+
+  /**
+   * @name document
+   * @description Associated document for service request(issue) changes
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  document: FileTypes.Document,
+
+  /**
+   * @name centroid
+   * @description A geo-point where changes happened.
+   *
+   * @since 0.1.0
+   * @version 0.1.0
+   * @instance
+   * @example
+   * {
+   *    type: 'Point',
+   *    coordinates: [-76.80207859497996, 55.69469494228919]
+   * }
+   */
+  location: Point
 
 }, { timestamps: true, emitIndexErrors: true });
 
@@ -319,6 +473,53 @@ ChangeLogSchema.statics.VISIBILITY_PRIVATE = VISIBILITY_PRIVATE;
 ChangeLogSchema.statics.VISIBILITY_PUBLIC = VISIBILITY_PUBLIC;
 ChangeLogSchema.statics.VISIBILITIES = VISIBILITIES;
 
+/**
+ * @name notifyAssignee
+ * @type Function
+ * @description notify assignee on assigned service request
+ * @param {Function} done a callback to invoke on success or failure
+ * @return {Object} latest service request
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ * @public
+ */
+ChangeLogSchema.statics.notifyAssignee =
+  function (changelog, servicerequest, done) {
+    // refs
+    const Party = model('Party');
+
+    // map service request to legacy
+    const legacy = servicerequest.mapToLegacy();
+
+    // prepare message content
+    const body =
+      'Hello, Please assist in resolving assigned customer complaint';
+
+    // initialize message
+    const message = {
+      subject: [legacy.service.name, legacy.code].join(' - #'),
+      body: body
+    };
+
+    // send push
+    waterfall([
+      function findAssignee(next) {
+        const id = _.get(changelog, 'assignee._id', changelog.assignee);
+        Party.findById(id, next);
+      },
+      function sendPush(assignee, next) {
+        if (assignee && !_.isEmpty(assignee.pushTokens)) {
+          message.to = assignee.pushTokens;
+          Send.push(message, next);
+        } else {
+          next(null, null);
+        }
+      }
+    ], function afterNotifyAssignee( /*error, results*/ ) {
+      done(null, servicerequest);
+    });
+  };
 
 /**
  * @name track
@@ -346,9 +547,10 @@ ChangeLogSchema.statics.track = function (changes, done) {
 
 
   //refs
-  const ServiceRequest = mongoose.model('ServiceRequest');
+  const ServiceRequest = model('ServiceRequest');
+  const ChangeLog = model('ChangeLog');
 
-  async.waterfall([
+  waterfall([
 
     //obtain service requests
     function findServiceRequest(next) {
@@ -379,10 +581,37 @@ ChangeLogSchema.statics.track = function (changes, done) {
         //clear or set resolve time
         servicerequest.resolvedAt = changelog.resolvedAt;
 
+        // ensure flow timestamps
+        if (changelog.resolvedAt) {
+          if (!servicerequest.attendedAt) {
+            changelog.attendedAt = changelog.resolvedAt;
+            servicerequest.attendedAt = changelog.resolvedAt;
+          }
+          if (!servicerequest.completedAt) {
+            changelog.completedAt = changelog.resolvedAt;
+            servicerequest.completedAt = changelog.resolvedAt;
+          }
+          if (!servicerequest.verifiedAt) {
+            changelog.verifiedAt = changelog.resolvedAt;
+            servicerequest.verifiedAt = changelog.resolvedAt;
+          }
+          if (!servicerequest.approvedAt) {
+            changelog.approvedAt = changelog.resolvedAt;
+            servicerequest.approvedAt = changelog.resolvedAt;
+          }
+        }
+
         if (!changelog.resolvedAt) {
 
           //clear resolve time
           servicerequest.ttr = undefined;
+
+          // clear flow timestamps
+          servicerequest.assignedAt = undefined;
+          servicerequest.attendedAt = undefined;
+          servicerequest.completedAt = undefined;
+          servicerequest.verifiedAt = undefined;
+          servicerequest.approvedAt = undefined;
 
           //set reopen time
           const reopenedAt = new Date();
@@ -405,6 +634,11 @@ ChangeLogSchema.statics.track = function (changes, done) {
         return _.isUndefined(value) || _.isNull(value);
       });
 
+      // ensure assigned date if assignee available
+      if (changelog.assignee) {
+        changelog.assignedAt = new Date();
+      }
+
       //compute changelogs
       let changelogs = servicerequest.changes(changelog);
       changelogs =
@@ -419,10 +653,16 @@ ChangeLogSchema.statics.track = function (changes, done) {
 
     //update service request
     function updateServiceRequest(servicerequest, next) {
+      // TODO ensure assignee if resolving changelog and there were no
+      // assigned worker
 
       //update
       _.forEach(changelog, function (value, key) {
-        servicerequest.set(key, value);
+        const allowedKey =
+          (!_.includes(['image', 'audio', 'video', 'document'], key));
+        if (allowedKey) {
+          servicerequest.set(key, value);
+        }
       });
 
       //update
@@ -437,6 +677,11 @@ ChangeLogSchema.statics.track = function (changes, done) {
       ServiceRequest
         .findById(changelog.request)
         .exec(next);
+    },
+
+    // notify assignee
+    function notify(servicerequest, next) {
+      ChangeLog.notifyAssignee(changelog, servicerequest, next);
     }
 
 
@@ -462,4 +707,4 @@ ChangeLogSchema.plugin(actions);
 
 
 /* export changelog model */
-module.exports = mongoose.model('ChangeLog', ChangeLogSchema);
+module.exports = exports = model('ChangeLog', ChangeLogSchema);

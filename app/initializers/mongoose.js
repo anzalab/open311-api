@@ -3,9 +3,8 @@
 
 /* dependencies */
 const path = require('path');
-const env = require('@lykmapipo/env');
+const { connect } = require('@lykmapipo/mongoose-common');
 const mongoose = require('mongoose');
-mongoose.Promise = global.Promise;
 // mongoose.set('debug', true);
 const pluginPath = path.join(__dirname, '..', 'libs', 'mongoose');
 const mongooseShow = require(path.join(pluginPath, 'show'));
@@ -13,10 +12,7 @@ const mongooseEdit = require(path.join(pluginPath, 'edit'));
 const mongooseList = require(path.join(pluginPath, 'list'));
 const mongooseReload = require(path.join(pluginPath, 'reload'));
 const mongooseSoftDelete = require(path.join(pluginPath, 'soft_delete'));
-
-
-/* ensure mongodb url */
-const MONGODB_URI = env('MONGODB_URI', 'mongodb://localhost/open311');
+const { createModels } = require('@lykmapipo/file');
 
 
 /* plugin global schema plugin to allow virtuals in toJSON */
@@ -50,8 +46,9 @@ require('require-all')({
 
 
 /* establish mongodb connection */
-mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
-
+connect(function () {
+  createModels(); // initialize common file models
+});
 
 /**
  * @description export mongoose

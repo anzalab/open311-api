@@ -15,14 +15,14 @@
 
 //dependencies
 const _ = require('lodash');
-const env = require('@lykmapipo/env');
-const { Message, SMS } = require('@lykmapipo/postman');
-const phone = require('phone');
-const { getBoolean } = env;
+const { getString, getBoolean, isProduction } = require('@lykmapipo/env');
+const { Message, SMS, Email, Push } = require('@lykmapipo/postman');
+const { toE164 } = require('@lykmapipo/phone');
 
 
 /* constants */
-const DEFAULT_SMS_SENDER_ID = env('DEFAULT_SMS_SENDER_ID');
+const DEFAULT_EMAIL_SENDER = getString('SMTP_FROM');
+const DEFAULT_SMS_SENDER_ID = getString('DEFAULT_SMS_SENDER_ID');
 const ENABLE_SYNC_TRANSPORT = getBoolean('ENABLE_SYNC_TRANSPORT', false);
 
 
@@ -38,22 +38,7 @@ const ENABLE_SYNC_TRANSPORT = getBoolean('ENABLE_SYNC_TRANSPORT', false);
  * @version 0.1.0
  * @public
  */
-exports.formatPhoneNumberToE164 = function (phoneNumber, countryCode) {
-
-  //try convert give phone number to e.164
-  try {
-    countryCode = countryCode || env('DEFAULT_COUNTRY_CODE', 'TZ');
-    phoneNumber = phone(phoneNumber, countryCode);
-    phoneNumber = _.first(phoneNumber).replace(/\+/g, '');
-    return phoneNumber;
-  }
-
-  //fail to convert, return original format
-  catch (error) {
-    return phoneNumber;
-  }
-
-};
+exports.formatPhoneNumberToE164 = toE164;
 
 
 /**
@@ -68,13 +53,12 @@ exports.formatPhoneNumberToE164 = function (phoneNumber, countryCode) {
  * @public
  */
 exports.sms = function (message, done) {
-
-  //obtain current execution environment
-  const { isProduction } = env;
-
   //prepare sms message
   const isMessageInstance = message instanceof Message;
   message = isMessageInstance ? message.toObject() : message;
+
+  // force message type to sms
+  message.type = Message.TYPE_SMS;
 
   //ensure message sender
   message.sender = (message.sender || DEFAULT_SMS_SENDER_ID);
@@ -82,7 +66,7 @@ exports.sms = function (message, done) {
   //ensure receivers number are in e.164 format
   let receivers = _.uniq(_.compact([].concat(message.to)));
   receivers = _.map(receivers, function (receiver) {
-    return exports.formatPhoneNumberToE164(receiver);
+    return toE164(receiver);
   });
   message.to = receivers;
 
@@ -99,6 +83,89 @@ exports.sms = function (message, done) {
   //direct sms send in development & test
   else {
     sms.send(done);
+  }
+
+};
+
+/**
+ * @name push
+ * @description send a given message as push notification
+ * @param {Message|Object} message valid message instance or definition
+ * @param {Function} done a callback to invoke on success or failure
+ * @see {@link Message}
+ * @author lally elias <lallyelias87@mail.com>
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ */
+exports.push = function (message, done) {
+  //prepare sms message
+  const isMessageInstance = message instanceof Message;
+  message = isMessageInstance ? message.toObject() : message;
+
+  // force message type to push
+  message.type = Message.TYPE_PUSH;
+
+  //ensure receivers push token
+  let receivers = _.uniq(_.compact([].concat(message.to)));
+  message.to = receivers;
+
+  //instantiate push
+  const push = new Push(message);
+
+  //queue message in production
+  //or if is asynchronous send
+  if (isProduction && !ENABLE_SYNC_TRANSPORT) {
+    push.queue();
+    done(null, push);
+  }
+
+  //direct push send in development & test
+  else {
+    push.send(done);
+  }
+
+};
+
+/**
+ * @name email
+ * @description send a given message as email
+ * @param {Message|Object} message valid message instance or definition
+ * @param {Function} done a callback to invoke on success or failure
+ * @see {@link Message}
+ * @author lally elias <lallyelias87@mail.com>
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ */
+exports.email = function (message, done) {
+  //prepare sms message
+  const isMessageInstance = message instanceof Message;
+  message = isMessageInstance ? message.toObject() : message;
+
+  // force message type to push
+  message.type = Message.TYPE_EMAIL;
+
+  // ensure message sender
+  message.sender = (message.sender || DEFAULT_EMAIL_SENDER);
+
+  //ensure receivers emails
+  let receivers = _.uniq(_.compact([].concat(message.to)));
+  message.to = receivers;
+
+  //instantiate email
+  const email = new Email(message);
+
+  //queue message in production
+  //or if is asynchronous send
+  if (isProduction && !ENABLE_SYNC_TRANSPORT) {
+    email.queue();
+    done(null, email);
+  }
+
+  //direct email send in development & test
+  else {
+    email.send(done);
   }
 
 };

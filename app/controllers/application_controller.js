@@ -19,6 +19,7 @@ const Service = mongoose.model('Service');
 const Priority = mongoose.model('Priority');
 const Status = mongoose.model('Status');
 const JWT = require(path.join(__dirname, '..', 'libs', 'jwt'));
+const { toE164 } = require('@lykmapipo/phone');
 
 //TODO refactor out reports to report controller
 //TODO export /me to be able to refresh current request party profile
@@ -32,8 +33,7 @@ module.exports = {
   signup: function (request, response, next) {
 
     //prevent invalid registration details
-    if (_.isEmpty(request.body) || _.isEmpty(request.body.email) ||
-      _.isEmpty(request.body.password)) {
+    if (_.isEmpty(request.body) || _.isEmpty(request.body.password)) {
       next(new Error('Invalid signup details'));
     }
 
@@ -59,27 +59,29 @@ module.exports = {
   signin: function (request, response, next) {
 
     //prevent invalid signin details
-    if (_.isEmpty(request.body) || _.isEmpty(request.body.email) ||
+    if (_.isEmpty(request.body) || _.isEmpty(request.body.username) ||
       _.isEmpty(request.body.password)) {
       next(new Error('Invalid signin details'));
     }
 
     //continue with signin
     else {
-      //normalize email
-      request.body.email = request.body.email.toLowerCase();
+      //normalize credentials
+      const { username } = _.merge({}, request.body);
+      const email = username.toLowerCase();
+      const phone = toE164(username);
+
+      const credentials = {
+        $or: [{ email: email }, { phone: phone }],
+        deletedAt: { $eq: null },
+        password: request.body.password
+      };
 
       async.waterfall([
 
           function authenticateParty(then) {
             //authenticate active party only
-            request.body = _.merge(request.body, {
-              deletedAt: {
-                $eq: null
-              }
-            });
-
-            Party.authenticate(request.body, then);
+            Party.authenticate(credentials, then);
           },
 
           //ensure roles & permissions

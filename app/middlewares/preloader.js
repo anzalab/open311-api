@@ -30,7 +30,9 @@ module.exports = exports = function (request, response, next) {
     service: 'Service',
     priority: 'Priority',
     request: 'ServiceRequest',
-    status: 'Status'
+    status: 'Status',
+    zone: 'Predefine',
+    item: 'Predefine'
   };
 
   //check if request has any instance

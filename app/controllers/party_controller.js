@@ -6,6 +6,8 @@ const async = require('async');
 const mongoose = require('mongoose');
 const Party = mongoose.model('Party');
 const irinaUtils = require('irina/lib/utils.js');
+const { toE164 } = require('@lykmapipo/phone');
+
 
 /**
  * Party Controller
@@ -50,6 +52,11 @@ module.exports = {
       request.body.password = request.settings.defaultPassword;
     }
 
+    // format phone to E.164
+    if (request.body.phone) {
+      request.body.phone = toE164(request.body.phone);
+    }
+
     Party
       .register(request.body, function (error, party) {
         if (error) {
@@ -90,6 +97,13 @@ module.exports = {
   update: function (request, response, next) {
     //reference party id
     var id = request.body._id || request.params.id;
+    request.body.jurisdiction = request.body.jurisdiction || null;
+    request.body.zone = request.body.zone || null;
+
+    // format phone to E.164
+    if (request.body.phone) {
+      request.body.phone = toE164(request.body.phone);
+    }
 
     delete request.body._id;
 
@@ -121,6 +135,33 @@ module.exports = {
           response.ok(party);
         }
       });
+  },
+
+  /**
+   * @function
+   * @name parties.updateDevices()
+   * @description update a specific party devices details
+   * @param  {HttpRequest} request  a http request
+   * @param  {HttpResponse} response a http response
+   */
+  updateDevices: function (request, response, next) {
+    // ensure body
+    const body = _.merge({ extras: {} }, request.body);
+
+    // obtain party id
+    const id = body.extras.party;
+
+    //prepare push token updates
+    const pushTokens = _.compact([body.registrationToken]);
+
+    // update party and echo device details
+    Party.put(id, { pushTokens }, function (error /*, party*/ ) {
+      if (error) {
+        next(error);
+      } else {
+        response.ok(body);
+      }
+    });
   },
 
 

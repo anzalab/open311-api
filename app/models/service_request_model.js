@@ -34,6 +34,7 @@ const sync = require('open311-api-sync');
 const mongoose = require('mongoose');
 const actions = require('mongoose-rest-actions');
 const { Point } = require('mongoose-geojson-schemas');
+const { FileTypes } = require('@lykmapipo/file');
 const parseMs = require('parse-ms');
 
 
@@ -107,6 +108,26 @@ const ServiceRequestSchema = new Schema({
   },
 
   /**
+   * @name zone
+   * @description A jurisdiction zone(or branch, neighbourhood) responsible
+   * in handling service request(issue)
+   *
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  zone: {
+    type: ObjectId,
+    ref: 'Predefine',
+    index: true,
+    exists: true,
+    autopopulate: {
+      select: 'code name'
+    }
+  },
+
+  /**
    * @name group
    * @description A service group undewhich request(issue) belongs to
    * @type {Object}
@@ -158,6 +179,7 @@ const ServiceRequestSchema = new Schema({
    * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @deprecated
    */
   call: Call,
 
@@ -172,7 +194,7 @@ const ServiceRequestSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-  reporter: Reporter,
+  reporter: Reporter, //TODO refactor to party
 
 
   /**
@@ -248,7 +270,8 @@ const ServiceRequestSchema = new Schema({
     required: true,
     trim: true,
     uppercase: true,
-    searchable: true
+    searchable: true,
+    taggable: true
   },
 
 
@@ -285,7 +308,8 @@ const ServiceRequestSchema = new Schema({
     type: String,
     trim: true,
     index: true,
-    searchable: true
+    searchable: true,
+    taggable: true
   },
 
 
@@ -332,8 +356,8 @@ const ServiceRequestSchema = new Schema({
   status: {
     type: ObjectId,
     ref: 'Status',
-    exists: true,
     index: true,
+    exists: true,
     autopopulate: {
       maxDepth: 1
     }
@@ -355,8 +379,8 @@ const ServiceRequestSchema = new Schema({
   priority: {
     type: ObjectId,
     ref: 'Priority',
-    exists: true,
     index: true,
+    exists: true,
     autopopulate: {
       maxDepth: 1
     }
@@ -371,12 +395,52 @@ const ServiceRequestSchema = new Schema({
    * @private
    * @since 0.1.0
    * @version 0.1.0
+   * @deprecated
    */
-  attachments: {
+  attachments: { // TODO: deprecate and use image, audio and video files
     type: [Media],
     index: true
   },
 
+  /**
+   * @name image
+   * @description Associated image for service request(issue)
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  image: FileTypes.Image,
+
+  /**
+   * @name audio
+   * @description Associated audio for service request(issue)
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  audio: FileTypes.Audio,
+
+  /**
+   * @name video
+   * @description Associated video for service request(issue)
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  video: FileTypes.Video,
+
+  /**
+   * @name document
+   * @description Associated document for service request(issue)
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  document: FileTypes.Document,
 
   /**
    * @name expectedAt
@@ -423,6 +487,75 @@ const ServiceRequestSchema = new Schema({
     index: true
   },
 
+  /**
+   * @name assignedAt
+   * @description A latest time when the issue was assigned to latest assignee
+   * to work on it.
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  assignedAt: {
+    type: Date,
+    index: true
+  },
+
+  /**
+   * @name attendedAt
+   * @description A latest time when the issue was marked as
+   * work in progress by latest assignee.
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  attendedAt: {
+    type: Date,
+    index: true
+  },
+
+  /**
+   * @name completedAt
+   * @description A time when the issue was marked as complete(or done) by
+   * latest assignee.
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  completedAt: {
+    type: Date,
+    index: true
+  },
+
+  /**
+   * @name verifiedAt
+   * @description A time when the issue was verified by immediate
+   * supervisor(technician).
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  verifiedAt: {
+    type: Date,
+    index: true
+  },
+
+  /**
+   * @name approvedAt
+   * @description A time when the issue was approved by final
+   * supervisor(engineer).
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  approvedAt: {
+    type: Date,
+    index: true
+  },
 
   /**
    * @name ttr
