@@ -210,6 +210,10 @@ module.exports = {
       changelog.approvedAt = new Date();
     }
 
+    if(changelog.location){
+      changelog.location = parseBody(changelog.location);
+    }
+
     ChangeLog
       .track(changelog, function (error, servicerequest) {
         if (error) {
