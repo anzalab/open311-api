@@ -118,6 +118,7 @@
   "devDependencies": {
     "@benmaruchu/faker": "^4.3.0",
     "chai": "^4.2.0",
+    "extend": "^3.0.2",
     "faker": "^4.1.0",
     "grunt": "^1.0.4",
     "grunt-concurrent": "^3.0.0",
