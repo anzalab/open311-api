@@ -34,6 +34,7 @@ const sync = require('open311-api-sync');
 const mongoose = require('mongoose');
 const actions = require('mongoose-rest-actions');
 const { Point } = require('mongoose-geojson-schemas');
+const { Predefine } = require('@lykmapipo/predefine');
 const { FileTypes } = require('@lykmapipo/file');
 const parseMs = require('parse-ms');
 
@@ -146,6 +147,24 @@ const ServiceRequestSchema = new Schema({
       select: 'code name color',
       maxDepth: 1
     }
+  },
+
+  /**
+   * @name group
+   * @description A service type undewhich request(issue) belongs to
+   * @type {Object}
+   * @see {@link Service}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  type: {
+    type: ObjectId,
+    ref: Predefine.MODEL_NAME,
+    // required: true,
+    exists: true,
+    autopopulate: Predefine.OPTION_AUTOPOPULATE,
+    index: true,
   },
 
 
