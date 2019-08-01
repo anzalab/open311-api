@@ -18,6 +18,11 @@ const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
 const moment = require('moment');
+const { Predefine } = require('@lykmapipo/predefine');
+const {
+  PREDEFINE_NAMESPACE_SERVICETYPE,
+  PREDEFINE_BUCKET_SERVICETYPE,
+} = require('@codetanzania/majifix-common');
 
 /* @todo refactor */
 /* @todo clear dead codes */
@@ -51,7 +56,8 @@ module.exports = exports = function preValidatePlugin(schema /*, options*/ ) {
       //ensure resolve time is ahead of creation time
       this.resolvedAt =
         (ttr > 0 ? this.resolvedAt :
-          this.resolvedAt = new Date((this.createdAt.getTime() + -(ttr))));
+          this.resolvedAt = new Date((this.createdAt.getTime() + -(ttr)))
+        );
 
       //ensure positive ttr
       ttr = ttr > 0 ? ttr : -(ttr);
@@ -69,6 +75,12 @@ module.exports = exports = function preValidatePlugin(schema /*, options*/ ) {
     const group = _.get(this.service, 'group');
     if (!this.group && group) {
       this.group = group;
+    }
+
+    //ensure type from service
+    const type = _.get(this.service, 'type');
+    if (!this.type && type) {
+      this.type = type;
     }
 
     //ensure priority from service
@@ -95,6 +107,16 @@ module.exports = exports = function preValidatePlugin(schema /*, options*/ ) {
           ServiceGroup.findById(id, next);
         }.bind(this),
 
+        type: function (next) {
+          const id = _.get(this.type, '_id', this.type);
+          const criteria = {
+            _id: id,
+            namespace: PREDEFINE_NAMESPACE_SERVICETYPE,
+            bucket: PREDEFINE_BUCKET_SERVICETYPE,
+          };
+          Predefine.getOneOrDefault(criteria, next);
+        }.bind(this),
+
         service: function (next) {
           const Service = mongoose.model('Service');
           const id = _.get(this.service, '_id', this.service);
@@ -105,6 +127,7 @@ module.exports = exports = function preValidatePlugin(schema /*, options*/ ) {
           const Status = mongoose.model('Status');
           Status.findDefault(next);
         },
+
         priority: function findDefaultPriority(next) {
           const Priority = mongoose.model('Priority');
           Priority.findDefault(next);
@@ -128,9 +151,11 @@ module.exports = exports = function preValidatePlugin(schema /*, options*/ ) {
             return done(error);
           }
 
-          //set group, status and priority
+          //set group, type, status and priority
           this.group =
             (result.group || this.group || undefined);
+          this.type =
+            (result.type || this.type || undefined);
           this.status =
             (this.status || result.status || undefined);
           this.priority =
