@@ -149,9 +149,10 @@ const ServiceRequestSchema = new Schema({
     }
   },
 
+
   /**
-   * @name group
-   * @description A service type undewhich request(issue) belongs to
+   * @name type
+   * @description A service type underwhich request(issue) belongs to
    * @type {Object}
    * @see {@link Service}
    * @private
