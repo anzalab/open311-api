@@ -22,7 +22,7 @@ module.exports = {
    * @param  {HttpResponse} response a http response
    */
   index: function (request, response, next) {
-
+    console.log(request.mquery);
     ServiceRequest
       .list(request, function (error, results) {
         if (error) {
