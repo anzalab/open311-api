@@ -1,6 +1,5 @@
 'use strict';
 
-
 /**
  * @module ChangeLog
  * @name ChangeLog
@@ -18,11 +17,9 @@
  * @public
  */
 
-
 //global dependencies(or imports)
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-
 
 //constants
 
@@ -37,14 +34,19 @@ const FAX = 'Fax';
 const MOBILE_APP = 'Mobile';
 const WEBSITE = 'Website';
 const METHODS = [
-  PHONE_CALL, EMAIL,
-  SMS, USSD, VISIT,
-  LETTER, FAX, MOBILE_APP, WEBSITE
+  PHONE_CALL,
+  EMAIL,
+  SMS,
+  USSD,
+  VISIT,
+  LETTER,
+  FAX,
+  MOBILE_APP,
+  WEBSITE
 ];
-
+const WEB_METHODS = [PHONE_CALL, EMAIL, SMS, VISIT, LETTER, FAX];
 
 //TODO track if contact method is external method(or channel)
-
 
 /**
  * @name ContactMethod
@@ -53,76 +55,67 @@ const METHODS = [
  * @version 0.1.0
  * @private
  */
-const ContactMethod = new Schema({
-  /**
-   * @name name
-   * @description A communication(contact) method(mechanism) used by a reporter
-   *              to report the issue
-   *
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  name: {
-    type: String,
-    index: true,
-    default: PHONE_CALL,
-    enum: METHODS,
-    searchable: true
+const ContactMethod = new Schema(
+  {
+    /**
+     * @name name
+     * @description A communication(contact) method(mechanism) used by a reporter
+     *              to report the issue
+     *
+     * @type {Object}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+    name: {
+      type: String,
+      index: true,
+      default: PHONE_CALL,
+      enum: METHODS,
+      searchable: true
+    },
+
+    /**
+     * @name workspace
+     * @description workspace used be operator to receive service request
+     * @type {Object}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+    workspace: {
+      type: String,
+      index: true,
+      searchable: true
+    }
   },
-
-
-  /**
-   * @name workspace
-   * @description workspace used be operator to receive service request
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  workspace: {
-    type: String,
-    index: true,
-    searchable: true
-  }
-
-}, { _id: false, id: false, timestamps: false, emitIndexErrors: true });
-
-
+  { _id: false, id: false, timestamps: false, emitIndexErrors: true }
+);
 
 //---------------------------------------------------------
 // ContactMethod Statics
 //---------------------------------------------------------
 
 //expose contact methods(constants)
-ContactMethod.PHONE_CALL =
-  ContactMethod.statics.PHONE_CALL = PHONE_CALL;
+ContactMethod.PHONE_CALL = ContactMethod.statics.PHONE_CALL = PHONE_CALL;
 
-ContactMethod.EMAIL =
-  ContactMethod.statics.EMAIL = EMAIL;
+ContactMethod.EMAIL = ContactMethod.statics.EMAIL = EMAIL;
 
-ContactMethod.SMS =
-  ContactMethod.statics.SMS = SMS;
+ContactMethod.SMS = ContactMethod.statics.SMS = SMS;
 
-ContactMethod.VISIT =
-  ContactMethod.statics.VISIT = VISIT;
+ContactMethod.VISIT = ContactMethod.statics.VISIT = VISIT;
 
-ContactMethod.LETTER =
-  ContactMethod.statics.LETTER = LETTER;
+ContactMethod.LETTER = ContactMethod.statics.LETTER = LETTER;
 
-ContactMethod.FAX =
-  ContactMethod.statics.FAX = FAX;
+ContactMethod.FAX = ContactMethod.statics.FAX = FAX;
 
-ContactMethod.MOBILE_APP =
-  ContactMethod.statics.MOBILE_APP = MOBILE_APP;
+ContactMethod.MOBILE_APP = ContactMethod.statics.MOBILE_APP = MOBILE_APP;
 
-ContactMethod.WEBSITE =
-  ContactMethod.statics.WEBSITE = WEBSITE;
+ContactMethod.WEBSITE = ContactMethod.statics.WEBSITE = WEBSITE;
 
-ContactMethod.METHODS =
-  ContactMethod.statics.METHODS = METHODS;
+ContactMethod.METHODS = ContactMethod.statics.METHODS = METHODS;
 
+ContactMethod.WEB_METHODS = ContactMethod.statics.WEB_METHODS = WEB_METHODS;
 
 /**
  * @name ContactMethod

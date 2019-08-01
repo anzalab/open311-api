@@ -117,6 +117,7 @@
   },
   "devDependencies": {
     "@benmaruchu/faker": "^4.3.0",
+    "@lykmapipo/mongoose-test-helpers": "^0.7.16",
     "chai": "^4.2.0",
     "extend": "^3.0.2",
     "faker": "^4.1.0",

@@ -894,6 +894,7 @@ ServiceRequestSchema.statics.CONTACT_METHOD_EMAIL = ContactMethod.EMAIL;
 ServiceRequestSchema.statics.CONTACT_METHOD_MOBILE_APP =
   ContactMethod.MOBILE_APP;
 ServiceRequestSchema.statics.CONTACT_METHODS = ContactMethod.METHODS;
+ServiceRequestSchema.statics.WEB_CONTACT_METHODS = ContactMethod.WEB_METHODS;
 
 
 //-----------------------------------------------------------------------------
