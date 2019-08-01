@@ -379,6 +379,8 @@ module.exports = {
         });
       },
 
+      // TODO add service types
+
       services: function (next) { //fetch services
         //increase limit
         request.query.limit = 100;
@@ -430,6 +432,13 @@ module.exports = {
           }
         });
       },
+
+      // TODO add roles
+      // TODO add permissions
+      // TODO add predefine block reason
+      // TODO add predefine unit
+      // TODO add predefine item
+      // TODO add predefine zone
 
       summaries: function (next) { //fetch issue summaries
         ServiceRequest.summary(criteria, next);
