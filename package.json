@@ -59,6 +59,7 @@
     "remove": "sudo update-rc.d -f pm2-init.sh remove"
   },
   "dependencies": {
+    "@anzalab/majifix-analytics": "git+ssh://git@github.com/anzalab/majifix-analytics.git",
     "@codetanzania/majifix-account": ">=1.7.5",
     "@codetanzania/majifix-alert": ">=1.1.6",
     "@codetanzania/majifix-common": ">=0.13.0",
