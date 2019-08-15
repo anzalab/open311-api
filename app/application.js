@@ -81,7 +81,7 @@ mount(require('@codetanzania/majifix-service-group').router);
 mount(require('@codetanzania/majifix-service').router);
 mount(require('@codetanzania/majifix-account').router);
 mount(require('@codetanzania/majifix-alert').router);
-mount(require('@anzalab/majifix-analytics').router);
+mount(require('@codetanzania/majifix-analytics').router);
 
 
 /* export express application */
