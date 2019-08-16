@@ -2,7 +2,7 @@
 var conn = new Mongo();
 var db = conn.getDB('open311');
 
-var types = { 'Request': '#884bea', 'Complaint': '#954fc1', 'Enquiry': '#cd92f4', 'Maintainance': '#e8c9ff' };
+var types = { 'Report': '#ba4ec2', 'Request': '#884bea', 'Complaint': '#954fc1', 'Inquiry': '#cd92f4', 'Maintainance': '#e8c9ff' };
 types = Object.keys(types).map(function (type) {
   var code = type.charAt(0).toUpperCase();
   return {
