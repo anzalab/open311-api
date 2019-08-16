@@ -2012,17 +2012,27 @@ angular
     };
 
     $scope.searchJurisdictions = function(query) {
-      console.log(query);
       return Jurisdiction.find({
         q: query,
+        filter: {
+          deletedAt: {
+            $eq: null,
+          },
+        },
       }).then(function(response) {
-        console.log(response.jurisdictions);
         return response.jurisdictions;
       });
     };
 
     $scope.searchServices = function(query) {
-      return Service.find({ q: query }).then(function(response) {
+      return Service.find({
+        q: query,
+        filter: {
+          deletedAt: {
+            $eq: null,
+          },
+        },
+      }).then(function(response) {
         return response.services;
       });
     };
