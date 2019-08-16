@@ -3352,7 +3352,7 @@ angular
       if ($scope.servicerequest) {
         $scope.servicerequest.$get().then(function(response) {
           $scope.servicerequest = new ServiceRequest(response);
-          $scope.loadComment($scope.servicerequest);
+          $scope.select($scope.servicerequest);
         });
       }
     };
