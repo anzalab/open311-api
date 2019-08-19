@@ -102,6 +102,7 @@ const ServiceRequestSchema = new Schema({
     required: true,
     index: true,
     exists: true,
+    aggregatable: { unwind: true },
     autopopulate: {
       select: 'code name phone email website',
       maxDepth: 1
@@ -143,6 +144,7 @@ const ServiceRequestSchema = new Schema({
     required: true,
     index: true,
     exists: true,
+    aggregatable: { unwind: true },
     autopopulate: {
       select: 'code name color',
       maxDepth: 1
@@ -164,6 +166,7 @@ const ServiceRequestSchema = new Schema({
     ref: Predefine.MODEL_NAME,
     // required: true,
     exists: true,
+    aggregatable: { unwind: true },
     autopopulate: Predefine.OPTION_AUTOPOPULATE,
     index: true,
   },
@@ -184,6 +187,7 @@ const ServiceRequestSchema = new Schema({
     required: true,
     index: true,
     exists: true,
+    aggregatable: { unwind: true },
     autopopulate: {
       select: 'code name color group isExternal', // remove group?
       maxDepth: 1
@@ -238,6 +242,7 @@ const ServiceRequestSchema = new Schema({
     ref: 'Party',
     index: true,
     exists: true,
+    aggregatable: { unwind: true },
     autopopulate: {
       select: 'name email phone avatar',
       maxDepth: 1
@@ -264,6 +269,7 @@ const ServiceRequestSchema = new Schema({
     ref: 'Party',
     index: true,
     exists: true,
+    aggregatable: { unwind: true },
     autopopulate: {
       select: 'name email phone',
       maxDepth: 1
@@ -378,6 +384,7 @@ const ServiceRequestSchema = new Schema({
     ref: 'Status',
     index: true,
     exists: true,
+    aggregatable: { unwind: true },
     autopopulate: {
       maxDepth: 1
     }
@@ -401,6 +408,7 @@ const ServiceRequestSchema = new Schema({
     ref: 'Priority',
     index: true,
     exists: true,
+    aggregatable: { unwind: true },
     autopopulate: {
       maxDepth: 1
     }
@@ -796,7 +804,7 @@ ServiceRequestSchema.methods.syncUpstream = function (done) {
 ServiceRequestSchema.methods.sync = function (strategy, done) {
 
   //ensure callback
-  done = done || function () {};
+  done = done || function () { };
 
   //obtain current execution environment
   const { isProduction } = env;

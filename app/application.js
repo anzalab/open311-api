@@ -34,7 +34,6 @@ const { app, mount } = require('@lykmapipo/express-common');
 const mkdir = require('mkdir-p');
 const respond = require('express-respond');
 
-
 /* constants */
 const BASE_PATH = getString('BASE_PATH', process.cwd());
 const LOG_PATH = getString('LOG_PATH', path.join(BASE_PATH, 'logs'));
@@ -82,6 +81,7 @@ mount(require('@codetanzania/majifix-service-group').router);
 mount(require('@codetanzania/majifix-service').router);
 mount(require('@codetanzania/majifix-account').router);
 mount(require('@codetanzania/majifix-alert').router);
+mount(require('@codetanzania/majifix-analytics').router);
 
 
 /* export express application */
