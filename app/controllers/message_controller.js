@@ -92,7 +92,6 @@ module.exports = {
       });
     }
 
-
     // handle unknown message type
     return next(new Error('Unknown Message Type'));
   },

@@ -153,6 +153,9 @@ exports.email = function (message, done) {
   let receivers = _.uniq(_.compact([].concat(message.to)));
   message.to = receivers;
 
+  // ensure cc'ed
+  // ensure bcc'ed
+
   //instantiate email
   const email = new Email(message);
 
