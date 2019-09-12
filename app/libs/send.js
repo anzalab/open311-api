@@ -154,7 +154,12 @@ exports.email = function (message, done) {
   message.to = receivers;
 
   // ensure cc'ed
+  let cced = _.uniq(_.compact([].concat(message.cc)));
+  message.cc = cced;
+
   // ensure bcc'ed
+  let bcced = _.uniq(_.compact([].concat(message.bcc)));
+  message.bcc = bcced;
 
   //instantiate email
   const email = new Email(message);
