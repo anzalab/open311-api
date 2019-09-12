@@ -17,6 +17,7 @@ const Jurisdiction = mongoose.model('Jurisdiction');
 const ServiceGroup = mongoose.model('ServiceGroup');
 const Service = mongoose.model('Service');
 const Priority = mongoose.model('Priority');
+const Predefine = mongoose.model('Predefine');
 const Status = mongoose.model('Status');
 const JWT = require(path.join(__dirname, '..', 'libs', 'jwt'));
 const { toE164 } = require('@lykmapipo/phone');
@@ -79,34 +80,34 @@ module.exports = {
 
       async.waterfall([
 
-          function authenticateParty(then) {
-            //authenticate active party only
-            Party.authenticate(credentials, then);
-          },
+        function authenticateParty(then) {
+          //authenticate active party only
+          Party.authenticate(credentials, then);
+        },
 
-          //ensure roles & permissions
-          function populate(party, then) {
-            party.populate('roles', then);
-          },
+        //ensure roles & permissions
+        function populate(party, then) {
+          party.populate('roles', then);
+        },
 
-          function encodePartyToJWT(party, then) {
+        function encodePartyToJWT(party, then) {
 
-            JWT
-              .encode(party, function afterEncode(error, jwtToken) {
-                if (error) {
-                  then(error);
-                } else {
-                  then(null, {
-                    party: _.merge(party.toJSON(), {
-                      settings: request.settings
-                    }),
-                    token: jwtToken
-                  });
-                }
-              });
-          }
+          JWT
+            .encode(party, function afterEncode(error, jwtToken) {
+              if (error) {
+                then(error);
+              } else {
+                then(null, {
+                  party: _.merge(party.toJSON(), {
+                    settings: request.settings
+                  }),
+                  token: jwtToken
+                });
+              }
+            });
+        }
 
-        ],
+      ],
         function done(error, result) {
 
           //fail to authenticate party
@@ -283,7 +284,7 @@ module.exports = {
    * @param  {HttpRequest} request  http request
    * @param  {HttpResponse} response http response
    */
-  heartbeats: function (request, response /*, next*/ ) {
+  heartbeats: function (request, response /*, next*/) {
     //TODO check client API token
     var today = new Date();
 
@@ -428,6 +429,17 @@ module.exports = {
                 _status.name = status.name.en;
                 return _status;
               });
+            next(null, results);
+          }
+        });
+      },
+
+      servicetypes: function (next) {
+        const query = { filter: { namespace: 'ServiceType', bucket: 'servicetypes' }, paginate: { limit: 1000 } };
+        Predefine.get(query, function (error, results) {
+          if (error) {
+            next(error);
+          } else {
             next(null, results);
           }
         });
