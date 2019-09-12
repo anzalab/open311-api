@@ -62,22 +62,39 @@ module.exports = {
     let message = request.body;
     message.type = message.type || Message.TYPE_SMS;
 
-    //check for sms template to use
-    if (message.template) {
-      //compile message to send
-      const template = _.get(config.get('infobip').templates, message.template) ||
-        _.get(config.get('infobip').templates.ticket, message.template);
-      message.body = parseTemplate(template, message);
-    }
+    // send sms
+    if (message.type === Message.TYPE_SMS) {
+      //check for sms template to use
+      if (message.template) {
+        //compile message to send
+        const template = _.get(config.get('infobip').templates, message.template) ||
+          _.get(config.get('infobip').templates.ticket, message.template);
+        message.body = parseTemplate(template, message);
+      }
 
-    Send
-      .sms(message, function (error, message) {
+      return Send.sms(message, function (error, message) {
         if (error) {
           next(error);
         } else {
           response.created(message);
         }
       });
+    }
+
+    // handle email
+    if (message.type === Message.TYPE_EMAIL) {
+      return Send.email(message, function (error, message) {
+        if (error) {
+          next(error);
+        } else {
+          response.created(message);
+        }
+      });
+    }
+
+
+    // handle unknown message type
+    return next(new Error('Unknown Message Type'));
   },
 
 
