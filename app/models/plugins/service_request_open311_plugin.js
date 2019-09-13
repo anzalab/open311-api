@@ -128,6 +128,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
       //refs
       const ServiceRequest = this;
       const Service = mongoose.model('Service');
+      const Jurisdiction = mongoose.model('Jurisdiction');
 
       //use open311 submitted method
       const CONTACT_METHOD_MOBILE_APP =
@@ -135,7 +136,22 @@ module.exports = exports = function open311(schema /*,options*/ ) {
 
       async.waterfall([
 
-        function ensureServiceExist(next) {
+        function ensureJurisdiction(next) {
+          /*jshint camelcase:false*/
+
+          // find jurisdiction by jurisdiction_id
+          const criteria = {
+            $or: [
+              { name: serviceRequest.jurisdiction_id },
+              { _id: serviceRequest.jurisdiction_id }
+            ]
+          };
+          Jurisdiction.findOne(criteria).exec(next);
+
+          /*jshint camelcase:true*/
+        },
+
+        function ensureServiceExist(jurisdiction, next) {
           /*jshint camelcase:false*/
 
           // find service by request code
@@ -147,13 +163,13 @@ module.exports = exports = function open311(schema /*,options*/ ) {
                 error.status = 404;
               }
 
-              next(error, service);
+              next(error, jurisdiction, service);
             });
 
           /*jshint camelcase:true*/
         },
 
-        function createServiceRequest(service, next) {
+        function createServiceRequest(jurisdiction, service, next) {
           /*jshint camelcase:false*/
 
           //check for location presence
@@ -181,7 +197,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
           //prepare service request
           serviceRequest = {
             service: service,
-            jurisdiction: serviceRequest.jurisdiction_id,
+            jurisdiction: jurisdiction || serviceRequest.jurisdiction_id,
             reporter: {
               name: [serviceRequest.first_name,
                 serviceRequest.last_name
