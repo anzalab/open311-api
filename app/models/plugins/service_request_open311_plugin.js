@@ -140,12 +140,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
           /*jshint camelcase:false*/
 
           // find jurisdiction by jurisdiction_id
-          const criteria = {
-            $or: [
-              { name: serviceRequest.jurisdiction_id },
-              { _id: serviceRequest.jurisdiction_id }
-            ]
-          };
+          const criteria = { name: serviceRequest.jurisdiction_id };
           Jurisdiction.findOne(criteria).exec(next);
 
           /*jshint camelcase:true*/
