@@ -17,5 +17,7 @@ nbproject
 .editorconfig
 .travis.yml
 Gruntfile.js
+report*.json
+/logs
 doc
 docs
