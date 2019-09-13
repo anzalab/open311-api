@@ -34,7 +34,6 @@ const { app, mount } = require('@lykmapipo/express-common');
 const mkdir = require('mkdir-p');
 const respond = require('express-respond');
 
-
 /* constants */
 const BASE_PATH = getString('BASE_PATH', process.cwd());
 const LOG_PATH = getString('LOG_PATH', path.join(BASE_PATH, 'logs'));
@@ -75,13 +74,14 @@ mount(require('@lykmapipo/permission').permissionRouter);
 mount(require('@lykmapipo/role').roleRouter);
 mount(require('@lykmapipo/predefine').predefineRouter);
 mount(require('@lykmapipo/file').fileRouter);
-mount(require('@codetanzania/majifix-jurisdiction').router);
-mount(require('@codetanzania/majifix-priority').router);
-mount(require('@codetanzania/majifix-status').router);
-mount(require('@codetanzania/majifix-service-group').router);
-mount(require('@codetanzania/majifix-service').router);
-mount(require('@codetanzania/majifix-account').router);
-mount(require('@codetanzania/majifix-alert').router);
+mount(require('@codetanzania/majifix-jurisdiction').jurisdictionRouter);
+mount(require('@codetanzania/majifix-priority').priorityRouter);
+mount(require('@codetanzania/majifix-status').statusRouter);
+mount(require('@codetanzania/majifix-service-group').serviceGroupRouter);
+mount(require('@codetanzania/majifix-service').serviceRouter);
+mount(require('@codetanzania/majifix-account').accountRouter);
+mount(require('@codetanzania/majifix-alert').alertRouter);
+mount(require('@codetanzania/majifix-analytics').router);
 
 
 /* export express application */
