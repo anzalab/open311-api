@@ -556,6 +556,56 @@ angular.module('ng311').factory('Comment', function($http, $resource, Utils) {
 'use strict';
 
 /**
+ * @ngdoc Message
+ * @name ng311.Message
+ */
+angular.module('ng311').factory('Message', function($resource, $http, Utils) {
+  //create message resource
+  var Message = $resource(
+    Utils.asLink(['messages']),
+    {
+      id: '@_id',
+    },
+    {
+      update: {
+        method: 'PUT',
+      },
+    }
+  );
+
+  /**
+   * Find messages with pagination
+   *
+   * @function
+   * @name find
+   *
+   * @param {Object} params
+   * @returns {Object}
+   *
+   * @version 0.1.0
+   * @since 0.1.0
+   */
+  Message.find = function(params) {
+    return $http
+      .get(Utils.asLink(['v1', 'messages']), { params: params })
+      .then(function(response) {
+        var messages = response.data.data.map(function(message) {
+          return new Message(message);
+        });
+
+        return {
+          messages: messages,
+          total: response.data.total,
+        };
+      });
+  };
+
+  return Message;
+});
+
+'use strict';
+
+/**
  * @ngdoc function
  * @name ng311.controller:MainCtrl
  * @description root controller for all ng311 controllers
@@ -770,6 +820,33 @@ angular
     //use only editable properties
     $scope.party = new Party($rootScope.party);
 
+    $scope.exports = {
+      types: {
+        filename: 'service_types_overview_reports_' + Date.now() + '.csv',
+        headers: [
+          'Service Type',
+          'Total',
+          'Pending',
+          'Resolved',
+          'Late',
+          'Average Attend Time (Call Duration)',
+          'Average Resolve Time',
+        ],
+      },
+      services: {
+        filename: 'services_overview_reports_' + Date.now() + '.csv',
+        headers: [
+          'Service',
+          'Total',
+          'Pending',
+          'Resolved',
+          'Late',
+          'Average Attend Time (Call Duration)',
+          'Average Resolve Time',
+        ],
+      },
+    };
+
     // create initial default filters
     var defaultFilters = {
       startedAt:
@@ -859,6 +936,58 @@ angular
       },
     };
 
+    /**
+     * Exports current overview data
+     */
+    $scope.export = function(type) {
+      var _exports = _.map($scope.performances[type], function(overview) {
+        overview = {
+          name: overview.name,
+          total: overview.count,
+          pending: overview.pending,
+          resolved: overview.resolved,
+          late: overview.late,
+          averageAttendTime: overview.averageAttendTime
+            ? [
+                overview.averageAttendTime.days,
+                ' days, ',
+                overview.averageAttendTime.hours,
+                ' hrs, ',
+                overview.averageAttendTime.minutes,
+                ' mins, ',
+                overview.averageAttendTime.seconds,
+                ' secs',
+              ].join('')
+            : undefined,
+          averageResolveTime: overview.averageResolveTime
+            ? [
+                overview.averageResolveTime.days,
+                'days, ',
+                overview.averageResolveTime.hours,
+                'hrs, ',
+                overview.averageResolveTime.minutes,
+                'mins, ',
+                overview.averageResolveTime.seconds,
+                'secs, ',
+              ].join('')
+            : undefined,
+        };
+
+        //reshape for workspace and method
+        if (type === 'methods' || type === 'workspaces') {
+          overview = _.pick(overview, ['name', 'total']);
+        }
+
+        if (type === 'services' || type === 'types') {
+          overview = _.merge({}, overview, { name: overview.name.en });
+        }
+
+        return overview;
+      });
+
+      return _exports;
+    };
+
     $scope.onEdit = function() {
       $scope.edit = true;
     };
@@ -932,142 +1061,29 @@ angular
     };
 
     $scope.performance = function() {
-      var params = _.merge(
-        {},
-        { filter: $scope.params },
-        {
-          _id: $scope.party._id,
-        }
-      );
+      var params = { filter: $scope.params };
+
+      params.filter.operator = $scope.party._id;
 
       Party.performances(params).then(function(response) {
         //TODO comment
-        response.pipelines = _.chain(response.pipelines)
-          .orderBy('label.weight', 'asc')
-          .map(function(pipeline) {
-            return _.merge(
-              {},
-              {
-                displayColor:
-                  _.get(pipeline, 'label.color', '#4BC0C0') + '!important',
-              },
-              pipeline
-            );
-          })
-          .value();
+        // response.pipelines = _.chain(response.pipelines)
+        //   .orderBy('label.weight', 'asc')
+        //   .map(function(pipeline) {
+        //     return _.merge(
+        //       {},
+        //       {
+        //         displayColor:
+        //           _.get(pipeline, 'label.color', '#4BC0C0') + '!important',
+        //       },
+        //       pipeline
+        //     );
+        //   })
+        //   .value();
 
-        response.leaderboard = _.orderBy(response.leaderboard, 'count', 'desc');
+        // response.leaderboard = _.orderBy(response.leaderboard, 'count', 'desc');
 
-        $scope.performances = response;
-        $scope.performances.overall = {
-          count: 10,
-          pending: 5,
-          resolved: 5,
-          late: 0,
-          target: 0,
-        };
-        $scope.performances.attendTime = {
-          max: { days: 0, hours: 0, minutes: 0, seconds: 0 },
-          min: { days: 0, hours: 0, minutes: 0, seconds: 0 },
-          average: { days: 0, hours: 0, minutes: 0, seconds: 0 },
-          target: { days: 0, hours: 0, minutes: 0, seconds: 0 },
-        };
-        $scope.performances.resolveTime = {
-          max: { days: 0, hours: 0, minutes: 0, seconds: 0 },
-          min: { days: 0, hours: 0, minutes: 0, seconds: 0 },
-          average: { days: 0, hours: 0, minutes: 0, seconds: 0 },
-          target: { days: 0, hours: 0, minutes: 0, seconds: 0 },
-        };
-        $scope.performances.breakdown = [
-          {
-            name: 'Billing',
-            total: 14,
-            open: 2,
-            inprogress: 5,
-            close: 2,
-            resolved: 5,
-          },
-          {
-            name: 'Water Leakage',
-            total: 14,
-            open: 2,
-            inprogress: 5,
-            close: 2,
-            resolved: 5,
-          },
-          {
-            name: 'Adjustment BTN',
-            total: 14,
-            open: 2,
-            inprogress: 5,
-            close: 2,
-            resolved: 5,
-          },
-          {
-            name: 'Un registered Customer',
-            total: 14,
-            open: 2,
-            inprogress: 5,
-            close: 2,
-            resolved: 5,
-          },
-          {
-            name: 'New Connection',
-            total: 14,
-            open: 2,
-            inprogress: 5,
-            close: 2,
-            resolved: 5,
-          },
-          {
-            name: 'Wrong Reading',
-            total: 14,
-            open: 2,
-            inprogress: 5,
-            close: 2,
-            resolved: 5,
-          },
-          {
-            name: 'Wrong Reading',
-            total: 14,
-            open: 2,
-            inprogress: 5,
-            close: 2,
-            resolved: 5,
-          },
-          {
-            name: 'Wrong Reading',
-            total: 14,
-            open: 2,
-            inprogress: 5,
-            close: 2,
-            resolved: 5,
-          },
-          {
-            name: 'Wrong Reading',
-            total: 14,
-            open: 2,
-            inprogress: 5,
-            close: 2,
-            resolved: 5,
-          },
-          {
-            name: 'Wrong Reading',
-            total: 14,
-            open: 2,
-            inprogress: 5,
-            close: 2,
-            resolved: 5,
-          },
-          {
-            name: 'Wrong Reading',
-            total: 14,
-            open: 2,
-            inprogress: 5,
-            close: 2,
-            resolved: 5,
-          },
-        ];
+        $scope.performances = response.data;
       });
     };
 
@@ -1738,7 +1754,7 @@ angular
      * @param  {Object} report current report in the scope
      * @return {String} valid mailto string to bind into href
      */
-    ServiceRequest.toEmail = function(issue) {
+    ServiceRequest.toEmail = function(issue, sender) {
       /*jshint camelcase:false */
 
       //prepare complaint address
@@ -1764,155 +1780,58 @@ angular
       //prepare e-mail body
       var body = [
         'Hello,',
-        '\n\n',
-        'Please assist in resolving customer complaint #',
+        '\r\n\r\n',
+        'Please assist in resolving issue #',
         issue.code || 'N/A',
         '.',
-        '\n\n',
+        '\r\n\r\n',
         'Time: ',
         time || 'N/A',
-        '\n',
+        '\r\n',
         'Date: ',
         date || 'N/A',
-        '\n',
+        '\r\n',
         'Account Number/Location: ',
         address || 'N/A',
-        '\n',
+        '\r\n',
         'Area: ',
         (issue.jurisdiction || {}).name || 'N/A',
-        '\n',
-        'Customer Name: ',
+        '\r\n',
+        'Rporter Name: ',
         issue.reporter.name || 'N/A',
-        '\n',
-        'Phone No.: ',
+        '\r\n',
+        'Reporter Phone #: ',
         issue.reporter.phone || 'N/A',
-        '\n',
-        'Nature of Complaint: ',
+        '\r\n',
+        'Nature: ',
         issue.service.name || 'N/A',
-        '\n',
-        'Complaint Details: ',
+        '\r\n',
+        'Description: ',
         issue.description || 'N/A',
-        '\n\n',
-        'Regards.',
+        '\r\n\r\n',
+        'Regards,',
+        '\r\n',
+        sender.name,
+        '.',
       ].join('');
-
-      //add internal notes
-      var changelogs = _.orderBy(
-        [].concat(issue.changelogs),
-        'createdAt',
-        'desc'
-      );
-      var notes = _.map(changelogs, function(changelog) {
-        var note = [];
-
-        //handle changelog
-        if (changelog.comment) {
-          note = note.concat(
-            [
-              changelog.changer.name,
-              ' on ',
-              $filter('date')(changelog.createdAt, 'dd MMM yyyy hh:mm:ss a'),
-              ': ',
-              'Write: ',
-              changelog.comment,
-            ].join('')
-          );
-        }
-
-        //handle status
-        if (changelog.status) {
-          note = note.concat(
-            [
-              changelog.changer.name,
-              ' on ',
-              $filter('date')(changelog.createdAt, 'dd MMM yyyy hh:mm:ss a'),
-              ': ',
-              'Change status to ',
-              changelog.status.name,
-            ].join('')
-          );
-        }
-
-        //handle priority
-        if (changelog.priority) {
-          note = note.concat(
-            [
-              changelog.changer.name,
-              ' on ',
-              $filter('date')(changelog.createdAt, 'dd MMM yyyy hh:mm:ss a'),
-              ': ',
-              'Change priority to ',
-              changelog.priority.name,
-            ].join('')
-          );
-        }
-
-        //handle assignee
-        if (changelog.assignee) {
-          note = note.concat(
-            [
-              changelog.changer.name,
-              ' on ',
-              $filter('date')(changelog.createdAt, 'dd MMM yyyy hh:mm:ss a'),
-              ': ',
-              'Assignee to ',
-              changelog.assignee.name,
-            ].join('')
-          );
-        }
-
-        //handle resolved
-        if (changelog.resolvedAt) {
-          note = note.concat(
-            [
-              changelog.changer.name,
-              ' on ',
-              $filter('date')(changelog.createdAt, 'dd MMM yyyy hh:mm:ss a'),
-              ': ',
-              'Change status to ',
-              'Resolved',
-            ].join('')
-          );
-        }
-
-        //handle resolved
-        if (changelog.reopenedAt) {
-          note = note.concat(
-            [
-              changelog.changer.name,
-              ' on ',
-              $filter('date')(changelog.createdAt, 'dd MMM yyyy hh:mm:ss a'),
-              ': ',
-              'Change status to ',
-              'Reopened',
-            ].join('')
-          );
-        }
-
-        note = _.filter(note, function(line) {
-          return !_.isEmpty(line);
-        });
-        note = note.length > 0 ? note.join(',\n') : undefined;
-        return note;
-      });
-
-      notes = _.compact(notes);
-
-      body = body + '\n\n' + 'Change Logs: ' + '\n\n' + notes.join(',\n');
 
       //TODO add a link to actual problem
 
       //prepare e-mail send option
       var recipient = _.get(issue, 'jurisdiction.email', '');
       var options = {
+        sender: sender.email,
+        to: recipient,
         subject: [issue.service.name, issue.code].join(' - #'),
         body: body,
+        type: 'EMAIL',
+        bulk: issue._id,
       };
       /*jshint camelcase:true*/
 
-      var href = Mailto.url(recipient, options);
+      // var href = Mailto.url(recipient, options);
 
-      return href;
+      return options;
     };
 
     return ServiceRequest;
@@ -2193,6 +2112,7 @@ angular
     Party,
     ServiceRequest,
     Comment,
+    Message,
     Summary,
     endpoints,
     party,
@@ -2310,7 +2230,7 @@ angular
         //update scope service request ref
         $scope.servicerequest = servicerequest;
 
-        $scope.mailTo = ServiceRequest.toEmail(servicerequest);
+        // $scope.mailTo = ServiceRequest.toEmail(servicerequest);
 
         //update markers & map center
         if (servicerequest.location && servicerequest.location.coordinates) {
@@ -2582,6 +2502,51 @@ angular
           }
         })
         .catch(function() {});
+    };
+
+    /**
+     * launch issue send modal
+     */
+    $scope.onSend = function() {
+      // prepare send message
+      $scope.message = ServiceRequest.toEmail($scope.servicerequest, party);
+
+      //open send modal
+      $scope.modal = $uibModal.open({
+        templateUrl: 'views/servicerequests/_partials/message.html',
+        scope: $scope,
+        size: 'lg',
+      });
+
+      //handle modal close and dismissed
+      $scope.modal.result.then(
+        function onClose(/*selectedItem*/) {},
+        function onDismissed() {}
+      );
+    };
+
+    // send issue via well know channels i.e sms or email
+    $scope.send = function() {
+      var message = new Message($scope.message);
+
+      // normalize fields
+      message.cc = _.map([].concat($scope.message.cc), function(cc) {
+        return cc && cc.email;
+      });
+      message.bcc = _.map([].concat($scope.message.bcc), function(bcc) {
+        return bcc && bcc.email;
+      });
+      message
+        .$save()
+        .then(function(response) {
+          $scope.modal.dismiss();
+          response = response || {};
+          response.message = response.message || 'Message Sent Successfully';
+          $rootScope.$broadcast('appSuccess', response);
+        })
+        .catch(function(error) {
+          $rootScope.$broadcast('appError', error);
+        });
     };
 
     /**
@@ -2879,6 +2844,34 @@ angular
     $scope.filterByReporter = function(q, query) {
       $scope.search.q = q;
       $scope.load(query, true);
+    };
+
+    /**
+     * @function
+     * @name searchServiceGroup
+     * @description Search service group by name
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    $scope.searchParties = function(query) {
+      return Party.find({
+        filter: {
+          deletedAt: {
+            $eq: null,
+          },
+          email: {
+            $ne: null,
+          },
+        },
+        q: query,
+      }).then(function(response) {
+        var parties = _.map([].concat(response.parties), function(party) {
+          party.label = party.name + ' <' + party.email + '>';
+          return party;
+        });
+        return parties;
+      });
     };
 
     /**
@@ -6865,11 +6858,8 @@ angular.module('ng311').factory('Party', function($http, $resource, Utils) {
    * @return {[type]}        [description]
    */
   Party.performances = function(params) {
-    var _id = params._id;
-    params = _.omit(params, '_id');
-
     return $http
-      .get(Utils.asLink(['parties', _id, 'performances']), {
+      .get(Utils.asLink(['v1', 'reports', 'operators']), {
         params: params,
       })
       .then(function(response) {
@@ -7276,11 +7266,11 @@ angular.module('ng311').factory('Summary', function($http, $resource, Utils) {
    */
   Summary.overviews = function(params) {
     return $http
-      .get(Utils.asLink(['reports', 'overviews']), {
+      .get(Utils.asLink(['v1', 'reports', 'overviews']), {
         params: params,
       })
       .then(function(response) {
-        return response.data;
+        return response.data.data;
       });
   };
 
@@ -7306,11 +7296,11 @@ angular.module('ng311').factory('Summary', function($http, $resource, Utils) {
    */
   Summary.performances = function(params) {
     return $http
-      .get(Utils.asLink(['reports', 'performances']), {
+      .get(Utils.asLink(['v1', 'reports', 'performances']), {
         params: params,
       })
       .then(function(response) {
-        return response.data;
+        return response.data.data;
       });
   };
 
@@ -7387,6 +7377,21 @@ angular.module('ng311').factory('Summary', function($http, $resource, Utils) {
       }
     }
 
+    //ensure service types
+    //3. ensure service types
+    //3.0 normalize & compact service types
+    params.servicetypes = _.uniq(_.compact([].concat(params.servicetypes)));
+    //3.1 build group criteria
+    if (params.servicetypes.length >= 1) {
+      if (params.servicetypes.length > 1) {
+        //use $in criteria
+        query.type = { $in: params.servicetypes };
+      } else {
+        //use $eq criteria
+        query.type = _.first(params.servicetypes);
+      }
+    }
+
     //ensure services
     //4. ensure services
     //4.0 normalize & compact services
@@ -7445,6 +7450,22 @@ angular.module('ng311').factory('Summary', function($http, $resource, Utils) {
       } else {
         //use $eq criteria
         query['method.workspace'] = _.first(params.workspaces);
+      }
+    }
+
+    //ensure methods
+    //7. ensure methods
+    //7.0 normalize & compact methods
+    params.methods = _.uniq(_.compact([].concat(params.methods)));
+    //7.1 build reporting method criteria
+    if (params.methods.length >= 1) {
+      // query.method = {};
+      if (params.methods.length > 1) {
+        //use $in criteria
+        query['method.name'] = { $in: params.methods };
+      } else {
+        //use $eq criteria
+        query['method.name'] = _.first(params.methods);
       }
     }
 
@@ -7631,8 +7652,10 @@ angular
     $scope.statuses = endpoints.statuses.statuses;
     $scope.services = endpoints.services.services;
     $scope.servicegroups = endpoints.servicegroups.servicegroups;
+    $scope.servicetypes = endpoints.servicetypes.data;
     $scope.jurisdictions = endpoints.jurisdictions.jurisdictions;
     $scope.workspaces = party.settings.party.relation.workspaces;
+    $scope.methods = party.settings.servicerequest.methods;
 
     //bind filters
     var defaultFilters = {
@@ -7647,8 +7670,10 @@ angular
       statuses: [],
       priorities: [],
       servicegroups: [],
+      servicetypes: [],
       jurisdictions: [],
       workspaces: [],
+      methods: [],
     };
 
     //TODO persist filter to local storage
@@ -7672,6 +7697,18 @@ angular
         filename: 'service_groups_overview_reports_' + Date.now() + '.csv',
         headers: [
           'Service Group',
+          'Total',
+          'Pending',
+          'Resolved',
+          'Late',
+          'Average Attend Time (Call Duration)',
+          'Average Resolve Time',
+        ],
+      },
+      types: {
+        filename: 'service_types_overview_reports_' + Date.now() + '.csv',
+        headers: [
+          'Service Type',
           'Total',
           'Pending',
           'Resolved',
@@ -7745,6 +7782,10 @@ angular
         //reshape for workspace and method
         if (type === 'methods' || type === 'workspaces') {
           overview = _.pick(overview, ['name', 'total']);
+        }
+
+        if (type === 'services' || type === 'types') {
+          overview = _.merge({}, overview, { name: overview.name.en });
         }
 
         return overview;
@@ -7825,6 +7866,7 @@ angular
       $scope.prepareServiceVisualization();
       $scope.prepareJurisdictionVisualization();
       $scope.prepareServiceGroupVisualization();
+      $scope.prepareServiceTypeVisualization();
       $scope.prepareMethodVisualization();
       $scope.prepareWorkspaceVisualization();
     };
@@ -7883,7 +7925,7 @@ angular
       //prepare bar chart series data
       var data = _.map($scope.overviews.services, function(service) {
         var serie = {
-          name: service.name,
+          name: service.name.en,
           value: service[column],
           itemStyle: {
             normal: {
@@ -8122,6 +8164,80 @@ angular
     };
 
     /**
+     * prepare service type overview visualization
+     * @return {object} echart bar chart configurations
+     * @version 0.1.0
+     * @since  0.1.0
+     * @author Benson Maruchu<benmaruchu@gmail.com>
+     */
+    $scope.prepareServiceTypeVisualization = function(column) {
+      //ensure column
+      column = column || 'count';
+
+      //prepare chart series data
+      var data = _.map($scope.overviews.types, function(type) {
+        return {
+          name: type.name.en,
+          value: type[column],
+        };
+      });
+
+      //prepare chart config
+      $scope.perServiceTypeConfig = {
+        height: 400,
+        forceClear: true,
+      };
+
+      //prepare chart options
+      $scope.perServiceTypeOptions = {
+        textStyle: {
+          fontFamily: 'Lato',
+        },
+        title: {
+          text:
+            column === 'count' ? 'Total' : _.upperFirst(column.toLowerCase()),
+          subtext: $filter('number')(_.sumBy(data, 'value'), 0),
+          x: 'center',
+          y: 'center',
+          textStyle: {
+            fontWeight: 'normal',
+            fontSize: 16,
+          },
+        },
+        tooltip: {
+          show: true,
+          trigger: 'item',
+          formatter: '{b}:<br/> Count: {c} <br/> Percent: ({d}%)',
+        },
+        toolbox: {
+          show: true,
+          feature: {
+            saveAsImage: {
+              name: 'Service Types Overview - ' + new Date().getTime(),
+              title: 'Save',
+              show: true,
+            },
+          },
+        },
+        series: [
+          {
+            type: 'pie',
+            selectedMode: 'single',
+            radius: ['45%', '55%'],
+            color: _.map($scope.overviews.types, 'color'),
+
+            label: {
+              normal: {
+                formatter: '{b}\n{d}%\n( {c} )',
+              },
+            },
+            data: data,
+          },
+        ],
+      };
+    };
+
+    /**
      * prepare method overview visualization
      * @return {object} echart pie chart configurations
      * @version 0.1.0
@@ -8318,8 +8434,10 @@ angular
     $scope.statuses = endpoints.statuses.statuses;
     $scope.services = endpoints.services.services;
     $scope.servicegroups = endpoints.servicegroups.servicegroups;
+    $scope.servicetypes = endpoints.servicetypes.data;
     $scope.jurisdictions = endpoints.jurisdictions.jurisdictions;
     $scope.workspaces = party.settings.party.relation.workspaces;
+    $scope.methods = party.settings.servicerequest.methods;
 
     //bind filters
     var defaultFilters = {
@@ -8334,8 +8452,10 @@ angular
       statuses: [],
       priorities: [],
       servicegroups: [],
+      servicetypes: [],
       jurisdictions: [],
       workspaces: [],
+      methods: [],
     };
 
     $scope.filters = defaultFilters;
@@ -9095,8 +9215,10 @@ angular
     $scope.statuses = endpoints.statuses.statuses;
     $scope.services = endpoints.services.services;
     $scope.servicegroups = endpoints.servicegroups.servicegroups;
+    $scope.servicetypes = endpoints.servicetypes.data;
     $scope.jurisdictions = endpoints.jurisdictions.jurisdictions;
     $scope.workspaces = party.settings.party.relation.workspaces;
+    $scope.methods = party.settings.servicerequest.methods;
 
     //bind filters
     var defaultFilters = {
@@ -9111,8 +9233,10 @@ angular
       statuses: [],
       priorities: [],
       servicegroups: [],
+      servicetypes: [],
       jurisdictions: [],
       workspaces: [],
+      methods: [],
     };
 
     $scope.filters = defaultFilters;
@@ -9197,8 +9321,10 @@ angular
     $scope.statuses = endpoints.statuses.statuses;
     $scope.services = endpoints.services.services;
     $scope.servicegroups = endpoints.servicegroups.servicegroups;
+    $scope.servicetypes = endpoints.servicetypes.data;
     $scope.jurisdictions = endpoints.jurisdictions.jurisdictions;
     $scope.workspaces = party.settings.party.relation.workspaces;
+    $scope.methods = party.settings.servicerequest.methods;
 
     //set default jurisdiction
     $scope.jurisdiction =
@@ -9220,6 +9346,8 @@ angular
           .toDate(),
       jurisdictions: $scope.jurisdiction._id,
       workspaces: [],
+      servicetypes: [],
+      methods: [],
     };
 
     //TODO persist filter to local storage
@@ -9446,7 +9574,7 @@ angular
       //prepare chart series data
       var data = _.map($scope.performances.statuses, function(status) {
         return {
-          name: status.name,
+          name: status.name.en,
           value: status.count,
         };
       });
@@ -9598,7 +9726,7 @@ angular
       //prepare bar chart series data
       var data = _.map($scope.performances.services, function(service) {
         var serie = {
-          name: service.name,
+          name: service.name.en,
           value: service[column],
           itemStyle: {
             normal: {
@@ -10803,7 +10931,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/auth/_partials/overall_summary.html',
-    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Overview Summary\"> <h3>Overview Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> </ul> </div> <div> <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-3 b-r b-b\" title=\"Total Service Requests Received\"> <div class=\"p-a-sm\"> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{performances.overall.count | number:0}} </h4> <p class=\"text-muted m-b-md\">Total</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Pending Service Requests\"> <div class=\"p-a-sm\"> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{performances.overall.pending | number:0}} </h4> <p class=\"text-muted m-b-md\">Pending</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Resolved Service Requests\"> <div class=\"p-a-sm\"> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{performances.overall.resolved | number:0}} </h4> <p class=\"text-muted m-b-md\">Resolved</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Late(Past SLA Time) Service Requests\"> <div class=\"p-a-sm\"> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{performances.overall.late | number:0}} </h4> <p class=\"text-muted m-b-md\">Late</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-3 b-b\" title=\"Overall Target to be reached\"> <div class=\"p-a-sm\"> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{performances.overall.target | number:0}} </h4> <p class=\"text-muted m-b-md\">Target</p> </div> </div> </div> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Overview Summary\"> <h3>Overview Summary</h3> </div> <div> <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Total Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ performances.overall.count | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Total</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Pending Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ performances.overall.pending | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Pending</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Resolved Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ performances.overall.resolved | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Resolved</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Late(Past SLA Time) Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ performances.overall.late | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Late</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Average Attend Time(Call Duration)\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average Attend Time(Call Duration) - Minutes Spent\"> {{ performances.overall.averageAttendTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span title=\"Average Attend Time(Call Duration) - Seconds Spent\"> {{ performances.overall.averageAttendTime.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Attend Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-b\" title=\"Average resolve Time\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average resolve Time - Hourss Spent\"> {{ performances.overall.averageResolveTime.hours + performances.overall.averageResolveTime.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average resolve Time - Minutes Spent\"> {{ performances.overall.averageResolveTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Resolve Time</p> </div> </div> </div> </div> </div> </div> </div> "
   );
 
 
@@ -10847,13 +10975,15 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   );
 
 
-  $templateCache.put('views/auth/_partials/service_requests_breakdown_summary.html',
-    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Attended Service Requests Breakdown\"> <h3>Attended Service Requests Breakdown</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('groups')\" csv-header=\"exports.groups.headers\" filename=\"service_groups_performance_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th title=\"Service\"> Service </th> <th title=\"Total Count of Service Requests\"> Total </th> <th title=\"Total Count of Open Service Requests\"> open </th> <th title=\"Total Count of In Progress Service Requests\"> In Progress </th> <th title=\"Total Count of Closed Service Requests\"> Close </th> <th title=\"Total Count of Resolved Service Requests\"> Resolved </th> </tr> </thead> <tbody> <tr ng-repeat=\"serviceRequest in performances.breakdown\"> <td title=\"{{serviceRequest.name}}\"> {{serviceRequest.name}} </td> <td title=\"{{serviceRequest.total | number:0}}\"> {{serviceRequest.total | number:0}} </td> <td title=\" {{serviceRequest.open | number:0}}\"> {{serviceRequest.open | number:0}} </td> <td title=\" {{serviceRequest.inprogress | number:0}}\"> {{serviceRequest.inprogress | number:0}} </td> <td title=\" {{serviceRequest.close | number:0}}\"> {{serviceRequest.close | number:0}} </td> <td title=\" {{serviceRequest.resolved | number:0}}\"> {{serviceRequest.resolved | number:0}} </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+  $templateCache.put('views/auth/_partials/service_summary.html',
+    " <div class=\"padding m-t-md m-b-lg\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Services Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_overview_reports_{{\n" +
+    "              filters.startedAt | date: settings.dateFormat\n" +
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th title=\"Service\"> Service </th> <th title=\"Total Count of Service Requests\"> Total </th> <th title=\"Total Count of Pending Service Requests\"> Pending </th> <th title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"service in performances.services\"> <td title=\"{{ service.name }}\"> {{ service.name.en }} </td> <td title=\"{{ service.count | number: 0 }}\"> {{ service.count | number: 0 }} </td> <td title=\" {{ service.pending | number: 0 }}\"> {{ service.pending | number: 0 }} </td> <td title=\" {{ service.resolved | number: 0 }}\"> {{ service.resolved | number: 0 }} </td> <td title=\" {{ service.late | number: 0 }}\"> {{ service.late | number: 0 }} </td> <td> <span> {{ service.averageAttendTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{ service.averageAttendTime.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{ service.averageResolveTime.hours + service.averageResolveTime.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ service.averageResolveTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/auth/profile.html',
-    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Profile </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <ng-include src=\"'views/auth/_partials/profile_summary.html'\"></ng-include> <div class=\"row no-gutter\" style=\"display:none\"> <div class=\"col-xs-12 col-sm-6 col-md-6\"> <ng-include ng-if=\"performances.overall\" src=\"'views/auth/_partials/overall_summary.html'\"> </ng-include> </div> <div class=\"col-xs-12 col-sm-6 col-md-6\" style=\"display:none\"> <ng-include ng-if=\"performances.pipelines && performances.pipelines.length > 0\" src=\"'views/auth/_partials/pipeline_summary.html'\"></ng-include> </div> </div> <div class=\"row no-gutter\"> <div class=\"col-xs-12 col-sm-6 col-md-6\" style=\"display:none\"> <ng-include ng-if=\"performances.attendTime\" src=\"'views/auth/_partials/attend_time_summary.html'\"> </ng-include> </div> <div class=\"col-xs-12 col-sm-6 col-md-6\" style=\"display:none\"> <ng-include ng-if=\"performances.resolveTime\" src=\"'views/auth/_partials/resolve_time_summary.html'\"></ng-include> </div> </div> <ng-include ng-if=\"performances.breakdown\" src=\"'views/auth/_partials/service_requests_breakdown_summary.html'\" style=\"display:none\"> </ng-include> <ng-include ng-if=\"performances.leaderboard\" src=\"'views/auth/_partials/service_request_leaderboard.html'\" style=\"display:none\"></ng-include> </div> "
+    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Profile </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <ng-include src=\"'views/auth/_partials/profile_summary.html'\"></ng-include> <ng-include ng-if=\"performances.overall\" src=\"'views/auth/_partials/overall_summary.html'\"> </ng-include> <ng-include ng-if=\"performances.pipelines && performances.pipelines.length > 0\" src=\"'views/auth/_partials/pipeline_summary.html'\"></ng-include> <div class=\"row no-gutter\" style=\"display: none\"> <div class=\"col-xs-12 col-sm-6 col-md-6\"> <ng-include ng-if=\"performances.attendTime\" src=\"'views/auth/_partials/attend_time_summary.html'\"> </ng-include> </div> <div class=\"col-xs-12 col-sm-6 col-md-6\"> <ng-include ng-if=\"performances.resolveTime\" src=\"'views/auth/_partials/resolve_time_summary.html'\"></ng-include> </div> </div> <ng-include ng-if=\"performances.services\" src=\"'views/auth/_partials/service_summary.html'\"> </ng-include> <ng-include ng-if=\"performances.operators\" src=\"'views/auth/_partials/service_request_leaderboard.html'\"></ng-include> <div ng-if=\"!performances.overall\" class=\"row-col h-v\"> <div class=\"row-cell v-s\"> <div class=\"text-center col-sm-6 offset-sm-3 p-y-lg\"> <p class=\"text-muted m-y-lg\"> No Data Found. Please update your filters. </p> <button ng-click=\"showFilter()\" class=\"btn btn-outline b-grey text-grey\" title=\"Click to update filters\"> Update Filters </button> </div> </div> </div> </div> "
   );
 
 
@@ -10878,12 +11008,12 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/dashboards/_partials/overviews_filter.html',
-    "<div> <div class=\"modal-header\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$dismiss()\" aria-hidden=\"true\"> × </button> <h4 class=\"modal-title\">Overview Reports - Filters</h4> </div> <div class=\"modal-body\"> <div class=\"container-fluid\"> <div class=\"row\"> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> From </h6> </div> <div pickadate ng-model=\"filters.startedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> To </h6> </div> <div pickadate ng-model=\"filters.endedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> </div> <div class=\"row m-t-sm\" ng-if=\"jurisdictions.length > 1\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Area </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"jurisdiction in jurisdictions | orderBy:'name'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{jurisdiction.name}}\"> <input type=\"checkbox\" checklist-model=\"filters.jurisdictions\" checklist-value=\"jurisdiction._id\"> <i class=\"blue\"></i> {{jurisdiction.name}} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service Group </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"servicegroup in servicegroups | orderBy:'name'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{servicegroup.name}}\"> <input type=\"checkbox\" checklist-model=\"filters.servicegroups\" checklist-value=\"servicegroup._id\"> <i class=\"blue\"></i>{{servicegroup.name}} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"service in services | orderBy:'name'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{service.name}}\"> <input type=\"checkbox\" checklist-model=\"filters.services\" checklist-value=\"service._id\"> <i class=\"blue\"></i>{{service.name}} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Status </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"status in statuses | orderBy:'weight'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{status.name}}\"> <input type=\"checkbox\" checklist-model=\"filters.statuses\" checklist-value=\"status._id\"> <i class=\"blue\"></i>{{status.name}} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Priority </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"priority in priorities | orderBy:'weight'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{priority.name}}\"> <input type=\"checkbox\" checklist-model=\"filters.priorities\" checklist-value=\"priority._id\"> <i class=\"blue\"></i>{{priority.name}} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Workspace </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"workspace in workspaces\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{workspace}}\"> <input type=\"checkbox\" checklist-model=\"filters.workspaces\" checklist-value=\"workspace\"> <i class=\"blue\"></i>{{workspace}} </label> </div> </div> </div> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" ng-click=\"$dismiss()\">Cancel</button> <button class=\"btn btn-primary\" ng-click=\"filter()\">Filter</button> </div> </div> "
+    "<div> <div class=\"modal-header\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$dismiss()\" aria-hidden=\"true\"> × </button> <h4 class=\"modal-title\">Overview Reports - Filters</h4> </div> <div class=\"modal-body\"> <div class=\"container-fluid\"> <div class=\"row\"> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> From </h6> </div> <div pickadate ng-model=\"filters.startedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> To </h6> </div> <div pickadate ng-model=\"filters.endedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> </div> <div class=\"row m-t-sm\" ng-if=\"jurisdictions.length > 1\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Area </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"jurisdiction in jurisdictions | orderBy:'name'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ jurisdiction.name }}\"> <input type=\"checkbox\" checklist-model=\"filters.jurisdictions\" checklist-value=\"jurisdiction._id\"> <i class=\"blue\"></i> {{ jurisdiction.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service Group </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"servicegroup in servicegroups | orderBy:'name'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ servicegroup.name }}\"> <input type=\"checkbox\" checklist-model=\"filters.servicegroups\" checklist-value=\"servicegroup._id\"> <i class=\"blue\"></i>{{ servicegroup.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service Type </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"type in servicetypes | orderBy:'name.en'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ type.name.en }}\"> <input type=\"checkbox\" checklist-model=\"filters.servicetypes\" checklist-value=\"type._id\"> <i class=\"blue\"></i>{{ type.name.en }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"service in services | orderBy:'name'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ service.name }}\"> <input type=\"checkbox\" checklist-model=\"filters.services\" checklist-value=\"service._id\"> <i class=\"blue\"></i>{{ service.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Status </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"status in statuses | orderBy:'weight'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ status.name }}\"> <input type=\"checkbox\" checklist-model=\"filters.statuses\" checklist-value=\"status._id\"> <i class=\"blue\"></i>{{ status.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Priority </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"priority in priorities | orderBy:'weight'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ priority.name }}\"> <input type=\"checkbox\" checklist-model=\"filters.priorities\" checklist-value=\"priority._id\"> <i class=\"blue\"></i>{{ priority.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Workspace </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"workspace in workspaces\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ workspace }}\"> <input type=\"checkbox\" checklist-model=\"filters.workspaces\" checklist-value=\"workspace\"> <i class=\"blue\"></i>{{ workspace }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Reporting Method </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"method in methods\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ method }}\"> <input type=\"checkbox\" checklist-model=\"filters.methods\" checklist-value=\"method\"> <i class=\"blue\"></i>{{ method }} </label> </div> </div> </div> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" ng-click=\"$dismiss()\">Cancel</button> <button class=\"btn btn-primary\" ng-click=\"filter()\">Filter</button> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/_partials/performances_filter.html',
-    "<div> <div class=\"modal-header\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$dismiss()\" aria-hidden=\"true\"> × </button> <h4 class=\"modal-title\">Performances Reports - Filters</h4> </div> <div class=\"modal-body\"> <div class=\"container-fluid\"> <div class=\"row\"> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> From </h6> </div> <div pickadate ng-model=\"filters.startedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> To </h6> </div> <div pickadate ng-model=\"filters.endedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> </div> <div class=\"row m-t-sm\" ng-if=\"jurisdictions.length > 1\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Area </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"jurisdiction in jurisdictions | orderBy:'name'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{jurisdiction.name}}\"> <input type=\"radio\" ng-model=\"filters.jurisdictions\" ng-value=\"jurisdiction._id\"> <i class=\"blue\"></i> {{jurisdiction.name}} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Workspace </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"workspace in workspaces\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{workspace}}\"> <input type=\"checkbox\" checklist-model=\"filters.workspaces\" checklist-value=\"workspace\"> <i class=\"blue\"></i>{{workspace}} </label> </div> </div> </div> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" ng-click=\"$dismiss()\">Cancel</button> <button class=\"btn btn-primary\" ng-click=\"filter()\">Filter</button> </div> </div> "
+    "<div> <div class=\"modal-header\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$dismiss()\" aria-hidden=\"true\"> × </button> <h4 class=\"modal-title\">Performances Reports - Filters</h4> </div> <div class=\"modal-body\"> <div class=\"container-fluid\"> <div class=\"row\"> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> From </h6> </div> <div pickadate ng-model=\"filters.startedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> To </h6> </div> <div pickadate ng-model=\"filters.endedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> </div> <div class=\"row m-t-sm\" ng-if=\"jurisdictions.length > 1\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Area </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"jurisdiction in jurisdictions | orderBy:'name'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ jurisdiction.name }}\"> <input type=\"radio\" ng-model=\"filters.jurisdictions\" ng-value=\"jurisdiction._id\"> <i class=\"blue\"></i> {{ jurisdiction.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service Type </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"type in servicetypes | orderBy:'name.en'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ type.name.en }}\"> <input type=\"checkbox\" checklist-model=\"filters.servicetypes\" checklist-value=\"type._id\"> <i class=\"blue\"></i>{{ type.name.en }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Workspace </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"workspace in workspaces\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ workspace }}\"> <input type=\"checkbox\" checklist-model=\"filters.workspaces\" checklist-value=\"workspace\"> <i class=\"blue\"></i>{{ workspace }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Reporting Method </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"method in methods\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ method }}\"> <input type=\"checkbox\" checklist-model=\"filters.methods\" checklist-value=\"method\"> <i class=\"blue\"></i>{{ method }} </label> </div> </div> </div> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" ng-click=\"$dismiss()\">Cancel</button> <button class=\"btn btn-primary\" ng-click=\"filter()\">Filter</button> </div> </div> "
   );
 
 
@@ -10933,7 +11063,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/dashboards/_partials/standings_filter.html',
-    "<div> <div class=\"modal-header\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$dismiss()\" aria-hidden=\"true\"> × </button> <h4 class=\"modal-title\">Standing Reports - Filters</h4> </div> <div class=\"modal-body\"> <div class=\"container-fluid\"> <div class=\"row\"> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> From </h6> </div> <div pickadate ng-model=\"filters.startedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> To </h6> </div> <div pickadate ng-model=\"filters.endedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> </div> <div class=\"row m-t-sm\" ng-if=\"jurisdictions.length > 1\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Area </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"jurisdiction in jurisdictions | orderBy:'name'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{jurisdiction.name}}\"> <input type=\"checkbox\" checklist-model=\"filters.jurisdictions\" checklist-value=\"jurisdiction._id\"> <i class=\"blue\"></i> {{jurisdiction.name}} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service Group </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"servicegroup in servicegroups | orderBy:'name'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{servicegroup.name}}\"> <input type=\"checkbox\" checklist-model=\"filters.servicegroups\" checklist-value=\"servicegroup._id\"> <i class=\"blue\"></i>{{servicegroup.name}} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"service in services | orderBy:'name'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{service.name}}\"> <input type=\"checkbox\" checklist-model=\"filters.services\" checklist-value=\"service._id\"> <i class=\"blue\"></i>{{service.name}} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Status </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"status in statuses | orderBy:'weight'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{status.name}}\"> <input type=\"checkbox\" checklist-model=\"filters.statuses\" checklist-value=\"status._id\"> <i class=\"blue\"></i>{{status.name}} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Priority </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"priority in priorities | orderBy:'weight'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{priority.name}}\"> <input type=\"checkbox\" checklist-model=\"filters.priorities\" checklist-value=\"priority._id\"> <i class=\"blue\"></i>{{priority.name}} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Workspace </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"workspace in workspaces\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{workspace}}\"> <input type=\"checkbox\" checklist-model=\"filters.workspaces\" checklist-value=\"workspace\"> <i class=\"blue\"></i>{{workspace}} </label> </div> </div> </div> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" ng-click=\"$dismiss()\">Cancel</button> <button class=\"btn btn-primary\" ng-click=\"filter()\">Filter</button> </div> </div> "
+    "<div> <div class=\"modal-header\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$dismiss()\" aria-hidden=\"true\"> × </button> <h4 class=\"modal-title\">Standing Reports - Filters</h4> </div> <div class=\"modal-body\"> <div class=\"container-fluid\"> <div class=\"row\"> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> From </h6> </div> <div pickadate ng-model=\"filters.startedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> To </h6> </div> <div pickadate ng-model=\"filters.endedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> </div> <div class=\"row m-t-sm\" ng-if=\"jurisdictions.length > 1\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Area </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"jurisdiction in jurisdictions | orderBy:'name'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ jurisdiction.name }}\"> <input type=\"checkbox\" checklist-model=\"filters.jurisdictions\" checklist-value=\"jurisdiction._id\"> <i class=\"blue\"></i> {{ jurisdiction.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service Group </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"servicegroup in servicegroups | orderBy:'name'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ servicegroup.name }}\"> <input type=\"checkbox\" checklist-model=\"filters.servicegroups\" checklist-value=\"servicegroup._id\"> <i class=\"blue\"></i>{{ servicegroup.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service Type </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"type in servicetypes | orderBy:'name.en'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ type.name.en }}\"> <input type=\"checkbox\" checklist-model=\"filters.servicetypes\" checklist-value=\"type._id\"> <i class=\"blue\"></i>{{ type.name.en }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"service in services | orderBy:'name'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ service.name }}\"> <input type=\"checkbox\" checklist-model=\"filters.services\" checklist-value=\"service._id\"> <i class=\"blue\"></i>{{ service.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Status </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"status in statuses | orderBy:'weight'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ status.name }}\"> <input type=\"checkbox\" checklist-model=\"filters.statuses\" checklist-value=\"status._id\"> <i class=\"blue\"></i>{{ status.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Priority </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"priority in priorities | orderBy:'weight'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ priority.name }}\"> <input type=\"checkbox\" checklist-model=\"filters.priorities\" checklist-value=\"priority._id\"> <i class=\"blue\"></i>{{ priority.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Workspace </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"workspace in workspaces\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ workspace }}\"> <input type=\"checkbox\" checklist-model=\"filters.workspaces\" checklist-value=\"workspace\"> <i class=\"blue\"></i>{{ workspace }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Reporting Method </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"method in methods\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ method }}\"> <input type=\"checkbox\" checklist-model=\"filters.methods\" checklist-value=\"method\"> <i class=\"blue\"></i>{{ method }} </label> </div> </div> </div> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" ng-click=\"$dismiss()\">Cancel</button> <button class=\"btn btn-primary\" ng-click=\"filter()\">Filter</button> </div> </div> "
   );
 
 
@@ -10943,7 +11073,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/dashboards/exports.html',
-    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Bulk - Exports </div> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <div class=\"padding\"> <div class=\"row\"> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> From </h6> </div> <div pickadate ng-model=\"filters.startedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> To </h6> </div> <div pickadate ng-model=\"filters.endedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> </div> <div class=\"row m-t-sm\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Area </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"jurisdiction in jurisdictions\"> <div class=\"checkbox-custom checkbox-primary p-a p-b-none\"> <input type=\"checkbox\" checklist-model=\"filters.jurisdictions\" checklist-value=\"jurisdiction._id\"> <label class=\"text-muted\" title=\"{{jurisdiction.name}}\">{{jurisdiction.name}}</label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service Group </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"servicegroup in servicegroups\"> <div class=\"checkbox-custom checkbox-primary p-a p-b-none\"> <input type=\"checkbox\" checklist-model=\"filters.servicegroups\" checklist-value=\"servicegroup._id\" checklist-change=\"filterServices()\"> <label class=\"text-muted\" title=\"{{servicegroup.name}}\">{{servicegroup.name}}</label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"service in services\"> <div class=\"checkbox-custom checkbox-primary p-a p-b-none\"> <input type=\"checkbox\" checklist-model=\"filters.services\" checklist-value=\"service._id\"> <label class=\"text-muted\" title=\"{{service.name}}\">{{service.name}}</label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Status </h6> </div> </div> <div class=\"col-md-2\" ng-repeat=\"status in statuses\"> <div class=\"checkbox-custom checkbox-primary p-a\"> <input type=\"checkbox\" checklist-model=\"filters.statuses\" checklist-value=\"status._id\"> <label class=\"text-muted\" title=\"{{status.name}}\">{{status.name}}</label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Priority </h6> </div> </div> <div class=\"col-md-2\" ng-repeat=\"priority in priorities\"> <div class=\"checkbox-custom checkbox-primary p-a\"> <input type=\"checkbox\" checklist-model=\"filters.priorities\" checklist-value=\"priority._id\"> <label class=\"text-muted\" title=\"{{priority.name}}\">{{priority.name}}</label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Workspace </h6> </div> </div> <div class=\"col-md-2\" ng-repeat=\"workspace in workspaces\"> <div class=\"checkbox-custom checkbox-primary p-a\"> <input type=\"checkbox\" checklist-model=\"filters.workspaces\" checklist-value=\"workspace\"> <label class=\"text-muted\" title=\"{{workspace}}\">{{workspace}}</label> </div> </div> </div> <div class=\"row m-t-md m-b-lg\"> <div class=\"col-md-12\"> <div class=\"pull-right\"> <button class=\"btn btn-primary\" ng-click=\"export()\">Export</button> <button class=\"btn btn-default m-l-sm\" ng-click=\"export(true)\"> Clear&nbsp; </button> </div> </div> </div> </div> </div> </div> "
+    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Bulk - Exports </div> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <div class=\"padding\"> <div class=\"row\"> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> From </h6> </div> <div pickadate ng-model=\"filters.startedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> To </h6> </div> <div pickadate ng-model=\"filters.endedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> </div> <div class=\"row m-t-sm\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Area </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"jurisdiction in jurisdictions\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ jurisdiction.name }}\"> <input type=\"checkbox\" checklist-model=\"filters.jurisdictions\" checklist-value=\"jurisdiction._id\"> <i class=\"blue\"> </i> {{ jurisdiction.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service Group </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"servicegroup in servicegroups\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ servicegroup.name }}\"> <input type=\"checkbox\" checklist-model=\"filters.servicegroups\" checklist-value=\"servicegroup._id\" checklist-change=\"filterServices()\"> <i class=\"blue\"></i> {{ servicegroup.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service Type </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"type in servicetypes | orderBy:'name.en'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ type.name.en }}\"> <input type=\"checkbox\" checklist-model=\"filters.servicetypes\" checklist-value=\"type._id\"> <i class=\"blue\"></i>{{ type.name.en }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"service in services\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ service.name }}\"> <input type=\"checkbox\" checklist-model=\"filters.services\" checklist-value=\"service._id\"> <i class=\"blue\"></i> {{ service.name }}</label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Status </h6> </div> </div> <div class=\"col-md-2\" ng-repeat=\"status in statuses\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ status.name }}\"> <input type=\"checkbox\" checklist-model=\"filters.statuses\" checklist-value=\"status._id\"> <i class=\"blue\"></i>{{ status.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Priority </h6> </div> </div> <div class=\"col-md-2\" ng-repeat=\"priority in priorities\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ priority.name }}\"> <input type=\"checkbox\" checklist-model=\"filters.priorities\" checklist-value=\"priority._id\"> <i class=\"blue\"></i>{{ priority.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Workspace </h6> </div> </div> <div class=\"col-md-2\" ng-repeat=\"workspace in workspaces\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ workspace }}\"> <input type=\"checkbox\" checklist-model=\"filters.workspaces\" checklist-value=\"workspace\"> <i class=\"blue\"></i>{{ workspace }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Reporting Method </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"method in methods\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ method }}\"> <input type=\"checkbox\" checklist-model=\"filters.methods\" checklist-value=\"method\"> <i class=\"blue\"></i>{{ method }} </label> </div> </div> </div> <div class=\"row m-t-md m-b-lg\"> <div class=\"col-md-12\"> <div class=\"pull-right\"> <button class=\"btn btn-primary\" ng-click=\"export()\">Export</button> <button class=\"btn btn-default m-l-sm\" ng-click=\"export(true)\"> Clear&nbsp; </button> </div> </div> </div> </div> </div> </div> "
   );
 
 
@@ -11007,7 +11137,14 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/dashboards/overviews/_partials/methods_summary.html',
-    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Reporting Methods Summary\"> <h3>Reporting Methods Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('methods')\" csv-header=\"exports.methods.headers\" filename=\"methods_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-5 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perMethodConfig\" options=\"perMethodOptions\"></echart> </div> </div> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareMethodVisualization('count')\" title=\"Reporting Method\"> Method </th> <th ng-click=\"prepareMethodVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> </tr> </thead> <tbody> <tr ng-repeat=\"method in overviews.methods\"> <td title=\"{{method.name}}\"> {{method.name}} </td> <td title=\"{{method.count | number:0}}\"> {{method.count | number:0}} </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Reporting Methods Summary\"> <h3>Reporting Methods Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('methods')\" csv-header=\"exports.methods.headers\" filename=\"methods_overview_reports_{{\n" +
+    "              filters.startedAt | date: settings.dateFormat\n" +
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-5 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perMethodConfig\" options=\"perMethodOptions\"></echart> </div> </div> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareMethodVisualization('count')\" title=\"Reporting Method\"> Method </th> <th ng-click=\"prepareMethodVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th title=\"Total Pending Count  of Service Requests\"> Pending </th> <th title=\"Total Resolved Count of Service Requests\"> Resolved </th> </tr> </thead> <tbody> <tr ng-repeat=\"method in overviews.methods\"> <td title=\"{{ method.name }}\"> {{ method.name }} </td> <td title=\"{{ method.count | number: 0 }}\"> {{ method.count | number: 0 }} </td> <td title=\"{{ method.pending | number: 0 }}\"> {{ method.pending | number: 0 }} </td> <td title=\"{{ method.resolved | number: 0 }}\"> {{ method.resolved | number: 0 }} </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+  );
+
+
+  $templateCache.put('views/dashboards/overviews/_partials/operators_leaderboard.html',
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-d-md\"> <h3 title=\"Leader board\">Operators Leader board</h3> <small class=\"block text-muted\" title=\"Rank Based on Attending Service Requests\"> Rank Based on Attending Service Requests </small> </div> <div> <div class=\"row-col\"> <ul class=\"list inset m-a-0\"> <li ng-if=\"operator.name\" ui-sref=\"app.profile({id: operator._id})\" ng-repeat=\"operator in overviews.operators\" class=\"list-item\"> <a href class=\"list-left\"> <letter-avatar title=\"{{ operator.name }}\" data=\"{{ operator.name }}\" height=\"40\" width=\"40\" shape=\"round\" fontsize=\"15\"> </letter-avatar> </a> <div class=\"list-body\"> <div> <a href>{{ operator.name }}</a> <span class=\"pull-right text-muted\">{{ operator.count | number: 0 }}</span> </div> <small class=\"text-muted text-ellipsis\"> {{ operator.relation.name ? operator.relation.name : 'N/A' }} / {{ operator.relation.workspace ? operator.relation.workspace : 'N/A' }} <span class=\"pull-right label info\" title=\"#{{ $index + 1 }}\">&nbsp;&nbsp;{{ $index + 1 }}&nbsp;&nbsp;</span> </small> </div> </li> </ul> </div> </div> </div> </div> "
   );
 
 
@@ -11021,18 +11158,27 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   );
 
 
+  $templateCache.put('views/dashboards/overviews/_partials/service_types_summary.html',
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Service Types Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('types')\" csv-header=\"exports.groups.headers\" filename=\"service_types_overview_reports_{{\n" +
+    "              filters.startedAt | date: settings.dateFormat\n" +
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-5 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceTypeConfig\" options=\"perServiceTypeOptions\"></echart> </div> </div> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceTypeVisualization('count')\" title=\"Service Type\"> Service Type </th> <th ng-click=\"prepareServiceTypeVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceTypeVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceTypeVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceTypeVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"type in overviews.types\"> <td title=\"{{ type.name.en }}\"> {{ type.name.en }} </td> <td title=\"{{ type.count | number: 0 }}\"> {{ type.count | number: 0 }} </td> <td title=\" {{ type.pending | number: 0 }}\"> {{ type.pending | number: 0 }} </td> <td title=\" {{ type.resolved | number: 0 }}\"> {{ type.resolved | number: 0 }} </td> <td title=\" {{ type.late | number: 0 }}\"> {{ type.late | number: 0 }} </td> <td> <span> {{ type.averageAttendTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{ type.averageAttendTime.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{ type.averageResolveTime.hours + type.averageResolveTime.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ type.averageResolveTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+  );
+
+
   $templateCache.put('views/dashboards/overviews/_partials/services_summary.html',
-    " <div class=\"padding m-t-md m-b-lg\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Services Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-6 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceConfig\" options=\"perServiceOptions\"></echart> </div> </div> <div class=\"col-sm-6\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Area\"> Service </th> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"service in overviews.services\"> <td title=\"{{service.name}}\"> {{service.name}} </td> <td title=\"{{service.count | number:0}}\"> {{service.count | number:0}} </td> <td title=\" {{service.pending | number:0}}\"> {{service.pending | number:0}} </td> <td title=\" {{service.resolved | number:0}}\"> {{service.resolved | number:0}} </td> <td title=\" {{service.late | number:0}}\"> {{service.late | number:0}} </td> <td> <span> {{service.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{service.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{service.averageResolveTime.hours + (service.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{service.averageResolveTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md m-b-lg\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Services Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-6 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceConfig\" options=\"perServiceOptions\"></echart> </div> </div> <div class=\"col-sm-6\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Area\"> Service </th> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"service in overviews.services\"> <td title=\"{{service.name}}\"> {{service.name.en}} </td> <td title=\"{{service.count | number:0}}\"> {{service.count | number:0}} </td> <td title=\" {{service.pending | number:0}}\"> {{service.pending | number:0}} </td> <td title=\" {{service.resolved | number:0}}\"> {{service.resolved | number:0}} </td> <td title=\" {{service.late | number:0}}\"> {{service.late | number:0}} </td> <td> <span> {{service.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{service.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{service.averageResolveTime.hours + (service.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{service.averageResolveTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/overviews/_partials/workspaces_summary.html',
-    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Reporting Workspaces Summary\"> <h3>Workspaces Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('workspaces')\" csv-header=\"exports.workspaces.headers\" filename=\"workspaces_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareWorkspaceVisualization('count')\" title=\"Workspace\"> Workspace </th> <th ng-click=\"prepareWorkspaceVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> </tr> </thead> <tbody> <tr ng-repeat=\"workspace in overviews.workspaces\"> <td title=\"{{workspace.name}}\"> {{workspace.name}} </td> <td title=\"{{workspace.count | number:0}}\"> {{workspace.count | number:0}} </td> </tr> </tbody> </table> </div> <div class=\"col-sm-5 b-l lt\"> <div class=\"p-a-md\"> <echart config=\"perWorkspaceConfig\" options=\"perWorkspaceOptions\"></echart> </div> </div> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Reporting Workspaces Summary\"> <h3>Workspaces Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('workspaces')\" csv-header=\"exports.workspaces.headers\" filename=\"workspaces_overview_reports_{{\n" +
+    "              filters.startedAt | date: settings.dateFormat\n" +
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareWorkspaceVisualization('count')\" title=\"Workspace\"> Workspace </th> <th ng-click=\"prepareWorkspaceVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th title=\"Total Pending Count of Service Requests\"> Pending </th> <th title=\"Total Resolved Count of Service Requests\"> Resolved </th> </tr> </thead> <tbody> <tr ng-repeat=\"workspace in overviews.workspaces\"> <td title=\"{{ workspace.name }}\"> {{ workspace.name }} </td> <td title=\"{{ workspace.count | number: 0 }}\"> {{ workspace.count | number: 0 }} </td> <td title=\"{{ workspace.pending | number: 0 }}\"> {{ workspace.pending | number: 0 }} </td> <td title=\"{{ workspace.resolved | number: 0 }}\"> {{ workspace.resolved | number: 0 }} </td> </tr> </tbody> </table> </div> <div class=\"col-sm-5 b-l lt\"> <div class=\"p-a-md\"> <echart config=\"perWorkspaceConfig\" options=\"perWorkspaceOptions\"></echart> </div> </div> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/overviews/index.html',
-    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Overview - Reports </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <ng-include ng-if=\"overviews.overall\" src=\"'views/dashboards/overviews/_partials/overall_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.jurisdictions && overviews.jurisdictions.length > 1\" src=\"'views/dashboards/overviews/_partials/jurisdictions_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.groups && overviews.groups.length > 0\" src=\"'views/dashboards/overviews/_partials/service_groups_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.services  && overviews.services.length > 0\" src=\"'views/dashboards/overviews/_partials/services_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.methods  && overviews.methods.length > 0\" src=\"'views/dashboards/overviews/_partials/methods_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.workspaces  && overviews.workspaces.length > 0\" src=\"'views/dashboards/overviews/_partials/workspaces_summary.html'\"></ng-include> <div ng-if=\"!overviews.overall\" class=\"row-col h-v\"> <div class=\"row-cell v-m\"> <div class=\"text-center col-sm-6 offset-sm-3 p-y-lg\"> <p class=\"text-muted m-y-lg\"> No Data Found. Please update your filters. </p> <button ng-click=\"showFilter()\" class=\"btn btn-outline b-grey text-grey\" title=\"Click to update filters\"> Update Filters </button> </div> </div> </div> </div> </div> "
+    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Overview - Reports </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <ng-include ng-if=\"overviews.overall\" src=\"'views/dashboards/overviews/_partials/overall_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.jurisdictions && overviews.jurisdictions.length > 1\" src=\"'views/dashboards/overviews/_partials/jurisdictions_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.groups && overviews.groups.length > 0\" src=\"'views/dashboards/overviews/_partials/service_groups_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.groups && overviews.types.length > 0\" src=\"'views/dashboards/overviews/_partials/service_types_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.services  && overviews.services.length > 0\" src=\"'views/dashboards/overviews/_partials/services_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.methods  && overviews.methods.length > 0\" src=\"'views/dashboards/overviews/_partials/methods_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.workspaces  && overviews.workspaces.length > 0\" src=\"'views/dashboards/overviews/_partials/workspaces_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.operators && overviews.operators.length > 0\" src=\"'views/dashboards/overviews/_partials/operators_leaderboard.html'\"></ng-include> </div> <div ng-if=\"!overviews.overall\" class=\"row-col h-v\"> <div class=\"row-cell v-m\"> <div class=\"text-center col-sm-6 offset-sm-3 p-y-lg\"> <p class=\"text-muted m-y-lg\"> No Data Found. Please update your filters. </p> <button ng-click=\"showFilter()\" class=\"btn btn-outline b-grey text-grey\" title=\"Click to update filters\"> Update Filters </button> </div> </div> </div> </div> "
   );
 
 
@@ -11052,7 +11198,9 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/dashboards/performance/_partials/pipeline_summary.html',
-    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Work Pipeline\"> <h3>Work Pipeline</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row no-gutter\"> <div ng-repeat=\"status in performances.statuses\" class=\"col-xs-6 col-sm-3 b-r b-b\" title=\"{{status.name}} Service Requests\"> <div class=\"p-a-sm\"> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{status.count}} </h4> <p class=\"text-muted m-b-md\"> {{status.name}} </p> </div> </div> </div> </div> <div class=\"p-a-md\"> <echart config=\"perStatusesConfig\" options=\"perStatusesOptions\"></echart> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Work Pipeline\"> <h3>Work Pipeline</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('statuses')\" csv-header=\"exports.statuses.headers\" filename=\"services_overview_reports_{{\n" +
+    "              filters.startedAt | date: settings.dateFormat\n" +
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row no-gutter\"> <div ng-repeat=\"status in performances.statuses\" class=\"col-xs-6 col-sm-3 b-r b-b\" title=\"{{ status.name.en }} Service Requests\"> <div class=\"p-a-sm\"> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{ status.count }} </h4> <p class=\"text-muted m-b-md\"> {{ status.name.en }} </p> </div> </div> </div> </div> <div class=\"p-a-md\"> <echart config=\"perStatusesConfig\" options=\"perStatusesOptions\"></echart> </div> </div> </div> </div> "
   );
 
 
@@ -11062,7 +11210,9 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/dashboards/performance/_partials/services_summary.html',
-    " <div class=\"padding m-t-md m-b-lg\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Services Summary\"> <h3>Services Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_performance_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-6 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceConfig\" options=\"perServiceOptions\"></echart> </div> </div> <div class=\"col-sm-6\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Area\"> Service </th> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"service in performances.services\"> <td title=\"{{service.name}}\"> {{service.name}} </td> <td title=\"{{service.count | number:0}}\"> {{service.count | number:0}} </td> <td title=\" {{service.pending | number:0}}\"> {{service.pending | number:0}} </td> <td title=\" {{service.resolved | number:0}}\"> {{service.resolved | number:0}} </td> <td title=\" {{service.late | number:0}}\"> {{service.late | number:0}} </td> <td> <span> {{service.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{service.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{performances.overall.averageResolveTime.hours + (performances.overall.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{service.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md m-b-lg\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Services Summary\"> <h3>Services Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_performance_reports_{{\n" +
+    "              filters.startedAt | date: settings.dateFormat\n" +
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-6 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceConfig\" options=\"perServiceOptions\"></echart> </div> </div> <div class=\"col-sm-6\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Area\"> Service </th> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"service in performances.services\"> <td title=\"{{ service.name }}\"> {{ service.name.en }} </td> <td title=\"{{ service.count | number: 0 }}\"> {{ service.count | number: 0 }} </td> <td title=\" {{ service.pending | number: 0 }}\"> {{ service.pending | number: 0 }} </td> <td title=\" {{ service.resolved | number: 0 }}\"> {{ service.resolved | number: 0 }} </td> <td title=\" {{ service.late | number: 0 }}\"> {{ service.late | number: 0 }} </td> <td> <span> {{ service.averageAttendTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{ service.averageAttendTime.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{ performances.overall.averageResolveTime.hours + performances.overall.averageResolveTime.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ service.averageAttendTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
   );
 
 
@@ -11105,7 +11255,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   $templateCache.put('views/jurisdictions/_partials/detail.html',
     " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/jurisdictions/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"jurisdictionForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div title=\"Jurisdiction Name\"> <div class=\"form-group\"> <label title=\"Jurisdiction Code\" class=\"floating-label\">Code</label> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.code\" ng-required ng-minlength=\"1\" type=\"text\" name=\"code\" class=\"form-control\"> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-6\" title=\"Jurisdiction Name\"> <div class=\"form-group\"> <label title=\"Jurisdiction Name\" class=\"floating-label\">Name</label> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.name\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"col-sm-6\" title=\"Jurisdiction Phone\"> <div class=\"form-group\"> <label title=\"Mobile Phone Number\" class=\"floating-label\">Phone</label> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.phone\" ng-required ng-minlength=\"2\" type=\"text\" name=\"phone\" class=\"form-control\"> </div> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-12\" title=\"Jurisdiction Email\"> <div class=\"form-group\"> <label title=\"Email Address\" class=\"floating-label\">Email</label> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.email\" ng-required ng-minlength=\"2\" type=\"text\" name=\"email\" class=\"form-control\"> </div> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-12\" title=\"Jurisdiction Website\"> <div class=\"form-group\"> <label title=\"Website URL\" class=\"floating-label\">Website</label> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.website\" ng-required ng-minlength=\"2\" type=\"text\" name=\"website\" class=\"form-control\"> </div> </div> </div> <div class=\"row m-t-lg\"> <div class=\"col-sm-6\" title=\"Jurisdiction Longitude\"> <div class=\"form-group\"> <label title=\"Longitude\" class=\"floating-label\">Longitude</label> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.longitude\" ng-required type=\"number\" name=\"longitude\" class=\"form-control\"> </div> </div> <div class=\"col-sm-6\" title=\"Jurisdiction Latitude\"> <div class=\"form-group\"> <label title=\"Latitude\" class=\"floating-label\">Latitude</label> <input ng-disabled=\"!edit\" ng-model=\"jurisdiction.latitude\" ng-required type=\"number\" name=\"latitude\" class=\"form-control\"> </div> </div> </div> <div class=\"m-t-lg\" title=\"Jurisdiction Details\"> <div class=\"form-group\"> <label class=\"floating-label\">About</label> <textarea ng-disabled=\"!edit\" ng-model=\"jurisdiction.about\" msd-elastic name=\"about\" class=\"form-control\" rows=\"2\">\n" +
     "                    </textarea> </div> </div> <div class=\"m-t-lg\" title=\"Jurisdiction Physical Address\"> <div class=\"form-group\"> <label class=\"floating-label\">Physical Address</label> <textarea ng-disabled=\"!edit\" ng-model=\"jurisdiction.address\" msd-elastic name=\"about\" class=\"form-control\" rows=\"2\">\n" +
-    "                    </textarea> </div> </div> <div class=\"m-t-lg\" title=\"Jurisdiction Color\"> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Jurisdiction Color\" class=\"floating-label\">Jurisdiction Color(HEX)</label> <color-picker ng-model=\"jurisdiction.color\" options=\"colorPickerOptions\"> </color-picker> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
+    "                    </textarea> </div> </div> <div class=\"m-t-lg\" title=\"Jurisdiction Color\"> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Jurisdiction Color\" class=\"floating-label\">Jurisdiction Color(HEX)</label> <color-picker ng-model=\"jurisdiction.color\" options=\"colorPickerOptions\"> </color-picker> </div> </div> </div> <div class=\"m-t-lg\" title=\"Is Default\"> <div class=\"form-group\"> <div class=\"checkbox-custom checkbox-primary\"> <input ng-show=\"edit\" type=\"checkbox\" ng-model=\"jurisdiction.default\"> <label title=\"Is Default\">Is Default</label> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
   );
 
 
@@ -11145,7 +11295,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/priorities/_partials/detail.html',
-    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/priorities/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"priorityForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Priority Name\"> <div class=\"row\"> <div class=\"form-group col-sm-6\"> <label title=\"Priority Name\" class=\"floating-label\">Name</label> <input ng-disabled=\"!edit\" ng-model=\"priority.name.en\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> <div class=\"form-group col-sm-6\"> <label title=\"Priority Name in Swahili\" class=\"floating-label\">Jina</label> <input ng-disabled=\"!edit\" ng-model=\"priority.name.sw\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> </div> <div class=\"m-t-lg\" title=\"Priority Weight\"> <div class=\"form-group\"> <label title=\"Priority Weight\" class=\"floating-label\">Weight</label> <input ng-disabled=\"!edit\" ng-model=\"priority.weight\" ng-required type=\"number\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Priority Color\"> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Priority Color\" class=\"floating-label\">Priority Color(HEX)</label> <color-picker ng-model=\"priority.color\" options=\"colorPickerOptions\"> </color-picker> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
+    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/priorities/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"priorityForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Priority Name\"> <div class=\"row\"> <div class=\"form-group col-sm-6\"> <label title=\"Priority Name\" class=\"floating-label\">Name</label> <input ng-disabled=\"!edit\" ng-model=\"priority.name.en\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> <div class=\"form-group col-sm-6\"> <label title=\"Priority Name in Swahili\" class=\"floating-label\">Jina</label> <input ng-disabled=\"!edit\" ng-model=\"priority.name.sw\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> </div> <div class=\"m-t-lg\" title=\"Priority Weight\"> <div class=\"form-group\"> <label title=\"Priority Weight\" class=\"floating-label\">Weight</label> <input ng-disabled=\"!edit\" ng-model=\"priority.weight\" ng-required type=\"number\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Priority Color\"> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Priority Color\" class=\"floating-label\">Priority Color(HEX)</label> <color-picker ng-model=\"priority.color\" options=\"colorPickerOptions\"> </color-picker> </div> </div> </div> <div class=\"m-t-lg\" title=\"Is Default\"> <div class=\"form-group\"> <div class=\"checkbox-custom checkbox-primary\"> <input ng-show=\"edit\" type=\"checkbox\" ng-model=\"priority.default\"> <label title=\"Is Default\">Is Default</label> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
   );
 
 
@@ -11178,7 +11328,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   $templateCache.put('views/servicegroups/_partials/detail.html',
     " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/servicegroups/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"servicegroupForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Service Group Name\"> <div class=\"form-group\"> <label title=\"Service Group Code\" class=\"floating-label\">Code</label> <input ng-disabled=\"!edit\" ng-model=\"servicegroup.code\" ng-required ng-minlength=\"1\" type=\"text\" name=\"code\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Service Group Name\"> <div class=\"row\"> <div class=\"form-group col-xs-12 col-sm-6\"> <label title=\"Service Group Name\" class=\"floating-label\">Name</label> <input ng-disabled=\"!edit\" ng-model=\"servicegroup.name.en\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> <div class=\"form-group col-xs-12 col-sm-6\"> <label title=\"Service Group Name in Swahili\" class=\"floating-label\">Jina</label> <input ng-disabled=\"!edit\" ng-model=\"servicegroup.name.sw\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> </div> <div class=\"m-t-lg\" title=\"Service Group Weight\"> <div class=\"row\"> <div class=\"form-group col-xs-12 col-sm-6\"> <label class=\"floating-label\">Description</label> <textarea ng-disabled=\"!edit\" ng-model=\"servicegroup.description.en\" msd-elastic name=\"about\" class=\"form-control\" rows=\"3\">\n" +
     "                      </textarea> </div> <div class=\"form-group col-xs-12 col-sm-6\"> <label class=\"floating-label\">Maelezo</label> <textarea ng-disabled=\"!edit\" ng-model=\"servicegroup.description.sw\" msd-elastic name=\"about\" class=\"form-control\" rows=\"3\">\n" +
-    "                      </textarea> </div> </div> </div> <div class=\"m-t-lg\" title=\"Service Group Color\"> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Service Group Color\" class=\"floating-label\">Service Group Color(HEX)</label> <color-picker ng-model=\"servicegroup.color\" options=\"colorPickerOptions\"> </color-picker> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
+    "                      </textarea> </div> </div> </div> <div class=\"m-t-lg\" title=\"Service Group Color\"> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Service Group Color\" class=\"floating-label\">Service Group Color(HEX)</label> <color-picker ng-model=\"servicegroup.color\" options=\"colorPickerOptions\"> </color-picker> </div> </div> </div> <div class=\"m-t-lg\" title=\"Is Default\"> <div class=\"form-group\"> <div class=\"checkbox-custom checkbox-primary\"> <input ng-show=\"edit\" type=\"checkbox\" ng-model=\"servicegroup.default\"> <label title=\"Is Default\">Is Default</label> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
   );
 
 
@@ -11188,8 +11338,8 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/servicerequests/_partials/action_bar.html',
-    " <ul class=\"nav navbar-nav\"> <li ng-if=\"!servicerequest.operator\" class=\"nav-item b-r p-r\"> <a show-if-has-permit=\"servicerequest:attend\" class=\"nav-link text-muted no-border\" title=\"Click To Attend Issue\" ng-click=\"onAttend()\"> <span class=\"nav-text\"> <i class=\"ion-ios-shuffle-strong\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item\"> <a ng-if=\"mailTo\" href=\"{{ mailTo }}\" class=\"nav-link text-muted\" title=\"Click to Send Issue to Area\"> <span class=\"nav-text\"> <i class=\"icon-action-redo\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && !servicerequest.attendedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:attend\" ng-click=\"onAttended()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Attended\"> <span class=\"nav-text\"> <i class=\"icon-crop\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee &&\n" +
-    "    servicerequest.attendedAt && !servicerequest.completedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:complete\" ng-click=\"onComplete()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Complete\"> <span class=\"nav-text\"> <i class=\"ti-check-box\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && servicerequest.attendedAt && servicerequest.completedAt && !servicerequest.verifiedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:verify\" ng-click=\"onVerify()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Verified\"> <span class=\"nav-text\"> <i class=\"ti-eye\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && servicerequest.attendedAt && servicerequest.completedAt && servicerequest.verifiedAt && !servicerequest.approvedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:approve\" ng-click=\"onApprove()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Approve\"> <span class=\"nav-text\"> <i class=\"ti-new-window\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && servicerequest.attendedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:complete\" ng-click=\"showWorklogModal()\" class=\"nav-link text-muted no-border\" title=\"Click to Record Material & Equipment Used\"> <span class=\"nav-text\"> <i class=\"icon-basket-loaded\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ngf-select=\"onImage($file)\" class=\"nav-link text-muted no-border\" title=\"Click To Attach Supporting Images\"> <span class=\"nav-text\"> <i class=\"icon-camera\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ngf-select=\"onDocument($file)\" class=\"nav-link text-muted no-border\" title=\"Click To Attach Supporting Documents\"> <span class=\"nav-text\"> <i class=\"icon-paper-clip\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:resolve\" ng-click=\"onResolve()\" class=\"nav-link text-muted no-border\" title=\"Click To Resolve and Signal Feedback Provided To Reporter\"> <span class=\"nav-text\"> <i class=\"icon-call-out\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ng-click=\"onReOpen()\" class=\"nav-link text-muted no-border\" title=\"Click To Re-Open The Issue\"> <span class=\"nav-text\"> <i class=\"icon-call-in\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item b-l p-l\"> <a ng-click=\"onCopy()\" class=\"nav-link text-muted no-border\" title=\"Click To Copy Reporter Information & Create New Issue\"> <span class=\"nav-text\"> <i class=\"ti-cut\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item b-l p-l p-r\"> <a print-btn class=\"nav-link text-muted no-border\" title=\"Click To Print Issue\"> <span class=\"nav-text\"> <i class=\"icon-printer\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item b-l p-l p-r b-r\" title=\"Click To Refresh Issue\"> <a ng-click=\"onRefresh()\" class=\"nav-link text-muted no-border\"> <span class=\"nav-text\"> <i class=\"icon-reload\"></i> </span> </a> </li> </ul> "
+    " <ul class=\"nav navbar-nav\"> <li ng-if=\"!servicerequest.operator\" class=\"nav-item b-r p-r\"> <a show-if-has-permit=\"servicerequest:attend\" class=\"nav-link text-muted no-border\" title=\"Click To Attend Issue\" ng-click=\"onAttend()\"> <span class=\"nav-text\"> <i class=\"ion-ios-shuffle-strong\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item\"> <a ng-click=\"onSend()\" class=\"nav-link text-muted\" title=\"Click to Send Issue to Area\"> <span class=\"nav-text\"> <i class=\"icon-action-redo\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && !servicerequest.attendedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:attend\" ng-click=\"onAttended()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Attended\"> <span class=\"nav-text\"> <i class=\"icon-crop\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee &&\n" +
+    "    servicerequest.attendedAt && !servicerequest.completedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:complete\" ng-click=\"onComplete()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Complete\"> <span class=\"nav-text\"> <i class=\"ti-check-box\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && servicerequest.attendedAt && servicerequest.completedAt && !servicerequest.verifiedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:verify\" ng-click=\"onVerify()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Verified\"> <span class=\"nav-text\"> <i class=\"ti-eye\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && servicerequest.attendedAt && servicerequest.completedAt && servicerequest.verifiedAt && !servicerequest.approvedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:approve\" ng-click=\"onApprove()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Approve\"> <span class=\"nav-text\"> <i class=\"ti-new-window\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && servicerequest.attendedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:complete\" ng-click=\"showWorklogModal()\" class=\"nav-link text-muted no-border\" title=\"Click to Record Material & Equipment Used\"> <span class=\"nav-text\"> <i class=\"icon-basket-loaded\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ngf-select=\"onImage($file)\" class=\"nav-link text-muted no-border\" title=\"Click To Attach Supporting Images\"> <span class=\"nav-text\"> <i class=\"icon-camera\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ngf-select=\"onDocument($file)\" class=\"nav-link text-muted no-border\" title=\"Click To Attach Supporting Documents\"> <span class=\"nav-text\"> <i class=\"icon-paper-clip\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:resolve\" ng-click=\"onResolve()\" class=\"nav-link text-muted no-border\" title=\"Click To Resolve and Signal Feedback Provided To Reporter\"> <span class=\"nav-text\"> <i class=\"icon-call-out\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ng-click=\"onReOpen()\" class=\"nav-link text-muted no-border\" title=\"Click To Re-Open The Issue\"> <span class=\"nav-text\"> <i class=\"icon-call-in\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item b-l p-l\"> <a ng-click=\"onCopy()\" class=\"nav-link text-muted no-border\" title=\"Click To Copy Reporter Information & Create New Issue\"> <span class=\"nav-text\"> <i class=\"ti-cut\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item b-l p-l\" title=\"Click To Refresh Issue\"> <a ng-click=\"onRefresh()\" class=\"nav-link text-muted no-border\"> <span class=\"nav-text\"> <i class=\"icon-reload\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item b-l p-l p-r\"> <a print-btn class=\"nav-link text-muted no-border\" title=\"Click To Print Issue\"> <span class=\"nav-text\"> <i class=\"icon-printer\"></i> </span> </a> </li> </ul> "
   );
 
 
@@ -11217,6 +11367,12 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
   $templateCache.put('views/servicerequests/_partials/list.html',
     " <div class=\"row-col lt\"> <div class=\"p-a b-b list-search\"> <form> <div class=\"input-group\"> <input type=\"text\" ng-enter=\"onSearch()\" ng-model=\"search.q\" class=\"form-control form-control-sm\" placeholder=\"Search Issues ...\"> <span class=\"input-group-btn\"> <button ng-click=\"onSearch()\" class=\"btn btn-default btn-sm no-shadow\" type=\"button\"> <i class=\"ti-search\"></i> </button> </span> </div> </form> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\" id=\"scrollable-servicerequest-list\"> <div class=\"list\" data-ui-list=\"info\"> <div ng-click=\"select(_servicerequest)\" class=\"list-item list-item-padded\" ng-class=\"{'active': _servicerequest._id === servicerequest._id}\" ng-repeat=\"_servicerequest in servicerequests\" title=\"{{_servicerequest.description}}\" style=\"border-left: 2px solid {{_servicerequest.priority.color || '#f3c111'}}\"> <div class=\"list-left\"> <span class=\"w-40 avatar circle\"> <letter-avatar title=\"Status & Area\" data=\"{{_servicerequest.jurisdiction.name}}\" height=\"60\" width=\"60\" shape=\"round\" color=\"{{_servicerequest.status.color}}\"> </letter-avatar> </span> </div> <div class=\"list-body\"> <span title=\"Issue Report Date\" class=\"pull-right text-xs text-muted\"> {{_servicerequest.createdAt | date:'dd MMM yyyy HH:mm'}} </span> <div class=\"item-title\"> <a href=\"#\" class=\"_500\">{{_servicerequest.service.name}} <br><span title=\"Issue Number\" class=\"font-size-12\"> #{{_servicerequest.code}}</span></a> </div> <small class=\"block text-xs text-muted text-ellipsis\"> <span title=\"Reporter Name\"> <i class=\"icon-user\"></i>&nbsp;&nbsp;{{(_servicerequest.reporter.name) || 'NA'}} </span> <span class=\"pull-right\" title=\"Reporter Phone Number\"> <i class=\"icon-phone\"></i>&nbsp;&nbsp;{{(_servicerequest.reporter.phone) ||'NA'}} </span> </small> </div> </div> </div> </div> </div> </div> <div class=\"p-x-md p-y\"> <div class=\"btn-group pull-right list-pager\" uib-pager ng-show=\"willPaginate()\" total-items=\"$parent.total\" ng-model=\"$parent.page\" items-per-page=\"$parent.limit\" ng-change=\"find(query)\" template-url=\"views/_partials/list_pager.html\" style=\"padding-left: 12px\" role=\"group\"></div> <div class=\"btn-group pull-right\"> <a title=\"Click To Refresh Issues\" ng-click=\"load({}, false)\" class=\"btn btn-default btn-xs\"> <i class=\"icon-reload\"></i> </a> <a title=\"Click To Export Issues\" class=\"btn btn-default btn-xs\" ng-csv=\"export\" csv-header=\"['Issue Number','Reported Date','Call Start Time', 'Call End Time','Call Duration(Minutes)', 'Call Duration(Seconds)', 'Reporter Name', 'Reporter Phone', 'Reporter Account', 'Operator', 'Area', 'Service Group', 'Service', 'Assignee', 'Description', 'Address', 'Status', 'Priority', 'Resolved Date', 'Time Taken(days)', 'Time Taken(hrs)', 'Time Taken(mins)', 'Time Taken(secs)']\" filename=\"issues.csv\"> <i class=\"icon-cloud-download\"></i> </a> </div> <span class=\"text-sm text-muted\">Total: {{total}}</span> </div> </div> "
+  );
+
+
+  $templateCache.put('views/servicerequests/_partials/message.html',
+    " <div class=\"modal-header\"> <div class=\"b-b\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$close()\" aria-hidden=\"true\"> × </button> <h4 class=\"modal-title\">Send Issue</h4> </div> </div> <div class=\"modal-body\"> <div class=\"box\"> <div class=\"m-l-lg m-r-lg\"> <form role=\"form\"> <div class=\"row m-t-sm\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\" title=\"Primary receiver of the message\"> To </h6> </div> </div> <div class=\"col-md-12\"> <input type=\"text\" ng-model=\"message.to\" class=\"form-control\" name=\"to\" placeholder=\"To\" required> </div> </div> <div class=\"row m-t-sm\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\" title=\"Other people to receive the message\"> Cc </h6> </div> </div> <div class=\"col-md-12\"> <oi-select oi-options=\"item.label for item in searchParties($query) track by item.id\" ng-model=\"message.cc\" multiple placeholder=\"Select Cc'ed\" oi-select-options=\"{cleanModel: true}\"></oi-select> </div> </div> <div class=\"row m-t-sm\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\" title=\"Other people to receive the message\"> Bcc </h6> </div> </div> <div class=\"col-md-12\"> <oi-select oi-options=\"item.label for item in searchParties($query) track by item.id\" ng-model=\"message.bcc\" multiple placeholder=\"Select Bcc'ed\" oi-select-options=\"{cleanModel: true}\"></oi-select> </div> </div> <div class=\"row m-t-sm\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\" title=\"Message subject\"> Subject </h6> </div> </div> <div class=\"col-md-12\"> <input type=\"text\" ng-model=\"message.subject\" class=\"form-control\" name=\"subject\" placeholder=\"Subject\" required> </div> </div> <div class=\"row\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\" title=\"Message body or content\"> Message </h6> </div> </div> <div class=\"col-md-12\"> <textarea rows=\"8\" msd-elastic ng-model=\"message.body\" class=\"form-control\" name=\"body\" placeholder=\"Message ...\" required>\n" +
+    "{{message.body}}</textarea> </div> </div> </form> </div> </div> <div class=\"modal-footer m-l-lg m-r-lg\"> <button class=\"btn btn-default\" ng-click=\"$dismiss()\" title=\"Click to cancel\"> Cancel </button> <button class=\"btn btn-primary\" ng-click=\"send()\" title=\"Click to send\"> Send </button> </div> </div> "
   );
 
 
@@ -11273,7 +11429,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   $templateCache.put('views/services/_partials/detail.html',
     " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/services/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"serviceForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Service Group\"> <div ng-show=\"!edit\" class=\"form-group\"> <label title=\"Group\" class=\"floating-label\">Group</label> <input ng-disabled=\"!edit\" ng-model=\"service.group.name.en\" ng-required ng-minlength=\"2\" type=\"text\" name=\"group\" class=\"form-control\"> </div> <div ng-show=\"edit\" class=\"form-group form-material floating\"> <oi-select oi-options=\"item.name.en for item in searchServiceGroups($query) track by item.id\" ng-model=\"service.group\" placeholder=\"Select Group\" class=\"form-control\" oi-select-options=\"{cleanModel: true}\"></oi-select> <label title=\"Group\" class=\"floating-label\">Group</label> </div> </div> <div class=\"m-t-lg\" title=\"Service Type\"> <div ng-show=\"!edit\" class=\"form-group\"> <label title=\"Type\" class=\"floating-label\">Type</label> <input ng-disabled=\"!edit\" ng-model=\"service.type.name.en\" ng-required ng-minlength=\"2\" type=\"text\" name=\"group\" class=\"form-control\"> </div> <div ng-show=\"edit\" class=\"form-group form-material floating\"> <oi-select oi-options=\"item.name.en for item in searchServiceTypes($query) track by item.id\" ng-model=\"service.type\" placeholder=\"Select Type\" class=\"form-control\" oi-select-options=\"{cleanModel: true}\"></oi-select> <label title=\"Type\" class=\"floating-label\">Type</label> </div> </div> <div class=\"m-t-lg\" title=\"Service Priority\"> <div ng-show=\"!edit\" class=\"form-group\"> <label title=\"Priority\" class=\"floating-label\">Priority</label> <input ng-disabled=\"!edit\" ng-model=\"service.priority.name.en\" ng-required ng-minlength=\"2\" type=\"text\" name=\"priority\" class=\"form-control\"> </div> <div ng-show=\"edit\" class=\"form-group form-material floating\"> <oi-select oi-options=\"item.name.en for item in searchPriorities($query) track by item.id\" ng-model=\"service.priority\" placeholder=\"Select Priority\" class=\"form-control\" oi-select-options=\"{cleanModel: true}\"></oi-select> <label title=\"Priority\" class=\"floating-label\">Priority</label> </div> </div> <div class=\"m-t-lg\" title=\"Service Code\"> <div class=\"form-group\"> <label title=\"Service Code\" class=\"floating-label\">Code</label> <input title=\"Service Code\" ng-disabled=\"!edit\" ng-model=\"service.code\" ng-required ng-minlength=\"1\" type=\"text\" name=\"code\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Service Name\"> <div class=\"row\"> <div class=\"form-group col-xs-12 col-sm-6\"> <label title=\"Service Name\" class=\"floating-label\">Name</label> <input title=\"Service Name\" ng-disabled=\"!edit\" ng-model=\"service.name.en\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> <div class=\"form-group col-xs-12 col-sm-6\"> <label title=\"Service Name in Swahili\" class=\"floating-label\">Jina</label> <input title=\"Service Name\" ng-disabled=\"!edit\" ng-model=\"service.name.sw\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> </div> <div class=\"m-t-lg\" title=\"Service Level Agreement\"> <div class=\"form-group\"> <label title=\"Service Level Agreement\" class=\"floating-label\">Service Level Agreement</label> <input title=\"Service Level Agreement\" ng-disabled=\"!edit\" ng-model=\"service.sla.ttr\" min=\"0\" ng-step=\"1\" type=\"number\" name=\"ttr\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Service Color\"> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Service Color\" class=\"floating-label\">Service Color(HEX)</label> <color-picker ng-model=\"service.color\" options=\"colorPickerOptions\"> </color-picker> </div> </div> </div> <div class=\"m-t-lg\" title=\"Service Description\"> <div class=\"row\"> <div class=\"form-group col-xs-12 col-sm-6\"> <label class=\"floating-label\">Description</label> <textarea title=\"Service Description\" ng-disabled=\"!edit\" ng-model=\"service.description.en\" msd-elastic name=\"about\" class=\"form-control\" rows=\"3\">\n" +
     "                      </textarea> </div> <div class=\"form-group col-xs-12 col-sm-6\"> <label class=\"floating-label\">Maelezo</label> <textarea title=\"Service Description\" ng-disabled=\"!edit\" ng-model=\"service.description.sw\" msd-elastic name=\"about\" class=\"form-control\" rows=\"3\">\n" +
-    "                      </textarea> </div> </div> </div> <div class=\"m-t-lg\" title=\"External Reporting Method Support\"> <div class=\"form-group\"> <div class=\"checkbox-custom checkbox-primary\"> <input ng-show=\"edit\" type=\"checkbox\" ng-model=\"service.flags.external\"> <label title=\"External Reporting Method Support\">Support External Reporting Methods</label> </div> </div> </div> <div class=\"m-t-md\" title=\"Require Account Number\"> <div class=\"form-group\"> <div class=\"checkbox-custom checkbox-primary\"> <input ng-show=\"edit\" type=\"checkbox\" ng-model=\"service.flags.account\"> <label title=\"Require Account Number\">Require Account Number</label> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
+    "                      </textarea> </div> </div> </div> <div class=\"m-t-lg\" title=\"External Reporting Method Support\"> <div class=\"form-group\"> <div class=\"checkbox-custom checkbox-primary\"> <input ng-show=\"edit\" type=\"checkbox\" ng-model=\"service.flags.external\"> <label title=\"External Reporting Method Support\">Support External Reporting Methods</label> </div> </div> </div> <div class=\"m-t-md\" title=\"Require Account Number\"> <div class=\"form-group\"> <div class=\"checkbox-custom checkbox-primary\"> <input ng-show=\"edit\" type=\"checkbox\" ng-model=\"service.flags.account\"> <label title=\"Require Account Number\">Require Account Number</label> </div> </div> </div> <div class=\"m-t-md\" title=\"Is Default\"> <div class=\"form-group\"> <div class=\"checkbox-custom checkbox-primary\"> <input ng-show=\"edit\" type=\"checkbox\" ng-model=\"service.default\"> <label title=\"Is Default\">Is Default</label> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
   );
 
 
@@ -11314,7 +11470,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/statuses/_partials/detail.html',
-    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/statuses/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"statusForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Status Name\"> <div class=\"row\"> <div class=\"form-group col-xs-12 col-sm-6\"> <label title=\"Status Name\" class=\"floating-label\">Name</label> <input ng-disabled=\"!edit\" ng-model=\"status.name.en\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> <div class=\"form-group col-xs-12 col-sm-6\"> <label title=\"Status Name in Swahili\" class=\"floating-label\">Jina</label> <input ng-disabled=\"!edit\" ng-model=\"status.name.sw\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> </div> <div class=\"m-t-lg\" title=\"Status Weight\"> <div class=\"form-group\"> <label title=\"Status Weight\" class=\"floating-label\">Weight</label> <input ng-disabled=\"!edit\" ng-model=\"status.weight\" ng-required type=\"number\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Status Color\"> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Status Color\" class=\"floating-label\">Status Color(HEX)</label> <color-picker ng-model=\"status.color\" options=\"colorPickerOptions\"> </color-picker> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
+    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/statuses/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"statusForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Status Name\"> <div class=\"row\"> <div class=\"form-group col-xs-12 col-sm-6\"> <label title=\"Status Name\" class=\"floating-label\">Name</label> <input ng-disabled=\"!edit\" ng-model=\"status.name.en\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> <div class=\"form-group col-xs-12 col-sm-6\"> <label title=\"Status Name in Swahili\" class=\"floating-label\">Jina</label> <input ng-disabled=\"!edit\" ng-model=\"status.name.sw\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> </div> <div class=\"m-t-lg\" title=\"Status Weight\"> <div class=\"form-group\"> <label title=\"Status Weight\" class=\"floating-label\">Weight</label> <input ng-disabled=\"!edit\" ng-model=\"status.weight\" ng-required type=\"number\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Status Color\"> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Status Color\" class=\"floating-label\">Status Color(HEX)</label> <color-picker ng-model=\"status.color\" options=\"colorPickerOptions\"> </color-picker> </div> </div> </div> <div class=\"m-t-lg\" title=\"Is Default\"> <div class=\"form-group\"> <div class=\"checkbox-custom checkbox-primary\"> <input ng-show=\"edit\" type=\"checkbox\" ng-model=\"status.default\"> <label title=\"Is Default\">Is Default</label> </div> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
   );
 
 

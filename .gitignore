@@ -3,5 +3,6 @@ bower_components/
 .tmp
 .env
 *.log
+report*.json
 /logs
 TODO.md
