@@ -61,7 +61,7 @@
   "dependencies": {
     "@codetanzania/majifix-account": ">=1.9.0",
     "@codetanzania/majifix-alert": ">=1.3.0",
-    "@codetanzania/majifix-analytics": ">=0.4.3",
+    "@codetanzania/majifix-analytics": "0.4.3",
     "@codetanzania/majifix-common": ">=0.17.0",
     "@codetanzania/majifix-jurisdiction": ">=1.8.0",
     "@codetanzania/majifix-priority": ">=1.6.0",
