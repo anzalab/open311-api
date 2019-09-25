@@ -4,8 +4,8 @@ var db = conn.getDB('open311');
 
 // obtain un comfirmed service requests
 db.servicerequests.find({
-  "method.name": { $in: ["USSD", "Mobile"] },
-  "operator": { "$eq": null }
+  'method.name': { $in: ['USSD', 'Mobile'] },
+  'operator': { '$eq': null }
 }).forEach(sr => {
   if (sr.jurisdiction && sr.address) {
     // obtain its current jurisdiction
