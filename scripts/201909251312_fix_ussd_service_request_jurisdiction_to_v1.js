@@ -6,7 +6,7 @@ var db = conn.getDB('open311');
 db.servicerequests.find({
   "method.name": { $in: ["USSD", "Mobile"] },
   "operator": { "$eq": null }
-}).limit(1).forEach(sr => {
+}).forEach(sr => {
   if (sr.jurisdiction && sr.address) {
     // obtain its current jurisdiction
     var jurisdiction = db.jurisdictions.findOne({ _id: sr.jurisdiction });
