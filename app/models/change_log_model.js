@@ -72,7 +72,7 @@ const ChangeLogSchema = new Schema({
     index: true,
     exists: true,
     hidden: true,
-    aggregatable: { unwind: true }
+    aggregatable: { unwind: true },
     autopopulate: {
       select: 'code',
       maxDepth: 1
