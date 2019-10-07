@@ -11,7 +11,8 @@ db.servicerequests.find().forEach(sr => {
       zone: sr.zone,
       group: sr.group,
       type: sr.type,
-      service: sr.service
+      service: sr.service,
+      confirmedAt: sr.confirmedAt
     }
   }, { multi: true });
 });
