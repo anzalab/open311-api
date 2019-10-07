@@ -1405,6 +1405,11 @@ router.patch('/servicerequests/:id/changelogs', uploaderFor(),
     controller.changelogs(request, response, next);
   });
 
+router.put('/servicerequests/:id/changelogs', uploaderFor(),
+  function (request, response, next) {
+    controller.changelogs(request, response, next);
+  });
+
 router.post('/servicerequests/:id/changelogs', uploaderFor(),
   function (request, response, next) {
     controller.changelogs(request, response, next);
