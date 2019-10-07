@@ -3263,6 +3263,7 @@ angular
           templateUrl: 'views/servicerequests/_partials/assignee_modal.html',
           scope: $scope,
           size: 'lg',
+          backdrop: 'static',
         });
 
         $scope.modal.result.then(
@@ -3270,6 +3271,20 @@ angular
           function onDismissed() {}
         );
       }
+    };
+
+    /**
+     * @function
+     * @description Stringify party roles name
+     * @param  {[type]} party [description]
+     * @return {[type]}       [description]
+     */
+    $scope.showPartyRoles = function(party) {
+      if (party && party.roles) {
+        var roles = _.map(party.roles, 'name');
+        return roles.join(', ');
+      }
+      return '';
     };
 
     /**
@@ -7281,11 +7296,11 @@ angular.module('ng311').factory('Summary', function($http, $resource, Utils) {
    */
   Summary.standings = function(params) {
     return $http
-      .get(Utils.asLink(['reports', 'standings']), {
+      .get(Utils.asLink(['v1', 'reports', 'standings']), {
         params: params,
       })
       .then(function(response) {
-        return response.data;
+        return response.data.data;
       });
   };
 
@@ -7297,6 +7312,21 @@ angular.module('ng311').factory('Summary', function($http, $resource, Utils) {
   Summary.performances = function(params) {
     return $http
       .get(Utils.asLink(['v1', 'reports', 'performances']), {
+        params: params,
+      })
+      .then(function(response) {
+        return response.data.data;
+      });
+  };
+
+  /**
+   * @description Load current operations report
+   * @param {object} params additional params
+   * @return {object}
+   */
+  Summary.operations = function(params) {
+    return $http
+      .get(Utils.asLink(['v1', 'reports', 'operations']), {
         params: params,
       })
       .then(function(response) {
@@ -7655,6 +7685,7 @@ angular
     $scope.servicetypes = endpoints.servicetypes.data;
     $scope.jurisdictions = endpoints.jurisdictions.jurisdictions;
     $scope.workspaces = party.settings.party.relation.workspaces;
+    $scope.channels = party.settings.servicerequest.channels;
     $scope.methods = party.settings.servicerequest.methods;
 
     //bind filters
@@ -7673,7 +7704,7 @@ angular
       servicetypes: [],
       jurisdictions: [],
       workspaces: [],
-      methods: [],
+      channels: [],
     };
 
     //TODO persist filter to local storage
@@ -7729,13 +7760,17 @@ angular
           'Average Resolve Time',
         ],
       },
-      methods: {
-        filename: 'reporting_methods_overview_reports_' + Date.now() + '.csv',
+      channels: {
+        filename: 'reporting_channels_overview_reports_' + Date.now() + '.csv',
         headers: ['Name', 'Total'],
       },
       workspaces: {
         filename: 'workspaces_overview_reports_' + Date.now() + '.csv',
         headers: ['Name', 'Total'],
+      },
+      operators: {
+        filename: 'operators_overview_reports_' + Date.now() + '.csv',
+        headers: ['Name', 'Total', 'Pending', 'Resolved'],
       },
     };
 
@@ -7779,8 +7814,8 @@ angular
             : undefined,
         };
 
-        //reshape for workspace and method
-        if (type === 'methods' || type === 'workspaces') {
+        //reshape for workspace and channel
+        if (type === 'channels' || type === 'workspaces') {
           overview = _.pick(overview, ['name', 'total']);
         }
 
@@ -7867,7 +7902,7 @@ angular
       $scope.prepareJurisdictionVisualization();
       $scope.prepareServiceGroupVisualization();
       $scope.prepareServiceTypeVisualization();
-      $scope.prepareMethodVisualization();
+      $scope.prepareChannelVisualization();
       $scope.prepareWorkspaceVisualization();
     };
 
@@ -8238,32 +8273,32 @@ angular
     };
 
     /**
-     * prepare method overview visualization
+     * prepare channel overview visualization
      * @return {object} echart pie chart configurations
      * @version 0.1.0
      * @since  0.1.0
      * @author lally elias<lallyelias87@gmail.com>
      */
-    $scope.prepareMethodVisualization = function(column) {
+    $scope.prepareChannelVisualization = function(column) {
       //ensure column
       column = column || 'count';
 
       //prepare chart series data
-      var data = _.map($scope.overviews.methods, function(method) {
+      var data = _.map($scope.overviews.channels, function(channel) {
         return {
-          name: method.name,
-          value: method[column],
+          name: channel.name,
+          value: channel[column],
         };
       });
 
       //prepare chart config
-      $scope.perMethodConfig = {
+      $scope.perChannelConfig = {
         height: 400,
         forceClear: true,
       };
 
       //prepare chart options
-      $scope.perMethodOptions = {
+      $scope.perChannelOptions = {
         textStyle: {
           fontFamily: 'Lato',
         },
@@ -8287,7 +8322,7 @@ angular
           show: true,
           feature: {
             saveAsImage: {
-              name: 'Reporting Methods Overview - ' + new Date().getTime(),
+              name: 'Reporting Channels Overview - ' + new Date().getTime(),
               title: 'Save',
               show: true,
             },
@@ -9168,6 +9203,14 @@ angular
      */
     $scope.reload = function() {
       Summary.standings({ filter: $scope.params }).then(function(standings) {
+        standings = _.map(standings, function(standing) {
+          standing.group.name = standing.group.name.en;
+          standing.service.name = standing.service.name.en;
+          standing.priority.name = standing.priority.name.en;
+          standing.status.name = standing.status.name.en;
+          return standing;
+        });
+
         $scope.standings = standings;
         $scope.prepare();
       });
@@ -9843,7 +9886,6 @@ angular
   .controller('DashboardOperationCtrl', function(
     $rootScope,
     $scope,
-    $state,
     $filter,
     $stateParams,
     $uibModal,
@@ -9860,7 +9902,9 @@ angular
     $scope.services = endpoints.services.services;
     $scope.servicegroups = endpoints.servicegroups.servicegroups;
     $scope.jurisdictions = endpoints.jurisdictions.jurisdictions;
+    $scope.servicetypes = endpoints.servicetypes.data;
     $scope.workspaces = party.settings.party.relation.workspaces;
+    $scope.methods = party.settings.servicerequest.methods;
     $scope.materials = [
       { name: 'Adaptor Flange 10’’ PVC', quantity: 1 },
       { name: 'Adaptor Flange 10’’ GS', quantity: 1 },
@@ -9880,6 +9924,11 @@ angular
       { name: 'Air Valve 2"Single Acting (GS)', quantity: 1 },
       { name: 'Air Valve 3"Double Acting (GS)', quantity: 1 },
       { name: 'Air Valve 3"Single Acting (GS)', quantity: 1 },
+    ];
+    $scope.reasons = [
+      { name: 'No Transport', count: 3 },
+      { name: 'No Materials', count: 10 },
+      { name: 'Other Works', count: 13 },
     ];
     $scope.zones = [
       {
@@ -9939,14 +9988,95 @@ angular
           .endOf('date')
           .toDate(),
       jurisdictions: $scope.jurisdiction._id,
-      workspaces: [],
     };
 
     //TODO persist filter to local storage
     $scope.filters = defaultFilters;
 
     //initialize performances
-    $scope.performances = {};
+    $scope.operations = {};
+
+    $scope.exports = {
+      services: {
+        headers: [
+          'Service',
+          'Assigned',
+          'Attending',
+          'Completed',
+          'Verified',
+          'Approved',
+          'Average Attend Time',
+          'Average Work Time',
+          'Average Resolution Time',
+        ],
+      },
+    };
+
+    /**
+     * Exports current operation data
+     */
+    $scope.export = function(type) {
+      var _exports = _.map($scope.operations[type], function(operation) {
+        operation = {
+          name: operation.name,
+          assigned: operation.assigned,
+          attending: operation.attended,
+          completed: operation.completed,
+          verified: operation.verified,
+          approved: operation.approved,
+          averageAssignTime: operation.assignTime.average
+            ? [
+                operation.assignTime.average.days,
+                ' days, ',
+                operation.assignTime.average.hours,
+                ' hrs, ',
+                operation.assignTime.average.minutes,
+                ' mins, ',
+                operation.assignTime.average.seconds,
+                ' secs',
+              ].join('')
+            : undefined,
+
+          averageWorkTime: operation.workTime
+            ? [
+                operation.workTime.average.days,
+                'days, ',
+                operation.workTime.average.hours,
+                'hrs, ',
+                operation.workTime.average.minutes,
+                'mins, ',
+                operation.workTime.average.seconds,
+                'secs, ',
+              ].join('')
+            : undefined,
+          averageResolveTime: operation.resolveTime
+            ? [
+                operation.resolveTime.average.days,
+                'days, ',
+                operation.resolveTime.average.hours,
+                'hrs, ',
+                operation.resolveTime.average.minutes,
+                'mins, ',
+                operation.resolveTime.average.seconds,
+                'secs, ',
+              ].join('')
+            : undefined,
+        };
+
+        //reshape for workspace and channel
+        if (type === 'channels' || type === 'workspaces') {
+          operation = _.pick(operation, ['name', 'total']);
+        }
+
+        if (type === 'services' || type === 'types') {
+          operation = _.merge({}, operation, { name: operation.name.en });
+        }
+
+        return operation;
+      });
+
+      return _exports;
+    };
 
     /**
      * Open performance reports filter
@@ -9954,7 +10084,7 @@ angular
     $scope.showFilter = function() {
       //open performance reports filter modal
       $scope.modal = $uibModal.open({
-        templateUrl: 'views/dashboards/_partials/performances_filter.html',
+        templateUrl: 'views/dashboards/_partials/operations_filter.html',
         scope: $scope,
         size: 'lg',
       });
@@ -9995,20 +10125,20 @@ angular
     //TODO make api to return data
     $scope.prepareSummaries = function() {
       //prepare summary
-      $scope.performances.summaries = [
+      $scope.operations.summaries = [
         {
           name: 'Resolved',
-          count: _.get($scope.performances, 'overall.resolved', 0),
+          count: _.get($scope.operations, 'overall.resolved', 0),
           color: '#8BC34A',
         },
         {
           name: 'Pending',
-          count: _.get($scope.performances, 'overall.pending', 0),
+          count: _.get($scope.operations, 'overall.pending', 0),
           color: '#00BCD4',
         },
         {
           name: 'Late',
-          count: _.get($scope.performances, 'overall.late', 0),
+          count: _.get($scope.operations, 'overall.late', 0),
           color: '#009688',
         },
       ];
@@ -10020,32 +10150,20 @@ angular
 
       // prepare percentages for overall summary
       $scope.prepareOverallPercentages();
-
-      //prepare visualization
-      $scope.prepareSummaryVisualization();
-      $scope.prepareStatusesVisualization();
-      $scope.prepareServiceGroupVisualization();
-      $scope.prepareServiceVisualization();
     };
 
     /**
      * Reload performance reports
      */
     $scope.reload = function() {
-      Summary.performances({
+      Summary.operations({
         filter: $scope.params,
-      }).then(function(performances) {
-        $scope.performances = performances;
+      }).then(function(operations) {
+        $scope.operations = operations;
 
         //ensure performances loaded
-        if ($scope.performances) {
+        if ($scope.operations) {
           //ensure status are sorted by weight
-          $scope.performances.statuses = _.orderBy(
-            performances.statuses,
-            'weight',
-            'asc'
-          );
-
           $scope.prepare();
         }
       });
@@ -10059,354 +10177,52 @@ angular
      * @author Benson Maruchu<benmaruchu@gmail.com>
      */
     $scope.prepareOverallPercentages = function() {
-      var overallExists = _.get($scope.performances, 'overall', false);
+      var overallExists = _.get($scope.operations, 'overall', false);
+
+      var operationTotal =
+        $scope.operations.overall.new +
+        $scope.operations.overall.assigned +
+        $scope.operations.overall.attended +
+        $scope.operations.overall.completed +
+        $scope.operations.overall.verified +
+        $scope.operations.overall.approved;
+
+      console.log(operationTotal);
 
       // check if overall data exists
       if (overallExists) {
         var percentages = {
           percentageResolved:
-            ($scope.performances.overall.resolved /
-              $scope.performances.overall.count) *
+            ($scope.operations.overall.resolved /
+              $scope.operations.overall.count) *
             100,
           percentagePending:
-            ($scope.performances.overall.pending /
-              $scope.performances.overall.count) *
+            ($scope.operations.overall.pending /
+              $scope.operations.overall.count) *
             100,
           percentageLate:
-            ($scope.performances.overall.late /
-              $scope.performances.overall.count) *
+            ($scope.operations.overall.late / $scope.operations.overall.count) *
             100,
+          percentageWaiting:
+            ($scope.operations.overall.new / operationTotal) * 100,
+          percentageAssigned:
+            ($scope.operations.overall.assigned / operationTotal) * 100,
+          percentageAttending:
+            ($scope.operations.overall.attended / operationTotal) * 100,
+          percentageCompleted:
+            ($scope.operations.overall.completed / operationTotal) * 100,
+          percentageVerified:
+            ($scope.operations.overall.verified / operationTotal) * 100,
+          percentageApproved:
+            ($scope.operations.overall.approved / operationTotal) * 100,
         };
 
-        $scope.performances.overall = _.merge(
+        $scope.operations.overall = _.merge(
           {},
-          $scope.performances.overall,
+          $scope.operations.overall,
           percentages
         );
       }
-    };
-
-    /**
-     * prepare summary visualization
-     * @return {object} echart donut chart configurations
-     * @version 0.1.0
-     * @since  0.1.0
-     * @author lally elias<lallyelias87@gmail.com>
-     */
-    $scope.prepareSummaryVisualization = function() {
-      //prepare chart series data
-      var data = _.map($scope.performances.summaries, function(summary) {
-        return {
-          name: summary.name,
-          value: summary.count,
-        };
-      });
-
-      //prepare chart config
-      $scope.perSummaryConfig = {
-        height: 400,
-        forceClear: true,
-      };
-
-      //prepare chart options
-      $scope.perSummaryOptions = {
-        textStyle: {
-          fontFamily: 'Lato',
-        },
-        title: {
-          text: 'Total',
-          subtext: $filter('number')(_.sumBy(data, 'value'), 0),
-          x: 'center',
-          y: 'center',
-          textStyle: {
-            fontWeight: 'normal',
-            fontSize: 16,
-          },
-        },
-        tooltip: {
-          show: true,
-          trigger: 'item',
-          formatter: '{b}:<br/> Count: {c} <br/> Percent: ({d}%)',
-        },
-        toolbox: {
-          show: true,
-          feature: {
-            saveAsImage: {
-              name: 'Area Overview - ' + new Date().getTime(),
-              title: 'Save',
-              show: true,
-            },
-          },
-        },
-        series: [
-          {
-            type: 'pie',
-            selectedMode: 'single',
-            radius: ['45%', '55%'],
-            color: _.map($scope.performances.summaries, 'color'),
-            label: {
-              normal: {
-                formatter: '{b}\n{d}%\n( {c} )',
-              },
-            },
-            data: data,
-          },
-        ],
-      };
-    };
-
-    /**
-     * prepare statuses visualization
-     * @return {object} echart donut chart configurations
-     * @version 0.1.0
-     * @since  0.1.0
-     * @author lally elias<lallyelias87@gmail.com>
-     */
-    $scope.prepareStatusesVisualization = function() {
-      //prepare chart series data
-      var data = _.map($scope.performances.statuses, function(status) {
-        return {
-          name: status.name,
-          value: status.count,
-        };
-      });
-
-      //prepare chart config
-      $scope.perStatusesConfig = {
-        height: 400,
-        forceClear: true,
-      };
-
-      //prepare chart options
-      $scope.perStatusesOptions = {
-        textStyle: {
-          fontFamily: 'Lato',
-        },
-        title: {
-          text: 'Total',
-          subtext: $filter('number')(_.sumBy(data, 'value'), 0),
-          x: 'center',
-          y: 'center',
-          textStyle: {
-            fontWeight: 'normal',
-            fontSize: 16,
-          },
-        },
-        tooltip: {
-          show: true,
-          trigger: 'item',
-          formatter: '{b}:<br/> Count: {c} <br/> Percent: ({d}%)',
-        },
-        toolbox: {
-          show: true,
-          feature: {
-            saveAsImage: {
-              name: 'Area Status Overview - ' + new Date().getTime(),
-              title: 'Save',
-              show: true,
-            },
-          },
-        },
-        series: [
-          {
-            type: 'pie',
-            selectedMode: 'single',
-            radius: ['45%', '55%'],
-            color: _.map($scope.performances.statuses, 'color'),
-            label: {
-              normal: {
-                formatter: '{b}\n{d}%\n( {c} )',
-              },
-            },
-            data: data,
-          },
-        ],
-      };
-    };
-
-    /**
-     * prepare service group performance visualization
-     * @return {object} echart bar chart configurations
-     * @version 0.1.0
-     * @since  0.1.0
-     * @author lally elias<lallyelias87@gmail.com>
-     */
-    $scope.prepareServiceGroupVisualization = function(column) {
-      //ensure column
-      column = column || 'count';
-
-      //prepare chart series data
-      var data = _.map($scope.performances.groups, function(group) {
-        return {
-          name: group.name,
-          value: group[column],
-        };
-      });
-
-      //prepare chart config
-      $scope.perServiceGroupConfig = {
-        height: 400,
-        forceClear: true,
-      };
-
-      //prepare chart options
-      $scope.perServiceGroupOptions = {
-        textStyle: {
-          fontFamily: 'Lato',
-        },
-        title: {
-          text:
-            column === 'count' ? 'Total' : _.upperFirst(column.toLowerCase()),
-          subtext: $filter('number')(_.sumBy(data, 'value'), 0),
-          x: 'center',
-          y: 'center',
-          textStyle: {
-            fontWeight: 'normal',
-            fontSize: 16,
-          },
-        },
-        tooltip: {
-          show: true,
-          trigger: 'item',
-          formatter: '{b}:<br/> Count: {c} <br/> Percent: ({d}%)',
-        },
-        toolbox: {
-          show: true,
-          feature: {
-            saveAsImage: {
-              name: 'Service Groups Overview - ' + new Date().getTime(),
-              title: 'Save',
-              show: true,
-            },
-          },
-        },
-        series: [
-          {
-            type: 'pie',
-            selectedMode: 'single',
-            radius: ['45%', '55%'],
-            color: _.map($scope.performances.groups, 'color'),
-
-            label: {
-              normal: {
-                formatter: '{b}\n{d}%\n( {c} )',
-              },
-            },
-            data: data,
-          },
-        ],
-      };
-    };
-
-    /**
-     * prepare per service bar chart
-     * @return {object} echart bar chart configurations
-     * @version 0.1.0
-     * @since  0.1.0
-     * @author lally elias<lallyelias87@gmail.com>
-     */
-    $scope.prepareServiceVisualization = function(column) {
-      //ensure column
-      column = column || 'count';
-
-      //prepare unique services for bar chart categories
-      var categories = _.chain($scope.performances)
-        .map('services')
-        .uniqBy('name')
-        .value();
-
-      //prepare bar chart series data
-      var data = _.map($scope.performances.services, function(service) {
-        var serie = {
-          name: service.name,
-          value: service[column],
-          itemStyle: {
-            normal: {
-              color: service.color,
-            },
-          },
-        };
-
-        return serie;
-      });
-
-      //sort data by their value
-      data = _.orderBy(data, 'value', 'asc');
-
-      //prepare chart config
-      $scope.perServiceConfig = {
-        height: '1100',
-        forceClear: true,
-      };
-
-      //prepare chart options
-      $scope.perServiceOptions = {
-        color: _.map(data, 'itemStyle.normal.color'),
-        textStyle: {
-          fontFamily: 'Lato',
-        },
-        tooltip: {
-          trigger: 'item',
-          formatter: '{b} : {c}',
-        },
-        toolbox: {
-          show: true,
-          feature: {
-            saveAsImage: {
-              name: 'Area Services Overview - ' + new Date().getTime(),
-              title: 'Save',
-              show: true,
-            },
-          },
-        },
-        calculable: true,
-        yAxis: [
-          {
-            type: 'category',
-            data: _.map(data, 'name'),
-            boundaryGap: true,
-            axisTick: {
-              alignWithLabel: true,
-            },
-            axisLabel: {
-              rotate: 60,
-            },
-            axisLine: {
-              show: true,
-            },
-          },
-        ],
-        xAxis: [
-          {
-            type: 'value',
-            scale: true,
-            position: 'top',
-            boundaryGap: true,
-            axisTick: {
-              show: false,
-              lineStyle: {
-                color: '#ddd',
-              },
-            },
-            splitLine: {
-              show: false,
-            },
-          },
-        ],
-        series: [
-          {
-            type: 'bar',
-            barWidth: '55%',
-            label: {
-              normal: {
-                show: true,
-                position: 'right',
-              },
-            },
-            data: data,
-          },
-        ],
-      };
     };
 
     //listen for events and reload performance accordingly
@@ -10861,7 +10677,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   'use strict';
 
   $templateCache.put('views/_partials/aside.html',
-    " <div class=\"navside\" data-layout=\"column\"> <div class=\"navbar no-radius\"> <a title=\"{{ ENV.title }} | {{ ENV.description }}\" ui-sref=\"app.servicerequests.list\" class=\"navbar-brand\"> <img src=\"images/logo_sm.f2b373cb.png\" alt=\".\" width=\"48\" class=\"m-t-sm\"> </a> </div> <br> <div data-flex class=\"hide-scroll\"> <nav class=\"scroll nav-stacked nav-stacked-rounded nav-color\"> <ul class=\"nav\" data-ui-nav> <li class=\"nav-header hidden-folded\"> <span class=\"text-xs\">Main</span> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:view\"> <a ui-sref=\"app.servicerequests.list\" title=\"Issues & Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-chatbubble-working\"></i> </span> <span class=\"nav-text\">Issues</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:edit\"> <a ui-sref=\"app.create_servicerequests\" ui-sref-opts=\"{reload: true}\" title=\"Report New Issue or Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-plus-circled\"></i> </span> <span class=\"nav-text\">New Issue</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"alert:create, alert:view\"> <a ui-sref=\"app.alerts\" ui-sref-opts=\"{reload: true}\" title=\"Create and Manage Alerts\"> <span class=\"nav-icon\"> <i class=\"ion-android-notifications\"></i> </span> <span class=\"nav-text\">Alerts</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.overviews\" title=\"Overviews\"> <span class=\"nav-icon\"> <i class=\"ion-pie-graph\"></i> </span> <span class=\"nav-text\">Overviews</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.standings\" title=\"Standings\"> <span class=\"nav-icon\"> <i class=\"ion-arrow-graph-up-right\"></i> </span> <span class=\"nav-text\">Standings</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\"> <a ui-sref=\"app.performances\" title=\"Performances\"> <span class=\"nav-icon\"> <i class=\"ion-ios-pulse-strong\"></i> </span> <span class=\"nav-text\">Performances</span> </a> </li> <li ui-sref-active=\"active\"> <a ui-sref=\"app.operations\" title=\"Operations Reports\"> <span class=\"nav-icon\"> <i class=\"ion-ios-people\"></i> </span> <span class=\"nav-text\">Operations</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:export\"> <a ui-sref=\"app.exports\" title=\"Exports\"> <span class=\"nav-icon\"> <i class=\"ion-social-buffer\"></i> </span> <span class=\"nav-text\">Exports</span> </a> </li> <li show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\" ui-sref-active=\"active\"> <a ui-sref=\"app.manage.jurisdictions\" title=\"Manage System\"> <span class=\"nav-icon\"> <i class=\"ion-gear-a\"></i> </span> <span class=\"nav-text\">Manage</span> </a> </li> </ul> </nav> </div> <div data-flex-no-shrink> <div uib-dropdown class=\"nav-fold dropup\" title=\"{{ party.name }}\"> <a uib-dropdown-toggle data-toggle=\"dropdown\"> <div class=\"pull-left\"> <div class=\"inline\"> <letter-avatar title=\"{{ party.name }}\" data=\"{{ party.name }}\" height=\"60\" width=\"60\" shape=\"round\" class=\"avatar w-40\"> </letter-avatar> </div> </div> </a> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a class=\"dropdown-item\" ui-sref=\"app.profile\" title=\"My Profile\"> <span>Profile</span> </a> <a ng-show=\"isAuthenticated\" ng-show=\"isAuthenticated\" data-signout title=\"Signout\" class=\"dropdown-item\" title=\"Signout\"> Sign out </a> </div> </div> </div> </div> "
+    " <div class=\"navside\" data-layout=\"column\"> <div class=\"navbar no-radius\"> <a title=\"{{ ENV.title }} | {{ ENV.description }}\" ui-sref=\"app.servicerequests.list\" class=\"navbar-brand\"> <img src=\"images/logo_sm.f2b373cb.png\" alt=\".\" width=\"48\" class=\"m-t-sm\"> </a> </div> <br> <div data-flex class=\"hide-scroll\"> <nav class=\"scroll nav-stacked nav-stacked-rounded nav-color\"> <ul class=\"nav\" data-ui-nav> <li class=\"nav-header hidden-folded\"> <span class=\"text-xs\">Main</span> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:view\"> <a ui-sref=\"app.servicerequests.list\" title=\"Issues & Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-chatbubble-working\"></i> </span> <span class=\"nav-text\">Issues</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:create, servicerequest:edit\"> <a ui-sref=\"app.create_servicerequests\" ui-sref-opts=\"{reload: true}\" title=\"Report New Issue or Service Request\"> <span class=\"nav-icon\"> <i class=\"ion-plus-circled\"></i> </span> <span class=\"nav-text\">New Issue</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"alert:create, alert:view\"> <a ui-sref=\"app.alerts\" ui-sref-opts=\"{reload: true}\" title=\"Create and Manage Alerts\"> <span class=\"nav-icon\"> <i class=\"ion-android-notifications\"></i> </span> <span class=\"nav-text\">Alerts</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"view:overview report\"> <a ui-sref=\"app.overviews\" title=\"Overviews\"> <span class=\"nav-icon\"> <i class=\"ion-pie-graph\"></i> </span> <span class=\"nav-text\">Overviews</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"view:standing report\"> <a ui-sref=\"app.standings\" title=\"Standings\"> <span class=\"nav-icon\"> <i class=\"ion-arrow-graph-up-right\"></i> </span> <span class=\"nav-text\">Standings</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"view:performance report\"> <a ui-sref=\"app.performances\" title=\"Performances\"> <span class=\"nav-icon\"> <i class=\"ion-ios-pulse-strong\"></i> </span> <span class=\"nav-text\">Performances</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"view:operational report\"> <a ui-sref=\"app.operations\" title=\"Operations Reports\"> <span class=\"nav-icon\"> <i class=\"ion-ios-people\"></i> </span> <span class=\"nav-text\">Operations</span> </a> </li> <li ui-sref-active=\"active\" show-if-has-any-permit=\"servicerequest:export\"> <a ui-sref=\"app.exports\" title=\"Exports\"> <span class=\"nav-icon\"> <i class=\"ion-social-buffer\"></i> </span> <span class=\"nav-text\">Exports</span> </a> </li> <li show-if-has-any-permit=\"jurisdiction:view, servicegroup:view, service:view, priority:view, status:view, user:view, role:view\" ui-sref-active=\"active\"> <a ui-sref=\"app.manage.jurisdictions\" title=\"Manage System\"> <span class=\"nav-icon\"> <i class=\"ion-gear-a\"></i> </span> <span class=\"nav-text\">Manage</span> </a> </li> </ul> </nav> </div> <div data-flex-no-shrink> <div uib-dropdown class=\"nav-fold dropup\" title=\"{{ party.name }}\"> <a uib-dropdown-toggle data-toggle=\"dropdown\"> <div class=\"pull-left\"> <div class=\"inline\"> <letter-avatar title=\"{{ party.name }}\" data=\"{{ party.name }}\" height=\"60\" width=\"60\" shape=\"round\" class=\"avatar w-40\"> </letter-avatar> </div> </div> </a> <div uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a class=\"dropdown-item\" ui-sref=\"app.profile\" title=\"My Profile\"> <span>Profile</span> </a> <a ng-show=\"isAuthenticated\" ng-show=\"isAuthenticated\" data-signout title=\"Signout\" class=\"dropdown-item\" title=\"Signout\"> Sign out </a> </div> </div> </div> </div> "
   );
 
 
@@ -10931,7 +10747,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/auth/_partials/overall_summary.html',
-    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Overview Summary\"> <h3>Overview Summary</h3> </div> <div> <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Total Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ performances.overall.count | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Total</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Pending Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ performances.overall.pending | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Pending</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Resolved Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ performances.overall.resolved | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Resolved</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Late(Past SLA Time) Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ performances.overall.late | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Late</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Average Attend Time(Call Duration)\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average Attend Time(Call Duration) - Minutes Spent\"> {{ performances.overall.averageAttendTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span title=\"Average Attend Time(Call Duration) - Seconds Spent\"> {{ performances.overall.averageAttendTime.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Attend Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-b\" title=\"Average resolve Time\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average resolve Time - Hourss Spent\"> {{ performances.overall.averageResolveTime.hours + performances.overall.averageResolveTime.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average resolve Time - Minutes Spent\"> {{ performances.overall.averageResolveTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Resolve Time</p> </div> </div> </div> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Overview Summary\"> <h3>Overview Summary</h3> </div> <div> <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Total Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ performances.overall.count | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Total</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Pending Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ performances.overall.pending | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Pending</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Resolved Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ performances.overall.resolved | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Resolved</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Late(Past SLA Time) Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ performances.overall.late | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Late</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Average Attend Time(Call Duration)\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average Attend Time(Call Duration) - Minutes Spent\"> {{ performances.overall.attendTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span title=\"Average Attend Time(Call Duration) - Seconds Spent\"> {{ performances.overall.attendTime.average.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Attend Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-b\" title=\"Average resolve Time\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average resolve Time - Hourss Spent\"> {{ performances.overall.resolveTime.average.hours + performances.overall.resolveTime.average.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average resolve Time - Minutes Spent\"> {{ performances.overall.resolveTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Resolve Time</p> </div> </div> </div> </div> </div> </div> </div> "
   );
 
 
@@ -10978,12 +10794,12 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   $templateCache.put('views/auth/_partials/service_summary.html',
     " <div class=\"padding m-t-md m-b-lg\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Services Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_overview_reports_{{\n" +
     "              filters.startedAt | date: settings.dateFormat\n" +
-    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th title=\"Service\"> Service </th> <th title=\"Total Count of Service Requests\"> Total </th> <th title=\"Total Count of Pending Service Requests\"> Pending </th> <th title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"service in performances.services\"> <td title=\"{{ service.name }}\"> {{ service.name.en }} </td> <td title=\"{{ service.count | number: 0 }}\"> {{ service.count | number: 0 }} </td> <td title=\" {{ service.pending | number: 0 }}\"> {{ service.pending | number: 0 }} </td> <td title=\" {{ service.resolved | number: 0 }}\"> {{ service.resolved | number: 0 }} </td> <td title=\" {{ service.late | number: 0 }}\"> {{ service.late | number: 0 }} </td> <td> <span> {{ service.averageAttendTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{ service.averageAttendTime.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{ service.averageResolveTime.hours + service.averageResolveTime.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ service.averageResolveTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> "
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th title=\"Service\"> Service </th> <th title=\"Total Count of Service Requests\"> Total </th> <th title=\"Total Count of Pending Service Requests\"> Pending </th> <th title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"service in performances.services\"> <td title=\"{{ service.name }}\"> {{ service.name.en }} </td> <td title=\"{{ service.count | number: 0 }}\"> {{ service.count | number: 0 }} </td> <td title=\" {{ service.pending | number: 0 }}\"> {{ service.pending | number: 0 }} </td> <td title=\" {{ service.resolved | number: 0 }}\"> {{ service.resolved | number: 0 }} </td> <td title=\" {{ service.late | number: 0 }}\"> {{ service.late | number: 0 }} </td> <td> <span> {{ service.attendTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{ service.attendTime.average.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{ service.resolveTime.average.hours + service.resolveTime.average.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ service.resolveTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/auth/profile.html',
-    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Profile </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <ng-include src=\"'views/auth/_partials/profile_summary.html'\"></ng-include> <ng-include ng-if=\"performances.overall\" src=\"'views/auth/_partials/overall_summary.html'\"> </ng-include> <ng-include ng-if=\"performances.pipelines && performances.pipelines.length > 0\" src=\"'views/auth/_partials/pipeline_summary.html'\"></ng-include> <div class=\"row no-gutter\" style=\"display: none\"> <div class=\"col-xs-12 col-sm-6 col-md-6\"> <ng-include ng-if=\"performances.attendTime\" src=\"'views/auth/_partials/attend_time_summary.html'\"> </ng-include> </div> <div class=\"col-xs-12 col-sm-6 col-md-6\"> <ng-include ng-if=\"performances.resolveTime\" src=\"'views/auth/_partials/resolve_time_summary.html'\"></ng-include> </div> </div> <ng-include ng-if=\"performances.services\" src=\"'views/auth/_partials/service_summary.html'\"> </ng-include> <ng-include ng-if=\"performances.operators\" src=\"'views/auth/_partials/service_request_leaderboard.html'\"></ng-include> <div ng-if=\"!performances.overall\" class=\"row-col h-v\"> <div class=\"row-cell v-s\"> <div class=\"text-center col-sm-6 offset-sm-3 p-y-lg\"> <p class=\"text-muted m-y-lg\"> No Data Found. Please update your filters. </p> <button ng-click=\"showFilter()\" class=\"btn btn-outline b-grey text-grey\" title=\"Click to update filters\"> Update Filters </button> </div> </div> </div> </div> "
+    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Profile </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click To Filter Report\"> <i class=\"ion-android-funnel w-24\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <ng-include src=\"'views/auth/_partials/profile_summary.html'\"></ng-include> <ng-include ng-if=\"performances.overall\" src=\"'views/auth/_partials/overall_summary.html'\"> </ng-include> <ng-include ng-if=\"performances.pipelines && performances.pipelines.length > 0\" src=\"'views/auth/_partials/pipeline_summary.html'\"></ng-include> <div class=\"row no-gutter\" style=\"display: none\"> <div class=\"col-xs-12 col-sm-6 col-md-6\"> <ng-include ng-if=\"performances.attendTime\" src=\"'views/auth/_partials/attend_time_summary.html'\"> </ng-include> </div> <div class=\"col-xs-12 col-sm-6 col-md-6\"> <ng-include ng-if=\"performances.resolveTime\" src=\"'views/auth/_partials/resolve_time_summary.html'\"></ng-include> </div> </div> <ng-include ng-if=\"performances.services && performances.services.length > 0\" src=\"'views/auth/_partials/service_summary.html'\"> </ng-include> <ng-include ng-if=\"performances.operators && performances.operators.length > 0\" src=\"'views/auth/_partials/service_request_leaderboard.html'\"></ng-include> <div ng-if=\"!performances.overall\" class=\"row-col h-v\"> <div class=\"row-cell v-s\"> <div class=\"text-center col-sm-6 offset-sm-3 p-y-lg\"> <p class=\"text-muted m-y-lg\"> No Data Found. Please update your filters. </p> <button ng-click=\"showFilter()\" class=\"btn btn-outline b-grey text-grey\" title=\"Click to update filters\"> Update Filters </button> </div> </div> </div> </div> "
   );
 
 
@@ -11004,6 +10820,11 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
   $templateCache.put('views/dashboards/_partials/area_per_status_leaderboard.html',
     " <div class=\"p-a-lg\"> <div> <h4 title=\"Work Performed\">Issue per Area per Status - Work Progress</h4> <small class=\"block text-muted\" title=\"Count of Reported Issues by Their Area and Status\"> Count of Reported Issues by Their Area and Status </small> </div> <div class=\"row m-t-md\"> <div class=\"box\"> <div class=\"row p-a\"> <div class=\"col-sm-10\"></div> <div class=\"col-sm-2\"> <div class=\"dt-buttons btn-group\"> <a class=\"btn btn-secondary buttons-copy buttons-html5\" title=\"Visualize\" tabindex=\"0\" href=\"#\"> <i class=\"icon-eye\"></i> </a> <a class=\"btn btn-secondary buttons-excel buttons-html5\" title=\"Export as CSV\" tabindex=\"0\" href=\"#\"> <i class=\"icon-cloud-download\"></i> </a> </div> </div> </div> <div class=\"table-responsive\"> <table class=\"table table-bordered b-t table-tabular\"> <thead> <tr> <th>Area</th> <th ng-repeat=\"status in statuses\"> {{status.name}} </th> <th>Total</th> </tr> </thead> <tbody> <tr ng-repeat=\"area in areaPerStatus\"> <td>{{area.name}}</td> <td ng-repeat=\"status in area.statuses\"> {{status.count}} </td> <td>{{area.total}}</td> </tr> </tbody> </table> </div> </div> </div> </div> "
+  );
+
+
+  $templateCache.put('views/dashboards/_partials/operations_filter.html',
+    "<div> <div class=\"modal-header\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$dismiss()\" aria-hidden=\"true\"> × </button> <h4 class=\"modal-title\">Operations Reports - Filters</h4> </div> <div class=\"modal-body\"> <div class=\"container-fluid\"> <div class=\"row\"> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> From </h6> </div> <div pickadate ng-model=\"filters.startedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> To </h6> </div> <div pickadate ng-model=\"filters.endedAt\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> </div> <div class=\"row m-t-sm\" ng-if=\"jurisdictions.length > 1\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Area </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"jurisdiction in jurisdictions | orderBy:'name'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ jurisdiction.name }}\"> <input type=\"radio\" ng-model=\"filters.jurisdictions\" ng-value=\"jurisdiction._id\"> <i class=\"blue\"></i> {{ jurisdiction.name }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Service Type </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"type in servicetypes | orderBy:'name.en'\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ type.name.en }}\"> <input type=\"checkbox\" checklist-model=\"filters.servicetypes\" checklist-value=\"type._id\"> <i class=\"blue\"></i>{{ type.name.en }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Workspace </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"workspace in workspaces\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ workspace }}\"> <input type=\"checkbox\" checklist-model=\"filters.workspaces\" checklist-value=\"workspace\"> <i class=\"blue\"></i>{{ workspace }} </label> </div> </div> </div> <div class=\"row m-t-md\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Reporting Method </h6> </div> </div> <div class=\"col-md-3\" ng-repeat=\"method in methods\"> <div class=\"p-a p-b-none\"> <label class=\"md-check text-muted\" title=\"{{ method }}\"> <input type=\"checkbox\" checklist-model=\"filters.methods\" checklist-value=\"method\"> <i class=\"blue\"></i>{{ method }} </label> </div> </div> </div> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" ng-click=\"$dismiss()\">Cancel</button> <button class=\"btn btn-primary\" ng-click=\"filter()\">Filter</button> </div> </div> "
   );
 
 
@@ -11077,20 +10898,20 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   );
 
 
-  $templateCache.put('views/dashboards/operation/_partials/average_time_summary.html',
-    " <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-6 b-a\" title=\"Average Attend Time(Call Duration)\"> <div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average Attend Time(Call Duration) - Minutes Spent\"> {{performances.overall.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span title=\"Average Attend Time(Call Duration) - Seconds Spent\"> {{performances.overall.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Attend Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-6 b-b b-t b-r\" title=\"Average resolve Time\"> <div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average resolve Time - Days Spent\"> {{performances.overall.averageResolveTime.days}} <span class=\"text-muted text-xs\">days</span> </span> <span title=\"Average resolve Time - Hours Spent\"> {{performances.overall.averageResolveTime.hours}} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average resolve Time - Minutes Spent\"> {{performances.overall.averageResolveTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Resolve Time</p> </div> </div> </div> </div> "
+  $templateCache.put('views/dashboards/operation/_partials/blocked_service_requests_summary.html',
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Reporting Workspaces Summary\"> <h3>Blocked Work Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('workspaces')\" csv-header=\"exports.workspaces.headers\" filename=\"workspaces_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareWorkspaceVisualization('count')\" title=\"Workspace\"> Reason for Blocking </th> <th ng-click=\"prepareWorkspaceVisualization('count')\" title=\"Total Count of Work Blocked\"> Total </th> </tr> </thead> <tbody> <tr ng-repeat=\"reason in reasons\"> <td title=\"{{reason.name}}\"> {{reason.name}} </td> <td title=\"{{reason.count | number:0}}\"> {{reason.count | number:0}} </td> </tr> </tbody> </table> </div> <div class=\"col-sm-5 b-l lt\"> <div class=\"p-a-md\"> <echart config=\"perWorkspaceConfig\" options=\"perWorkspaceOptions\"></echart> </div> </div> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/operation/_partials/jurisdiction_summary.html',
-    " <div class=\"item\"> <div class=\"p-a-lg\"> <div class=\"row m-t\"> <div class=\"col-sm-12 col-md-6 col-lg-6\"> <a href=\"#\" class=\"pull-left m-r-md\"> <span> <letter-avatar title=\"{{jurisdiction.name}}\" data=\"{{jurisdiction.name}}\" height=\"96\" width=\"96\" shape=\"round\"> </letter-avatar> <i class=\"on b-white\"></i> </span> </a> <div class=\"clear m-b\"> <h4 class=\"m-a-0 m-b-sm\" title=\"Name\">{{jurisdiction.name}}</h4> <div class=\"block clearfix m-t-md m-b\"> <span> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-phone\"></i> <i class=\"icon-phone indigo\"></i> </a> <span title=\"Phone Number\" class=\"text-muted\"> {{jurisdiction.phone ? jurisdiction.phone : 'N/A'}} </span> </span> <span class=\"m-l-md\"> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-envelope\"></i> <i class=\"icon-envelope light-blue\"></i> </a> <span title=\"Email Address\" class=\"text-muted\"> {{jurisdiction.email ? jurisdiction.email : 'N/A'}} </span> </span> </div> </div> </div> <div class=\"col-sm-12 col-md-6 col-lg-6 pull-right\"> <ng-include src=\"'views/dashboards/performance/_partials/average_time_summary.html'\"></ng-include> </div> </div> </div> </div> "
+    " <div class=\"item\"> <div class=\"p-a-lg\"> <div class=\"row m-t\"> <div class=\"col-sm-12 col-md-6 col-lg-6\"> <a href=\"#\" class=\"pull-left m-r-md\"> <span> <letter-avatar title=\"{{ jurisdiction.name }}\" data=\"{{ jurisdiction.name }}\" height=\"96\" width=\"96\" shape=\"round\"> </letter-avatar> <i class=\"on b-white\"></i> </span> </a> <div class=\"clear m-b\"> <h4 class=\"m-a-0 m-b-sm\" title=\"Name\">{{ jurisdiction.name }}</h4> <div class=\"block clearfix m-t-md m-b\"> <span> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-phone\"></i> <i class=\"icon-phone indigo\"></i> </a> <span title=\"Phone Number\" class=\"text-muted\"> {{ jurisdiction.phone ? jurisdiction.phone : 'N/A' }} </span> </span> <span class=\"m-l-md\"> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-envelope\"></i> <i class=\"icon-envelope light-blue\"></i> </a> <span title=\"Email Address\" class=\"text-muted\"> {{ jurisdiction.email ? jurisdiction.email : 'N/A' }} </span> </span> </div> </div> </div> <div class=\"col-sm-12 col-md-6 col-lg-6 pull-right\"> <ng-include src=\"'views/dashboards/operation/_partials/overall_metric_counts.html'\"></ng-include> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/operation/_partials/jurisdiction_zone_summary.html',
     " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Zones Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('jurisdictions')\" csv-header=\"exports.jurisdictions.headers\" filename=\"jurisdictions_overview_reports_{{\n" +
     "              filters.startedAt | date: settings.dateFormat\n" +
-    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-12\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th title=\"Area\"> Zone </th> <th title=\"Total Count of Service Requests\"> Total </th> <th title=\"Total Count of Pending Service Requests\"> In Progress </th> <th title=\"Total Count of Done Service Requests\"> Done </th> <th title=\"Total Count of Verified Service Requests\"> Verified </th> <th title=\"Total Count of Approved and Closed Zone Service Requests\"> Closed </th> <th title=\"Total Count of Late Zone Service Requests\"> Late </th> </tr> </thead> <tbody> <tr ng-repeat=\"zone in zones\"> <td title=\"{{ zone.name }}\"> {{ zone.name }} </td> <td title=\"{{ zone.total | number: 0 }}\"> {{ zone.total | number: 0 }} </td> <td title=\" {{ zone.inProgress | number: 0 }}\"> {{ zone.inProgress | number: 0 }} </td> <td title=\" {{ zone.done | number: 0 }}\"> {{ zone.done | number: 0 }} </td> <td title=\" {{ zone.verified | number: 0 }}\"> {{ zone.verified | number: 0 }} </td> <td title=\" {{ zone.closed | number: 0 }}\"> {{ zone.closed | number: 0 }} </td> <td title=\" {{ zone.late | number: 0 }}\"> {{ zone.late | number: 0 }} </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-12\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th title=\"Area\"> Zone </th> <th title=\"Total Count of Service Requests\"> Total </th> <th title=\"Total Count of Assigned Service Requests\"> Assigned </th> <th title=\"Total Count of Attending Service Requests\"> Attending </th> <th title=\"Total Count of Blocked Service Requests\"> Blocked </th> <th title=\"Total Count of Completed and Closed Zone Service Requests\"> Completed </th> <th title=\"Total Count of Verified Zone Service Requests\"> Verified </th> <th title=\"Total Count of Approved Zone Service Requests\"> Approved </th> </tr> </thead> <tbody> <tr ng-repeat=\"zone in zones\"> <td title=\"{{ zone.name }}\"> {{ zone.name }} </td> <td title=\"{{ zone.total | number: 0 }}\"> {{ zone.total | number: 0 }} </td> <td title=\" {{ zone.inProgress | number: 0 }}\"> {{ zone.inProgress | number: 0 }} </td> <td title=\" {{ zone.done | number: 0 }}\"> {{ zone.done | number: 0 }} </td> <td title=\" {{ zone.verified | number: 0 }}\"> {{ zone.verified | number: 0 }} </td> <td title=\" {{ zone.closed | number: 0 }}\"> {{ zone.closed | number: 0 }} </td> <td title=\" {{ zone.late | number: 0 }}\"> {{ zone.late | number: 0 }} </td> <td title=\" {{ zone.late | number: 0 }}\"> {{ zone.late | number: 0 }} </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
   );
 
 
@@ -11101,8 +10922,18 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   );
 
 
+  $templateCache.put('views/dashboards/operation/_partials/overall_metric_counts.html',
+    " <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-3 b-r b-l b-t b-b\" title=\"Total Service Requests\"> <div class=\"p-a-sm\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ operations.overall.count | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Total</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-3 b-r b-t b-b\" title=\"Pending Service Requests\"> <div class=\"p-a-sm\"> <div> <span class=\"pull-right text-xs\" ng-class=\"operations.overall.percentagePending <= 50 ? 'text-success' : 'text-danger'\">{{ operations.overall.percentagePending | number: 2 }}%</span> </div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ operations.overall.pending | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Pending</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-3 b-r b-t b-b\" title=\"Resolved Service Requests\"> <div class=\"p-a-sm\"> <div> <span class=\"pull-right text-xs\" ng-class=\"operations.overall.percentageResolved >= 50 ? 'text-success' : 'text-danger'\">{{ operations.overall.percentageResolved | number: 2 }}%</span> </div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ operations.overall.resolved | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Resolved</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-3 b-r b-t b-b\" title=\"Past SLA Service Requests\"> <div class=\"p-a-sm\"> <div> <span class=\"pull-right text-xs\" ng-class=\"operations.overall.percentageLate >= 50 ? 'text-danger' : 'text-success'\">{{ operations.overall.percentageLate | number: 2 }}%</span> </div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ operations.overall.late | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Late</p> </div> </div> </div> </div> "
+  );
+
+
   $templateCache.put('views/dashboards/operation/_partials/overall_summary.html',
-    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Overview Summary\"> <h3>Overview Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-3 b-r b-b\" title=\"Total Service Requests\"> <div class=\"p-a-sm\"> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{performances.overall.count | number:0}} </h4> <p class=\"text-muted m-b-md\">Total</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Pending Service Requests\"> <div class=\"p-a-sm\"> <div> <span class=\"pull-right text-xs\" ng-class=\"performances.overall.percentagePending <= 50 ? 'text-success' : 'text-danger'\">{{performances.overall.percentagePending | number:2}}%</span> </div> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{performances.overall.pending | number:0}} </h4> <p class=\"text-muted m-b-md\">Pending</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Resolved Service Requests\"> <div class=\"p-a-sm\"> <div> <span class=\"pull-right text-xs\" ng-class=\"performances.overall.percentageResolved >= 50 ? 'text-success' : 'text-danger'\">{{performances.overall.percentageResolved | number:2}}%</span> </div> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{performances.overall.resolved | number:0}} </h4> <p class=\"text-muted m-b-md\">Resolved</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Late(Past SLA Time) Service Requests\"> <div class=\"p-a-sm\"> <div> <span class=\"pull-right text-xs\" ng-class=\"performances.overall.percentageLate > 0 ? 'text-danger' : 'text-success'\">{{performances.overall.percentageLate | number:2}}%</span> </div> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{performances.overall.late | number:0}} </h4> <p class=\"text-muted m-b-md\">Late</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-3 b-b\" title=\"Late(Past SLA Time) Service Requests\"> <div class=\"p-a-sm\"> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{performances.overall.late | number:0}} </h4> <p class=\"text-muted m-b-md\">Escallated</p> </div> </div> </div> </div> <div class=\"p-a-md\"> <echart config=\"perSummaryConfig\" options=\"perSummaryOptions\"></echart> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Overview Summary\"> <h3>Overview Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-2 b-r\" title=\"Service Requests in Waiting State\"> <div class=\"padding\"> <div> <span class=\"pull-right text-xs\" ng-class=\"operations.overall.percentageWaiting <= 50 ? 'text-success' : 'text-danger'\">{{ operations.overall.percentageWaiting | number: 2 }}%</span> </div> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{ operations.overall.new | number: 0 }} </h4> <p class=\"text-muted m-b-md\">Waiting</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r\" title=\"Service Requests in Assigned State\"> <div class=\"padding\"> <div> <span class=\"pull-right text-xs\" ng-class=\"operations.overall.percentageAssigned <= 50 ? 'text-success' : 'text-danger'\">{{ operations.overall.percentageAssigned | number: 2 }}%</span> </div> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{ operations.overall.assigned | number: 0 }} </h4> <p class=\"text-muted m-b-md\">Assigned</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r\" title=\"Service Requests in Attending State\"> <div class=\"padding\"> <div> <span class=\"pull-right text-xs\" ng-class=\"operations.overall.percentageAttending >= 50 ? 'text-success' : 'text-danger'\">{{ operations.overall.percentageAttending | number: 2 }}%</span> </div> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{ operations.overall.attended | number: 0 }} </h4> <p class=\"text-muted m-b-md\">Attending</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r\" title=\"Service Requests in Completed State\"> <div class=\"padding\"> <div> <span class=\"pull-right text-xs\" ng-class=\"operations.overall.percentageCompleted >= 50 ? 'text-danger' : 'text-success'\">{{ operations.overall.percentageCompleted | number: 2 }}%</span> </div> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{ operations.overall.completed | number: 0 }} </h4> <p class=\"text-muted m-b-md\">Completed</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2\" title=\"Service Requests in Verified State\"> <div class=\"padding\"> <div> <span class=\"pull-right text-xs\" ng-class=\"operations.overall.percentageVerified >= 50 ? 'text-success' : 'text-danger'\">{{ operations.overall.percentageVerified | number: 2 }}%</span> </div> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{ operations.overall.verified | number: 0 }} </h4> <p class=\"text-muted m-b-md\">Verified</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-l\" title=\"Service Requests in Approved State\"> <div class=\"padding\"> <div> <span class=\"pull-right text-xs\" ng-class=\"operations.overall.percentageApproved >= 50 ? 'text-success' : 'text-danger'\">{{ operations.overall.percentageApproved | number: 2 }}%</span> </div> <div class=\"text-center\"> <h4 class=\"text-center _600 m-t-md\"> {{ operations.overall.approved | number: 0 }} </h4> <p class=\"text-muted m-b-md\">Approved</p> </div> </div> </div> </div> </div> </div> </div> "
+  );
+
+
+  $templateCache.put('views/dashboards/operation/_partials/overall_time_summary.html',
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Overview Time Summary\"> <h3>Overview Time Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-2 b-r\" title=\"Average Assign Time\"> <div class=\"padding\"> <div class=\"text-center\"> <h3 class=\"text-center _600 m-t-md\"> <span title=\"Average Assign Time - Days Spent\"> {{ operations.overall.assignTime.average.days }} <span class=\"text-muted text-xs\">days</span> </span> <span title=\"Average Assign Time - Hours Spent\"> {{ operations.overall.assignTime.average.hours }} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average Assign Time - Minutes Spent\"> {{ operations.overall.assignTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </h3> <p class=\"text-muted m-b-md\">Average Assign Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r\" title=\"Average Attend Time\"> <div class=\"padding\"> <div class=\"text-center\"> <h3 class=\"text-center _600 m-t-md\"> <span title=\"Average Attend Time - Days Spent\"> {{ operations.overall.attendTime.average.days }} <span class=\"text-muted text-xs\">days</span> </span> <span title=\"Average Attend Time - Hours Spent\"> {{ operations.overall.attendTime.average.hours }} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average Attend Time - Minutes Spent\"> {{ operations.overall.attendTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </h3> <p class=\"text-muted m-b-md\">Average Attend Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r\" title=\"Average Completion Time\"> <div class=\"padding\"> <div class=\"text-center\"> <h3 class=\"text-center _600 m-t-md\"> <span title=\"Average Completion Time - Days Spent\"> {{ operations.overall.completeTime.average.days }} <span class=\"text-muted text-xs\">days</span> </span> <span title=\"Average Completion Time - Hours Spent\"> {{ operations.overall.completeTime.average.hours }} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average Completion Time - Minutes Spent\"> {{ operations.overall.completeTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </h3> <p class=\"text-muted m-b-md\">Average Completion Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2\" title=\"Average Verification Time\"> <div class=\"padding\"> <div class=\"text-center\"> <h3 class=\"text-center _600 m-t-md\"> <span title=\"Average Verification Time - Days Spent\"> {{ operations.overall.verifyTime.average.days }} <span class=\"text-muted text-xs\">days</span> </span> <span title=\"Average Verification Time - Hours Spent\"> {{ operations.overall.verifyTime.average.hours }} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average Verification Time - Minutes Spent\"> {{ operations.overall.verifyTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </h3> <p class=\"text-muted m-b-md\">Average Verification Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-l\" title=\"Average Approval Time\"> <div class=\"padding\"> <div class=\"text-center\"> <h3 class=\"text-center _600 m-t-md\"> <span title=\"Average Approval Time - Days Spent\"> {{ operations.overall.approveTime.average.days }} <span class=\"text-muted text-xs\">days</span> </span> <span title=\"Average Approval Time - Hours Spent\"> {{ operations.overall.approveTime.average.hours }} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average Approval Time - Minutes Spent\"> {{ operations.overall.approveTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </h3> <p class=\"text-muted m-b-md\">Average Approval Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r\" title=\"Average Work Time\"> <div class=\"padding\"> <div class=\"text-center\"> <h3 class=\"text-center _600 m-t-md\"> <span title=\"Average Work Time - Days Spent\"> {{ operations.overall.workTime.average.days }} <span class=\"text-muted text-xs\">days</span> </span> <span title=\"Average Work Time - Hours Spent\"> {{ operations.overall.workTime.average.hours }} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average Work Time - Minutes Spent\"> {{ operations.overall.workTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </h3> <p class=\"text-muted m-b-md\">Average Work Time</p> </div> </div> </div> </div> </div> </div> </div> "
   );
 
 
@@ -11117,12 +10948,14 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/dashboards/operation/_partials/services_summary.html',
-    " <div class=\"padding m-t-md m-b-lg\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Services Summary\"> <h3>Services Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_performance_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-6 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceConfig\" options=\"perServiceOptions\"></echart> </div> </div> <div class=\"col-sm-6\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Area\"> Service </th> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"service in performances.services\"> <td title=\"{{service.name}}\"> {{service.name}} </td> <td title=\"{{service.count | number:0}}\"> {{service.count | number:0}} </td> <td title=\" {{service.pending | number:0}}\"> {{service.pending | number:0}} </td> <td title=\" {{service.resolved | number:0}}\"> {{service.resolved | number:0}} </td> <td title=\" {{service.late | number:0}}\"> {{service.late | number:0}} </td> <td> <span> {{service.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{service.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{performances.overall.averageResolveTime.hours + (performances.overall.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{service.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md m-b-lg\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Services Summary\"> <h3>Services Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_operational_reports_{{\n" +
+    "              filters.startedAt | date: settings.dateFormat\n" +
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th title=\"Service\"> Service </th> <th title=\"Total Count of Service Requests in Waiting State\"> Waiting </th> <th title=\"Total Count of Service Requests in Assigned State\"> Assigned </th> <th title=\"Total Count of Service Requests in Attending State\"> Attending </th> <th title=\"Total Count of Service Requests in Completed State\"> Completed </th> <th title=\"Total Count of Service Requests in Verified State\"> Verified </th> <th title=\"Total Count of Service Requests in Approved State\"> Approved </th> <th title=\"Average Time Taken from Confirmation of Service Request to Assign Service Request\"> Average Assign Time </th> <th title=\"Average Time Taken to work on a Service Request(completeTime - Assign Time)\"> Average Work Time </th> <th title=\"Average Time Taken to Resolve Service Request\"> Average Resolution Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"service in operations.services\"> <td title=\"{{ service.name }}\"> {{ service.name.en }} </td> <td title=\"{{ service.new | number: 0 }}\"> {{ service.new | number: 0 }} </td> <td title=\"{{ service.new | number: 0 }}\"> {{ service.assigned | number: 0 }} </td> <td title=\" {{ service.attended | number: 0 }}\"> {{ service.attended | number: 0 }} </td> <td title=\" {{ service.completed | number: 0 }}\"> {{ service.completed | number: 0 }} </td> <td title=\" {{ service.verified | number: 0 }}\"> {{ service.verified | number: 0 }} </td> <td title=\" {{ service.approved | number: 0 }}\"> {{ service.approved | number: 0 }} </td> <td> <span> {{ service.assignTime.average.hours + service.assignTime.average.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ service.assignTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> <td> <span> {{ service.workTime.average.hours + service.workTime.average.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ service.workTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> <td> <span> {{ service.resolveTime.average.hours + service.resolveTime.average.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ service.resolveTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/operation/index.html',
-    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Operations - Reports </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <ng-include ng-if=\"performances && performances.overall\" src=\"'views/dashboards/performance/_partials/jurisdiction_summary.html'\"></ng-include> <div class=\"row no-gutter\"> <div class=\"col-xs-12 col-sm-6 col-md-6\"> <ng-include ng-if=\"performances && performances.overall\" src=\"'views/dashboards/performance/_partials/overall_summary.html'\"></ng-include> </div> <div class=\"col-xs-12 col-sm-6 col-md-6\"> <ng-include ng-if=\"performances.statuses && performances.statuses.length > 0\" src=\"'views/dashboards/performance/_partials/pipeline_summary.html'\"></ng-include> </div> </div> <ng-include ng-if=\"performances.services  && performances.services.length > 0\" src=\"'views/dashboards/performance/_partials/services_summary.html'\"></ng-include> <ng-include ng-if=\"performances.services  && performances.services.length > 0\" src=\"'views/dashboards/operation/_partials/jurisdiction_zone_summary.html'\"></ng-include> <ng-include ng-if=\"performances.services  && performances.services.length > 0\" src=\"'views/dashboards/operation/_partials/material_used_summary.html'\"></ng-include> <div class=\"padding\" style=\"display: none\"> <div class=\"row m-t-lg\"> <div class=\"col-sm-12 col-md-5 col-lg-5\"> <ng-include ng-if=\"performances.operators\" src=\"'views/dashboards/_partials/service_request_leaderboard.html'\"></ng-include> </div> <div class=\"col-sm-12 col-md-5 col-lg-5 offset-md-1\"> <ng-include ng-if=\"performances.jurisdictions\" src=\"'views/dashboards/_partials/service_request_area_leaderboard.html'\"></ng-include> </div> </div> </div> <div ng-if=\"!performances.overall\" class=\"row-col h-v\"> <div class=\"row-cell v-m\"> <div class=\"text-center col-sm-6 offset-sm-3 p-y-lg\"> <p class=\"text-muted m-y-lg\"> No Data Found. Please update your filters. </p> <button ng-click=\"showFilter()\" class=\"btn btn-outline b-grey text-grey\" title=\"Click to update filters\"> Update Filters </button> </div> </div> </div> </div> </div> "
+    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Operations - Reports </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <ng-include ng-if=\"operations && operations.overall\" src=\"'views/dashboards/operation/_partials/jurisdiction_summary.html'\"></ng-include> <ng-include ng-if=\"operations && operations.overall\" src=\"'views/dashboards/operation/_partials/overall_summary.html'\"></ng-include> <ng-include ng-if=\"operations && operations.overall\" src=\"'views/dashboards/operation/_partials/overall_time_summary.html'\"></ng-include> <ng-include ng-if=\"operations.zones  && operations.zones.length > 0\" src=\"'views/dashboards/operation/_partials/jurisdiction_zone_summary.html'\"></ng-include> <ng-include ng-if=\"operations.services  && operations.services.length > 0\" src=\"'views/dashboards/operation/_partials/services_summary.html'\"></ng-include> <div class=\"padding\" style=\"display: none\"> <div class=\"row m-t-lg\"> <div class=\"col-sm-12 col-md-5 col-lg-5\"> <ng-include ng-if=\"operations.operators\" src=\"'views/dashboards/_partials/service_request_leaderboard.html'\"></ng-include> </div> <div class=\"col-sm-12 col-md-5 col-lg-5 offset-md-1\"> <ng-include ng-if=\"operations.jurisdictions\" src=\"'views/dashboards/_partials/service_request_area_leaderboard.html'\"></ng-include> </div> </div> </div> <div ng-if=\"!operations.overall\" class=\"row-col h-v\"> <div class=\"row-cell v-m\"> <div class=\"text-center col-sm-6 offset-sm-3 p-y-lg\"> <p class=\"text-muted m-y-lg\"> No Data Found. Please update your filters. </p> <button ng-click=\"showFilter()\" class=\"btn btn-outline b-grey text-grey\" title=\"Click to update filters\"> Update Filters </button> </div> </div> </div> </div> </div> "
   );
 
 
@@ -11131,64 +10964,72 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
   );
 
 
-  $templateCache.put('views/dashboards/overviews/_partials/jurisdictions_summary.html',
-    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Areas Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('jurisdictions')\" csv-header=\"exports.jurisdictions.headers\" filename=\"jurisdictions_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-5 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perJurisdictionConfig\" options=\"perJurisdictionOptions\"></echart> </div> </div> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareJurisdictionVisualization('count')\" title=\"Area\"> Area </th> <th ng-click=\"prepareJurisdictionVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareJurisdictionVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareJurisdictionVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareJurisdictionVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"jurisdiction in overviews.jurisdictions\" ui-sref=\"app.performances({jurisdiction:jurisdiction,startedAt:filters.startedAt,endedAt:filters.endedAt})\"> <td title=\"{{jurisdiction.name}}\"> {{jurisdiction.name}} </td> <td title=\"{{jurisdiction.count | number:0}}\"> {{jurisdiction.count | number:0}} </td> <td title=\" {{jurisdiction.pending | number:0}}\"> {{jurisdiction.pending | number:0}} </td> <td title=\" {{jurisdiction.resolved | number:0}}\"> {{jurisdiction.resolved | number:0}} </td> <td title=\" {{jurisdiction.late | number:0}}\"> {{jurisdiction.late | number:0}} </td> <td> <span> {{jurisdiction.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{jurisdiction.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{jurisdiction.averageResolveTime.hours + (jurisdiction.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{jurisdiction.averageResolveTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+  $templateCache.put('views/dashboards/overviews/_partials/channels_summary.html',
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Reporting Channels Summary\"> <h3>Reporting Channels Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('channels')\" csv-header=\"exports.channels.headers\" filename=\"channels_overview_reports_{{\n" +
+    "              filters.startedAt | date: settings.dateFormat\n" +
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-5 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perChannelConfig\" options=\"perChannelOptions\"></echart> </div> </div> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareChannelVisualization('count')\" title=\"Reporting Channel\"> Channel </th> <th ng-click=\"prepareChannelVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareChannelVisualization('pending')\" title=\"Total Pending Count  of Service Requests\"> Pending </th> <th ng-click=\"prepareChannelVisualization('resolved')\" title=\"Total Resolved Count of Service Requests\"> Resolved </th> </tr> </thead> <tbody> <tr ng-repeat=\"channel in overviews.channels\"> <td title=\"{{ channel.name }}\"> {{ channel.name }} </td> <td title=\"{{ channel.count | number: 0 }}\"> {{ channel.count | number: 0 }} </td> <td title=\"{{ channel.pending | number: 0 }}\"> {{ channel.pending | number: 0 }} </td> <td title=\"{{ channel.resolved | number: 0 }}\"> {{ channel.resolved | number: 0 }} </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
   );
 
 
-  $templateCache.put('views/dashboards/overviews/_partials/methods_summary.html',
-    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Reporting Methods Summary\"> <h3>Reporting Methods Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('methods')\" csv-header=\"exports.methods.headers\" filename=\"methods_overview_reports_{{\n" +
+  $templateCache.put('views/dashboards/overviews/_partials/jurisdictions_summary.html',
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Areas Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('jurisdictions')\" csv-header=\"exports.jurisdictions.headers\" filename=\"jurisdictions_overview_reports_{{\n" +
     "              filters.startedAt | date: settings.dateFormat\n" +
-    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-5 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perMethodConfig\" options=\"perMethodOptions\"></echart> </div> </div> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareMethodVisualization('count')\" title=\"Reporting Method\"> Method </th> <th ng-click=\"prepareMethodVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th title=\"Total Pending Count  of Service Requests\"> Pending </th> <th title=\"Total Resolved Count of Service Requests\"> Resolved </th> </tr> </thead> <tbody> <tr ng-repeat=\"method in overviews.methods\"> <td title=\"{{ method.name }}\"> {{ method.name }} </td> <td title=\"{{ method.count | number: 0 }}\"> {{ method.count | number: 0 }} </td> <td title=\"{{ method.pending | number: 0 }}\"> {{ method.pending | number: 0 }} </td> <td title=\"{{ method.resolved | number: 0 }}\"> {{ method.resolved | number: 0 }} </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-5 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perJurisdictionConfig\" options=\"perJurisdictionOptions\"></echart> </div> </div> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareJurisdictionVisualization('count')\" title=\"Area\"> Area </th> <th ng-click=\"prepareJurisdictionVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareJurisdictionVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareJurisdictionVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareJurisdictionVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Call Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"jurisdiction in overviews.jurisdictions\" ui-sref=\"app.performances({jurisdiction:jurisdiction,startedAt:filters.startedAt,endedAt:filters.endedAt})\"> <td title=\"{{ jurisdiction.name }}\"> {{ jurisdiction.name }} </td> <td title=\"{{ jurisdiction.count | number: 0 }}\"> {{ jurisdiction.count | number: 0 }} </td> <td title=\" {{ jurisdiction.pending | number: 0 }}\"> {{ jurisdiction.pending | number: 0 }} </td> <td title=\" {{ jurisdiction.resolved | number: 0 }}\"> {{ jurisdiction.resolved | number: 0 }} </td> <td title=\" {{ jurisdiction.late | number: 0 }}\"> {{ jurisdiction.late | number: 0 }} </td> <td> <span> {{ jurisdiction.callTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{ jurisdiction.callTime.average.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{ jurisdiction.resolveTime.average.hours + jurisdiction.resolveTime.average.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ jurisdiction.resolveTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/overviews/_partials/operators_leaderboard.html',
-    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-d-md\"> <h3 title=\"Leader board\">Operators Leader board</h3> <small class=\"block text-muted\" title=\"Rank Based on Attending Service Requests\"> Rank Based on Attending Service Requests </small> </div> <div> <div class=\"row-col\"> <ul class=\"list inset m-a-0\"> <li ng-if=\"operator.name\" ui-sref=\"app.profile({id: operator._id})\" ng-repeat=\"operator in overviews.operators\" class=\"list-item\"> <a href class=\"list-left\"> <letter-avatar title=\"{{ operator.name }}\" data=\"{{ operator.name }}\" height=\"40\" width=\"40\" shape=\"round\" fontsize=\"15\"> </letter-avatar> </a> <div class=\"list-body\"> <div> <a href>{{ operator.name }}</a> <span class=\"pull-right text-muted\">{{ operator.count | number: 0 }}</span> </div> <small class=\"text-muted text-ellipsis\"> {{ operator.relation.name ? operator.relation.name : 'N/A' }} / {{ operator.relation.workspace ? operator.relation.workspace : 'N/A' }} <span class=\"pull-right label info\" title=\"#{{ $index + 1 }}\">&nbsp;&nbsp;{{ $index + 1 }}&nbsp;&nbsp;</span> </small> </div> </li> </ul> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-d-md\"> <h3 title=\"Leader board\">Operators Leader board</h3> <small class=\"block text-muted\" title=\"Rank Based on Attending Service Requests\"> Rank Based on Attending Service Requests </small> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('operators')\" csv-header=\"exports.operators.headers\" filename=\"operators_overview_reports_{{\n" +
+    "              filters.startedAt | date: settings.dateFormat\n" +
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <ul class=\"list inset m-a-0\"> <li ng-if=\"operator.name\" ui-sref=\"app.profile({id: operator._id})\" ng-repeat=\"operator in overviews.operators\" class=\"list-item\"> <a href class=\"list-left\"> <letter-avatar title=\"{{ operator.name }}\" data=\"{{ operator.name }}\" height=\"40\" width=\"40\" shape=\"round\" fontsize=\"15\"> </letter-avatar> </a> <div class=\"list-body\"> <div> <a href>{{ operator.name }}</a> <span class=\"pull-right text-muted\">{{ operator.count | number: 0 }}</span> </div> <small class=\"text-muted text-ellipsis\"> {{ operator.relation.name ? operator.relation.name : 'N/A' }} / {{ operator.relation.workspace ? operator.relation.workspace : 'N/A' }} <span class=\"pull-right label info\" title=\"#{{ $index + 1 }}\">&nbsp;&nbsp;{{ $index + 1 }}&nbsp;&nbsp;</span> </small> </div> </li> </ul> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/overviews/_partials/overall_summary.html',
-    " <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Total Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{overviews.overall.count | number:0}} </h2> <p class=\"text-muted m-b-md\">Total</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Pending Service Requests\"> <div class=\"padding\"> <div> <span class=\"pull-right\" ng-class=\"overviews.overall.percentagePending <= 50 ? 'text-success' : 'text-danger'\">{{overviews.overall.percentagePending | number:2}}%</span> </div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{overviews.overall.pending | number:0}} </h2> <p class=\"text-muted m-b-md\">Pending</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Resolved Service Requests\"> <div class=\"padding\"> <div> <span class=\"pull-right\" ng-class=\"overviews.overall.percentageResolved >= 50 ? 'text-success' : 'text-danger'\">{{overviews.overall.percentageResolved | number:2}}%</span> </div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{overviews.overall.resolved | number:0}} </h2> <p class=\"text-muted m-b-md\">Resolved</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Late(Past SLA Time) Service Requests\"> <div class=\"padding\"> <div> <span class=\"pull-right\" ng-class=\"overviews.overall.percentageLate > 0 ? 'text-danger' : 'text-success'\">{{overviews.overall.percentageLate | number:2}}%</span> </div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{overviews.overall.late | number:0}} </h2> <p class=\"text-muted m-b-md\">Late</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Average Attend Time(Call Duration)\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average Attend Time(Call Duration) - Minutes Spent\"> {{overviews.overall.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span title=\"Average Attend Time(Call Duration) - Seconds Spent\"> {{overviews.overall.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Attend Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-b\" title=\"Average resolve Time\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average resolve Time - Hourss Spent\"> {{overviews.overall.averageResolveTime.hours + (overviews.overall.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average resolve Time - Minutes Spent\"> {{overviews.overall.averageResolveTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Resolve Time</p> </div> </div> </div> </div> "
+    " <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Total Service Requests\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ overviews.overall.count | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Total</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Pending Service Requests\"> <div class=\"padding\"> <div> <span class=\"pull-right\" ng-class=\"overviews.overall.percentagePending <= 50 ? 'text-success' : 'text-danger'\">{{ overviews.overall.percentagePending | number: 2 }}%</span> </div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ overviews.overall.pending | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Pending</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Resolved Service Requests\"> <div class=\"padding\"> <div> <span class=\"pull-right\" ng-class=\"overviews.overall.percentageResolved >= 50 ? 'text-success' : 'text-danger'\">{{ overviews.overall.percentageResolved | number: 2 }}%</span> </div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ overviews.overall.resolved | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Resolved</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Late(Past SLA Time) Service Requests\"> <div class=\"padding\"> <div> <span class=\"pull-right\" ng-class=\"overviews.overall.percentageLate > 0 ? 'text-danger' : 'text-success'\">{{ overviews.overall.percentageLate | number: 2 }}%</span> </div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> {{ overviews.overall.late | number: 0 }} </h2> <p class=\"text-muted m-b-md\">Late</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-r b-b\" title=\"Average Attend Time(Call Duration)\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average Attend Time(Call Duration) - Minutes Spent\"> {{ overviews.overall.callTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span title=\"Average Attend Time(Call Duration) - Seconds Spent\"> {{ overviews.overall.callTime.average.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Call Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-2 b-b\" title=\"Average resolve Time\"> <div class=\"padding\"> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average resolve Time - Hourss Spent\"> {{ overviews.overall.resolveTime.average.hours + overviews.overall.resolveTime.average.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average resolve Time - Minutes Spent\"> {{ overviews.overall.resolveTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Resolve Time</p> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/overviews/_partials/service_groups_summary.html',
-    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Service Groups Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('groups')\" csv-header=\"exports.groups.headers\" filename=\"service_groups_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceGroupVisualization('count')\" title=\"Area\"> Service Group </th> <th ng-click=\"prepareServiceGroupVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceGroupVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceGroupVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceGroupVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"group in overviews.groups\"> <td title=\"{{group.name}}\"> {{group.name}} </td> <td title=\"{{group.count | number:0}}\"> {{group.count | number:0}} </td> <td title=\" {{group.pending | number:0}}\"> {{group.pending | number:0}} </td> <td title=\" {{group.resolved | number:0}}\"> {{group.resolved | number:0}} </td> <td title=\" {{group.late | number:0}}\"> {{group.late | number:0}} </td> <td> <span> {{group.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{group.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{group.averageResolveTime.hours + (group.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{group.averageResolveTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> <div class=\"col-sm-5 b-l lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceGroupConfig\" options=\"perServiceGroupOptions\"></echart> </div> </div> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Service Groups Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('groups')\" csv-header=\"exports.groups.headers\" filename=\"service_groups_overview_reports_{{\n" +
+    "              filters.startedAt | date: settings.dateFormat\n" +
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceGroupVisualization('count')\" title=\"Area\"> Service Group </th> <th ng-click=\"prepareServiceGroupVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceGroupVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceGroupVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceGroupVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Call Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"group in overviews.groups\"> <td title=\"{{ group.name }}\"> {{ group.name }} </td> <td title=\"{{ group.count | number: 0 }}\"> {{ group.count | number: 0 }} </td> <td title=\" {{ group.pending | number: 0 }}\"> {{ group.pending | number: 0 }} </td> <td title=\" {{ group.resolved | number: 0 }}\"> {{ group.resolved | number: 0 }} </td> <td title=\" {{ group.late | number: 0 }}\"> {{ group.late | number: 0 }} </td> <td> <span> {{ group.callTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{ group.callTime.average.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{ group.resolveTime.average.hours + group.resolveTime.average.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ group.resolveTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> <div class=\"col-sm-5 b-l lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceGroupConfig\" options=\"perServiceGroupOptions\"></echart> </div> </div> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/overviews/_partials/service_types_summary.html',
     " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Service Types Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('types')\" csv-header=\"exports.groups.headers\" filename=\"service_types_overview_reports_{{\n" +
     "              filters.startedAt | date: settings.dateFormat\n" +
-    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-5 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceTypeConfig\" options=\"perServiceTypeOptions\"></echart> </div> </div> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceTypeVisualization('count')\" title=\"Service Type\"> Service Type </th> <th ng-click=\"prepareServiceTypeVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceTypeVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceTypeVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceTypeVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"type in overviews.types\"> <td title=\"{{ type.name.en }}\"> {{ type.name.en }} </td> <td title=\"{{ type.count | number: 0 }}\"> {{ type.count | number: 0 }} </td> <td title=\" {{ type.pending | number: 0 }}\"> {{ type.pending | number: 0 }} </td> <td title=\" {{ type.resolved | number: 0 }}\"> {{ type.resolved | number: 0 }} </td> <td title=\" {{ type.late | number: 0 }}\"> {{ type.late | number: 0 }} </td> <td> <span> {{ type.averageAttendTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{ type.averageAttendTime.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{ type.averageResolveTime.hours + type.averageResolveTime.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ type.averageResolveTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-5 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceTypeConfig\" options=\"perServiceTypeOptions\"></echart> </div> </div> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceTypeVisualization('count')\" title=\"Service Type\"> Service Type </th> <th ng-click=\"prepareServiceTypeVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceTypeVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceTypeVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceTypeVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Call Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"type in overviews.types\"> <td title=\"{{ type.name.en }}\"> {{ type.name.en }} </td> <td title=\"{{ type.count | number: 0 }}\"> {{ type.count | number: 0 }} </td> <td title=\" {{ type.pending | number: 0 }}\"> {{ type.pending | number: 0 }} </td> <td title=\" {{ type.resolved | number: 0 }}\"> {{ type.resolved | number: 0 }} </td> <td title=\" {{ type.late | number: 0 }}\"> {{ type.late | number: 0 }} </td> <td> <span> {{ type.callTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{ type.callTime.average.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{ type.resolveTime.average.hours + type.resolveTime.average.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ type.resolveTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/overviews/_partials/services_summary.html',
-    " <div class=\"padding m-t-md m-b-lg\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Services Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_overview_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-6 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceConfig\" options=\"perServiceOptions\"></echart> </div> </div> <div class=\"col-sm-6\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Area\"> Service </th> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"service in overviews.services\"> <td title=\"{{service.name}}\"> {{service.name.en}} </td> <td title=\"{{service.count | number:0}}\"> {{service.count | number:0}} </td> <td title=\" {{service.pending | number:0}}\"> {{service.pending | number:0}} </td> <td title=\" {{service.resolved | number:0}}\"> {{service.resolved | number:0}} </td> <td title=\" {{service.late | number:0}}\"> {{service.late | number:0}} </td> <td> <span> {{service.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{service.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{service.averageResolveTime.hours + (service.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{service.averageResolveTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md m-b-lg\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Areas Summary\"> <h3>Services Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_overview_reports_{{\n" +
+    "              filters.startedAt | date: settings.dateFormat\n" +
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-6 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceConfig\" options=\"perServiceOptions\"></echart> </div> </div> <div class=\"col-sm-6\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Area\"> Service </th> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Call Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"service in overviews.services\"> <td title=\"{{ service.name }}\"> {{ service.name.en }} </td> <td title=\"{{ service.count | number: 0 }}\"> {{ service.count | number: 0 }} </td> <td title=\" {{ service.pending | number: 0 }}\"> {{ service.pending | number: 0 }} </td> <td title=\" {{ service.resolved | number: 0 }}\"> {{ service.resolved | number: 0 }} </td> <td title=\" {{ service.late | number: 0 }}\"> {{ service.late | number: 0 }} </td> <td> <span> {{ service.callTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{ service.callTime.average.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{ service.resolveTime.average.hours + service.resolveTime.average.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ service.resolveTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/overviews/_partials/workspaces_summary.html',
     " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Reporting Workspaces Summary\"> <h3>Workspaces Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('workspaces')\" csv-header=\"exports.workspaces.headers\" filename=\"workspaces_overview_reports_{{\n" +
     "              filters.startedAt | date: settings.dateFormat\n" +
-    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareWorkspaceVisualization('count')\" title=\"Workspace\"> Workspace </th> <th ng-click=\"prepareWorkspaceVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th title=\"Total Pending Count of Service Requests\"> Pending </th> <th title=\"Total Resolved Count of Service Requests\"> Resolved </th> </tr> </thead> <tbody> <tr ng-repeat=\"workspace in overviews.workspaces\"> <td title=\"{{ workspace.name }}\"> {{ workspace.name }} </td> <td title=\"{{ workspace.count | number: 0 }}\"> {{ workspace.count | number: 0 }} </td> <td title=\"{{ workspace.pending | number: 0 }}\"> {{ workspace.pending | number: 0 }} </td> <td title=\"{{ workspace.resolved | number: 0 }}\"> {{ workspace.resolved | number: 0 }} </td> </tr> </tbody> </table> </div> <div class=\"col-sm-5 b-l lt\"> <div class=\"p-a-md\"> <echart config=\"perWorkspaceConfig\" options=\"perWorkspaceOptions\"></echart> </div> </div> </div> </div> </div> </div> "
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareWorkspaceVisualization('count')\" title=\"Workspace\"> Workspace </th> <th ng-click=\"prepareWorkspaceVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareWorkspaceVisualization('pending')\" title=\"Total Pending Count of Service Requests\"> Pending </th> <th ng-click=\"prepareWorkspaceVisualization('resolved')\" title=\"Total Resolved Count of Service Requests\"> Resolved </th> </tr> </thead> <tbody> <tr ng-repeat=\"workspace in overviews.workspaces\"> <td title=\"{{ workspace.name }}\"> {{ workspace.name }} </td> <td title=\"{{ workspace.count | number: 0 }}\"> {{ workspace.count | number: 0 }} </td> <td title=\"{{ workspace.pending | number: 0 }}\"> {{ workspace.pending | number: 0 }} </td> <td title=\"{{ workspace.resolved | number: 0 }}\"> {{ workspace.resolved | number: 0 }} </td> </tr> </tbody> </table> </div> <div class=\"col-sm-5 b-l lt\"> <div class=\"p-a-md\"> <echart config=\"perWorkspaceConfig\" options=\"perWorkspaceOptions\"></echart> </div> </div> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/overviews/index.html',
-    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Overview - Reports </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <ng-include ng-if=\"overviews.overall\" src=\"'views/dashboards/overviews/_partials/overall_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.jurisdictions && overviews.jurisdictions.length > 1\" src=\"'views/dashboards/overviews/_partials/jurisdictions_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.groups && overviews.groups.length > 0\" src=\"'views/dashboards/overviews/_partials/service_groups_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.groups && overviews.types.length > 0\" src=\"'views/dashboards/overviews/_partials/service_types_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.services  && overviews.services.length > 0\" src=\"'views/dashboards/overviews/_partials/services_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.methods  && overviews.methods.length > 0\" src=\"'views/dashboards/overviews/_partials/methods_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.workspaces  && overviews.workspaces.length > 0\" src=\"'views/dashboards/overviews/_partials/workspaces_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.operators && overviews.operators.length > 0\" src=\"'views/dashboards/overviews/_partials/operators_leaderboard.html'\"></ng-include> </div> <div ng-if=\"!overviews.overall\" class=\"row-col h-v\"> <div class=\"row-cell v-m\"> <div class=\"text-center col-sm-6 offset-sm-3 p-y-lg\"> <p class=\"text-muted m-y-lg\"> No Data Found. Please update your filters. </p> <button ng-click=\"showFilter()\" class=\"btn btn-outline b-grey text-grey\" title=\"Click to update filters\"> Update Filters </button> </div> </div> </div> </div> "
+    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Overview - Reports </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <ng-include ng-if=\"overviews.overall\" src=\"'views/dashboards/overviews/_partials/overall_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.jurisdictions && overviews.jurisdictions.length > 1\" src=\"'views/dashboards/overviews/_partials/jurisdictions_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.groups && overviews.groups.length > 0\" src=\"'views/dashboards/overviews/_partials/service_groups_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.groups && overviews.types.length > 0\" src=\"'views/dashboards/overviews/_partials/service_types_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.services  && overviews.services.length > 0\" src=\"'views/dashboards/overviews/_partials/services_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.channels  && overviews.channels.length > 0\" src=\"'views/dashboards/overviews/_partials/channels_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.workspaces  && overviews.workspaces.length > 0\" src=\"'views/dashboards/overviews/_partials/workspaces_summary.html'\"></ng-include> <ng-include ng-if=\"overviews.operators && overviews.operators.length > 0\" src=\"'views/dashboards/overviews/_partials/operators_leaderboard.html'\"></ng-include> </div> <div ng-if=\"!overviews.overall\" class=\"row-col h-v\"> <div class=\"row-cell v-m\"> <div class=\"text-center col-sm-6 offset-sm-3 p-y-lg\"> <p class=\"text-muted m-y-lg\"> No Data Found. Please update your filters. </p> <button ng-click=\"showFilter()\" class=\"btn btn-outline b-grey text-grey\" title=\"Click to update filters\"> Update Filters </button> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/performance/_partials/average_time_summary.html',
-    " <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-6 b-a\" title=\"Average Attend Time(Call Duration)\"> <div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average Attend Time(Call Duration) - Minutes Spent\"> {{performances.overall.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span title=\"Average Attend Time(Call Duration) - Seconds Spent\"> {{performances.overall.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Attend Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-6 b-b b-t b-r\" title=\"Average resolve Time\"> <div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average resolve Time - Days Spent\"> {{performances.overall.averageResolveTime.days}} <span class=\"text-muted text-xs\">days</span> </span> <span title=\"Average resolve Time - Hours Spent\"> {{performances.overall.averageResolveTime.hours}} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average resolve Time - Minutes Spent\"> {{performances.overall.averageResolveTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Resolve Time</p> </div> </div> </div> </div> "
+    " <div class=\"row no-gutter\"> <div class=\"col-xs-6 col-sm-6 b-a\" title=\"Average Attend Time(Call Duration)\"> <div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average Attend Time(Call Duration) - Minutes Spent\"> {{ performances.overall.callTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span title=\"Average Attend Time(Call Duration) - Seconds Spent\"> {{ performances.overall.callTime.average.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Call Time</p> </div> </div> </div> <div class=\"col-xs-6 col-sm-6 b-b b-t b-r\" title=\"Average resolve Time\"> <div> <div class=\"text-center\"> <h2 class=\"text-center _600 m-t-md\"> <span title=\"Average resolve Time - Days Spent\"> {{ performances.overall.resolveTime.average.days }} <span class=\"text-muted text-xs\">days</span> </span> <span title=\"Average resolve Time - Hours Spent\"> {{ performances.overall.resolveTime.average.hours }} <span class=\"text-muted text-xs\">hrs</span> </span> <span title=\"Average resolve Time - Minutes Spent\"> {{ performances.overall.resolveTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </h2> <p class=\"text-muted m-b-md\">Average Resolve Time</p> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/performance/_partials/jurisdiction_summary.html',
-    " <div class=\"item\"> <div class=\"p-a-lg\"> <div class=\"row m-t\"> <div class=\"col-sm-12 col-md-6 col-lg-6\"> <a href=\"#\" class=\"pull-left m-r-md\"> <span> <letter-avatar title=\"{{jurisdiction.name}}\" data=\"{{jurisdiction.name}}\" height=\"96\" width=\"96\" shape=\"round\"> </letter-avatar> <i class=\"on b-white\"></i> </span> </a> <div class=\"clear m-b\"> <h4 class=\"m-a-0 m-b-sm\" title=\"Name\">{{jurisdiction.name}}</h4> <div class=\"block clearfix m-t-md m-b\"> <span> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-phone\"></i> <i class=\"icon-phone indigo\"></i> </a> <span title=\"Phone Number\" class=\"text-muted\"> {{jurisdiction.phone ? jurisdiction.phone : 'N/A'}} </span> </span> <span class=\"m-l-md\"> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-envelope\"></i> <i class=\"icon-envelope light-blue\"></i> </a> <span title=\"Email Address\" class=\"text-muted\"> {{jurisdiction.email ? jurisdiction.email : 'N/A'}} </span> </span> </div> </div> </div> <div class=\"col-sm-12 col-md-6 col-lg-6 pull-right\"> <ng-include src=\"'views/dashboards/performance/_partials/average_time_summary.html'\"></ng-include> </div> </div> </div> </div> "
+    " <div class=\"item\"> <div class=\"p-a-lg\"> <div class=\"row m-t\"> <div class=\"col-sm-12 col-md-6 col-lg-6\"> <a href=\"#\" class=\"pull-left m-r-md\"> <span> <letter-avatar title=\"{{ jurisdiction.name }}\" data=\"{{ jurisdiction.name }}\" height=\"96\" width=\"96\" shape=\"round\"> </letter-avatar> <i class=\"on b-white\"></i> </span> </a> <div class=\"clear m-b\"> <h4 class=\"m-a-0 m-b-sm\" title=\"Name\">{{ jurisdiction.name }}</h4> <div class=\"block clearfix m-t-md m-b\"> <span> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-phone\"></i> <i class=\"icon-phone indigo\"></i> </a> <span title=\"Phone Number\" class=\"text-muted\"> {{ jurisdiction.phone ? jurisdiction.phone : 'N/A' }} </span> </span> <span class=\"m-l-md\"> <a href=\"\" class=\"btn btn-icon btn-social rounded b-a btn-sm\"> <i class=\"icon-envelope\"></i> <i class=\"icon-envelope light-blue\"></i> </a> <span title=\"Email Address\" class=\"text-muted\"> {{ jurisdiction.email ? jurisdiction.email : 'N/A' }} </span> </span> </div> </div> </div> <div class=\"col-sm-12 col-md-6 col-lg-6 pull-right\"> <ng-include src=\"'views/dashboards/performance/_partials/average_time_summary.html'\"></ng-include> </div> </div> </div> </div> "
   );
 
 
@@ -11205,19 +11046,21 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/dashboards/performance/_partials/service_groups_summary.html',
-    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Service Groups Summary\"> <h3>Service Groups Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('groups')\" csv-header=\"exports.groups.headers\" filename=\"service_groups_performance_reports_{{filters.startedAt | date:settings.dateFormat}}_{{filters.endedAt | date:settings.dateFormat}}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceGroupVisualization('count')\" title=\"Area\"> Service Group </th> <th ng-click=\"prepareServiceGroupVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceGroupVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceGroupVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceGroupVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"group in performances.groups\"> <td title=\"{{group.name}}\"> {{group.name}} </td> <td title=\"{{group.count | number:0}}\"> {{group.count | number:0}} </td> <td title=\" {{group.pending | number:0}}\"> {{group.pending | number:0}} </td> <td title=\" {{group.resolved | number:0}}\"> {{group.resolved | number:0}} </td> <td title=\" {{group.late | number:0}}\"> {{group.late | number:0}} </td> <td> <span> {{group.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{group.averageAttendTime.seconds}} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{group.averageResolveTime.hours + (group.averageResolveTime.days * 24)}} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{group.averageAttendTime.minutes}} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> <div class=\"col-sm-5 b-l lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceGroupConfig\" options=\"perServiceGroupOptions\"></echart> </div> </div> </div> </div> </div> </div> "
+    " <div class=\"padding m-t-md\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Service Groups Summary\"> <h3>Service Groups Summary</h3> </div> <div class=\"box-tool p-t-sm\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('groups')\" csv-header=\"exports.groups.headers\" filename=\"service_groups_performance_reports_{{\n" +
+    "              filters.startedAt | date: settings.dateFormat\n" +
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-7\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceGroupVisualization('count')\" title=\"Area\"> Service Group </th> <th ng-click=\"prepareServiceGroupVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceGroupVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceGroupVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceGroupVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Call Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"group in performances.groups\"> <td title=\"{{ group.name }}\"> {{ group.name }} </td> <td title=\"{{ group.count | number: 0 }}\"> {{ group.count | number: 0 }} </td> <td title=\" {{ group.pending | number: 0 }}\"> {{ group.pending | number: 0 }} </td> <td title=\" {{ group.resolved | number: 0 }}\"> {{ group.resolved | number: 0 }} </td> <td title=\" {{ group.late | number: 0 }}\"> {{ group.late | number: 0 }} </td> <td> <span> {{ group.callTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{ group.callTime.average.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{ group.resolveTime.average.hours + group.resolveTime.average.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ group.resolveTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> <div class=\"col-sm-5 b-l lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceGroupConfig\" options=\"perServiceGroupOptions\"></echart> </div> </div> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/performance/_partials/services_summary.html',
     " <div class=\"padding m-t-md m-b-lg\"> <div class=\"box b-a p-l-0\"> <div class=\"box-header b-b p-t-md p-b-md\" title=\"Services Summary\"> <h3>Services Summary</h3> </div> <div class=\"box-tool\"> <ul class=\"nav\"> <li class=\"nav-item inline\"> <a title=\"Click To Export\" class=\"btn btn-xs rounded white\" aria-expanded=\"false\" ng-csv=\"export('services')\" csv-header=\"exports.services.headers\" filename=\"services_performance_reports_{{\n" +
     "              filters.startedAt | date: settings.dateFormat\n" +
-    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-6 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceConfig\" options=\"perServiceOptions\"></echart> </div> </div> <div class=\"col-sm-6\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Area\"> Service </th> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Attend Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"service in performances.services\"> <td title=\"{{ service.name }}\"> {{ service.name.en }} </td> <td title=\"{{ service.count | number: 0 }}\"> {{ service.count | number: 0 }} </td> <td title=\" {{ service.pending | number: 0 }}\"> {{ service.pending | number: 0 }} </td> <td title=\" {{ service.resolved | number: 0 }}\"> {{ service.resolved | number: 0 }} </td> <td title=\" {{ service.late | number: 0 }}\"> {{ service.late | number: 0 }} </td> <td> <span> {{ service.averageAttendTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{ service.averageAttendTime.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{ performances.overall.averageResolveTime.hours + performances.overall.averageResolveTime.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ service.averageAttendTime.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
+    "            }}_{{ filters.endedAt | date: settings.dateFormat }}.csv\"> Export </a> </li> <li uib-dropdown class=\"nav-item inline dropdown\" style=\"display:none\"> <a uib-dropdown-toggle class=\"btn btn-xs rounded white dropdown-toggle\" aria-expanded=\"false\">Today</a> <div uib-dropdown-menu class=\"dropdown-menu dropdown-menu-scale pull-right\"> <a class=\"dropdown-item\" href=\"\">Last 24 hours</a> <a class=\"dropdown-item\" href=\"\">Last 7 days</a> <a class=\"dropdown-item\" href=\"\">Last month</a> <a class=\"dropdown-item\" href=\"\">Last Year</a> <div class=\"dropdown-divider\"></div> <a class=\"dropdown-item\">Today</a> </div> </li> </ul> </div> <div> <div class=\"row-col\"> <div class=\"col-sm-6 b-r lt\"> <div class=\"p-a-md\"> <echart config=\"perServiceConfig\" options=\"perServiceOptions\"></echart> </div> </div> <div class=\"col-sm-6\"> <table class=\"table table-bordered table-stats\"> <thead> <tr> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Area\"> Service </th> <th ng-click=\"prepareServiceVisualization('count')\" title=\"Total Count of Service Requests\"> Total </th> <th ng-click=\"prepareServiceVisualization('pending')\" title=\"Total Count of Pending Service Requests\"> Pending </th> <th ng-click=\"prepareServiceVisualization('resolved')\" title=\"Total Count of Resolved Service Requests\"> Resolved </th> <th ng-click=\"prepareServiceVisualization('late')\" title=\"Total Count of Service Requests Past SLA Resolve Time\"> Late </th> <th title=\"Average Time Taken to Attend a Customer(Call) Service Request\"> Average Call Time </th> <th title=\"Average Time Taken to a Resolve Service Request\"> Average Resolve Time </th> </tr> </thead> <tbody> <tr ng-repeat=\"service in performances.services\"> <td title=\"{{ service.name }}\"> {{ service.name.en }} </td> <td title=\"{{ service.count | number: 0 }}\"> {{ service.count | number: 0 }} </td> <td title=\" {{ service.pending | number: 0 }}\"> {{ service.pending | number: 0 }} </td> <td title=\" {{ service.resolved | number: 0 }}\"> {{ service.resolved | number: 0 }} </td> <td title=\" {{ service.late | number: 0 }}\"> {{ service.late | number: 0 }} </td> <td> <span> {{ service.callTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> <span> {{ service.callTime.average.seconds }} <span class=\"text-muted text-xs\">secs</span> </span> </td> <td> <span> {{ performances.overall.resolveTime.average.hours + performances.overall.resolveTime.average.days * 24 }} <span class=\"text-muted text-xs\">hrs</span> </span> <span> {{ service.resolveTime.average.minutes }} <span class=\"text-muted text-xs\">mins</span> </span> </td> </tr> </tbody> </table> </div> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/dashboards/performance/index.html',
-    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Performance </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <ng-include ng-if=\"performances && performances.overall\" src=\"'views/dashboards/performance/_partials/jurisdiction_summary.html'\"></ng-include> <div class=\"row no-gutter\"> <div class=\"col-xs-12 col-sm-6 col-md-6\"> <ng-include ng-if=\"performances && performances.overall\" src=\"'views/dashboards/performance/_partials/overall_summary.html'\"></ng-include> </div> <div class=\"col-xs-12 col-sm-6 col-md-6\"> <ng-include ng-if=\"performances.statuses && performances.statuses.length > 0\" src=\"'views/dashboards/performance/_partials/pipeline_summary.html'\"></ng-include> </div> </div> <ng-include ng-if=\"performances.groups && performances.groups.length > 0\" src=\"'views/dashboards/performance/_partials/service_groups_summary.html'\"></ng-include> <ng-include ng-if=\"performances.services  && performances.services.length > 0\" src=\"'views/dashboards/performance/_partials/services_summary.html'\"></ng-include> <div class=\"padding\" style=\"display: none\"> <div class=\"row m-t-lg\"> <div class=\"col-sm-12 col-md-5 col-lg-5\"> <ng-include ng-if=\"performances.operators\" src=\"'views/dashboards/_partials/service_request_leaderboard.html'\"> </div> <div class=\"col-sm-12 col-md-5 col-lg-5 offset-md-1\"> <ng-include ng-if=\"performances.jurisdictions\" src=\"'views/dashboards/_partials/service_request_area_leaderboard.html'\"> </div> </div> </div> <div ng-if=\"!performances.overall\" class=\"row-col h-v\"> <div class=\"row-cell v-m\"> <div class=\"text-center col-sm-6 offset-sm-3 p-y-lg\"> <p class=\"text-muted m-y-lg\"> No Data Found. Please update your filters. </p> <button ng-click=\"showFilter()\" class=\"btn btn-outline b-grey text-grey\" title=\"Click to update filters\"> Update Filters </button> </div> </div> </div> </div> </div> "
+    " <div class=\"app-header bg b-b bg-white\"> <div class=\"navbar\"> <div class=\"navbar-item pull-left h5 text-md\"> Performance - Report </div> <ul class=\"nav navbar-nav pull-right\"> <li class=\"nav-item\"> <a ng-click=\"showFilter()\" class=\"nav-link\" aria-expanded=\"false\" title=\"Click to Filter Report\"> <i class=\"ion-android-funnel w-24\" title=\"Click To Filter Reports\"></i> </a> </li> </ul> </div> </div> <div class=\"app-body\"> <div class=\"app-body-inner\"> <ng-include ng-if=\"performances && performances.overall\" src=\"'views/dashboards/performance/_partials/jurisdiction_summary.html'\"></ng-include> <div class=\"row no-gutter\"> <div class=\"col-xs-12 col-sm-6 col-md-6\"> <ng-include ng-if=\"performances && performances.overall\" src=\"'views/dashboards/performance/_partials/overall_summary.html'\"></ng-include> </div> <div class=\"col-xs-12 col-sm-6 col-md-6\"> <ng-include ng-if=\"performances.statuses && performances.statuses.length > 0\" src=\"'views/dashboards/performance/_partials/pipeline_summary.html'\"></ng-include> </div> </div> <ng-include ng-if=\"performances.groups && performances.groups.length > 0\" src=\"'views/dashboards/performance/_partials/service_groups_summary.html'\"></ng-include> <ng-include ng-if=\"performances.services  && performances.services.length > 0\" src=\"'views/dashboards/performance/_partials/services_summary.html'\"></ng-include> <div class=\"padding\" style=\"display: none\"> <div class=\"row m-t-lg\"> <div class=\"col-sm-12 col-md-5 col-lg-5\"> <ng-include ng-if=\"performances.operators\" src=\"'views/dashboards/_partials/service_request_leaderboard.html'\"> </div> <div class=\"col-sm-12 col-md-5 col-lg-5 offset-md-1\"> <ng-include ng-if=\"performances.jurisdictions\" src=\"'views/dashboards/_partials/service_request_area_leaderboard.html'\"> </div> </div> </div> <div ng-if=\"!performances.overall\" class=\"row-col h-v\"> <div class=\"row-cell v-m\"> <div class=\"text-center col-sm-6 offset-sm-3 p-y-lg\"> <p class=\"text-muted m-y-lg\"> No Data Found. Please update your filters. </p> <button ng-click=\"showFilter()\" class=\"btn btn-outline b-grey text-grey\" title=\"Click to update filters\"> Update Filters </button> </div> </div> </div> </div> </div> "
   );
 
 
@@ -11344,12 +11187,12 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/servicerequests/_partials/assignee_modal.html',
-    "<div> <div class=\"modal-header\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$dismiss()\" aria-hidden=\"true\"> × </button> <h4 class=\"modal-title\"> Assign Service Request To: </h4> </div> <div class=\"modal-body\"> <div class=\"container-fluid\"> <div class=\"row-col lt\"> <div class=\"list-search\"> <form> <div class=\"input-group\"> <input type=\"text\" ng-change=\"onSearchAssignees()\" ng-model=\"search.party\" class=\"form-control form-control-sm\" placeholder=\"Search Assignee ...\"> <span class=\"input-group-btn\"> <button ng-click=\"onSearchAssignees()\" class=\"btn btn-default btn-sm no-shadow\" type=\"button\"> <i class=\"ti-search\"></i> </button> </span> </div> </form> </div> <div class=\"row-row\"> <div class=\"row-body hover\"> <div class=\"list\" data-ui-list=\"info\"> <div class=\"list-item\" ng-repeat=\"assignee in assignees\" title=\"{{assignee.name}}\" ng-click=\"assign(assignee)\"> <div class=\"list-left\"> <span class=\"w-40 avatar circle\"> <letter-avatar title=\"{{assignee.name}}\" data=\"{{assignee.name}}\" height=\"60\" width=\"60\" shape=\"round\"> </letter-avatar> </span> </div> <div class=\"list-body\"> <div class=\"item-title\"> {{assignee.name}} <br> <span class=\"text-sm text-muted\"> {{assignee.relation.type}} </span> </div> </div> </div> </div> </div> </div> </div> </div> </div> </div> "
+    "<div> <div class=\"modal-header\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$dismiss()\" aria-hidden=\"true\"> × </button> <h4 class=\"modal-title\"> Assign Issue </h4> </div> <div class=\"modal-body\"> <div class=\"container-fluid\"> <div class=\"row-col lt\"> <div class=\"list-search\"> <form> <div class=\"input-group\"> <input type=\"text\" ng-change=\"onSearchAssignees()\" ng-model=\"search.party\" class=\"form-control form-control-sm\" placeholder=\"Search Assignee ...\"> <span class=\"input-group-btn\"> <button ng-click=\"onSearchAssignees()\" class=\"btn btn-default btn-sm no-shadow\" type=\"button\"> <i class=\"ti-search\"></i> </button> </span> </div> </form> </div> <div class=\"row-row\"> <div class=\"row-body hover\"> <div class=\"list\" data-ui-list=\"info\"> <div class=\"list-item\" ng-repeat=\"assignee in assignees\" title=\"{{assignee.name}}\" ng-click=\"assign(assignee)\"> <div class=\"list-left\"> <span class=\"w-40 avatar circle\"> <letter-avatar title=\"{{assignee.name}}\" data=\"{{assignee.name}}\" height=\"60\" width=\"60\" shape=\"round\"> </letter-avatar> </span> </div> <div class=\"list-body\"> <div class=\"item-title\" title=\"Name\"> {{assignee.name}} <br> <span class=\"text-sm text-muted\" title=\"Roles\" ng-if=\"assignee.roles\"> {{showPartyRoles(assignee)}} </span> <span class=\"text-sm text-muted\" title=\"Area\" ng-if=\"assignee.jurisdiction\"> | {{assignee.jurisdiction.name}} </span> <span class=\"text-sm text-muted\" title=\"Zone\" ng-if=\"assignee.zone\"> | {{assignee.zone.name.en}} </span> </div> </div> </div> </div> </div> </div> </div> </div> </div> </div> "
   );
 
 
   $templateCache.put('views/servicerequests/_partials/comments.html',
-    " <div class=\"padding b-t\"> <h6 class=\"m-b\" title=\"Internal Notes & Comments\">Internal Notes</h6> <div class=\"p-a\"> <div print-hide ng-if=\"!servicerequest.resolvedAt\" class=\"p-a p-y-sm b-t b-b m-b\"> <form> <div class=\"input-group b-a b-transparent\"> <input ng-enter=\"comment()\" ng-model=\"note.content\" type=\"text\" class=\"form-control no-border font-size-12\" placeholder=\"Write your note\" id=\"internal-comment-box\"> <span class=\"input-group-btn\"> <button ng-click=\"comment()\" class=\"btn no-bg no-shadow\" type=\"button\"> <i class=\"fa fa-send text-success\"></i> </button> </span> </div> </form> </div> <div class=\"streamline m-b\"> <div class=\"sl-item\" ng-style=\"comment.color ? {'border-color': comment.color} : {}\" ng-repeat=\"comment in comments\"> <div class=\"sl-content\"> <div class=\"sl-date text-muted\"> <span class=\"text-info\"> {{comment.changer.name}} </span> on {{comment.createdAt | date:'dd MMM yyyy hh:mm:ss a'}} </div> <p ng-if=\"comment.comment\">{{comment.comment}}</p> <p ng-if=\"comment.item\"> Used {{comment.quantity}} - {{comment.item.properties.unit}} of {{comment.item.name.en}} </p> <p ng-if=\"comment.location && comment.location.coordinates\"> Change location to longitude: {{comment.location.coordinates[0]}}, latitude: {{comment.location.coordinates[1]}} </p> <p ng-if=\"comment.status && comment.status.name\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" ng-style=\"comment.status ? {'background-color': comment.status.color} : {}\"> <b class=\"arrow left b-success pull-in\" ng-style=\"comment.status ? {'border-color': comment.status.color} : {}\"></b> {{comment.status.name}} </span> </p> <p ng-if=\"comment.priority && comment.priority.name\"> Change priority to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" ng-style=\"comment.priority ? {'background-color': comment.priority.color} : {}\"> <b class=\"arrow left b-success pull-in\" ng-style=\"comment.priority ? {'border-color': comment.priority.color} : {}\"></b> {{comment.priority.name}} </span> </p> <p ng-if=\"comment.assignee && comment.assignee.name\"> Assignee to {{comment.assignee.name}} </p> <p ng-if=\"comment.resolvedAt\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" style=\"background-color: #4CAF50\"> <b class=\"arrow left b-success pull-in\" style=\"border-color: #4CAF50\"></b> Resolved </span> </p> <p ng-if=\"comment.reopenedAt\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" style=\"background-color: #F44336\"> <b class=\"arrow left b-success pull-in\" style=\"border-color: #F44336\"></b> Reopened </span> </p> <p ng-if=\"comment.approvedAt\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" style=\"background-color: #1B5E1F\"> <b class=\"arrow left b-success pull-in\" style=\"border-color: #1B5E1F\"></b> Approved </span> </p> <p ng-if=\"comment.verifiedAt\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" style=\"background-color: #EF6C01\"> <b class=\"arrow left b-success pull-in\" style=\"border-color: #EF6C01\"></b> Verified </span> </p> <p ng-if=\"comment.completedAt\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" style=\"background-color: #0D47A3\"> <b class=\"arrow left b-success pull-in\" style=\"border-color: #0D47A3\"></b> Completed </span> </p> <p ng-if=\"comment.attendedAt\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" style=\"background-color: #F9A825\"> <b class=\"arrow left b-success pull-in\" style=\"border-color: #F9A825\"></b> Attended </span> </p> <p ng-if=\"comment.image && comment.image.stream\"> <a href=\"{{comment.image.stream}}\" target=\"_blank\" title=\"{{comment.image.filename}}\"> <img data-ng-src=\"{{comment.image.stream}}\" height=\"50px;\"> </a> </p> <p ng-if=\"comment.document && comment.document.download\"> Attached <a href=\"{{comment.document.download}}\" target=\"_blank\" title=\"{{comment.document.filename}}\"> <span class=\"text-muted\"> {{comment.document.filename}} </span> </a> </p> </div> </div> </div> </div> </div> "
+    " <div class=\"padding b-t\"> <h6 class=\"m-b\" title=\"Internal Notes & Comments\">Internal Notes</h6> <div class=\"p-a\"> <div print-hide ng-if=\"!servicerequest.resolvedAt\" class=\"p-a p-y-sm b-t b-b m-b\"> <form> <div class=\"input-group b-a b-transparent\"> <input ng-enter=\"comment()\" ng-model=\"note.content\" type=\"text\" class=\"form-control no-border font-size-12\" placeholder=\"Write your note\" id=\"internal-comment-box\"> <span class=\"input-group-btn\"> <button ng-click=\"comment()\" class=\"btn no-bg no-shadow\" type=\"button\"> <i class=\"fa fa-send text-success\"></i> </button> </span> </div> </form> </div> <div class=\"streamline m-b\"> <div class=\"sl-item\" ng-style=\"comment.color ? {'border-color': comment.color} : {}\" ng-repeat=\"comment in comments\"> <div class=\"sl-content\"> <div class=\"sl-date text-muted\"> <span class=\"text-info\"> {{ comment.changer.name }} </span> on {{ comment.createdAt | date: 'dd MMM yyyy hh:mm:ss a' }} </div> <p ng-if=\"comment.comment\">{{ comment.comment }}</p> <p ng-if=\"comment.item\"> Used {{ comment.quantity }} - {{ comment.item.properties.unit }} of {{ comment.item.name.en }} </p> <p ng-if=\"comment.location && comment.location.coordinates\"> Change location to longitude: {{ comment.location.coordinates[0] }}, latitude: {{ comment.location.coordinates[1] }} </p> <p ng-if=\"comment.status && comment.status.name\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" ng-style=\"comment.status ? {'background-color': comment.status.color} : {}\"> <b class=\"arrow left b-success pull-in\" ng-style=\"comment.status ? {'border-color': comment.status.color} : {}\"></b> {{ comment.status.name }} </span> </p> <p ng-if=\"comment.priority && comment.priority.name\"> Change priority to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" ng-style=\"comment.priority ? {'background-color': comment.priority.color} : {}\"> <b class=\"arrow left b-success pull-in\" ng-style=\"comment.priority ? {'border-color': comment.priority.color} : {}\"></b> {{ comment.priority.name }} </span> </p> <p ng-if=\"comment.assignee && comment.assignee.name\"> Assign to {{ comment.assignee.name }} </p> <p ng-if=\"comment.resolvedAt\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" style=\"background-color: #4CAF50\"> <b class=\"arrow left b-success pull-in\" style=\"border-color: #4CAF50\"></b> Resolved </span> </p> <p ng-if=\"comment.reopenedAt\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" style=\"background-color: #F44336\"> <b class=\"arrow left b-success pull-in\" style=\"border-color: #F44336\"></b> Reopened </span> </p> <p ng-if=\"comment.approvedAt\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" style=\"background-color: #1B5E1F\"> <b class=\"arrow left b-success pull-in\" style=\"border-color: #1B5E1F\"></b> Approved </span> </p> <p ng-if=\"comment.verifiedAt\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" style=\"background-color: #EF6C01\"> <b class=\"arrow left b-success pull-in\" style=\"border-color: #EF6C01\"></b> Verified </span> </p> <p ng-if=\"comment.completedAt\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" style=\"background-color: #0D47A3\"> <b class=\"arrow left b-success pull-in\" style=\"border-color: #0D47A3\"></b> Completed </span> </p> <p ng-if=\"comment.attendedAt\"> Change status to <span class=\"label rounded success pos-rlt m-l-xs b-a-xs\" style=\"background-color: #F9A825\"> <b class=\"arrow left b-success pull-in\" style=\"border-color: #F9A825\"></b> Attended </span> </p> <p ng-if=\"comment.image && comment.image.stream\"> <a href=\"{{ comment.image.stream }}\" target=\"_blank\" title=\"{{ comment.image.filename }}\"> <img data-ng-src=\"{{ comment.image.stream }}\" height=\"50px;\"> </a> </p> <p ng-if=\"comment.document && comment.document.download\"> Attached <a href=\"{{ comment.document.download }}\" target=\"_blank\" title=\"{{ comment.document.filename }}\"> <span class=\"text-muted\"> {{ comment.document.filename }} </span> </a> </p> </div> </div> </div> </div> </div> "
   );
 
 
@@ -11361,7 +11204,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/servicerequests/_partials/detail.html',
-    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/servicerequests/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\" print-section> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <h4 class=\"_600\"> <span title=\"Issue Nature\"> {{servicerequest.service.name}} </span> - <span title=\"Issue Number\"> #{{servicerequest.code}} </span> <span class=\"pull-right font-size-14\"> <span title=\"Issue Group/Category\"> <span class=\"text-muted font-size-10\">Group</span> {{servicerequest.group.name}} </span> <br> <span title=\"Area Responsible\"> <span class=\"text-muted font-size-10\">Area</span> {{servicerequest.jurisdiction.name}} </span> <br> <span ng-if=\"servicerequest.jurisdiction.phone && servicerequest.jurisdiction.phone != 'N/A'\" title=\"Area Phone Number\"> <span class=\"text-muted font-size-10\">Phone</span> {{servicerequest.jurisdiction.phone}} </span> </span> </h4> <div class=\"p-y\"> <div title=\"Reporter Name\"> <span class=\"text-muted font-size-12\">From: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.name)\">{{servicerequest.reporter.name}}</span> </div> <div title=\"Reporter Account Number\"> <span class=\"text-muted font-size-12\">Account #: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.account)\">{{servicerequest.reporter.account}}</span> </div> <div title=\"Reporter Phone Number\"> <span class=\"text-muted font-size-12\">Phone #: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.phone)\">{{servicerequest.reporter.phone}}</span> </div> <div title=\"Reporter Address\"> <span class=\"text-muted font-size-12\">Address: </span> <span>{{servicerequest.address}}</span> </div> <div title=\"Communication Method\"> <span class=\"text-muted font-size-12\">Method: </span> <span>{{servicerequest.method.name}}</span> </div> </div> <div print-hide class=\"p-y b-t\" ng-show=\"servicerequest.call.startedAt && servicerequest.call.endedAt\"> <span title=\"Call Start Time\"> <span class=\"text-muted font-size-12\"> Call Start: </span> <span class=\"font-size-12\">{{servicerequest.call.startedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span title=\"Call End Time\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Call End: </span> <span class=\"font-size-12\">{{servicerequest.call.endedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span title=\"Call Duration\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Call Duration: </span> <span class=\"font-size-12\">{{servicerequest.call.duration.human}}</span> </span> </div> <div print-hide class=\"p-b\" ng-class=\"{'p-y b-t':!servicerequest.call}\"> <span title=\"Date Issue Reported\"> <span class=\"text-muted font-size-12\">Reported: </span> <span class=\"font-size-12\">{{servicerequest.createdAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span ng-if=\"servicerequest.resolvedAt\" title=\"Date Issue Resolved\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Resolved: </span> <span class=\"font-size-12\">{{servicerequest.resolvedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span ng-if=\"servicerequest.resolvedAt\" title=\"Time Taken To Resolve\" class=\"p-l\"> <span class=\"text-muted font-size-12\">TTR: </span> <span class=\"font-size-12\"> {{servicerequest.ttr.human}} </span> </span> </div> <div class=\"p-y b-t\"> <span title=\"Operator Responsible\"> <span class=\"text-muted font-size-12\">Operator: </span> <span>{{servicerequest.operator.name}}</span> </span> <a title=\"Click to assign\" auto-close=\"outsideClick\" class=\"m-l\" ng-click=\"showAssigneeModal()\"> <span class=\"text-muted font-size-12\">Assignee: </span> <span>{{servicerequest.assignee.name || 'N/A'}}</span> </a> <span ng-if=\"!servicerequest.resolvedAt\" uib-dropdown class=\"label primary m-l\" title=\"Status\" style=\"background-color:{{servicerequest.status.color}}\"> <span uib-dropdown-toggle class=\"font-size-12 text-white\">Status: {{servicerequest.status.name}} </span> <div ng-if=\"servicerequest.operator\" uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a ng-repeat=\"status in statuses\" ng-click=\"changeStatus(status)\" class=\"dropdown-item\" href=\"#\" title=\"Status - {{status.name}}\"> <span>{{status.name}}</span> </a> </div> </span> <span ng-if=\"!servicerequest.resolvedAt\" uib-dropdown class=\"label danger m-l\" title=\"Priority\" style=\"background-color:{{servicerequest.priority.color}}\"> <span uib-dropdown-toggle class=\"font-size-12 text-white\">Priority: {{servicerequest.priority.name}}</span> <div ng-if=\"servicerequest.operator\" uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a ng-repeat=\"priority in priorities\" ng-click=\"changePriority(priority)\" class=\"dropdown-item\" href=\"#\" title=\"Priority {{priority.name}}\"> <span>{{priority.name}}</span> </a> </div> </span> <span ng-if=\"servicerequest.resolvedAt\" class=\"label danger m-l\" style=\"background-color: #4CAF50\"> <span class=\"font-size-12 text-white\">Resolved</span> </span> </div> </div> <div class=\"padding b-t\"> <h6 class=\"m-b\" title=\"Issue Description\">Description</h6> <p class=\"text-lt\"> {{servicerequest.description}} </p> <p>&nbsp;</p> </div> <div ng-show=\"worklogs && worklogs.length > 0\" ng-include=\"'views/servicerequests/_partials/worklog.html'\"></div> <div class=\"padding b-t\" ng-show=\"servicerequest.location && servicerequest.location.coordinates\"> <h6 class=\"m-b\" title=\"Issue Map\">Map</h6> <leaflet id=\"servicerequest-map\" center=\"map.center\" markers=\"map.markers\" bounds=\"map.bounds\" defaults=\"map.defaults\" height=\"280px\" width=\"100%\"></leaflet> <p>&nbsp;</p> </div> <div print-hide class=\"padding b-t\" ng-show=\"images && images.length > 0\"> <h6 class=\"m-b\" title=\"Issue Images\">Images</h6> <ng-gallery images=\"images\"></ng-gallery> </div> <div print-hide class=\"padding b-t\" ng-show=\"documents && documents.length > 0\"> <h6 class=\"m-b\" title=\"Issue Images\">Documents</h6> <div> <a ng-repeat=\"document in documents\" href=\"{{document.download}}\" class=\"block m-b-xs\" target=\"_blank\" title=\"{{document.filename}}\"> <span class=\"label\">{{document.type}}</span> {{document.filename}} <small class=\"m-l text-muted\"> {{document.length | prettyBytes}} </small> </a> </div> </div> <div print-hide ng-if=\"servicerequest.operator\" ng-include=\"'views/servicerequests/_partials/comments.html'\"></div> </div> </div> </div> </div> "
+    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/servicerequests/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\" print-section> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <h4 class=\"_600\"> <span title=\"Issue Nature\"> {{servicerequest.service.name}} </span> - <span title=\"Issue Number\"> #{{servicerequest.code}} </span> <span class=\"pull-right font-size-14\"> <span title=\"Issue Group/Category\"> <span class=\"text-muted font-size-10\">Group</span> {{servicerequest.group.name}} </span> <br> <span title=\"Issue Type\"> <span class=\"text-muted font-size-10\">Type</span> {{servicerequest.type.name.en}} </span> <br> <span title=\"Area Responsible\"> <span class=\"text-muted font-size-10\">Area</span> {{servicerequest.jurisdiction.name}} </span> <br> <span ng-if=\"servicerequest.jurisdiction.phone && servicerequest.jurisdiction.phone != 'N/A'\" title=\"Area Phone Number\"> <span class=\"text-muted font-size-10\">Phone</span> {{servicerequest.jurisdiction.phone}} </span> </span> </h4> <div class=\"p-y\"> <div title=\"Reporter Name\"> <span class=\"text-muted font-size-12\">From: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.name)\">{{servicerequest.reporter.name}}</span> </div> <div title=\"Reporter Account Number\"> <span class=\"text-muted font-size-12\">Account #: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.account)\">{{servicerequest.reporter.account}}</span> </div> <div title=\"Reporter Phone Number\"> <span class=\"text-muted font-size-12\">Phone #: </span> <span ng-click=\"filterByReporter(servicerequest.reporter.phone)\">{{servicerequest.reporter.phone}}</span> </div> <div title=\"Reporter Address\"> <span class=\"text-muted font-size-12\">Address: </span> <span>{{servicerequest.address}}</span> </div> <div title=\"Communication Method\"> <span class=\"text-muted font-size-12\">Method: </span> <span>{{servicerequest.method.name}}</span> </div> </div> <div print-hide class=\"p-y b-t\" ng-show=\"servicerequest.call.startedAt && servicerequest.call.endedAt\"> <span title=\"Call Start Time\"> <span class=\"text-muted font-size-12\"> Call Start: </span> <span class=\"font-size-12\">{{servicerequest.call.startedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span title=\"Call End Time\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Call End: </span> <span class=\"font-size-12\">{{servicerequest.call.endedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span title=\"Call Duration\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Call Duration: </span> <span class=\"font-size-12\">{{servicerequest.call.duration.human}}</span> </span> </div> <div class=\"p-b\" ng-class=\"{'p-y b-t':!servicerequest.call}\"> <span title=\"Date Issue Reported\"> <span class=\"text-muted font-size-12\">Reported: </span> <span class=\"font-size-12\">{{servicerequest.createdAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span ng-if=\"servicerequest.resolvedAt\" title=\"Date Issue Resolved\" class=\"p-l\"> <span class=\"text-muted font-size-12\">Resolved: </span> <span class=\"font-size-12\">{{servicerequest.resolvedAt | date:'dd MMM yyyy hh:mm:ss a'}}</span> </span> <span ng-if=\"servicerequest.resolvedAt\" title=\"Time Taken To Resolve\" class=\"p-l\"> <span class=\"text-muted font-size-12\">TTR: </span> <span class=\"font-size-12\"> {{servicerequest.ttr.human}} </span> </span> </div> <div class=\"p-y b-t\"> <span title=\"Operator Responsible\"> <span class=\"text-muted font-size-12\">Operator: </span> <span>{{servicerequest.operator.name}}</span> </span> <a title=\"Click to assign\" auto-close=\"outsideClick\" class=\"m-l\" ng-click=\"showAssigneeModal()\"> <span class=\"text-muted font-size-12\">Assignee: </span> <span>{{servicerequest.assignee.name || 'N/A'}}</span> </a> <span ng-if=\"!servicerequest.resolvedAt\" uib-dropdown class=\"label primary m-l\" title=\"Status\" style=\"background-color:{{servicerequest.status.color}}\"> <span uib-dropdown-toggle class=\"font-size-12 text-white\">Status: {{servicerequest.status.name}} </span> <div ng-if=\"servicerequest.operator\" uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a ng-repeat=\"status in statuses\" ng-click=\"changeStatus(status)\" class=\"dropdown-item\" href=\"#\" title=\"Status - {{status.name}}\"> <span>{{status.name}}</span> </a> </div> </span> <span ng-if=\"!servicerequest.resolvedAt\" uib-dropdown class=\"label danger m-l\" title=\"Priority\" style=\"background-color:{{servicerequest.priority.color}}\"> <span uib-dropdown-toggle class=\"font-size-12 text-white\">Priority: {{servicerequest.priority.name}}</span> <div ng-if=\"servicerequest.operator\" uib-dropdown-menu class=\"dropdown-menu w dropdown-menu-scale\"> <a ng-repeat=\"priority in priorities\" ng-click=\"changePriority(priority)\" class=\"dropdown-item\" href=\"#\" title=\"Priority {{priority.name}}\"> <span>{{priority.name}}</span> </a> </div> </span> <span ng-if=\"servicerequest.resolvedAt\" class=\"label danger m-l\" style=\"background-color: #4CAF50\"> <span class=\"font-size-12 text-white\">Resolved</span> </span> </div> </div> <div class=\"padding b-t\"> <h6 class=\"m-b\" title=\"Issue Description\">Description</h6> <p class=\"text-lt\"> {{servicerequest.description}} </p> <p>&nbsp;</p> </div> <div ng-show=\"worklogs && worklogs.length > 0\" ng-include=\"'views/servicerequests/_partials/worklog.html'\"></div> <div print-hide class=\"padding b-t\" ng-show=\"servicerequest.location && servicerequest.location.coordinates\"> <h6 class=\"m-b\" title=\"Issue Map\">Map</h6> <leaflet id=\"servicerequest-map\" center=\"map.center\" markers=\"map.markers\" bounds=\"map.bounds\" defaults=\"map.defaults\" height=\"280px\" width=\"100%\"></leaflet> <p>&nbsp;</p> </div> <div print-hide class=\"padding b-t\" ng-show=\"images && images.length > 0\"> <h6 class=\"m-b\" title=\"Issue Images\">Images</h6> <ng-gallery images=\"images\"></ng-gallery> </div> <div print-hide class=\"padding b-t\" ng-show=\"documents && documents.length > 0\"> <h6 class=\"m-b\" title=\"Issue Images\">Documents</h6> <div> <a ng-repeat=\"document in documents\" href=\"{{document.download}}\" class=\"block m-b-xs\" target=\"_blank\" title=\"{{document.filename}}\"> <span class=\"label\">{{document.type}}</span> {{document.filename}} <small class=\"m-l text-muted\"> {{document.length | prettyBytes}} </small> </a> </div> </div> <div print-hide ng-if=\"servicerequest.operator\" ng-include=\"'views/servicerequests/_partials/comments.html'\"></div> </div> </div> </div> </div> "
   );
 
 
