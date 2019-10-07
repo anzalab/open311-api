@@ -281,6 +281,20 @@ const ChangeLogSchema = new Schema({
     searchable: true
   },
 
+  /**
+   * @name confirmedAt
+   * @description Latest time when the service request(issue) was confirmed.
+   *
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  confirmedAt: {
+    type: Date,
+    index: true
+  },
+
 
   /**
    * @name resolvedAt
@@ -752,6 +766,7 @@ ChangeLogSchema.statics.track = function (changes, done) {
       changelog.group = servicerequest.group;
       changelog.type = servicerequest.type;
       changelog.service = servicerequest.service;
+      changelog.confirmedAt = servicerequest.confirmedAt;
 
       //persists changes
       this.create(changelogs, function (error /*, changelogs*/ ) {

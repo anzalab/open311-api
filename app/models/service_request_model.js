@@ -471,6 +471,21 @@ const ServiceRequestSchema = new Schema({
   document: FileTypes.Document,
 
   /**
+   * @name confirmedAt
+   * @description A time when the issue received from other
+   * channels(i.e not call center or customer care desk) confirmed.
+   *
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  confirmedAt: {
+    type: Date,
+    index: true
+  },
+
+  /**
    * @name expectedAt
    * @description A time when the issue is expected to be resolved.
    *
@@ -804,7 +819,7 @@ ServiceRequestSchema.methods.syncUpstream = function (done) {
 ServiceRequestSchema.methods.sync = function (strategy, done) {
 
   //ensure callback
-  done = done || function () { };
+  done = done || function () {};
 
   //obtain current execution environment
   const { isProduction } = env;

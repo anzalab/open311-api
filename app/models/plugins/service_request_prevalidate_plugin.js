@@ -34,6 +34,20 @@ module.exports = exports = function preValidatePlugin(schema /*, options*/ ) {
     //ref
     const Counter = mongoose.model('Counter');
 
+    // ensure confirmed time
+    if (this.operator && !this.confirmedAt) {
+      const confirmedAt = new Date();
+      if (!this.createdAt) {
+        this.set({
+          createdAt: confirmedAt,
+          updatedAt: confirmedAt,
+          confirmedAt: confirmedAt
+        });
+      } else {
+        this.set({ confirmedAt });
+      }
+    }
+
     //compute expected time to resolve the issue
     //based on service level agreement
     if (!this.expectedAt && this.service) {
