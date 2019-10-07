@@ -25,8 +25,9 @@ const _ = require('lodash');
 const { waterfall } = require('async');
 const { model, Schema, ObjectId } = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
-const { FileTypes } = require('@lykmapipo/file');
 const { Point } = require('mongoose-geojson-schemas');
+const { FileTypes } = require('@lykmapipo/file');
+const { Predefine } = require('@lykmapipo/predefine');
 const Send = require('../libs/send');
 
 
@@ -71,10 +72,106 @@ const ChangeLogSchema = new Schema({
     index: true,
     exists: true,
     hidden: true,
+    aggregatable: { unwind: true }
     autopopulate: {
       select: 'code',
       maxDepth: 1
     }
+  },
+
+  /**
+   * @name jurisdiction
+   * @description A current assigned jurisdiction of the service request(issue)
+   *
+   * @type {Object}
+   * @see {@link Jurisdiction}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  jurisdiction: {
+    type: ObjectId,
+    ref: 'Jurisdiction',
+    // required: true,
+    index: true,
+    // exists: true,
+    aggregatable: { unwind: true }
+  },
+
+  /**
+   * @name zone
+   * @description A current assigned zone of the service request(issue)
+   *
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  zone: {
+    type: ObjectId,
+    ref: 'Predefine',
+    // required: true,
+    index: true,
+    // exists: true,
+    aggregatable: { unwind: true }
+  },
+
+
+  /**
+   * @name group
+   * @description A current assigned service group of the
+   * service request(issue)
+   * @type {Object}
+   * @see {@link Service}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  group: {
+    type: ObjectId,
+    ref: 'ServiceGroup',
+    // required: true,
+    index: true,
+    // exists: true,
+    aggregatable: { unwind: true }
+  },
+
+
+  /**
+   * @name type
+   * @description A current assigned service type of the service request(issue)
+   * @type {Object}
+   * @see {@link Service}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  type: {
+    type: ObjectId,
+    ref: Predefine.MODEL_NAME,
+    // required: true,
+    // exists: true,
+    aggregatable: { unwind: true },
+    index: true,
+  },
+
+
+  /**
+   * @name service
+   * @description A current assigned service of the service request(issue)
+   * @type {Object}
+   * @see {@link Service}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  service: {
+    type: ObjectId,
+    ref: 'Service',
+    // required: true,
+    index: true,
+    // exists: true,
+    aggregatable: { unwind: true }
   },
 
 
@@ -95,7 +192,8 @@ const ChangeLogSchema = new Schema({
     autopopulate: {
       select: 'name weight color',
       maxDepth: 1
-    }
+    },
+    aggregatable: { unwind: true }
   },
 
 
@@ -116,7 +214,8 @@ const ChangeLogSchema = new Schema({
     autopopulate: {
       select: 'name weight color',
       maxDepth: 1
-    }
+    },
+    aggregatable: { unwind: true }
   },
 
 
@@ -137,7 +236,8 @@ const ChangeLogSchema = new Schema({
     autopopulate: {
       select: 'name email phone',
       maxDepth: 1
-    }
+    },
+    aggregatable: { unwind: true }
   },
 
 
@@ -158,7 +258,8 @@ const ChangeLogSchema = new Schema({
     autopopulate: {
       select: 'name email phone',
       maxDepth: 1
-    }
+    },
+    aggregatable: { unwind: true }
   },
 
 
@@ -344,7 +445,8 @@ const ChangeLogSchema = new Schema({
     type: ObjectId,
     ref: 'Predefine',
     exists: true,
-    autopopulate: true
+    autopopulate: true,
+    aggregatable: { unwind: true }
   },
 
   /**
@@ -643,6 +745,13 @@ ChangeLogSchema.statics.track = function (changes, done) {
       let changelogs = servicerequest.changes(changelog);
       changelogs =
         ([].concat(servicerequest.changelogs).concat(changelogs));
+
+      // ensure common service request properties
+      changelog.jurisdiction = servicerequest.jurisdiction;
+      changelog.zone = servicerequest.zone;
+      changelog.group = servicerequest.group;
+      changelog.type = servicerequest.type;
+      changelog.service = servicerequest.service;
 
       //persists changes
       this.create(changelogs, function (error /*, changelogs*/ ) {
