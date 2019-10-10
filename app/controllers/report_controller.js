@@ -194,7 +194,7 @@ module.exports = {
    * @version 0.1.0
    * @public
    */
-  export: function (request, response /*, next*/ ) {
+  export: function (request, response /*, next*/) {
     //TODO implement plugin for other models(schemas)
 
     //prepare criteria
@@ -203,7 +203,7 @@ module.exports = {
 
     //prepare query cursor/stream
     const query =
-      ServiceRequest.aggregated(criteria).sort({ createdAt: -1 }).cursor();
+      ServiceRequest.lookup(criteria).sort({ createdAt: -1 }).cursor();
     const serviceRequests = query.exec();
 
     //prepare file name
@@ -243,18 +243,18 @@ module.exports = {
             serviceRequest.resolvedAt).toISOString() : '',
           'Resolved Day': serviceRequest.resolvedAt ? moment(
             serviceRequest.resolvedAt).format(
-            'DD-MM-YYYY') : '',
+              'DD-MM-YYYY') : '',
           'Resolved Time': serviceRequest.resolvedAt ? moment(
             serviceRequest.resolvedAt).format(
-            'HH:mm:ss') : '',
+              'HH:mm:ss') : '',
           'Re-Opened Date': serviceRequest.reopenedAt ? moment(
             serviceRequest.reopenedAt).toISOString() : '',
           'Re-Opened Day': serviceRequest.reopenedAt ? moment(
             serviceRequest.reopenedAt).format(
-            'DD-MM-YYYY') : '',
+              'DD-MM-YYYY') : '',
           'Re-Opened Time': serviceRequest.reopenedAt ? moment(
             serviceRequest.reopenedAt).format(
-            'HH:mm:ss') : '',
+              'HH:mm:ss') : '',
           'Updated Date': serviceRequest.updatedAt ? moment(
             serviceRequest.updatedAt).toISOString() : '',
           'Contact Method': _.get(serviceRequest, 'method.name', ''),

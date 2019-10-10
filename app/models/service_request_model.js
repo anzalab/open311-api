@@ -7,7 +7,7 @@
  * @description An issue(or service request) reported by civilian(or customer)
  *              e.g Water Leakage occur at a particular area
  *
- * @author lally elias <lallyelias87@mail.com>
+ * @author lally elias <lallyelias87@gmail.com>
  * @since 0.1.0
  * @version 0.1.0
  * @public
@@ -15,7 +15,7 @@
 
 
 //TODO extract analysis to plugin/module to free service request from
-//analysis boilerplates and improve their spec
+//analysis boilerplate and improve their spec
 
 //TODO add source party that will be acting as a collector of the service request
 //i.e Call Center Operator, Apps etc
@@ -45,8 +45,6 @@ const parseMs = require('parse-ms');
 const pluginsPath = path.join(__dirname, 'plugins');
 const notification =
   require(path.join(pluginsPath, 'service_request_notification_plugin'));
-const aggregate =
-  require(path.join(pluginsPath, 'service_request_aggregated_plugin'));
 const open311 =
   require(path.join(pluginsPath, 'service_request_open311_plugin'));
 const overview =
@@ -819,7 +817,7 @@ ServiceRequestSchema.methods.syncUpstream = function (done) {
 ServiceRequestSchema.methods.sync = function (strategy, done) {
 
   //ensure callback
-  done = done || function () {};
+  done = done || function () { };
 
   //obtain current execution environment
   const { isProduction } = env;
@@ -926,7 +924,6 @@ ServiceRequestSchema.statics.WEB_CONTACT_METHODS = ContactMethod.WEB_METHODS;
 ServiceRequestSchema.plugin(preValidate);
 ServiceRequestSchema.plugin(actions);
 ServiceRequestSchema.plugin(notification);
-ServiceRequestSchema.plugin(aggregate);
 ServiceRequestSchema.plugin(open311);
 ServiceRequestSchema.plugin(overview);
 ServiceRequestSchema.plugin(performance);
