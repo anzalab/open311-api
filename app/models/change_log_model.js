@@ -37,7 +37,7 @@ const VISIBILITY_PRIVATE = 'Private';
 const VISIBILITIES = [VISIBILITY_PRIVATE, VISIBILITY_PUBLIC];
 
 
-//TODO add changelog type i.e status, service, assignement, comment etc
+//TODO add changelog type i.e status, service, assignment, comment etc
 //TODO hook on service request pre validation
 //TODO hook on service request pre save
 //TODO hook on service request post save
@@ -113,7 +113,7 @@ const ChangeLogSchema = new Schema({
     // required: true,
     index: true,
     // exists: true,
-    aggregatable: { unwind: true }
+    // aggregatable: { unwind: true }
   },
 
 
@@ -243,7 +243,7 @@ const ChangeLogSchema = new Schema({
 
   /**
    * @name changer
-   * @description A party who made changes to a servie request(issue)
+   * @description A party who made changes to a service request(issue)
    * @type {Object}
    * @see {@link Party}
    * @since 0.1.0
@@ -632,7 +632,7 @@ ChangeLogSchema.statics.notifyAssignee =
           next(null, null);
         }
       }
-    ], function afterNotifyAssignee( /*error, results*/ ) {
+    ], function afterNotifyAssignee( /*error, results*/) {
       done(null, servicerequest);
     });
   };
@@ -640,7 +640,7 @@ ChangeLogSchema.statics.notifyAssignee =
 /**
  * @name track
  * @type Function
- * @description track service request changelogs
+ * @description track service request changelog
  * @param {Object} changes service request latest changes
  * @param {ObjectId} changes.request valid existing service request object id
  * @param {Function} done a callback to invoke on success or failure
@@ -769,7 +769,7 @@ ChangeLogSchema.statics.track = function (changes, done) {
       changelog.confirmedAt = servicerequest.confirmedAt;
 
       //persists changes
-      this.create(changelogs, function (error /*, changelogs*/ ) {
+      this.create(changelogs, function (error /*, changelogs*/) {
         next(error, servicerequest);
       });
 
@@ -790,7 +790,7 @@ ChangeLogSchema.statics.track = function (changes, done) {
       });
 
       //update
-      servicerequest.save(function (error /*, servicerequest*/ ) {
+      servicerequest.save(function (error /*, servicerequest*/) {
         next(error, servicerequest);
       });
 
