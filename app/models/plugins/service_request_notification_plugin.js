@@ -22,15 +22,14 @@
 //TODO migrate to use queue than sync transport once everything works fine
 
 //global dependencies
-const path = require('path');
 const _ = require('lodash');
 const mongoose = require('mongoose');
-const parseTemplate = require('string-template');
-const config = require('config');
+const { parseTemplate } = require('@lykmapipo/common');
+const { getString } = require('@lykmapipo/env');
 
 
 //libs
-const Send = require(path.join(__dirname, '..', '..', 'libs', 'send'));
+const Send = require('../../libs/send');
 
 
 module.exports = exports = function notification(schema /*, options*/ ) {
@@ -152,11 +151,11 @@ module.exports = exports = function notification(schema /*, options*/ ) {
       if (sendTicket) {
 
         //compile message to send to reporter
-        const template = config.get('infobip').templates.ticket.open;
+        const template = getString('TEMPLATES_TICKET_OPEN');
         const body = parseTemplate(template, {
           ticket: serviceRequest.code,
           service: serviceRequest.service.name.en,
-          phone: config.get('phone')
+          phone: getString('APP_PHONE')
         });
 
         //TODO send email
@@ -222,13 +221,14 @@ module.exports = exports = function notification(schema /*, options*/ ) {
       if (sendTicket) {
 
         //compile message to send to reporter
-        const template = config.get('infobip').templates.ticket.resolve;
+        const template = getString('TEMPLATES_TICKET_RESOLVE');
         const body = parseTemplate(template, {
           ticket: serviceRequest.code,
           service: serviceRequest.service.name.en,
-          phone: config.get('phone')
+          phone: getString('APP_PHONE')
         });
 
+        //TODO use campaign
         //TODO send email
         //TODO send push
 
