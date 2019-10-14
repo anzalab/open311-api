@@ -11,14 +11,14 @@
  */
 
 //dependencies
-const path = require('path');
 const _ = require('lodash');
 const async = require('async');
-const config = require('config');
 const moment = require('moment');
 const mongoose = require('mongoose');
+const { getString } = require('@lykmapipo/env');
 const actions = require('mongoose-rest-actions');
 const { toE164 } = require('@lykmapipo/phone');
+const { encode: jwtEncode } = require('@lykmapipo/jwt-common');
 const irina = require('irina');
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Schema.ObjectId;
@@ -426,24 +426,19 @@ PartySchema.pre('validate', function (next) {
  */
 PartySchema.pre('save', function (next) {
 
-  //import jwt helpers
-  const JWT = require(path.join(__dirname, '..', 'libs', 'jwt'));
-
-  //obtain api token options
-  const options = config.get('token') || {};
-
   if (this.isApp) {
-    JWT
-      .encode(this, options, function (error, jwtToken) {
-        if (error || !jwtToken) {
-          error = error ? error : new Error('Fail To Generate API Token');
-          error.status = 500;
-          next(error);
-        } else {
-          this.token = jwtToken;
-          next(null, this);
-        }
-      }.bind(this)); //ensure party instance context
+    const expiresIn = getString('JWT_API_TOKEN_EXPIRES_IN', '1000y');
+    const payload = { id: this._id };
+    jwtEncode(payload, { expiresIn }, function (error, jwtToken) {
+      if (error || !jwtToken) {
+        error = error ? error : new Error('Fail To Generate API Token');
+        error.status = 500;
+        next(error);
+      } else {
+        this.token = jwtToken;
+        next(null, this);
+      }
+    }.bind(this)); //ensure party instance context
   } else {
     next();
   }
