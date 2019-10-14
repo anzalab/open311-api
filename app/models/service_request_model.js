@@ -132,6 +132,7 @@ const ServiceRequestSchema = new Schema({
     required: true,
     index: true,
     exists: true,
+    // exists: { default: true, match: { default: true }, select: { name: 1 } }
     aggregatable: { unwind: true },
     autopopulate: {
       select: 'code name phone email website',
