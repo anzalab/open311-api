@@ -153,7 +153,7 @@ module.exports = function (grunt) {
       unit: {
         options: {
           reporter: 'spec',
-          timeout: 8000
+          timeout: 80000
         },
         src: [
           '<%= project.test %>/unit/**/*.js',
@@ -170,7 +170,7 @@ module.exports = function (grunt) {
       integration: {
         options: {
           reporter: 'spec',
-          timeout: 8000
+          timeout: 80000
         },
         src: [
           '<%= project.test %>/integration/**/*.js',
