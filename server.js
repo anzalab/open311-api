@@ -1,6 +1,5 @@
 'use strict';
 
-const path = require('path');
 const { isLocal } = require('@lykmapipo/env');
 const { start } = require('./app/application');
 
