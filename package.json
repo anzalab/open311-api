@@ -120,6 +120,7 @@
     "@benmaruchu/faker": "^4.3.0",
     "@lykmapipo/mongoose-test-helpers": "^0.7.23",
     "chai": "^4.2.0",
+    "cryptiles": "^4.1.3",
     "extend": "^3.0.2",
     "faker": "^4.1.0",
     "grunt": "^1.0.4",
