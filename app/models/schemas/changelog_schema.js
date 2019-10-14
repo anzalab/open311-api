@@ -1,33 +1,6 @@
 'use strict';
 
-
-/**
- * @module ChangeLog
- * @name ChangeLog
- * @description A record(log) of a changes on a service request(issue).
- *
- *              It may be status change, priority change, assignee change,
- *              private comment(internal note) or public comment etc.
- *
- * @see {@link ServiceRequest}
- * @see {@link Status}
- * @see {@link Party}
- * @see {@link Priority}
- * @author lally elias <lallyelias87@mail.com>
- * @since 0.1.0
- * @version 0.1.0
- * @public
- */
-
-
-//global dependencies(or imports)
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-const ObjectId = Schema.Types.ObjectId;
-
-
-//local dependencies(or imports)
-
+const { createSubSchema, ObjectId } = require('@lykmapipo/mongoose-common');
 
 //constants
 const VISIBILITY_PUBLIC = 'Public';
@@ -43,13 +16,24 @@ const VISIBILITIES = [VISIBILITY_PRIVATE, VISIBILITY_PUBLIC];
 //TODO support attachment changelog(audio, images etc)
 
 /**
- * @name ChangeLogSchema
+ * @module ChangeLog
+ * @name ChangeLog
+ * @description A record(log) of a changes on a service request(issue).
+ *
+ *              It may be status change, priority change, assignee change,
+ *              private comment(internal note) or public comment etc.
+ *
+ * @see {@link ServiceRequest}
+ * @see {@link Status}
+ * @see {@link Party}
+ * @see {@link Priority}
+ * @author lally elias <lallyelias87@mail.com>
  * @type {Schema}
  * @since 0.1.0
  * @version 0.1.0
- * @private
+ * @public
  */
-const ChangeLogSchema = new Schema({
+const ChangeLogSchema = createSubSchema({
 
 
   /**
@@ -235,7 +219,7 @@ const ChangeLogSchema = new Schema({
     default: VISIBILITY_PRIVATE
   }
 
-}, { timestamps: true, emitIndexErrors: true });
+}, { timestamps: true });
 
 
 //---------------------------------------------------------

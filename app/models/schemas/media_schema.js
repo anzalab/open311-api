@@ -1,23 +1,8 @@
 'use strict';
 
+const { createSubSchema } = require('@lykmapipo/mongoose-common');
 
-/**
- * @module MediaSchema
- * @name MediaSchema
- * @description An attachment or file associated with an entity
- *              e.g service request
- * @author lally elias <lallyelias87@mail.com>
- * @since 0.1.0
- * @version 0.1.0
- */
-
-
-//dependencies
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-
-
-//media storage
+// media storages
 const STORAGE_LOCAL = 'Local';
 const STORAGE_REMOTE = 'Remote';
 const STORAGES = [
@@ -25,9 +10,17 @@ const STORAGES = [
   STORAGE_REMOTE
 ];
 
-
-//MediaSchema Schema
-const MediaSchema = new Schema({
+/**
+ * @module MediaSchema
+ * @name MediaSchema
+ * @description An attachment or file associated with an entity
+ *              e.g service request
+ * @author lally elias <lallyelias87@mail.com>
+ * @type {Schema}
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+const MediaSchema = createSubSchema({
   /**
    * @name uploadedAt
    * @description A time when a media uploaded

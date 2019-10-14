@@ -1,36 +1,22 @@
 'use strict';
 
+const { createSubSchema } = require('@lykmapipo/mongoose-common');
+const Duration = require('./duration_schema');
 
 /**
  * @module Call
  * @description call schema used to log call start and end time as well as
  *              call dutation.
- *               
+ *
  * @see {@link ServiceRequest}
  * @see {@link DurationSchema}
  * @author lally elias<lallyelias87@gmail.com>
+ * @type {Schema}
  * @since  0.1.0
  * @version 0.1.0
  * @public
  */
-
-
-//dependencies
-const path = require('path');
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-const Duration = require(path.join(__dirname, 'duration_schema'));
-
-
-/**
- * @name CallSchema
- * @description duration schema
- * @type {Schema}
- * @since  0.1.0
- * @version 0.1.0
- * @private
- */
-const CallSchema = new Schema({
+const CallSchema = createSubSchema({
   /**
    * @name startedAt
    * @description time when a call received at the call center
@@ -64,10 +50,10 @@ const CallSchema = new Schema({
 
   /**
    * @name duration
-   * @description call duration from time when call picked up to time when 
+   * @description call duration from time when call picked up to time when
    *              a call released by the call center operator in duration
    *              formats.
-   *              
+   *
    * @type {Object}
    * @see {@link DurationSchema}
    * @private
@@ -76,7 +62,7 @@ const CallSchema = new Schema({
    */
   duration: Duration
 
-}, { _id: false, timestamps: false });
+});
 
 
 //---------------------------------------------------------

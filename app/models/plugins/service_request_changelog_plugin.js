@@ -16,15 +16,13 @@
 
 
 //global dependencies(or import)
-const path = require('path');
 const _ = require('lodash');
 const async = require('async');
 const mongoose = require('mongoose');
 
 
 //local dependencies(or import)
-const ChangeLog =
-  require(path.join(__dirname, '..', 'schemas', 'changelog_schema'));
+const ChangeLog = require('../schemas/changelog_schema');
 
 
 module.exports = exports = function changelog(schema /*, options*/ ) {

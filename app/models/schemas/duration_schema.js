@@ -1,34 +1,21 @@
 'use strict';
 
+const { createSubSchema } = require('@lykmapipo/mongoose-common');
+const parseMs = require('parse-ms');
+const prettyMs = require('pretty-ms');
 
 /**
  * @module Duration
- * @description duration schema used to express time(milliseconds) in their 
- *              descete formats i.e years, months, days, minutes, seconds, 
+ * @description duration schema used to express time(milliseconds) in their
+ *              descete formats i.e years, months, days, minutes, seconds,
  *              milliseconds etc.
  * @author lally elias<lallyelias87@gmail.com>
+ * @type {Schema}
  * @since  0.1.0
  * @version 0.1.0
  * @public
  */
-
-
-//dependencies
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-const parseMs = require('parse-ms');
-const prettyMs = require('pretty-ms');
-
-
-/**
- * @name DurationSchema
- * @description duration schema
- * @type {Schema}
- * @since  0.1.0
- * @version 0.1.0
- * @private
- */
-const DurationSchema = new Schema({
+const DurationSchema = createSubSchema({
   /**
    * @name years
    * @description duration in years
@@ -140,7 +127,7 @@ const DurationSchema = new Schema({
     trim: true
   }
 
-}, { _id: false, timestamps: false });
+});
 
 
 //---------------------------------------------------------

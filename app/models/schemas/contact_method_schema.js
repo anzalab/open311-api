@@ -1,25 +1,6 @@
 'use strict';
 
-/**
- * @module ChangeLog
- * @name ChangeLog
- * @description Representing a method used by reporter or workspace
- *              to receive(or report) service request.
- *
- *              Example a customer may call call center and operator log the service request, then
- *              a contact method is a call and workspace is call center.
- *
- * @see {@link ServiceRequest}
- * @see {@link Party}
- * @author lally elias <lallyelias87@mail.com>
- * @since 0.1.0
- * @version 0.1.0
- * @public
- */
-
-//global dependencies(or imports)
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const { createSubSchema } = require('@lykmapipo/mongoose-common');
 
 //constants
 
@@ -49,48 +30,55 @@ const WEB_METHODS = [PHONE_CALL, EMAIL, SMS, VISIT, LETTER, FAX];
 //TODO track if contact method is external method(or channel)
 
 /**
- * @name ContactMethod
+ * @module ChangeLog
+ * @name ChangeLog
+ * @description Representing a method used by reporter or workspace
+ *              to receive(or report) service request.
+ *
+ *              Example a customer may call call center and operator log the service request, then
+ *              a contact method is a call and workspace is call center.
+ *
+ * @see {@link ServiceRequest}
+ * @see {@link Party}
+ * @author lally elias <lallyelias87@mail.com>
  * @type {Schema}
  * @since 0.1.0
  * @version 0.1.0
- * @private
+ * @public
  */
-const ContactMethod = new Schema(
-  {
-    /**
-     * @name name
-     * @description A communication(contact) method(mechanism) used by a reporter
-     *              to report the issue
-     *
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    name: {
-      type: String,
-      index: true,
-      default: PHONE_CALL,
-      enum: METHODS,
-      searchable: true
-    },
-
-    /**
-     * @name workspace
-     * @description workspace used be operator to receive service request
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    workspace: {
-      type: String,
-      index: true,
-      searchable: true
-    }
+const ContactMethod = createSubSchema({
+  /**
+   * @name name
+   * @description A communication(contact) method(mechanism) used by a reporter
+   *              to report the issue
+   *
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  name: {
+    type: String,
+    index: true,
+    default: PHONE_CALL,
+    enum: METHODS,
+    searchable: true
   },
-  { _id: false, id: false, timestamps: false, emitIndexErrors: true }
-);
+
+  /**
+   * @name workspace
+   * @description workspace used be operator to receive service request
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  workspace: {
+    type: String,
+    index: true,
+    searchable: true
+  }
+});
 
 //---------------------------------------------------------
 // ContactMethod Statics
