@@ -1,30 +1,19 @@
 'use strict';
 
-//dependencies
-const path = require('path');
-const JWT = require(path.join(__dirname, '..', 'libs', 'jwt'));
-
+const { jwtAuth } = require('@lykmapipo/jwt-common');
+const Party = require('../models/party_model');
 
 /**
- * @description middleware to check authenticity using jwt tokens
+ * @name jwtAuth
+ * @description middleware stack to check authenticity using jwt tokens
  * @param  {HttpRequest}   request  http request
  * @param  {HttpResponse}   response http response
  * @param  {Function} next     next http middleware to be invoked
  */
-module.exports = function (request, response, next) {
-  JWT
-    .verify(request, function (error, party) {
-      if (error) {
-
-        error.status = 403;
-        error.message = error.message || 'Authorization Header Required';
-        next(error);
-
-      } else {
-        if (!party.deletedAt) {
-          request.party = party;
-        }
-        next();
-      }
-    });
-};
+module.exports = [
+  jwtAuth({ user: (jwt, done) => Party.findByJwt(jwt, done) }),
+  (request, response, next) => {
+    if (request.user) { request.party = request.user; }
+    return next();
+  }
+];

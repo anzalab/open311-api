@@ -12,7 +12,7 @@
 
 //dependencies
 const _ = require('lodash');
-const async = require('async');
+const { waterfall, parallel } = require('async');
 const moment = require('moment');
 const mongoose = require('mongoose');
 const { getString } = require('@lykmapipo/env');
@@ -429,6 +429,7 @@ PartySchema.pre('save', function (next) {
   if (this.isApp) {
     const expiresIn = getString('JWT_API_TOKEN_EXPIRES_IN', '1000y');
     const payload = { id: this._id };
+    // TODO: const ignoreExpiration = true
     jwtEncode(payload, { expiresIn }, function (error, jwtToken) {
       if (error || !jwtToken) {
         error = error ? error : new Error('Fail To Generate API Token');
@@ -618,7 +619,7 @@ PartySchema.statics.works = function (options, done) {
 
   };
 
-  async.parallel({
+  parallel({
     //1. compute total day work(service requests count)
     day: function (next) {
       const startedAt = options.day.startedAt;
@@ -709,7 +710,7 @@ PartySchema.statics.durations = function (options, done) {
 
   };
 
-  async.parallel({
+  parallel({
     //1. compute total day work duration
     day: function (next) {
       const startedAt = options.day.startedAt;
@@ -801,7 +802,7 @@ PartySchema.statics.performances = function (options, done) {
   //compute performance reports
   const works = function (party, then) {
 
-    async.parallel({
+    parallel({
 
       //3.0 pick basic party details
       party: function (after) {
@@ -851,7 +852,7 @@ PartySchema.statics.performances = function (options, done) {
 
   };
 
-  async.waterfall([
+  waterfall([
 
     //1. loading full party instance
     function preLoadParty(next) {
@@ -898,6 +899,42 @@ PartySchema.statics.getPhones = function getPhones(criteria, done) {
       return _done(error, phones);
     });
 
+};
+
+
+/**
+ * @name findByJwt
+ * @function findByJwt
+ * @description find existing party from jwt payload
+ * @param {Object} jwt valid jwt payload
+ * @param {string} [jwt.id] valid party id
+ * @param {function} done a callback to invoke on success or error
+ * @return {String[]|Error}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ */
+PartySchema.statics.findByJwt = function findByJwt(jwt, done) {
+  // refs
+  const Party = this;
+
+  return waterfall([
+    // find by id
+    (next) => {
+      if (!jwt || !jwt.id) { return (null, null); }
+      return Party.findById(jwt.id, next);
+    },
+    // ensure exists
+    (party, next) => {
+      if (!party || party.deletedAt) {
+        const error = new Error('Invalid Authorization Token');
+        error.status = 403;
+        error.code = 403;
+        return next(error);
+      }
+      return next(null, party);
+    }
+  ], done);
 };
 
 
