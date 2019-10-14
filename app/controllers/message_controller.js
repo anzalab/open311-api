@@ -2,14 +2,12 @@
 
 
 //dependencies
-const path = require('path');
 const _ = require('lodash');
-const config = require('config');
 const { Message } = require('@lykmapipo/postman');
-const parseTemplate = require('string-template');
+const { parseTemplate } = require('@lykmapipo/common');
 
 //libs
-const Send = require(path.join(__dirname, '..', 'libs', 'send'));
+const Send = require('../libs/send');
 
 
 /**
@@ -67,9 +65,7 @@ module.exports = {
       //check for sms template to use
       if (message.template) {
         //compile message to send
-        const template = _.get(config.get('infobip').templates, message.template) ||
-          _.get(config.get('infobip').templates.ticket, message.template);
-        message.body = parseTemplate(template, message);
+        message.body = parseTemplate(message.template, message);
       }
 
       return Send.sms(message, function (error, message) {
@@ -91,6 +87,8 @@ module.exports = {
         }
       });
     }
+
+    // TODO handle push
 
     // handle unknown message type
     return next(new Error('Unknown Message Type'));

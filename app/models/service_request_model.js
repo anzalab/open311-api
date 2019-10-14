@@ -27,10 +27,7 @@
 //global dependencies(or imports)
 const path = require('path');
 const _ = require('lodash');
-const async = require('async');
-const config = require('config');
-const env = require('@lykmapipo/env');
-const sync = require('open311-api-sync');
+const { parallel } = require('async');
 const mongoose = require('mongoose');
 const actions = require('mongoose-rest-actions');
 const { Point } = require('mongoose-geojson-schemas');
@@ -727,156 +724,6 @@ ServiceRequestSchema.methods.mapToLegacy = function mapToLegacy() {
 };
 
 
-/**
- * @name syncDownstream
- * @description sync service request to local(downstream) server
- * @param {Function} done  a callback to invoke on success or failure
- * @since  0.1.0
- * @version 0.1.0
- * @public
- * @type {Function}
- */
-ServiceRequestSchema.methods.syncDownstream = function (done) {
-
-  // obtain sync configurations
-  const options = config.get('sync.downstream');
-
-  //check if service isExternal
-  // const isExternal = (this.service && this.service.isExternal);
-
-  //check if downstream syncing is enabled
-  const isEnabled =
-    (options.enabled &&
-      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token));
-
-  //sync down stream
-  if (isEnabled) {
-    sync.baseUrl = options.baseUrl;
-    sync.token = options.token;
-    sync.post(this.toObject(), done);
-  }
-
-  //no downstream sync back-off
-  else {
-    done(null, this);
-  }
-
-};
-
-
-/**
- * @name syncUpstream
- * @description sync service request to public(upstream) server
- * @param {Function} done  a callback to invoke on success or failure
- * @since  0.1.0
- * @version 0.1.0
- * @public
- * @type {Function}
- */
-ServiceRequestSchema.methods.syncUpstream = function (done) {
-
-  // obtain sync configurations
-  const options = config.get('sync.upstream');
-
-  //check if service isExternal
-  const isExternal = (this.service && this.service.isExternal);
-
-  //check if upstream syncing is enabled
-  const isEnabled =
-    (options.enabled &&
-      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token) && isExternal);
-
-  //sync up stream
-  if (isEnabled) {
-    sync.baseUrl = options.baseUrl;
-    sync.token = options.token;
-    const toSync = _.merge({}, this.toObject());
-    delete toSync.changelogs; //TODO sync public changelogs
-    delete toSync.attachments; //TODO sync attachement
-    sync.patch(toSync, done);
-  }
-
-  //no upstream sync back-off
-  else {
-    done(null, this);
-  }
-
-};
-
-
-/**
- * @name sync
- * @description try sync service request either to public(upstream) or
- *              local(downstream) server
- * @param {Function} [done]  a callback to invoke on success or failure
- * @since  0.1.0
- * @version 0.1.0
- * @public
- * @type {Function}
- */
-ServiceRequestSchema.methods.sync = function (strategy, done) {
-
-  //ensure callback
-  done = done || function () { };
-
-  //obtain current execution environment
-  const { isProduction } = env;
-
-  //obtain sync strategies
-  const { downstream, upstream } = config.get('sync.strategies');
-
-  // check if downstream sync enable
-  let options = config.get('sync.downstream');
-  let isEnabled =
-    (options.enabled &&
-      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token));
-
-  if (strategy === downstream) {
-
-    //sync downstream
-    if (isEnabled) {
-
-      //queue & run in background in production
-      if (isProduction && this.runInBackground) {
-        this.runInBackground({ method: 'syncDownstream' });
-      }
-
-      //run synchronous in dev & test environment
-      else {
-        this.syncDownstream(done);
-      }
-
-    }
-  }
-
-
-  // check if upstream sync enable
-  options = config.get('sync.upstream');
-  isEnabled =
-    (options.enabled &&
-      !_.isEmpty(options.baseUrl) && !_.isEmpty(options.token));
-
-  if (strategy === upstream) {
-
-    //sync upstream
-    if (isEnabled) {
-
-      //queue & run in background in production
-      if (isProduction && this.runInBackground) {
-        this.runInBackground({ method: 'syncUpstream' });
-      }
-
-      //run synchronous in dev & test environment
-      else {
-        this.syncUpstream(done);
-      }
-
-    }
-  }
-
-};
-
-
 //-----------------------------------------------------------------------------
 // ServiceRequestSchema Hooks
 //-----------------------------------------------------------------------------
@@ -1371,12 +1218,12 @@ ServiceRequestSchema.statics.overviews = function (done) {
 
   //TODO make use of https://docs.mongodb.com/v3.4/reference/operator/aggregation/facet/
 
-  async.parallel({
+  parallel({
 
     //total, resolved, un-resolved count & average call duration
     issues: function (next) {
 
-      async.parallel({
+      parallel({
         total: function (then) {
           ServiceRequest.count({}, then);
         },
@@ -1457,7 +1304,7 @@ ServiceRequestSchema.statics.summary = function (criteria, done) {
   const ServiceRequest = mongoose.model('ServiceRequest');
 
   //TODO use aggregation
-  async.parallel({
+  parallel({
     services: function (next) {
       Service
         .find({}) //TODO select for specific jurisdiction
@@ -1477,7 +1324,7 @@ ServiceRequestSchema.statics.summary = function (criteria, done) {
                   ).exec(then);
               };
             });
-            async.parallel(works, next);
+            parallel(works, next);
           }
         });
     },
@@ -1501,7 +1348,7 @@ ServiceRequestSchema.statics.summary = function (criteria, done) {
                   ).exec(then);
               };
             });
-            async.parallel(works, next);
+            parallel(works, next);
           }
         });
     },
@@ -1525,7 +1372,7 @@ ServiceRequestSchema.statics.summary = function (criteria, done) {
                   ).exec(then);
               };
             });
-            async.parallel(works, next);
+            parallel(works, next);
           }
         });
     },
@@ -1549,7 +1396,7 @@ ServiceRequestSchema.statics.summary = function (criteria, done) {
                   ).exec(then);
               };
             });
-            async.parallel(works, next);
+            parallel(works, next);
           }
         });
     }

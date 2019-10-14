@@ -12,17 +12,51 @@
 
 //dependencies
 const _ = require('lodash');
-const config = require('config');
+const { getString } = require('@lykmapipo/env');
 const mongoose = require('mongoose');
+const moment = require('moment');
 const Service = mongoose.model('Service');
 const ServiceRequest = mongoose.model('ServiceRequest');
 
 //constants
+const APP_PHONE = getString('APP_PHONE');
+const APP_EMAIL = getString('APP_EMAIL');
+const CHANGESET = moment(new Date()).format('YYYY-MM-DD HH:mm');
 const OPEN311_STATUS_OPEN = 'open';
 const parseDate = function (date) {
   date = Date.parse(date);
   date = (date ? new Date(date) : undefined);
   return date;
+};
+const OPEN311_DISCOVERY = {
+  changeset: CHANGESET,
+  contact: `You can email or call for assistance ${APP_EMAIL} ${APP_PHONE}`,
+  'key_service': `For detail on usage, contact ${APP_EMAIL} ${APP_PHONE}`,
+  endpoints: [{
+    specification: 'http://wiki.open311.org/GeoReport_v2',
+    url: 'http://dawasco.herokuapp.com/open311',
+    changeset: CHANGESET,
+    type: 'test',
+    formats: [
+      'application/json'
+    ],
+    locales: [
+      'en_GB',
+      'en_US'
+    ]
+  }, {
+    specification: 'http://wiki.open311.org/GeoReport_v2',
+    url: 'http://dawasco.herokuapp.com/open311',
+    changeset: CHANGESET,
+    type: 'development',
+    formats: [
+      'application/json'
+    ],
+    locales: [
+      'en_GB',
+      'en_US'
+    ]
+  }]
 };
 
 //TODO handle date & other open 311 filter on get request(s) status
@@ -41,8 +75,7 @@ module.exports = {
    * @public
    */
   discovery: function (request, response /*, next*/ ) {
-    const _config = config.get('open311');
-    response.ok(_config.discovery);
+    response.ok(OPEN311_DISCOVERY);
   },
 
 
