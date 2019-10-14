@@ -1,15 +1,11 @@
 'use strict';
 
-
-/* dependencies */
 const path = require('path');
-const config = require('config');
 const { isLocal } = require('@lykmapipo/env');
-const { start } = require('@lykmapipo/express-common');
-require(path.join(__dirname, 'app', 'application'));
+const { start } = require('./app/application');
 
-//lift up application server
-start(function (error, env) {
+// lift up application server
+start((error, env) => {
   // throw on start error
   if (error) {
     throw error;
@@ -20,10 +16,10 @@ start(function (error, env) {
     env.PORT, env.NODE_ENV
   );
 
-  console.log('To see your app, visit %s', config.get('baseUrl'));
+  console.log('To see your app, visit %s', `http://0.0.0.0:${env.PORT}`);
 
-  //pass control to grunt if run in
-  //development or test environment
+  // pass next control if run in
+  // development or test environment with grunt
   if (isLocal()) {
     console.log('....');
   }

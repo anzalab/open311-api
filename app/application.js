@@ -28,7 +28,7 @@
 /* dependencies */
 const path = require('path');
 const { getString } = require('@lykmapipo/env');
-const { app, mount } = require('@lykmapipo/express-common');
+const { app, mount, start } = require('@lykmapipo/express-common');
 const mkdir = require('mkdir-p');
 const respond = require('express-respond');
 
@@ -76,4 +76,5 @@ mount(require('@codetanzania/majifix-alert').alertRouter);
 mount(require('@codetanzania/majifix-analytics').analyticRouter);
 
 /* export express application */
-exports = module.exports = app;
+exports.app = app;
+exports.start = start;

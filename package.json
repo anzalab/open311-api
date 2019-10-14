@@ -71,6 +71,7 @@
     "@lykmapipo/env": ">=0.14.5",
     "@lykmapipo/express-common": ">=0.17.12",
     "@lykmapipo/file": ">=0.1.11",
+    "@lykmapipo/jwt-common": ">=0.3.17",
     "@lykmapipo/mongoose-common": ">=0.26.1",
     "@lykmapipo/permission": ">=0.8.10",
     "@lykmapipo/phone": ">=0.5.8",
