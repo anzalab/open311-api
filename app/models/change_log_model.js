@@ -31,7 +31,6 @@ const {
 } = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
 const { Point } = require('mongoose-geojson-schemas');
-const { FileTypes } = require('@lykmapipo/file');
 const { Predefine } = require('@lykmapipo/predefine');
 const Send = require('../libs/send');
 
@@ -42,6 +41,7 @@ const VISIBILITY_PRIVATE = 'Private';
 const VISIBILITIES = [VISIBILITY_PRIVATE, VISIBILITY_PUBLIC];
 
 //schemas
+const files = require('./schemas/files_schema');
 const timestamps = require('./schemas/timestamps_schema');
 
 
@@ -374,46 +374,6 @@ const ChangeLogSchema = createSchema(mergeObjects({
   },
 
   /**
-   * @name image
-   * @description Associated image for service request(issue) changes
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  image: FileTypes.Image,
-
-  /**
-   * @name audio
-   * @description Associated audio for service request(issue) changes
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  audio: FileTypes.Audio,
-
-  /**
-   * @name video
-   * @description Associated video for service request(issue) changes
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  video: FileTypes.Video,
-
-  /**
-   * @name document
-   * @description Associated document for service request(issue) changes
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  document: FileTypes.Document,
-
-  /**
    * @name centroid
    * @description A geo-point where changes happened.
    *
@@ -428,7 +388,7 @@ const ChangeLogSchema = createSchema(mergeObjects({
    */
   location: Point
 
-}, timestamps));
+}, files, timestamps));
 
 
 //------------------------------------------------------------------------------
