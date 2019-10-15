@@ -23,7 +23,12 @@
 //dependencies
 const _ = require('lodash');
 const { waterfall } = require('async');
-const { model, Schema, ObjectId } = require('@lykmapipo/mongoose-common');
+const { mergeObjects } = require('@lykmapipo/common');
+const {
+  model,
+  ObjectId,
+  createSchema
+} = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
 const { Point } = require('mongoose-geojson-schemas');
 const { FileTypes } = require('@lykmapipo/file');
@@ -35,6 +40,9 @@ const Send = require('../libs/send');
 const VISIBILITY_PUBLIC = 'Public';
 const VISIBILITY_PRIVATE = 'Private';
 const VISIBILITIES = [VISIBILITY_PRIVATE, VISIBILITY_PUBLIC];
+
+//schemas
+const timestamps = require('./schemas/timestamps_schema');
 
 
 //TODO add changelog type i.e status, service, assignment, comment etc
@@ -55,7 +63,7 @@ const VISIBILITIES = [VISIBILITY_PRIVATE, VISIBILITY_PUBLIC];
  * @version 0.1.0
  * @private
  */
-const ChangeLogSchema = new Schema({
+const ChangeLogSchema = createSchema(mergeObjects({
   /**
    * @name request
    * @description Associated service request(issue)
@@ -282,118 +290,6 @@ const ChangeLogSchema = new Schema({
   },
 
   /**
-   * @name confirmedAt
-   * @description Latest time when the service request(issue) was confirmed.
-   *
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  confirmedAt: {
-    type: Date,
-    index: true
-  },
-
-
-  /**
-   * @name resolvedAt
-   * @description Latest time when the service request(issue) was resolved.
-   * @type {Object}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  resolvedAt: {
-    type: Date,
-    index: true
-  },
-
-
-  /**
-   * @name reopenedAt
-   * @description Latest time when the service request(issue) was reopened.
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  reopenedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name assignedAt
-   * @description A latest time when the issue was assigned to latest assignee
-   * to work on it.
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  assignedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name attendedAt
-   * @description A latest time when the issue was marked as
-   * work in progress by latest assignee.
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  attendedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name completedAt
-   * @description A time when the issue was marked as complete(or done) by
-   * latest assignee.
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  completedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name verifiedAt
-   * @description A time when the issue was verified by immediate
-   * supervisor(technician).
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  verifiedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name approvedAt
-   * @description A time when the issue was approved by final
-   * supervisor(engineer).
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  approvedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
    * @name shouldNotify
    * @description Signal to send notification to a service request(issue)
    * reporter using sms, email etc. about work(progress) done so far to resolve
@@ -532,7 +428,7 @@ const ChangeLogSchema = new Schema({
    */
   location: Point
 
-}, { timestamps: true, emitIndexErrors: true });
+}, timestamps));
 
 
 //------------------------------------------------------------------------------
@@ -632,7 +528,7 @@ ChangeLogSchema.statics.notifyAssignee =
           next(null, null);
         }
       }
-    ], function afterNotifyAssignee( /*error, results*/) {
+    ], function afterNotifyAssignee( /*error, results*/ ) {
       done(null, servicerequest);
     });
   };
@@ -761,6 +657,7 @@ ChangeLogSchema.statics.track = function (changes, done) {
         ([].concat(servicerequest.changelogs).concat(changelogs));
 
       // ensure common service request properties
+      // TODO: check if property exist on changelog
       changelog.jurisdiction = servicerequest.jurisdiction;
       changelog.zone = servicerequest.zone;
       changelog.group = servicerequest.group;
@@ -769,7 +666,7 @@ ChangeLogSchema.statics.track = function (changes, done) {
       changelog.confirmedAt = servicerequest.confirmedAt;
 
       //persists changes
-      this.create(changelogs, function (error /*, changelogs*/) {
+      this.create(changelogs, function (error /*, changelogs*/ ) {
         next(error, servicerequest);
       });
 
@@ -790,7 +687,7 @@ ChangeLogSchema.statics.track = function (changes, done) {
       });
 
       //update
-      servicerequest.save(function (error /*, servicerequest*/) {
+      servicerequest.save(function (error /*, servicerequest*/ ) {
         next(error, servicerequest);
       });
 
