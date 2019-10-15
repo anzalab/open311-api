@@ -17,6 +17,23 @@ const { Point } = require('mongoose-geojson-schemas');
 
 module.exports = exports = {};
 
+/**
+ * @name address
+ * @description A human entered address or description of location where
+ * service request(issue) happened or work is performed.
+ *
+ * @type {Object}
+ * @private
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+exports.address = {
+  type: String,
+  trim: true,
+  index: true,
+  searchable: true,
+  taggable: true
+};
 
 /**
  * @name location

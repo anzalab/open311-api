@@ -342,25 +342,6 @@ const ServiceRequestSchema = createSchema(mergeObjects({
 
 
   /**
-   * @name address
-   * @description A human entered address or description of location
-   *              where service request(issue) happened.
-   *
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  address: {
-    type: String,
-    trim: true,
-    index: true,
-    searchable: true,
-    taggable: true
-  },
-
-
-  /**
    * @name method
    * @description A communication(contact) method(mechanism) used by a reporter
    *              to report the issue
