@@ -2,7 +2,7 @@
 
 /**
  * @name timestamps
- * @description  common timestamps fields for service request and changelog
+ * @description Common timestamps fields for service request and changelog
  * @see {@link ServiceRequest}
  * @see {@link ChangeLog}
  *

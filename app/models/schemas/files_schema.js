@@ -4,7 +4,7 @@ const { FileTypes } = require('@lykmapipo/file');
 
 /**
  * @name files
- * @description  common files fields for service request and changelog
+ * @description Common files fields for service request and changelog
  * @see {@link ServiceRequest}
  * @see {@link ChangeLog}
  *

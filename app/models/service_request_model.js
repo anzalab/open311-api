@@ -68,7 +68,6 @@ const {
   model
 } = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
-const { Point } = require('mongoose-geojson-schemas');
 const { Predefine } = require('@lykmapipo/predefine');
 
 //local dependencies(or imports)
@@ -88,6 +87,7 @@ const statistics = require('./plugins/service_request_statistics_plugin');
 
 
 //schemas
+const geos = require('./schemas/geos_schema');
 const files = require('./schemas/files_schema');
 const timestamps = require('./schemas/timestamps_schema');
 const Media = require('./schemas/media_schema');
@@ -374,25 +374,6 @@ const ServiceRequestSchema = createSchema(mergeObjects({
 
 
   /**
-   * @name location
-   * @description A longitude and latitude pair of the location of a
-   *              service request(issue).
-   *
-   *             The order of adding longitude and latitude in the array must
-   *             be <longitude> , <latitude> and not otherwise.
-   *
-   *
-   * @type {Object}
-   * @see  {@link https://docs.mongodb.com/manual/applications/geospatial-indexes/}
-   * @see {@link https://docs.mongodb.com/manual/reference/operator/query-geospatial/}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  location: Point, //TODO set to jurisdiction geo point if non provided
-
-
-  /**
    * @name status
    * @description A current status of the service request(issue)
    * @type {Object}
@@ -478,7 +459,7 @@ const ServiceRequestSchema = createSchema(mergeObjects({
    * @since 0.1.0
    * @version 0.1.0
    */
-}, files, timestamps));
+}, geos, files, timestamps));
 
 
 //-----------------------------------------------------------------------------
