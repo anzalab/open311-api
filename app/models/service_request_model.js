@@ -70,7 +70,6 @@ const {
 const actions = require('mongoose-rest-actions');
 const { Point } = require('mongoose-geojson-schemas');
 const { Predefine } = require('@lykmapipo/predefine');
-const { FileTypes } = require('@lykmapipo/file');
 
 //local dependencies(or imports)
 
@@ -89,6 +88,7 @@ const statistics = require('./plugins/service_request_statistics_plugin');
 
 
 //schemas
+const files = require('./schemas/files_schema');
 const timestamps = require('./schemas/timestamps_schema');
 const Media = require('./schemas/media_schema');
 const Duration = require('./schemas/duration_schema');
@@ -452,48 +452,6 @@ const ServiceRequestSchema = createSchema(mergeObjects({
   },
 
   /**
-   * @name image
-   * @description Associated image for service request(issue)
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  image: FileTypes.Image,
-
-  /**
-   * @name audio
-   * @description Associated audio for service request(issue)
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  audio: FileTypes.Audio,
-
-  /**
-   * @name video
-   * @description Associated video for service request(issue)
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  video: FileTypes.Video,
-
-  /**
-   * @name document
-   * @description Associated document for service request(issue)
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  document: FileTypes.Document,
-
-  // TODO merge timestamps fields
-
-  /**
    * @name ttr
    * @description A time taken to resolve the issue(service request) in duration format.
    *
@@ -520,7 +478,7 @@ const ServiceRequestSchema = createSchema(mergeObjects({
    * @since 0.1.0
    * @version 0.1.0
    */
-}, timestamps));
+}, files, timestamps));
 
 
 //-----------------------------------------------------------------------------
