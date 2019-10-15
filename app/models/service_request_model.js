@@ -61,7 +61,7 @@
 
 //global dependencies(or imports)
 const _ = require('lodash');
-const { Schema, ObjectId } = require('@lykmapipo/mongoose-common');
+const { Schema, ObjectId, createSchema } = require('@lykmapipo/mongoose-common');
 const { model } = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
 const { Point } = require('mongoose-geojson-schemas');
@@ -99,7 +99,7 @@ const ContactMethod = require('./schemas/contact_method_schema');
  * @version 0.1.0
  * @private
  */
-const ServiceRequestSchema = new Schema({
+const ServiceRequestSchema = createSchema({
 
   /**
    * @name jurisdiction
@@ -644,7 +644,7 @@ const ServiceRequestSchema = new Schema({
    * @since 0.1.0
    * @version 0.1.0
    */
-}, { timestamps: true, emitIndexErrors: true });
+});
 
 
 //-----------------------------------------------------------------------------
