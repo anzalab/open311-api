@@ -68,7 +68,6 @@ const {
   model
 } = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
-const { Predefine } = require('@lykmapipo/predefine');
 
 //local dependencies(or imports)
 
@@ -87,6 +86,7 @@ const statistics = require('./plugins/service_request_statistics_plugin');
 
 
 //schemas
+const base = require('./schemas/base_schema');
 const geos = require('./schemas/geos_schema');
 const files = require('./schemas/files_schema');
 const timestamps = require('./schemas/timestamps_schema');
@@ -103,119 +103,7 @@ const ContactMethod = require('./schemas/contact_method_schema');
  * @version 0.1.0
  * @private
  */
-const ServiceRequestSchema = createSchema(mergeObjects({
-
-  /**
-   * @name jurisdiction
-   * @description A jurisdiction responsible in handling service
-   *              request(issue)
-   *
-   * @type {Object}
-   * @see {@link Jurisdiction}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  jurisdiction: {
-    type: ObjectId,
-    ref: 'Jurisdiction',
-    required: true,
-    index: true,
-    exists: true,
-    // exists: { default: true, match: { default: true }, select: { name: 1 } }
-    aggregatable: { unwind: true },
-    autopopulate: {
-      select: 'code name phone email website',
-      maxDepth: 1
-    }
-  },
-
-  /**
-   * @name zone
-   * @description A jurisdiction zone(or branch, neighbourhood) responsible
-   * in handling service request(issue)
-   *
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  zone: {
-    type: ObjectId,
-    ref: 'Predefine',
-    index: true,
-    exists: true,
-    autopopulate: {
-      select: 'code name'
-    }
-  },
-
-  /**
-   * @name group
-   * @description A service group undewhich request(issue) belongs to
-   * @type {Object}
-   * @see {@link Service}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  group: {
-    type: ObjectId,
-    ref: 'ServiceGroup',
-    required: true,
-    index: true,
-    exists: true,
-    aggregatable: { unwind: true },
-    autopopulate: {
-      select: 'code name color',
-      maxDepth: 1
-    }
-  },
-
-
-  /**
-   * @name type
-   * @description A service type underwhich request(issue) belongs to
-   * @type {Object}
-   * @see {@link Service}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  type: {
-    type: ObjectId,
-    ref: Predefine.MODEL_NAME,
-    // required: true,
-    exists: true,
-    aggregatable: { unwind: true },
-    autopopulate: Predefine.OPTION_AUTOPOPULATE,
-    index: true,
-  },
-
-
-  /**
-   * @name service
-   * @description A service undewhich request(issue) belongs to
-   * @type {Object}
-   * @see {@link Service}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  service: {
-    type: ObjectId,
-    ref: 'Service',
-    required: true,
-    index: true,
-    exists: true,
-    aggregatable: { unwind: true },
-    autopopulate: {
-      select: 'code name color group isExternal', // remove group?
-      maxDepth: 1
-    }
-  },
-
-
+const ServiceRequestSchema = createSchema(mergeObjects(base, {
   /**
    * @name call
    * @description log operator call details at a call center
@@ -352,50 +240,6 @@ const ServiceRequestSchema = createSchema(mergeObjects({
    * @version 0.1.0
    */
   method: ContactMethod,
-
-
-  /**
-   * @name status
-   * @description A current status of the service request(issue)
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  status: {
-    type: ObjectId,
-    ref: 'Status',
-    index: true,
-    exists: true,
-    aggregatable: { unwind: true },
-    autopopulate: {
-      maxDepth: 1
-    }
-  },
-
-
-  /**
-   * @name priority
-   * @description A priority of the service request(issue).
-   *
-   *              It used to weight a service request(issue) relative
-   *              to other(s).
-   *
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  priority: {
-    type: ObjectId,
-    ref: 'Priority',
-    index: true,
-    exists: true,
-    aggregatable: { unwind: true },
-    autopopulate: {
-      maxDepth: 1
-    }
-  },
 
 
   /**

@@ -30,7 +30,6 @@ const {
   createSchema
 } = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
-const { Predefine } = require('@lykmapipo/predefine');
 const Send = require('../libs/send');
 
 
@@ -40,6 +39,12 @@ const VISIBILITY_PRIVATE = 'Private';
 const VISIBILITIES = [VISIBILITY_PRIVATE, VISIBILITY_PUBLIC];
 
 //schemas
+let base = require('./schemas/base_schema');
+base = _.mapValues(mergeObjects(base), optns => {
+  delete optns.required;
+  delete optns.exists;
+  return optns;
+});
 const geos = require('./schemas/geos_schema');
 const files = require('./schemas/files_schema');
 const timestamps = require('./schemas/timestamps_schema');
@@ -63,7 +68,7 @@ const timestamps = require('./schemas/timestamps_schema');
  * @version 0.1.0
  * @private
  */
-const ChangeLogSchema = createSchema(mergeObjects({
+const ChangeLogSchema = createSchema(mergeObjects(base, {
   /**
    * @name request
    * @description Associated service request(issue)
@@ -85,145 +90,6 @@ const ChangeLogSchema = createSchema(mergeObjects({
       select: 'code',
       maxDepth: 1
     }
-  },
-
-  /**
-   * @name jurisdiction
-   * @description A current assigned jurisdiction of the service request(issue)
-   *
-   * @type {Object}
-   * @see {@link Jurisdiction}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  jurisdiction: {
-    type: ObjectId,
-    ref: 'Jurisdiction',
-    // required: true,
-    index: true,
-    // exists: true,
-    aggregatable: { unwind: true }
-  },
-
-  /**
-   * @name zone
-   * @description A current assigned zone of the service request(issue)
-   *
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  zone: {
-    type: ObjectId,
-    ref: 'Predefine',
-    // required: true,
-    index: true,
-    // exists: true,
-    // aggregatable: { unwind: true }
-  },
-
-
-  /**
-   * @name group
-   * @description A current assigned service group of the
-   * service request(issue)
-   * @type {Object}
-   * @see {@link Service}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  group: {
-    type: ObjectId,
-    ref: 'ServiceGroup',
-    // required: true,
-    index: true,
-    // exists: true,
-    aggregatable: { unwind: true }
-  },
-
-
-  /**
-   * @name type
-   * @description A current assigned service type of the service request(issue)
-   * @type {Object}
-   * @see {@link Service}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  type: {
-    type: ObjectId,
-    ref: Predefine.MODEL_NAME,
-    // required: true,
-    // exists: true,
-    aggregatable: { unwind: true },
-    index: true,
-  },
-
-
-  /**
-   * @name service
-   * @description A current assigned service of the service request(issue)
-   * @type {Object}
-   * @see {@link Service}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  service: {
-    type: ObjectId,
-    ref: 'Service',
-    // required: true,
-    index: true,
-    // exists: true,
-    aggregatable: { unwind: true }
-  },
-
-
-  /**
-   * @name status
-   * @description A current assigned status of the service request(issue)
-   * @type {Status}
-   * @see {@link Status}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  status: {
-    type: ObjectId,
-    ref: 'Status',
-    index: true,
-    exists: true,
-    autopopulate: {
-      select: 'name weight color',
-      maxDepth: 1
-    },
-    aggregatable: { unwind: true }
-  },
-
-
-  /**
-   * @name priority
-   * @description A current assigned priority of the service request(issue)
-   * @type {Priority}
-   * @see {@link Priority}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  priority: {
-    type: ObjectId,
-    ref: 'Priority',
-    index: true,
-    exists: true,
-    autopopulate: {
-      select: 'name weight color',
-      maxDepth: 1
-    },
-    aggregatable: { unwind: true }
   },
 
 
