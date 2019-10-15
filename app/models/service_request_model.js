@@ -61,8 +61,12 @@
 
 //global dependencies(or imports)
 const _ = require('lodash');
-const { Schema, ObjectId, createSchema } = require('@lykmapipo/mongoose-common');
-const { model } = require('@lykmapipo/mongoose-common');
+const { uniq } = require('@lykmapipo/common');
+const {
+  ObjectId,
+  createSchema,
+  model
+} = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
 const { Point } = require('mongoose-geojson-schemas');
 const { Predefine } = require('@lykmapipo/predefine');
@@ -739,17 +743,17 @@ ServiceRequestSchema.statics.getPhones = function getPhones(criteria, done) {
   const ServiceRequest = this;
 
   // normalize arguments
-  const _criteria = _.isFunction(criteria) ? {} : _.merge({}, criteria);
-  const _done = _.isFunction(criteria) ? criteria : done;
+  const filter = _.isFunction(criteria) ? {} : _.merge({}, criteria);
+  const cb = _.isFunction(criteria) ? criteria : done;
 
   ServiceRequest
-    .find(_criteria)
+    .find(filter)
     .distinct('reporter.phone')
     .exec(function onGetPhones(error, phones) {
       if (!error) {
-        phones = _.uniq(_.compact([].concat(phones)));
+        phones = uniq([].concat(phones));
       }
-      return _done(error, phones);
+      return cb(error, phones);
     });
 
 };
