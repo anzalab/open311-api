@@ -61,7 +61,7 @@
 
 //global dependencies(or imports)
 const _ = require('lodash');
-const mongoose = require('mongoose');
+const { Schema, ObjectId } = require('@lykmapipo/mongoose-common');
 const { model } = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
 const { Point } = require('mongoose-geojson-schemas');
@@ -85,8 +85,6 @@ const statistics = require('./plugins/service_request_statistics_plugin');
 
 
 //schemas
-const Schema = mongoose.Schema;
-const ObjectId = Schema.Types.ObjectId;
 const Media = require('./schemas/media_schema');
 const Duration = require('./schemas/duration_schema');
 const Call = require('./schemas/call_schema');
