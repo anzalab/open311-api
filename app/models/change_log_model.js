@@ -30,7 +30,6 @@ const {
   createSchema
 } = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
-const { Point } = require('mongoose-geojson-schemas');
 const { Predefine } = require('@lykmapipo/predefine');
 const Send = require('../libs/send');
 
@@ -41,6 +40,7 @@ const VISIBILITY_PRIVATE = 'Private';
 const VISIBILITIES = [VISIBILITY_PRIVATE, VISIBILITY_PUBLIC];
 
 //schemas
+const geos = require('./schemas/geos_schema');
 const files = require('./schemas/files_schema');
 const timestamps = require('./schemas/timestamps_schema');
 
@@ -371,24 +371,9 @@ const ChangeLogSchema = createSchema(mergeObjects({
   quantity: {
     type: Number,
     min: 1
-  },
+  }
 
-  /**
-   * @name centroid
-   * @description A geo-point where changes happened.
-   *
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   * @example
-   * {
-   *    type: 'Point',
-   *    coordinates: [-76.80207859497996, 55.69469494228919]
-   * }
-   */
-  location: Point
-
-}, files, timestamps));
+}, geos, files, timestamps));
 
 
 //------------------------------------------------------------------------------
