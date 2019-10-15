@@ -61,7 +61,7 @@
 
 //global dependencies(or imports)
 const _ = require('lodash');
-const { uniq } = require('@lykmapipo/common');
+const { uniq, mergeObjects } = require('@lykmapipo/common');
 const {
   ObjectId,
   createSchema,
@@ -89,12 +89,12 @@ const statistics = require('./plugins/service_request_statistics_plugin');
 
 
 //schemas
+const timestamps = require('./schemas/timestamps_schema');
 const Media = require('./schemas/media_schema');
 const Duration = require('./schemas/duration_schema');
 const Call = require('./schemas/call_schema');
 const Reporter = require('./schemas/reporter_schema');
 const ContactMethod = require('./schemas/contact_method_schema');
-
 
 /**
  * @name ServiceRequestSchema
@@ -103,7 +103,7 @@ const ContactMethod = require('./schemas/contact_method_schema');
  * @version 0.1.0
  * @private
  */
-const ServiceRequestSchema = createSchema({
+const ServiceRequestSchema = createSchema(mergeObjects({
 
   /**
    * @name jurisdiction
@@ -491,135 +491,7 @@ const ServiceRequestSchema = createSchema({
    */
   document: FileTypes.Document,
 
-  /**
-   * @name confirmedAt
-   * @description A time when the issue received from other
-   * channels(i.e not call center or customer care desk) confirmed.
-   *
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  confirmedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name expectedAt
-   * @description A time when the issue is expected to be resolved.
-   *
-   *              Computed by adding expected hours to resolve issue to the
-   *              reporting time of the issue i.e (createdAt + service.sla.ttr in hours).
-   *
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  expectedAt: {
-    type: Date,
-    index: true
-  },
-
-
-  /**
-   * @name resolvedAt
-   * @description A time when the issue was resolved
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  resolvedAt: {
-    type: Date,
-    index: true
-  },
-
-
-  /**
-   * @name reopenedAt
-   * @description A time when the issue was reopened
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  reopenedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name assignedAt
-   * @description A latest time when the issue was assigned to latest assignee
-   * to work on it.
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  assignedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name attendedAt
-   * @description A latest time when the issue was marked as
-   * work in progress by latest assignee.
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  attendedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name completedAt
-   * @description A time when the issue was marked as complete(or done) by
-   * latest assignee.
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  completedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name verifiedAt
-   * @description A time when the issue was verified by immediate
-   * supervisor(technician).
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  verifiedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name approvedAt
-   * @description A time when the issue was approved by final
-   * supervisor(engineer).
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  approvedAt: {
-    type: Date,
-    index: true
-  },
+  // TODO merge timestamps fields
 
   /**
    * @name ttr
@@ -648,7 +520,7 @@ const ServiceRequestSchema = createSchema({
    * @since 0.1.0
    * @version 0.1.0
    */
-});
+}, timestamps));
 
 
 //-----------------------------------------------------------------------------
