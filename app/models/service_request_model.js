@@ -80,6 +80,7 @@ const work = require('./plugins/service_request_work_plugin');
 const duration = require('./plugins/service_request_duration_plugin');
 const changelog = require('./plugins/service_request_changelog_plugin');
 const preValidate = require('./plugins/service_request_prevalidate_plugin');
+const legacy = require('./plugins/service_request_legacy_plugin');
 const statistics = require('./plugins/service_request_statistics_plugin');
 
 
@@ -653,97 +654,11 @@ const ServiceRequestSchema = new Schema({
 //-----------------------------------------------------------------------------
 
 
-/**
- * @name longitude
- * @description obtain service request(issue) longitude
- * @type {Number}
- * @since 0.1.0
- * @version 0.1.0
- */
-ServiceRequestSchema.virtual('longitude').get(function () {
-  return this.location && this.location.coordinates ?
-    this.location.coordinates[0] : 0;
-});
-
-
-/**
- * @name latitude
- * @description obtain service request(issue) latitude
- * @type {Number}
- * @since 0.1.0
- * @version 0.1.0
- */
-ServiceRequestSchema.virtual('latitude').get(function () {
-  return this.location && this.location.coordinates ?
-    this.location.coordinates[1] : 0;
-});
-
-
-/**
- * @name changelogs
- * @description obtain service request(issue) changelogs
- * @type {Object}
- * @since 0.1.0
- * @version 0.1.0
- */
-ServiceRequestSchema.virtual('changelogs', {
-  ref: 'ChangeLog',
-  localField: '_id',
-  foreignField: 'request',
-  autopopulate: true
-});
-
 
 //-----------------------------------------------------------------------------
 // ServiceSchema Instance Methods
 //-----------------------------------------------------------------------------
 
-
-/**
- * @name mapToLegacy
- * @description map service request to legacy data structure
- * @param {Function} done  a callback to invoke on success or failure
- * @since  0.1.0
- * @version 0.1.0
- * @public
- * @type {Function}
- */
-ServiceRequestSchema.methods.mapToLegacy = function mapToLegacy() {
-  const servicerequest = this;
-  const object = this.toObject();
-  if (servicerequest.group) {
-    object.group.name =
-      servicerequest.group.name.en;
-  }
-  if (servicerequest.service) {
-    const Service = mongoose.model('Service');
-    const service = Service.mapToLegacy(servicerequest.service);
-    object.service =
-      _.pick(service, ['_id', 'code', 'name', 'color', 'group', 'isExternal']);
-  }
-  if (servicerequest.priority) {
-    object.priority.name =
-      servicerequest.priority.name.en;
-  }
-  if (servicerequest.status) {
-    object.status.name =
-      servicerequest.status.name.en;
-  }
-  object.changelogs =
-    _.map(servicerequest.changelogs, function (changelog) {
-      const _changelog = changelog.toObject();
-      if (changelog.priority) {
-        _changelog.priority.name =
-          changelog.priority.name.en;
-      }
-      if (changelog.status) {
-        _changelog.status.name =
-          changelog.status.name.en;
-      }
-      return _changelog;
-    });
-  return object;
-};
 
 
 //-----------------------------------------------------------------------------
@@ -791,6 +706,7 @@ ServiceRequestSchema.statics.WEB_CONTACT_METHODS = ContactMethod.WEB_METHODS;
 // ServiceRequestSchema Plugins
 //-----------------------------------------------------------------------------
 ServiceRequestSchema.plugin(preValidate);
+ServiceRequestSchema.plugin(legacy);
 ServiceRequestSchema.plugin(actions);
 ServiceRequestSchema.plugin(notification);
 ServiceRequestSchema.plugin(open311);
@@ -806,14 +722,6 @@ ServiceRequestSchema.plugin(statistics);
 //-----------------------------------------------------------------------------
 // ServiceRequestSchema Statistics
 //-----------------------------------------------------------------------------
-
-//TODO use new duration format
-//TODO use new call format
-
-//TODO implement counts in facet for all counts required
-//total
-//resolved
-//unresolved
 
 
 /**
