@@ -25,7 +25,6 @@ const { requestParties } = require('./schemas/parties_schema');
 const geos = require('./schemas/geos_schema');
 const files = require('./schemas/files_schema');
 const timestamps = require('./schemas/timestamps_schema');
-const ContactMethod = require('./schemas/contact_method_schema');
 
 // definitions
 const SCHEMA = mergeObjects(
@@ -94,21 +93,6 @@ ServiceRequestSchema.pre('validate', function onPreValidate(next) {
  *------------------------------------------------------------------------------
  */
 ServiceRequestSchema.statics.MODEL_NAME = 'ServiceRequest';
-
-
-//contact methods constants
-ServiceRequestSchema.statics.CONTACT_METHOD_PHONE_CALL =
-  ContactMethod.PHONE_CALL;
-ServiceRequestSchema.statics.CONTACT_METHOD_FAX = ContactMethod.FAX;
-ServiceRequestSchema.statics.CONTACT_METHOD_LETTER = ContactMethod.LETTER;
-ServiceRequestSchema.statics.CONTACT_METHOD_VISIT = ContactMethod.VISIT;
-ServiceRequestSchema.statics.CONTACT_METHOD_SMS = ContactMethod.SMS;
-ServiceRequestSchema.statics.CONTACT_METHOD_USSD = ContactMethod.USSD;
-ServiceRequestSchema.statics.CONTACT_METHOD_EMAIL = ContactMethod.EMAIL;
-ServiceRequestSchema.statics.CONTACT_METHOD_MOBILE_APP =
-  ContactMethod.MOBILE_APP;
-ServiceRequestSchema.statics.CONTACT_METHODS = ContactMethod.METHODS;
-ServiceRequestSchema.statics.WEB_CONTACT_METHODS = ContactMethod.WEB_METHODS;
 
 /**
  * @name getPhones
