@@ -964,8 +964,8 @@ PartySchema.statics.findByJwt = function findByJwt(jwt, done) {
 
 
 /**
- * @name updateLastKnownLocation
- * @function updateLastKnownLocation
+ * @name locate
+ * @function locate
  * @description Update existing party last known location
  * @param {Object} optns valid location update options
  * @param {String} optns._id valid party id
@@ -978,7 +978,7 @@ PartySchema.statics.findByJwt = function findByJwt(jwt, done) {
  * @version 0.1.0
  * @static
  */
-PartySchema.statics.updateLastKnownLocation = function (optns, done) {
+PartySchema.statics.locate = function locate(optns, done) {
   // refs
   const Party = this;
 

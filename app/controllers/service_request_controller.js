@@ -2,8 +2,10 @@
 
 //dependencies
 const _ = require('lodash');
+const { parallel } = require('async');
 const parseBody = require('auto-parse');
 const mongoose = require('mongoose');
+const Party = mongoose.model('Party');
 const ServiceRequest = mongoose.model('ServiceRequest');
 const ChangeLog = mongoose.model('ChangeLog');
 
@@ -210,21 +212,33 @@ module.exports = {
       changelog.approvedAt = new Date();
     }
 
-    if(changelog.location){
+    if (changelog.location) {
       changelog.location = parseBody(changelog.location);
     }
 
-    ChangeLog
-      .track(changelog, function (error, servicerequest) {
-        if (error) {
-          next(error);
-        } else {
-          //support legacy
-          const _servicerequest = servicerequest.mapToLegacy();
+    // TODO: refactor
+    parallel({
+      party: next => {
+        if (!changelog.location) { return next(null, null); }
+        const optns = {
+          _id: changer._id,
+          lastKnownLocation: changelog.location,
+          lastKnownAddress: changelog.address
+        };
+        return Party.locate(optns, (error, party) => next(null, party));
+      },
+      servicerequest: next => {
+        return ChangeLog.track(changelog, next);
+      }
+    }, (error, { servicerequest }) => {
+      if (error) {
+        next(error);
+      } else {
+        const legacyRequest = servicerequest.mapToLegacy();
+        response.ok(legacyRequest);
+      }
+    });
 
-          response.ok(_servicerequest);
-        }
-      });
 
   }
 

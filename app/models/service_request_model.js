@@ -51,12 +51,13 @@
  * 1. calculate changelogs
  * 2. update service request
  * 3. save changelogs
- * 4. send notification to reporter
- * 5. send notification to assignee
- * 6. send notification to jurisdiction
- * 7. send notification to supervisor
- * 7. send notification to team
- * 7.
+ * 4. update changer last location details
+ * 5. send notification to reporter
+ * 6. send notification to assignee
+ * 7. send notification to jurisdiction
+ * 8. send notification to supervisor
+ * 9. send notification to team
+ * 10.
  */
 
 //global dependencies(or imports)
