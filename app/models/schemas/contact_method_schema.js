@@ -76,7 +76,7 @@ const ContactMethod = createSubSchema({
   workspace: {
     type: String,
     index: true,
-    searchable: true
+    searchable: true // TODO set default: Unknown
   }
 });
 

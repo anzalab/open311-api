@@ -8,8 +8,8 @@ let assignee;
 let changer;
 
 /**
- * @name base
- * @description Common base fields for service request and changelog
+ * @name parties
+ * @description Common parties fields for service request and changelog
  * @see {@link ServiceRequest}
  * @see {@link ChangeLog}
  *
