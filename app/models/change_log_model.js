@@ -39,12 +39,8 @@ const VISIBILITY_PRIVATE = 'Private';
 const VISIBILITIES = [VISIBILITY_PRIVATE, VISIBILITY_PUBLIC];
 
 //schemas
-let base = require('./schemas/base_schema');
-base = _.mapValues(mergeObjects(base), optns => {
-  delete optns.required;
-  delete optns.exists;
-  return optns;
-});
+const { changelogBase } = require('./schemas/base_schema');
+const { changelogParties } = require('./schemas/parties_schema');
 const geos = require('./schemas/geos_schema');
 const files = require('./schemas/files_schema');
 const timestamps = require('./schemas/timestamps_schema');
@@ -69,178 +65,134 @@ const timestamps = require('./schemas/timestamps_schema');
  * @version 0.1.0
  * @private
  */
-const ChangeLogSchema = createSchema(mergeObjects(base, {
-  /**
-   * @name request
-   * @description Associated service request(issue)
-   * @type {ServiceRequest}
-   * @see {@link ServiceRequest}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  request: {
-    type: ObjectId,
-    ref: 'ServiceRequest',
-    required: true,
-    index: true,
-    exists: true,
-    hidden: true,
-    aggregatable: { unwind: true },
-    autopopulate: {
-      select: 'code',
-      maxDepth: 1
+const ChangeLogSchema = createSchema(mergeObjects(changelogBase,
+  changelogParties, {
+    /**
+     * @name request
+     * @description Associated service request(issue)
+     * @type {ServiceRequest}
+     * @see {@link ServiceRequest}
+     * @since 0.1.0
+     * @version 0.1.0
+     * @instance
+     */
+    request: {
+      type: ObjectId,
+      ref: 'ServiceRequest',
+      required: true,
+      index: true,
+      exists: true,
+      hidden: true,
+      aggregatable: { unwind: true },
+      autopopulate: {
+        select: 'code',
+        maxDepth: 1
+      }
+    },
+
+    /**
+     * @name comment
+     * @description Additional note for the changes. It may be an internal note
+     * telling how far the service request(issue) has been worked on or a message
+     * to a reporter.
+     *
+     * @type {Object}
+     * @since 0.1.0
+     * @version 0.1.0
+     * @instance
+     */
+    comment: {
+      type: String,
+      index: true,
+      trim: true,
+      searchable: true
+    },
+
+    /**
+     * @name shouldNotify
+     * @description Signal to send notification to a service request(issue)
+     * reporter using sms, email etc. about work(progress) done so far to resolve
+     * the issue.
+     *
+     * @type {Object}
+     * @since 0.1.0
+     * @version 0.1.0
+     * @instance
+     */
+    shouldNotify: {
+      type: Boolean,
+      default: false
+    },
+
+
+    /**
+     * @name wasNotificationSent
+     * @description Tells if a notification contain a changes was
+     * sent to a service request(issue) reporter using sms, email etc.
+     * once a service request changed.
+     *
+     * Note!: status changes trigger a notification to be sent always.
+     *
+     * @type {Object}
+     * @since 0.1.0
+     * @version 0.1.0
+     * @instance
+     */
+    wasNotificationSent: {
+      type: Boolean,
+      default: false
+    },
+
+
+    /**
+     * @name visibility
+     * @description Signal if this changelog is public or private viewable.
+     * Note!: status changes are always public viewable by default.
+     *
+     * @type {Object}
+     * @since 0.1.0
+     * @version 0.1.0
+     * @instance
+     */
+    visibility: {
+      type: String,
+      index: true,
+      enum: VISIBILITIES,
+      default: VISIBILITY_PRIVATE
+    },
+
+    /**
+     * @name item
+     * @description A item(material, equipment etc) used on work on service
+     * request
+     * @type {Object}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+    item: {
+      type: ObjectId,
+      ref: 'Predefine',
+      exists: true,
+      autopopulate: true,
+      aggregatable: { unwind: true }
+    },
+
+    /**
+     * @name quantity
+     * @description Amount of item(material, equipment etc) used on work
+     * on service request
+     * @type {Object}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+    quantity: {
+      type: Number,
+      min: 1
     }
-  },
 
-
-  /**
-   * @name assignee
-   * @description A current assigned party to work on service request(issue)
-   * @type {Party}
-   * @see {@link Priority}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  assignee: {
-    type: ObjectId,
-    ref: 'Party',
-    index: true,
-    exists: true,
-    autopopulate: {
-      select: 'name email phone',
-      maxDepth: 1
-    },
-    aggregatable: { unwind: true }
-  },
-
-
-  /**
-   * @name changer
-   * @description A party who made changes to a service request(issue)
-   * @type {Object}
-   * @see {@link Party}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  changer: {
-    type: ObjectId,
-    ref: 'Party',
-    index: true,
-    exists: true,
-    autopopulate: {
-      select: 'name email phone',
-      maxDepth: 1
-    },
-    aggregatable: { unwind: true }
-  },
-
-
-  /**
-   * @name comment
-   * @description Additional note for the changes. It may be an internal note
-   * telling how far the service request(issue) has been worked on or a message
-   * to a reporter.
-   *
-   * @type {Object}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  comment: {
-    type: String,
-    index: true,
-    trim: true,
-    searchable: true
-  },
-
-  /**
-   * @name shouldNotify
-   * @description Signal to send notification to a service request(issue)
-   * reporter using sms, email etc. about work(progress) done so far to resolve
-   * the issue.
-   *
-   * @type {Object}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  shouldNotify: {
-    type: Boolean,
-    default: false
-  },
-
-
-  /**
-   * @name wasNotificationSent
-   * @description Tells if a notification contain a changes was
-   * sent to a service request(issue) reporter using sms, email etc.
-   * once a service request changed.
-   *
-   * Note!: status changes trigger a notification to be sent always.
-   *
-   * @type {Object}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  wasNotificationSent: {
-    type: Boolean,
-    default: false
-  },
-
-
-  /**
-   * @name visibility
-   * @description Signal if this changelog is public or private viewable.
-   * Note!: status changes are always public viewable by default.
-   *
-   * @type {Object}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  visibility: {
-    type: String,
-    index: true,
-    enum: VISIBILITIES,
-    default: VISIBILITY_PRIVATE
-  },
-
-  /**
-   * @name item
-   * @description A item(material, equipment etc) used on work on service
-   * request
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  item: {
-    type: ObjectId,
-    ref: 'Predefine',
-    exists: true,
-    autopopulate: true,
-    aggregatable: { unwind: true }
-  },
-
-  /**
-   * @name quantity
-   * @description Amount of item(material, equipment etc) used on work
-   * on service request
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  quantity: {
-    type: Number,
-    min: 1
-  }
-
-}, geos, files, timestamps));
+  }, geos, files, timestamps));
 
 
 //------------------------------------------------------------------------------

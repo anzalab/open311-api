@@ -84,8 +84,8 @@ const statistics = require('./plugins/service_request_statistics_plugin');
 
 
 //schemas
-const base = require('./schemas/base_schema');
-const parties = require('./schemas/parties_schema');
+const { requestBase } = require('./schemas/base_schema');
+const { requestParties } = require('./schemas/parties_schema');
 const geos = require('./schemas/geos_schema');
 const files = require('./schemas/files_schema');
 const timestamps = require('./schemas/timestamps_schema');
@@ -102,131 +102,132 @@ const ContactMethod = require('./schemas/contact_method_schema');
  * @version 0.1.0
  * @private
  */
-const ServiceRequestSchema = createSchema(mergeObjects(base, parties, {
-  /**
-   * @name call
-   * @description log operator call details at a call center
-   * @type {CallSchema}
-   * @see {@link Party}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   * @deprecated
-   */
-  call: Call,
+const ServiceRequestSchema = createSchema(mergeObjects(requestBase,
+  requestParties, {
+    /**
+     * @name call
+     * @description log operator call details at a call center
+     * @type {CallSchema}
+     * @see {@link Party}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     * @deprecated
+     */
+    call: Call,
 
 
-  /**
-   * @name reporter
-   * @description A party i.e civilian, customer etc which reported an
-   *              issue(service request)
-   * @type {Object}
-   * @see {@link Reporter}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  reporter: Reporter, //TODO refactor to party
+    /**
+     * @name reporter
+     * @description A party i.e civilian, customer etc which reported an
+     *              issue(service request)
+     * @type {Object}
+     * @see {@link Reporter}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+    reporter: Reporter, //TODO refactor to party
 
-  /**
-   * @name code
-   * @description A unique human readable identifier of the
-   *              service request(issue).
-   *
-   *              It mainly used by reporter to query for status and
-   *              progress of the reported issue
-   *
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  code: {
-    type: String,
-    unique: true,
-    required: true,
-    trim: true,
-    uppercase: true,
-    searchable: true,
-    taggable: true
-  },
-
-
-  /**
-   * @name description
-   * @description A detailed human readable explanation about the
-   *              service request(issue)
-   *
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  description: {
-    type: String,
-    index: true,
-    trim: true,
-    required: true,
-    searchable: true
-  },
+    /**
+     * @name code
+     * @description A unique human readable identifier of the
+     *              service request(issue).
+     *
+     *              It mainly used by reporter to query for status and
+     *              progress of the reported issue
+     *
+     * @type {Object}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+    code: {
+      type: String,
+      unique: true,
+      required: true,
+      trim: true,
+      uppercase: true,
+      searchable: true,
+      taggable: true
+    },
 
 
-  /**
-   * @name method
-   * @description A communication(contact) method(mechanism) used by a reporter
-   *              to report the issue
-   *
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  method: ContactMethod,
+    /**
+     * @name description
+     * @description A detailed human readable explanation about the
+     *              service request(issue)
+     *
+     * @type {Object}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+    description: {
+      type: String,
+      index: true,
+      trim: true,
+      required: true,
+      searchable: true
+    },
 
 
-  /**
-   * @name attachments
-   * @description Associated file(s) with service request(issue)
-   * @type {Array}
-   * @see {@link MediaSchema}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   * @deprecated
-   */
-  attachments: { // TODO: deprecate and use image, audio and video files
-    type: [Media],
-    index: true
-  },
+    /**
+     * @name method
+     * @description A communication(contact) method(mechanism) used by a reporter
+     *              to report the issue
+     *
+     * @type {Object}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+    method: ContactMethod,
 
-  /**
-   * @name ttr
-   * @description A time taken to resolve the issue(service request) in duration format.
-   *
-   *              Used to calculcate Mean Time To Resolve(MTTR) KPI.
-   *
-   *              It calculated as time taken since the issue reported to the
-   *              time when issue resolved.
-   *
-   * @type {Duration}
-   * @see {@link DurationSchema}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   * @see {@link http://www.thinkhdi.com/~/media/HDICorp/Files/Library-Archive/Insider%20Articles/mean-time-to-resolve.pdf}
-   */
-  ttr: Duration,
 
-  /**
-   * @name changelogs
-   * @description Associated change(s) on service request(issue)
-   * @type {Array}
-   * @see {@link ChangeLog}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-}, geos, files, timestamps));
+    /**
+     * @name attachments
+     * @description Associated file(s) with service request(issue)
+     * @type {Array}
+     * @see {@link MediaSchema}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     * @deprecated
+     */
+    attachments: { // TODO: deprecate and use image, audio and video files
+      type: [Media],
+      index: true
+    },
+
+    /**
+     * @name ttr
+     * @description A time taken to resolve the issue(service request) in duration format.
+     *
+     *              Used to calculcate Mean Time To Resolve(MTTR) KPI.
+     *
+     *              It calculated as time taken since the issue reported to the
+     *              time when issue resolved.
+     *
+     * @type {Duration}
+     * @see {@link DurationSchema}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     * @see {@link http://www.thinkhdi.com/~/media/HDICorp/Files/Library-Archive/Insider%20Articles/mean-time-to-resolve.pdf}
+     */
+    ttr: Duration,
+
+    /**
+     * @name changelogs
+     * @description Associated change(s) on service request(issue)
+     * @type {Array}
+     * @see {@link ChangeLog}
+     * @private
+     * @since 0.1.0
+     * @version 0.1.0
+     */
+  }, geos, files, timestamps));
 
 
 //-----------------------------------------------------------------------------

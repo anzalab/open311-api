@@ -3,6 +3,9 @@
 const { ObjectId } = require('@lykmapipo/mongoose-common');
 const Party = require('../party_model');
 
+let operator;
+let assignee;
+let changer;
 
 /**
  * @name base
@@ -35,7 +38,7 @@ module.exports = exports = {};
  * @since 0.1.0
  * @version 0.1.0
  */
-exports.operator = {
+exports.operator = operator = {
   type: ObjectId,
   ref: Party.MODEL_NAME,
   index: true,
@@ -61,7 +64,7 @@ exports.operator = {
  * @since 0.1.0
  * @version 0.1.0
  */
-exports.assignee = {
+exports.assignee = assignee = {
   type: ObjectId,
   ref: Party.MODEL_NAME,
   index: true,
@@ -72,3 +75,30 @@ exports.assignee = {
     maxDepth: 1
   }
 };
+
+
+/**
+ * @name changer
+ * @description A party who made changes to a service request(issue).
+ *
+ * @type {Object}
+ * @see {@link Party}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @instance
+ */
+exports.changer = changer = {
+  type: ObjectId,
+  ref: Party.MODEL_NAME,
+  index: true,
+  exists: true,
+  autopopulate: {
+    select: 'name email phone',
+    maxDepth: 1
+  },
+  aggregatable: { unwind: true }
+};
+
+
+exports.requestParties = { operator, assignee };
+exports.changelogParties = { assignee, changer };

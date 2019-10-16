@@ -1,5 +1,7 @@
 'use strict';
 
+const _ = require('lodash');
+const { mergeObjects } = require('@lykmapipo/common');
 const { ObjectId } = require('@lykmapipo/mongoose-common');
 const { Predefine } = require('@lykmapipo/predefine');
 const { Jurisdiction } = require('@codetanzania/majifix-jurisdiction');
@@ -8,6 +10,13 @@ const { ServiceGroup } = require('@codetanzania/majifix-service-group');
 const { Service } = require('@codetanzania/majifix-service');
 const { Status } = require('@codetanzania/majifix-status');
 
+let jurisdiction;
+let zone;
+let type;
+let group;
+let service;
+let status;
+let priority;
 
 /**
  * @name base
@@ -35,7 +44,7 @@ module.exports = exports = {};
  * @since 0.1.0
  * @version 0.1.0
  */
-exports.jurisdiction = {
+exports.jurisdiction = jurisdiction = {
   type: ObjectId,
   ref: Jurisdiction.MODEL_NAME,
   required: true,
@@ -60,7 +69,7 @@ exports.jurisdiction = {
  * @since 0.1.0
  * @version 0.1.0
  */
-exports.zone = {
+exports.zone = zone = {
   type: ObjectId,
   ref: Predefine.MODEL_NAME,
   // required: true,
@@ -83,7 +92,7 @@ exports.zone = {
  * @since 0.1.0
  * @version 0.1.0
  */
-exports.type = {
+exports.type = type = {
   type: ObjectId,
   ref: Predefine.MODEL_NAME,
   // required: true,
@@ -104,7 +113,7 @@ exports.type = {
  * @since 0.1.0
  * @version 0.1.0
  */
-exports.group = {
+exports.group = group = {
   type: ObjectId,
   ref: ServiceGroup.MODEL_NAME,
   required: true,
@@ -128,7 +137,7 @@ exports.group = {
  * @since 0.1.0
  * @version 0.1.0
  */
-exports.service = {
+exports.service = service = {
   type: ObjectId,
   ref: Service.MODEL_NAME,
   required: true,
@@ -152,7 +161,7 @@ exports.service = {
  * @since 0.1.0
  * @version 0.1.0
  */
-exports.status = {
+exports.status = status = {
   type: ObjectId,
   ref: Status.MODEL_NAME,
   // required: true,
@@ -177,7 +186,7 @@ exports.status = {
  * @since 0.1.0
  * @version 0.1.0
  */
-exports.priority = {
+exports.priority = priority = {
   type: ObjectId,
   ref: Priority.MODEL_NAME,
   // required: true,
@@ -188,3 +197,21 @@ exports.priority = {
     maxDepth: 1
   }
 };
+
+
+exports.requestBase = mergeObjects({
+  jurisdiction,
+  zone,
+  type,
+  group,
+  service,
+  status,
+  priority
+});
+exports.changelogBase = _.mapValues(
+  mergeObjects(exports.requestBase),
+  optns => {
+    delete optns.required;
+    delete optns.exists;
+    return optns;
+  });
