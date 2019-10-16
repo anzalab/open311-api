@@ -19,6 +19,7 @@ const { getString } = require('@lykmapipo/env');
 const actions = require('mongoose-rest-actions');
 const { toE164 } = require('@lykmapipo/phone');
 const { encode: jwtEncode } = require('@lykmapipo/jwt-common');
+const { Point } = require('mongoose-geojson-schemas');
 const irina = require('irina');
 const Schema = mongoose.Schema;
 const ObjectId = mongoose.Schema.ObjectId;
@@ -312,6 +313,31 @@ const PartySchema = new Schema({
     type: String,
     trim: true
   },
+
+  /**
+   * @name lastKnownLocation
+   * @description Party last known location.
+   *
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  lastKnownLocation: Point,
+
+  /**
+   * @name lastKnownLocation
+   * @description Party last known location address.
+   *
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  lastKnownAddress: {
+    type: String,
+    index: true
+  }
 
 }, {
   timestamps: true,
