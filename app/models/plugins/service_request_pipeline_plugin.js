@@ -33,7 +33,7 @@ module.exports = exports = function pipeline(schema /*, options*/ ) {
 
     //count issue per service
     ServiceRequest
-      .aggregated(criteria)
+      .lookup(criteria)
       .group({ //1. count and group by status and operator
         _id: {
           operator: '$operator._id',

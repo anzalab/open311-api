@@ -318,7 +318,7 @@ module.exports = exports = function performance(schema /*, options*/ ) {
 
     //run aggregation based on provided criteria
     ServiceRequest
-      .aggregated(criteria)
+      .lookup(criteria)
       .append({ //add calculable fields
         $addFields: {
           late: {
