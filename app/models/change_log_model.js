@@ -57,6 +57,7 @@ const timestamps = require('./schemas/timestamps_schema');
 //TODO ensure notification is sent once there are changes
 //TODO always sort them in order of update before send them
 //TODO notify assignee once changed(previous and current)
+//TODO on assignee changed, update request zone from assignee if available
 //TODO support attachment changelog(audio, images etc)
 //TODO tract reopens, escallations etc
 

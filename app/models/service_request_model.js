@@ -64,11 +64,7 @@
 //global dependencies(or imports)
 const _ = require('lodash');
 const { uniq, mergeObjects } = require('@lykmapipo/common');
-const {
-  ObjectId,
-  createSchema,
-  model
-} = require('@lykmapipo/mongoose-common');
+const { createSchema, model } = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
 
 //local dependencies(or imports)
@@ -89,6 +85,7 @@ const statistics = require('./plugins/service_request_statistics_plugin');
 
 //schemas
 const base = require('./schemas/base_schema');
+const parties = require('./schemas/parties_schema');
 const geos = require('./schemas/geos_schema');
 const files = require('./schemas/files_schema');
 const timestamps = require('./schemas/timestamps_schema');
@@ -105,7 +102,7 @@ const ContactMethod = require('./schemas/contact_method_schema');
  * @version 0.1.0
  * @private
  */
-const ServiceRequestSchema = createSchema(mergeObjects(base, {
+const ServiceRequestSchema = createSchema(mergeObjects(base, parties, {
   /**
    * @name call
    * @description log operator call details at a call center
@@ -130,63 +127,6 @@ const ServiceRequestSchema = createSchema(mergeObjects(base, {
    * @version 0.1.0
    */
   reporter: Reporter, //TODO refactor to party
-
-
-  /**
-   * @name operator
-   * @description A party oversee the work on the service request(issue).
-   *
-   *              It also a party that is answerable for the progress and
-   *              status of the service request(issue) to a reporter.
-   *
-   *              For jurisdiction that own a call center, then operator is
-   *              a person who received a call.
-   *
-   * @type {Object}
-   * @see {@link Party}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  operator: {
-    type: ObjectId,
-    ref: 'Party',
-    index: true,
-    exists: true,
-    aggregatable: { unwind: true },
-    autopopulate: {
-      select: 'name email phone avatar',
-      maxDepth: 1
-    }
-  },
-
-
-  /**
-   * @name assignee
-   * @description A party assigned to work on the service request(issue).
-   *
-   *              It also a party that is answerable for the progress and
-   *              status of the service request(issue) to operator and overall
-   *              jurisdiction administrative structure.
-   *
-   * @type {Object}
-   * @see {@link Party}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  assignee: {
-    type: ObjectId,
-    ref: 'Party',
-    index: true,
-    exists: true,
-    aggregatable: { unwind: true },
-    autopopulate: {
-      select: 'name email phone',
-      maxDepth: 1
-    }
-  },
-
 
   /**
    * @name code
