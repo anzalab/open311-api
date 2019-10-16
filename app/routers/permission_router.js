@@ -54,11 +54,11 @@ router.all('/permissions*', jwtAuth);
  * @apiSuccess {ObjectId}     _id
  *        Unique Permission Id
  * @apiSuccess {Timestamp}    createdAt
- *        Setting creation date
+ *        Permission creation date
  * @apiSuccess {Timestamp}    updatedAt
- *        Setting last updated date
+ *        Permission last updated date
  * @apiSuccess {String}       uri
- *        Setting URI
+ *        Permission URI
  * @apiSuccess {Array}        _assigned
  *        Obtain role permissions as a collection of role ids
  * @apiSuccess {String}       _permissions
