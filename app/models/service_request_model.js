@@ -133,4 +133,4 @@ ServiceRequestSchema.statics.getPhones = function getPhones(criteria, done) {
 
 
 /* export service request model */
-module.exports = exports = model('ServiceRequest', ServiceRequestSchema);
+module.exports = model(MODEL_NAME_SERVICEREQUEST, ServiceRequestSchema);

@@ -360,4 +360,4 @@ ChangeLogSchema.statics.track = function track(changes, done) {
 
 
 /* export changelog model */
-module.exports = exports = model('ChangeLog', ChangeLogSchema);
+module.exports = model(MODEL_NAME_CHANGELOG, ChangeLogSchema);

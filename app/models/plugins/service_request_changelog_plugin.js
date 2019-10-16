@@ -61,7 +61,7 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
         createdAt: new Date(),
         status: this.status,
         priority: this.priority,
-        changer: this.operator, //TODO handle unattended issue
+        changer: this.operator, //TODO handle unconfirmed issue
         visibility: VISIBILITY_PUBLIC
       };
       return [changelog];
