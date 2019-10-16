@@ -14,15 +14,14 @@
 const _ = require('lodash');
 const { waterfall, parallel } = require('async');
 const moment = require('moment');
-const mongoose = require('mongoose');
+const { Schema, ObjectId, model } = require('mongoose');
+const { mergeObjects } = require('@lykmapipo/common');
 const { getString } = require('@lykmapipo/env');
 const actions = require('mongoose-rest-actions');
 const { toE164 } = require('@lykmapipo/phone');
 const { encode: jwtEncode } = require('@lykmapipo/jwt-common');
 const { Point } = require('mongoose-geojson-schemas');
 const irina = require('irina');
-const Schema = mongoose.Schema;
-const ObjectId = mongoose.Schema.ObjectId;
 
 //relation name
 const RELATION_NAME_INTERNAL = 'Internal';
@@ -544,7 +543,7 @@ PartySchema.methods.send = function (type, authenticable, done) {
  */
 PartySchema.methods.jurisdictions = function (done) {
   //refs
-  const Jurisdiction = mongoose.model('Jurisdiction');
+  const Jurisdiction = model('Jurisdiction');
 
   //does party have jurisdiction
   const hasJurisdiction = (this.jurisdiction && this.jurisdiction._id);
@@ -629,7 +628,7 @@ PartySchema.statics.RELATION_WORKSPACES = [
 PartySchema.statics.works = function (options, done) {
 
   //refs
-  const ServiceRequest = mongoose.model('ServiceRequest');
+  const ServiceRequest = model('ServiceRequest');
 
   //normalize results
   const normalize = function (work, length) {
@@ -714,7 +713,7 @@ PartySchema.statics.works = function (options, done) {
 PartySchema.statics.durations = function (options, done) {
 
   //refs
-  const ServiceRequest = mongoose.model('ServiceRequest');
+  const ServiceRequest = model('ServiceRequest');
 
   //normalize results
   const normalize = function (duration, length) {
@@ -806,8 +805,8 @@ PartySchema.statics.performances = function (options, done) {
   //@see https://docs.mongodb.com/manual/reference/operator/aggregation/facet/
 
   //refs
-  const Party = mongoose.model('Party');
-  const ServiceRequest = mongoose.model('ServiceRequest');
+  const Party = model('Party');
+  const ServiceRequest = model('ServiceRequest');
 
   //prepare date range filtes
   const filters = {
@@ -964,6 +963,46 @@ PartySchema.statics.findByJwt = function findByJwt(jwt, done) {
 };
 
 
+/**
+ * @name updateLastKnownLocation
+ * @function updateLastKnownLocation
+ * @description Update existing party last known location
+ * @param {Object} optns valid location update options
+ * @param {String} optns._id valid party id
+ * @param {Object} optns.lastKnownLocation last known geo point
+ * @param {String} optns.lastKnownAddress last known address
+ * @param {string} [jwt.id] valid party id
+ * @param {function} done a callback to invoke on success or error
+ * @return {String[]|Error}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ */
+PartySchema.statics.updateLastKnownLocation = function (optns, done) {
+  // refs
+  const Party = this;
+
+  // ensure options
+  const options = mergeObjects(optns);
+  const _id = options._id;
+  const changes = _.omit(options, '_id');
+
+  return waterfall([
+    // find by id
+    (next) => {
+      if (!_id || _.isEmpty(changes)) { return (null, null); }
+      return Party.findById(_id, next);
+    },
+    // update existing exists
+    (party, next) => {
+      if (!party) { return next(null, null); }
+      party.set(changes);
+      party.save(next);
+    }
+  ], done);
+};
+
+
 //-----------------------------------------------------------------------------
 // PartySchema Plugins
 //-----------------------------------------------------------------------------
@@ -978,4 +1017,4 @@ PartySchema.plugin(actions);
 
 
 //exports Party model
-module.exports = mongoose.model('Party', PartySchema);
+module.exports = model('Party', PartySchema);
