@@ -1,6 +1,7 @@
 'use strict';
 
 const { createSubSchema } = require('@lykmapipo/mongoose-common');
+const { toE164 } = require('@lykmapipo/phone');
 
 /**
  * @module Reporter
@@ -109,11 +110,9 @@ const ReporterSchema = createSubSchema({
  * @private
  */
 ReporterSchema.pre('validate', function (next) {
-
-  //TODO convert phone number to E.164 format
-
+  // convert phone number to E.164 format
+  this.phone = toE164(this.phone) || this.phone;
   next(null, this);
-
 });
 
 

@@ -9,6 +9,7 @@ const Party = mongoose.model('Party');
 const ServiceRequest = mongoose.model('ServiceRequest');
 const ChangeLog = mongoose.model('ChangeLog');
 
+// TODO: track action parties last known location on every action
 
 /**
  * ServiceRequest Controller
