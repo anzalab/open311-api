@@ -47,8 +47,8 @@
 /**
  * Changelog Steps:
  * 0. ensure issue
- * 0. ensure changer
- * 1. calculate changelogs
+ * 0. ensure changer, use current request party
+ * 1. calculate and parse changelogs
  * 2. update service request
  * 3. save changelogs
  * 4. update changer last location details
@@ -57,7 +57,8 @@
  * 7. send notification to jurisdiction
  * 8. send notification to supervisor
  * 9. send notification to team
- * 10.
+ * 10. send notification to workspace(operator, assignee, jurisdiction, zone)
+ * 11.
  */
 
 //global dependencies(or imports)
