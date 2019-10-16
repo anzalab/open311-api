@@ -1,5 +1,53 @@
 'use strict';
 
+const _ = require('lodash');
+const { waterfall } = require('async');
+const { mergeObjects } = require('@lykmapipo/common');
+const {
+  model,
+  createSchema
+} = require('@lykmapipo/mongoose-common');
+const actions = require('mongoose-rest-actions');
+const { plugin: runInBackground } = require('mongoose-kue');
+const {
+  MODEL_NAME_CHANGELOG,
+  VISIBILITY_PRIVATE,
+  VISIBILITY_PUBLIC
+} = require('@codetanzania/majifix-common');
+const Send = require('../libs/send');
+
+// schemas
+const { changelogBase } = require('./schemas/base_schema');
+const basic = require('./schemas/changelog_basic_schema');
+const { changelogParties } = require('./schemas/parties_schema');
+const geos = require('./schemas/geos_schema');
+const files = require('./schemas/files_schema');
+const timestamps = require('./schemas/timestamps_schema');
+
+// definitions
+const SCHEMA = mergeObjects(
+  changelogBase,
+  basic,
+  changelogParties,
+  geos,
+  files,
+  timestamps
+);
+const SCHEMA_OPTIONS = {};
+const SCHEMA_PLUGINS = [actions, runInBackground];
+
+
+//TODO add changelog type i.e status, service, assignment, comment etc
+//TODO hook on service request pre validation
+//TODO hook on service request pre save
+//TODO hook on service request post save
+//TODO ensure notification is sent once there are changes
+//TODO always sort them in order of update before send them
+//TODO notify assignee once changed(previous and current)
+//TODO on assignee changed, update request zone from assignee if available
+//TODO support attachment changelog(audio, images etc)
+//TODO tract reopens, escallations etc
+
 
 /**
  * @module ChangeLog
@@ -18,187 +66,18 @@
  * @version 0.1.0
  * @public
  */
+const ChangeLogSchema = createSchema(
+  SCHEMA,
+  SCHEMA_OPTIONS,
+  ...SCHEMA_PLUGINS
+);
 
 
-//dependencies
-const _ = require('lodash');
-const { waterfall } = require('async');
-const { mergeObjects } = require('@lykmapipo/common');
-const {
-  model,
-  ObjectId,
-  createSchema
-} = require('@lykmapipo/mongoose-common');
-const actions = require('mongoose-rest-actions');
-const Send = require('../libs/send');
-
-
-//constants
-const VISIBILITY_PUBLIC = 'Public';
-const VISIBILITY_PRIVATE = 'Private';
-const VISIBILITIES = [VISIBILITY_PRIVATE, VISIBILITY_PUBLIC];
-
-//schemas
-const { changelogBase } = require('./schemas/base_schema');
-const { changelogParties } = require('./schemas/parties_schema');
-const geos = require('./schemas/geos_schema');
-const files = require('./schemas/files_schema');
-const timestamps = require('./schemas/timestamps_schema');
-
-
-//TODO add changelog type i.e status, service, assignment, comment etc
-//TODO hook on service request pre validation
-//TODO hook on service request pre save
-//TODO hook on service request post save
-//TODO ensure notification is sent once there are changes
-//TODO always sort them in order of update before send them
-//TODO notify assignee once changed(previous and current)
-//TODO on assignee changed, update request zone from assignee if available
-//TODO support attachment changelog(audio, images etc)
-//TODO tract reopens, escallations etc
-
-
-/**
- * @name ChangeLogSchema
- * @type {Schema}
- * @since 0.1.0
- * @version 0.1.0
- * @private
+/*
+ *------------------------------------------------------------------------------
+ * Hooks
+ *------------------------------------------------------------------------------
  */
-const ChangeLogSchema = createSchema(mergeObjects(changelogBase,
-  changelogParties, {
-    /**
-     * @name request
-     * @description Associated service request(issue)
-     * @type {ServiceRequest}
-     * @see {@link ServiceRequest}
-     * @since 0.1.0
-     * @version 0.1.0
-     * @instance
-     */
-    request: {
-      type: ObjectId,
-      ref: 'ServiceRequest',
-      required: true,
-      index: true,
-      exists: true,
-      hidden: true,
-      aggregatable: { unwind: true },
-      autopopulate: {
-        select: 'code',
-        maxDepth: 1
-      }
-    },
-
-    /**
-     * @name comment
-     * @description Additional note for the changes. It may be an internal note
-     * telling how far the service request(issue) has been worked on or a message
-     * to a reporter.
-     *
-     * @type {Object}
-     * @since 0.1.0
-     * @version 0.1.0
-     * @instance
-     */
-    comment: {
-      type: String,
-      index: true,
-      trim: true,
-      searchable: true
-    },
-
-    /**
-     * @name shouldNotify
-     * @description Signal to send notification to a service request(issue)
-     * reporter using sms, email etc. about work(progress) done so far to resolve
-     * the issue.
-     *
-     * @type {Object}
-     * @since 0.1.0
-     * @version 0.1.0
-     * @instance
-     */
-    shouldNotify: {
-      type: Boolean,
-      default: false
-    },
-
-
-    /**
-     * @name wasNotificationSent
-     * @description Tells if a notification contain a changes was
-     * sent to a service request(issue) reporter using sms, email etc.
-     * once a service request changed.
-     *
-     * Note!: status changes trigger a notification to be sent always.
-     *
-     * @type {Object}
-     * @since 0.1.0
-     * @version 0.1.0
-     * @instance
-     */
-    wasNotificationSent: {
-      type: Boolean,
-      default: false
-    },
-
-
-    /**
-     * @name visibility
-     * @description Signal if this changelog is public or private viewable.
-     * Note!: status changes are always public viewable by default.
-     *
-     * @type {Object}
-     * @since 0.1.0
-     * @version 0.1.0
-     * @instance
-     */
-    visibility: {
-      type: String,
-      index: true,
-      enum: VISIBILITIES,
-      default: VISIBILITY_PRIVATE
-    },
-
-    /**
-     * @name item
-     * @description A item(material, equipment etc) used on work on service
-     * request
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    item: {
-      type: ObjectId,
-      ref: 'Predefine',
-      exists: true,
-      autopopulate: true,
-      aggregatable: { unwind: true }
-    },
-
-    /**
-     * @name quantity
-     * @description Amount of item(material, equipment etc) used on work
-     * on service request
-     * @type {Object}
-     * @private
-     * @since 0.1.0
-     * @version 0.1.0
-     */
-    quantity: {
-      type: Number,
-      min: 1
-    }
-
-  }, geos, files, timestamps));
-
-
-//------------------------------------------------------------------------------
-// hooks
-//------------------------------------------------------------------------------
-
 
 /**
  * @name preValidate
@@ -208,7 +87,7 @@ const ChangeLogSchema = createSchema(mergeObjects(changelogBase,
  * @version 0.1.0
  * @private
  */
-ChangeLogSchema.pre('validate', function (next) {
+ChangeLogSchema.pre('validate', function onPreValidate(next) {
 
   //always make status change to trigger notification
   //and public viewable
@@ -231,23 +110,18 @@ ChangeLogSchema.pre('validate', function (next) {
  * @version 0.1.0
  * @private
  */
-ChangeLogSchema.virtual('isPublic').get(function () {
+ChangeLogSchema.virtual('isPublic').get(function isPublic() {
   const isPublic = (this.visibility === VISIBILITY_PRIVATE ? false : true);
   return isPublic;
 });
 
 
-//------------------------------------------------------------------------------
-// statics
-//------------------------------------------------------------------------------
-
-ChangeLogSchema.statics.MODEL_NAME = 'ChangeLog';
-
-
-/* constants */
-ChangeLogSchema.statics.VISIBILITY_PRIVATE = VISIBILITY_PRIVATE;
-ChangeLogSchema.statics.VISIBILITY_PUBLIC = VISIBILITY_PUBLIC;
-ChangeLogSchema.statics.VISIBILITIES = VISIBILITIES;
+/*
+ *------------------------------------------------------------------------------
+ * Statics
+ *------------------------------------------------------------------------------
+ */
+ChangeLogSchema.statics.MODEL_NAME = MODEL_NAME_CHANGELOG;
 
 /**
  * @name notifyAssignee
@@ -261,7 +135,7 @@ ChangeLogSchema.statics.VISIBILITIES = VISIBILITIES;
  * @public
  */
 ChangeLogSchema.statics.notifyAssignee =
-  function (changelog, servicerequest, done) {
+  function notifyAssignee(changelog, servicerequest, done) {
     // refs
     const Party = model('Party');
 
@@ -310,7 +184,7 @@ ChangeLogSchema.statics.notifyAssignee =
  * @static
  * @public
  */
-ChangeLogSchema.statics.track = function (changes, done) {
+ChangeLogSchema.statics.track = function track(changes, done) {
 
   //ensure changelog
   let changelog = _.merge({}, changes);
@@ -476,12 +350,6 @@ ChangeLogSchema.statics.track = function (changes, done) {
   //handle reopened
 
 };
-
-
-//------------------------------------------------------------------------------
-// plugins
-//------------------------------------------------------------------------------
-ChangeLogSchema.plugin(actions);
 
 
 //TODO post save send notification

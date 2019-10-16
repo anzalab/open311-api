@@ -4,6 +4,10 @@ const _ = require('lodash');
 const { uniq, mergeObjects } = require('@lykmapipo/common');
 const { createSchema, model } = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
+const { plugin: runInBackground } = require('mongoose-kue');
+const {
+  MODEL_NAME_SERVICEREQUEST
+} = require('@codetanzania/majifix-common');
 
 // plugins
 const notification = require('./plugins/service_request_notification_plugin');
@@ -39,6 +43,7 @@ const SCHEMA_OPTIONS = {};
 const SCHEMA_PLUGINS = [preValidate,
   legacy,
   actions,
+  runInBackground,
   notification,
   open311,
   overview,
@@ -92,7 +97,7 @@ ServiceRequestSchema.pre('validate', function onPreValidate(next) {
  * Statics
  *------------------------------------------------------------------------------
  */
-ServiceRequestSchema.statics.MODEL_NAME = 'ServiceRequest';
+ServiceRequestSchema.statics.MODEL_NAME = MODEL_NAME_SERVICEREQUEST;
 
 /**
  * @name getPhones
