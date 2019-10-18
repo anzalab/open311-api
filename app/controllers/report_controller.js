@@ -234,6 +234,7 @@ module.exports = {
           'Operator': _.get(serviceRequest, 'operator.name',
             'Un-Attended'),
           'Area': _.get(serviceRequest, 'jurisdiction.name', ''),
+          'Service Type': _.get(serviceRequest, 'type.name.en', ''),
           'Service Group': _.get(serviceRequest, 'group.name.en', ''),
           'Service': _.get(serviceRequest, 'service.name.en', ''),
           'Status': _.get(serviceRequest, 'status.name.en', ''),
