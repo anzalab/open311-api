@@ -169,7 +169,7 @@ module.exports = exports = function preValidatePlugin(schema /*, options*/ ) {
           this.group =
             (result.group || this.group || undefined);
           this.type =
-            (result.type || this.type || undefined);
+            (this.type || result.type || undefined);
           this.status =
             (this.status || result.status || undefined);
           this.priority =
