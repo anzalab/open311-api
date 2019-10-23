@@ -325,7 +325,7 @@ ChangeLogSchema.statics.track = function track(changes, done) {
           // handle add team member
           if (key === 'member') {
             const team = _.union(servicerequest.team, [].concat(value));
-            servicerequest.set(key, team);
+            servicerequest.set('team', team);
           }
           // handle other changes
           else {
