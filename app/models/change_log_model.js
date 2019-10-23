@@ -263,6 +263,8 @@ ChangeLogSchema.statics.track = function track(changes, done) {
           servicerequest.verifiedAt = undefined;
           servicerequest.approvedAt = undefined;
 
+          // TODO clear parties
+
           //set reopen time
           const reopenedAt = new Date();
           servicerequest.reopenedAt = reopenedAt;
@@ -320,7 +322,15 @@ ChangeLogSchema.statics.track = function track(changes, done) {
         const allowedKey =
           (!_.includes(['image', 'audio', 'video', 'document'], key));
         if (allowedKey) {
-          servicerequest.set(key, value);
+          // handle add team member
+          if (key === 'member') {
+            const team = _.union(servicerequest.team, [].concat(value));
+            servicerequest.set(key, team);
+          }
+          // handle other changes
+          else {
+            servicerequest.set(key, value);
+          }
         }
       });
 
