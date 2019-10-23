@@ -1,6 +1,7 @@
 'use strict';
 
-const { ObjectId } = require('@lykmapipo/mongoose-common');
+const { idOf } = require('@lykmapipo/common');
+const { ObjectId, isObjectId } = require('@lykmapipo/mongoose-common');
 const Party = require('../party_model');
 
 let operator;
@@ -121,7 +122,14 @@ exports.team = team = {
   ref: Party.MODEL_NAME,
   index: true,
   // exists: true,
-  duplicate: true,
+  duplicate: (a, b) => { // TODO: refactor to areSameObjectId(vali8&common)
+    const idOfA = idOf(a) || a;
+    const idOfB = idOf(b) || b;
+    if (isObjectId(idOfA)) {
+      return idOfA.equals(idOfB);
+    }
+    return idOfA === idOfB;
+  },
   autopopulate: {
     select: 'name email phone relation',
     maxDepth: 1
