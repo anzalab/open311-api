@@ -123,7 +123,7 @@ exports.team = team = {
   // exists: true,
   duplicate: true,
   autopopulate: {
-    select: 'name email phone',
+    select: 'name email phone relation',
     maxDepth: 1
   },
 };
