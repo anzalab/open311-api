@@ -121,6 +121,7 @@ exports.team = team = {
   ref: Party.MODEL_NAME,
   index: true,
   // exists: true,
+  duplicate: true,
   autopopulate: {
     select: 'name email phone',
     maxDepth: 1
