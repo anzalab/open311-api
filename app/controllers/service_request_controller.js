@@ -239,8 +239,6 @@ module.exports = {
         response.ok(legacyRequest);
       }
     });
-
-
   }
 
 };

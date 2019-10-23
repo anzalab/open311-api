@@ -7,6 +7,7 @@ const Party = require('../party_model');
 let operator;
 let assignee;
 let changer;
+let member;
 let team;
 
 /**
@@ -103,6 +104,30 @@ exports.changer = changer = {
 
 /**
  * @name team
+ * @description A party who work, follow and watch a service request(issue).
+ *
+ * This party get notified when an action(or changes) has been applied
+ * to a service request.
+ *
+ * @type {Object}
+ * @see {@link Party}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @instance
+ */
+exports.member = member = {
+  type: ObjectId,
+  ref: Party.MODEL_NAME,
+  index: true,
+  // exists: true,
+  autopopulate: {
+    select: 'name email phone',
+    maxDepth: 1
+  },
+};
+
+/**
+ * @name team
  * @description A parties who work, follow and watch a service request(issue).
  *
  * These are parties get notified when an action(or changes) has been applied
@@ -136,6 +161,5 @@ exports.team = team = {
   },
 };
 
-
 exports.requestParties = { operator, assignee, team };
-exports.changelogParties = { assignee, changer };
+exports.changelogParties = { assignee, changer, member };
