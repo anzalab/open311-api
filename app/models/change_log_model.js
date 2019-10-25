@@ -298,12 +298,15 @@ ChangeLogSchema.statics.track = function track(changes, done) {
 
       // ensure common service request properties
       // TODO: check if property exist on changelog
-      changelog.jurisdiction = servicerequest.jurisdiction;
-      changelog.zone = servicerequest.zone;
-      changelog.group = servicerequest.group;
-      changelog.type = servicerequest.type;
-      changelog.service = servicerequest.service;
-      changelog.confirmedAt = servicerequest.confirmedAt;
+      changelogs = _.map(changelogs, change => {
+        change.jurisdiction = servicerequest.jurisdiction;
+        change.zone = servicerequest.zone;
+        change.group = servicerequest.group;
+        change.type = servicerequest.type;
+        change.service = servicerequest.service;
+        change.confirmedAt = servicerequest.confirmedAt;
+        return change;
+      });
 
       //persists changes
       this.create(changelogs, function (error /*, changelogs*/ ) {
