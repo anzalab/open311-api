@@ -1,53 +1,50 @@
 'use strict';
 
-/**
- * @module Party
- * @name Party
- * @description manage entity interaction (i.e Internal Worker, Customer
- *              and Civilian) and their relationship
- * @author lally elias <lallyelias87@mail.com>
- * @since 0.1.0
- * @version 0.1.0
- */
-
-//dependencies
 const _ = require('lodash');
 const { waterfall, parallel } = require('async');
 const moment = require('moment');
 const { Schema, ObjectId, model } = require('mongoose');
 const { mergeObjects } = require('@lykmapipo/common');
 const { getString } = require('@lykmapipo/env');
+const { createSubSchema } = require('@lykmapipo/mongoose-common');
 const actions = require('mongoose-rest-actions');
 const { toE164 } = require('@lykmapipo/phone');
 const { encode: jwtEncode } = require('@lykmapipo/jwt-common');
 const { Point } = require('mongoose-geojson-schemas');
 const irina = require('irina');
-const { WORKSPACE_OTHER } = require('@codetanzania/majifix-common');
+const {
+  RELATION_NAME_INTERNAL,
+  RELATION_NAME_CUSTOMER,
+  RELATION_NAME_CIVILIAN,
+  RELATION_NAME_AGENCY,
+  RELATION_NAME_APP,
+  RELATION_NAMES,
+  RELATION_TYPE_WORKER,
+  RELATION_TYPE_INDIVIDUAL,
+  RELATION_TYPE_ORGANIZATION,
+  RELATION_TYPE_APP,
+  RELATION_TYPES,
+  WORKSPACE_CALL_CENTER,
+  WORKSPACE_CUSTOMER_CARE,
+  WORKSPACE_TECHNICIAN,
+  WORKSPACE_OTHER,
+  WORKSPACES,
+} = require('@codetanzania/majifix-common');
 
-//relation name
-const RELATION_NAME_INTERNAL = 'Internal';
-const RELATION_NAME_CUSTOMER = 'Customer';
-const RELATION_NAME_CIVILIAN = 'Civilian';
-const RELATION_NAME_AGENCY = 'Agency';
-const RELATION_NAME_APP = 'App';
-
-//relation types
-const RELATION_TYPE_WORKER = 'Worker';
-const RELATION_TYPE_INDIVIDUAL = 'Individual';
-const RELATION_TYPE_ORGANIZATION = 'Organization';
-const RELATION_TYPE_APP = 'App';
-
-//relation workspace
-const RELATION_WORKSPACE_CALL_CENTER = 'Call Center';
-const RELATION_WORKSPACE_CUSTOMER_CARE = 'Customer Care';
-const RELATION_WORKSPACE_TECHNICIAN = 'Technician';
-const RELATION_WORKSPACE_OTHER = 'Other';
 
 const BASIC_FIELDS = ['_id', 'name', 'email', 'phone', 'relation'];
 
 
-//PartyRelation Schema
-const PartyRelation = new Schema({
+/**
+ * @module Party
+ * @name Party
+ * @description Representation of Party relation.
+ *
+ * @author lally elias <lallyelias87@mail.com>
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+const PartyRelation = createSubSchema({
   /**
    * @name name
    * @description name of relationship established
@@ -61,13 +58,7 @@ const PartyRelation = new Schema({
     type: String,
     index: true,
     default: RELATION_NAME_INTERNAL,
-    enum: [
-      RELATION_NAME_INTERNAL,
-      RELATION_NAME_CUSTOMER,
-      RELATION_NAME_CIVILIAN,
-      RELATION_NAME_AGENCY,
-      RELATION_NAME_APP
-    ],
+    enum: RELATION_NAMES,
     searchable: true,
     taggable: true
   },
@@ -85,12 +76,7 @@ const PartyRelation = new Schema({
     type: String,
     index: true,
     default: RELATION_TYPE_WORKER,
-    enum: [
-      RELATION_TYPE_WORKER,
-      RELATION_TYPE_INDIVIDUAL,
-      RELATION_TYPE_ORGANIZATION,
-      RELATION_TYPE_APP
-    ],
+    enum: RELATION_TYPES,
     searchable: true,
     taggable: true
   },
@@ -107,14 +93,24 @@ const PartyRelation = new Schema({
     type: String,
     index: true,
     default: WORKSPACE_OTHER,
+    enum: WORKSPACES,
     searchable: true,
     taggable: true
   }
 
-}, { _id: false, id: false, timestamps: false, emitIndexErrors: true });
+});
 
 
-//Party Schema
+/**
+ * @module Party
+ * @name Party
+ * @description Manage entity interaction (i.e Internal Worker, Customer
+ * and Civilian) and their relationship.
+ *
+ * @author lally elias <lallyelias87@mail.com>
+ * @since 0.1.0
+ * @version 0.1.0
+ */
 const PartySchema = new Schema({
 
   /**
@@ -605,19 +601,19 @@ PartySchema.statics.RELATION_TYPES = [
 
 
 //expose Party Relation Workspaces
-PartySchema.statics.RELATION_WORKSPACE_CALL_CENTER =
-  RELATION_WORKSPACE_CALL_CENTER;
-PartySchema.statics.RELATION_WORKSPACE_CUSTOMER_CARE =
-  RELATION_WORKSPACE_CUSTOMER_CARE;
-PartySchema.statics.RELATION_WORKSPACE_TECHNICIAN =
-  RELATION_WORKSPACE_TECHNICIAN;
-PartySchema.statics.RELATION_WORKSPACE_OTHER =
-  RELATION_WORKSPACE_OTHER;
+PartySchema.statics.WORKSPACE_CALL_CENTER =
+  WORKSPACE_CALL_CENTER;
+PartySchema.statics.WORKSPACE_CUSTOMER_CARE =
+  WORKSPACE_CUSTOMER_CARE;
+PartySchema.statics.WORKSPACE_TECHNICIAN =
+  WORKSPACE_TECHNICIAN;
+PartySchema.statics.WORKSPACE_OTHER =
+  WORKSPACE_OTHER;
 PartySchema.statics.RELATION_WORKSPACES = [
-  RELATION_WORKSPACE_CALL_CENTER,
-  RELATION_WORKSPACE_CUSTOMER_CARE,
-  RELATION_WORKSPACE_TECHNICIAN,
-  RELATION_WORKSPACE_OTHER
+  WORKSPACE_CALL_CENTER,
+  WORKSPACE_CUSTOMER_CARE,
+  WORKSPACE_TECHNICIAN,
+  WORKSPACE_OTHER
 ];
 
 
