@@ -22,6 +22,7 @@ const { toE164 } = require('@lykmapipo/phone');
 const { encode: jwtEncode } = require('@lykmapipo/jwt-common');
 const { Point } = require('mongoose-geojson-schemas');
 const irina = require('irina');
+const { WORKSPACE_OTHER } = require('@codetanzania/majifix-common');
 
 //relation name
 const RELATION_NAME_INTERNAL = 'Internal';
@@ -105,7 +106,7 @@ const PartyRelation = new Schema({
   workspace: {
     type: String,
     index: true,
-    default: RELATION_WORKSPACE_OTHER,
+    default: WORKSPACE_OTHER,
     searchable: true,
     taggable: true
   }
