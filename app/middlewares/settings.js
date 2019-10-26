@@ -1,11 +1,12 @@
 'use strict';
 
-const { model } = require('@lykmapipo/mongoose-common');
 const {
+  RELATION_NAMES,
+  RELATION_TYPES,
+  WORKSPACES,
   CONTACT_METHODS,
   CONTACT_METHODS_WEB
 } = require('@codetanzania/majifix-common');
-const Party = model('Party');
 
 /**
  * @description middleware to load application settings
@@ -18,9 +19,9 @@ module.exports = function loadSettings(request, response, next) {
   const settings = {
     party: {
       relation: {
-        names: Party.RELATION_NAMES,
-        types: Party.RELATION_TYPES,
-        workspaces: Party.RELATION_WORKSPACES
+        names: RELATION_NAMES,
+        types: RELATION_TYPES,
+        workspaces: WORKSPACES
       }
     },
     servicerequest: {
