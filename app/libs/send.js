@@ -210,7 +210,6 @@ exports.campaign = function sendCampaign(message, done) {
 
   // instantiate campaign
   const campaign = new Campaign(message);
-  console.log(campaign);
 
   // queue campaign in production
   // or if is asynchronous send

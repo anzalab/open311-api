@@ -40,7 +40,8 @@ const SCHEMA = mergeObjects(
 );
 const SCHEMA_OPTIONS = {};
 const SCHEMA_PLUGINS = [actions, runInBackground];
-const DEFAULT_TEMPLATE = 'Issue #{ticket} has been updates by {party}.';
+const DEFAULT_TEMPLATE =
+  '{service} issue #{ticket} has been updates by {party}.';
 const CHANGELOG_NOTIFICATION_CHANNELS =
   getStringSet('CHANGELOG_NOTIFICATION_CHANNELS', [CHANNEL_EMAIL]);
 
@@ -200,9 +201,9 @@ ChangeLogSchema.statics.notify = (changelog, servicerequest, done) => {
 
     // compile message campaign
     const ticket = servicerequest.code;
-    const subject = [servicerequest.service.name.en, servicerequest.code].join(
-      ' - #');
-    const message = parseTemplate(template, { ticket, party });
+    const service = servicerequest.service.name.en;
+    const subject = [service, ticket].join(' - #');
+    const message = parseTemplate(template, { ticket, party, service });
     const channels = [].concat(CHANGELOG_NOTIFICATION_CHANNELS);
 
     // send(or queue) notification
