@@ -15,8 +15,16 @@
 const _ = require('lodash');
 const { uniq } = require('@lykmapipo/common');
 const { getString, getBoolean, isProduction } = require('@lykmapipo/env');
-const { Message, SMS, Email, Push } = require('@lykmapipo/postman');
 const { toE164 } = require('@lykmapipo/phone');
+const {
+  CHANNEL_EMAIL,
+  CHANNEL_PUSH,
+  Message,
+  Campaign,
+  SMS,
+  Email,
+  Push
+} = require('@lykmapipo/postman');
 
 
 /* constants */
@@ -174,6 +182,46 @@ exports.email = function sendEmail(message, done) {
   // direct email send in development & test
   else {
     email.send(done);
+  }
+
+};
+
+
+/**
+ * @name campaign
+ * @description send a given campaign
+ * @param {Object} message valid campaign instance or definition
+ * @param {Function} done a callback to invoke on success or failure
+ * @see {@link Message}
+ * @see {@link Campaign}
+ * @author lally elias <lallyelias87@mail.com>
+ * @since 0.1.0
+ * @version 0.1.0
+ * @public
+ */
+exports.campaign = function sendCampaign(message, done) {
+  // prepare campaign
+  const isCampaignInstance = message instanceof Campaign;
+  message = isCampaignInstance ? message.toObject() : message;
+
+  // ensure campaign channels
+  message.channels =
+    uniq([CHANNEL_PUSH, CHANNEL_EMAIL].concat(message.channels));
+
+  // instantiate campaign
+  const campaign = new Campaign(message);
+  console.log(campaign);
+
+  // queue campaign in production
+  // or if is asynchronous send
+  if (isProduction() && !ENABLE_SYNC_TRANSPORT) {
+    campaign.queue();
+    done(null, campaign);
+  }
+
+  // direct send campaign in development & test
+  else {
+    campaign.send(done);
   }
 
 };

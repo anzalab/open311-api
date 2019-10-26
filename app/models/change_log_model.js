@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const { waterfall } = require('async');
 const { mergeObjects, idOf, parseTemplate } = require('@lykmapipo/common');
-const { getString, getStringSet } = require('@lykmapipo/common');
+const { getString, getStringSet } = require('@lykmapipo/env');
 const {
   model,
   createSchema
@@ -497,7 +497,8 @@ ChangeLogSchema.statics.track = function track(changes, done) {
     // notify assignee
     function notify(servicerequest, next) {
       // TODO: run in background
-      ChangeLog.notifyAssignee(changelog, servicerequest, next);
+      // ChangeLog.notifyAssignee(changelog, servicerequest, next);
+      ChangeLog.notify(changelog, servicerequest, next);
     }
 
 
