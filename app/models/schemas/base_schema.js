@@ -75,7 +75,7 @@ exports.zone = zone = {
   // required: true,
   index: true,
   exists: true,
-  // aggregatable: { unwind: true },
+  aggregatable: { unwind: true },
   autopopulate: {
     select: 'code name'
   }
