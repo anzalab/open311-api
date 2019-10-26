@@ -1,5 +1,7 @@
 'use strict';
 
+const { createSubSchema } = require('@lykmapipo/mongoose-common');
+const { toE164 } = require('@lykmapipo/phone');
 
 /**
  * @module Reporter
@@ -8,26 +10,12 @@
  *
  * @see {@link ServiceRequest}
  * @author lally elias<lallyelias87@gmail.com>
+ * @type {Schema}
  * @since  0.1.0
  * @version 0.1.0
  * @public
  */
-
-
-//dependencies
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-
-
-/**
- * @name ReporterSchema
- * @description issue(service request) reporter schema
- * @type {Schema}
- * @since  0.1.0
- * @version 0.1.0
- * @private
- */
-const ReporterSchema = new Schema({
+const ReporterSchema = createSubSchema({
   /**
    * @name name
    * @description Full name name of the reporter.
@@ -105,7 +93,7 @@ const ReporterSchema = new Schema({
     taggable: true
   }
 
-}, { _id: false, timestamps: false });
+});
 
 
 //---------------------------------------------------------
@@ -122,11 +110,9 @@ const ReporterSchema = new Schema({
  * @private
  */
 ReporterSchema.pre('validate', function (next) {
-
-  //TODO convert phone number to E.164 format
-
+  // convert phone number to E.164 format
+  this.phone = toE164(this.phone) || this.phone;
   next(null, this);
-
 });
 
 

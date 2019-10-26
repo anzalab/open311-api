@@ -7,7 +7,7 @@
  *              report
  *              i.e service request call duration over specified period of
  *              time.
- *              
+ *
  * @see {@link ServiceRequest}
  * @see {@link http://mongoosejs.com/docs/api.html#aggregate_Aggregate}
  * @see {@link http://mongoosejs.com/docs/api.html#aggregate_Aggregate-lookup}
@@ -34,7 +34,7 @@ module.exports = exports = function duration(schema /*, options*/ ) {
 
     //count issue per service
     ServiceRequest
-      .aggregated(criteria)
+      .lookup(criteria)
       .group({ //1. count and group by operator
         _id: {
           operator: '$operator._id',

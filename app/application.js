@@ -28,7 +28,7 @@
 /* dependencies */
 const path = require('path');
 const { getString } = require('@lykmapipo/env');
-const { app, mount } = require('@lykmapipo/express-common');
+const { app, mount, start } = require('@lykmapipo/express-common');
 const mkdir = require('mkdir-p');
 const respond = require('express-respond');
 
@@ -49,7 +49,6 @@ app.use(respond);
 //bind settings loader middleware(TODO: cleanup)
 app.use(require(path.join(__dirname, 'middlewares', 'settings')));
 app.use(require(path.join(__dirname, 'middlewares', 'preloader')));
-app.use(require(path.join(__dirname, 'middlewares', 'defaults')));
 
 /* load legacy routers recursively */
 require('require-all')({
@@ -76,4 +75,5 @@ mount(require('@codetanzania/majifix-alert').alertRouter);
 mount(require('@codetanzania/majifix-analytics').analyticRouter);
 
 /* export express application */
-exports = module.exports = app;
+exports.app = app;
+exports.start = start;

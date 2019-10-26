@@ -34,6 +34,9 @@ module.exports = exports = function preValidatePlugin(schema /*, options*/ ) {
     //ref
     const Counter = mongoose.model('Counter');
 
+    // auto subscribe assignee & operator on team
+    this.team = _.union(this.team, [this.operator, this.assignee]);
+
     // ensure confirmed time
     if (this.operator && !this.confirmedAt) {
       const confirmedAt = new Date();
@@ -169,7 +172,7 @@ module.exports = exports = function preValidatePlugin(schema /*, options*/ ) {
           this.group =
             (result.group || this.group || undefined);
           this.type =
-            (result.type || this.type || undefined);
+            (this.type || result.type || undefined);
           this.status =
             (this.status || result.status || undefined);
           this.priority =

@@ -12,9 +12,8 @@
  * @public
  */
 
-
-//dependencies
 const _ = require('lodash');
+const { uniq } = require('@lykmapipo/common');
 const { getString, getBoolean, isProduction } = require('@lykmapipo/env');
 const { Message, SMS, Email, Push } = require('@lykmapipo/postman');
 const { toE164 } = require('@lykmapipo/phone');
@@ -37,6 +36,7 @@ const ENABLE_SYNC_TRANSPORT = getBoolean('ENABLE_SYNC_TRANSPORT', false);
  * @since 0.1.0
  * @version 0.1.0
  * @public
+ * @deprecated
  */
 exports.formatPhoneNumberToE164 = toE164;
 
@@ -52,35 +52,35 @@ exports.formatPhoneNumberToE164 = toE164;
  * @version 0.1.0
  * @public
  */
-exports.sms = function (message, done) {
-  //prepare sms message
+exports.sms = function sendSMS(message, done) {
+  // prepare sms message
   const isMessageInstance = message instanceof Message;
   message = isMessageInstance ? message.toObject() : message;
 
   // force message type to sms
   message.type = Message.TYPE_SMS;
 
-  //ensure message sender
+  // ensure message sender
   message.sender = (message.sender || DEFAULT_SMS_SENDER_ID);
 
-  //ensure receivers number are in e.164 format
-  let receivers = _.uniq(_.compact([].concat(message.to)));
-  receivers = _.map(receivers, function (receiver) {
+  // ensure receivers number are in e.164 format
+  let receivers = uniq([].concat(message.to));
+  receivers = _.map(receivers, receiver => {
     return toE164(receiver);
   });
   message.to = receivers;
 
-  //instantiate sms
+  // instantiate sms
   const sms = new SMS(message);
 
-  //queue message in production
-  //or if is asynchronous send
-  if (isProduction && !ENABLE_SYNC_TRANSPORT) {
+  // queue message in production
+  // or if is asynchronous send
+  if (isProduction() && !ENABLE_SYNC_TRANSPORT) {
     sms.queue();
     done(null, sms);
   }
 
-  //direct sms send in development & test
+  // direct sms send in development & test
   else {
     sms.send(done);
   }
@@ -98,29 +98,29 @@ exports.sms = function (message, done) {
  * @version 0.1.0
  * @public
  */
-exports.push = function (message, done) {
-  //prepare sms message
+exports.push = function sendPush(message, done) {
+  // prepare sms message
   const isMessageInstance = message instanceof Message;
   message = isMessageInstance ? message.toObject() : message;
 
   // force message type to push
   message.type = Message.TYPE_PUSH;
 
-  //ensure receivers push token
-  let receivers = _.uniq(_.compact([].concat(message.to)));
+  // ensure receivers push token
+  const receivers = uniq([].concat(message.to));
   message.to = receivers;
 
-  //instantiate push
+  // instantiate push
   const push = new Push(message);
 
-  //queue message in production
-  //or if is asynchronous send
-  if (isProduction && !ENABLE_SYNC_TRANSPORT) {
+  // queue message in production
+  // or if is asynchronous send
+  if (isProduction() && !ENABLE_SYNC_TRANSPORT) {
     push.queue();
     done(null, push);
   }
 
-  //direct push send in development & test
+  // direct push send in development & test
   else {
     push.send(done);
   }
@@ -138,40 +138,40 @@ exports.push = function (message, done) {
  * @version 0.1.0
  * @public
  */
-exports.email = function (message, done) {
-  //prepare sms message
+exports.email = function sendEmail(message, done) {
+  // prepare sms message
   const isMessageInstance = message instanceof Message;
   message = isMessageInstance ? message.toObject() : message;
 
-  // force message type to push
+  // force message type to email
   message.type = Message.TYPE_EMAIL;
 
   // ensure message sender
   message.sender = (message.sender || DEFAULT_EMAIL_SENDER);
 
-  //ensure receivers emails
-  let receivers = _.uniq(_.compact([].concat(message.to)));
+  // ensure receivers emails
+  const receivers = uniq([].concat(message.to));
   message.to = receivers;
 
   // ensure cc'ed
-  let cced = _.uniq(_.compact([].concat(message.cc)));
+  const cced = uniq([].concat(message.cc));
   message.cc = cced;
 
   // ensure bcc'ed
-  let bcced = _.uniq(_.compact([].concat(message.bcc)));
+  const bcced = uniq([].concat(message.bcc));
   message.bcc = bcced;
 
-  //instantiate email
+  // instantiate email
   const email = new Email(message);
 
-  //queue message in production
-  //or if is asynchronous send
-  if (isProduction && !ENABLE_SYNC_TRANSPORT) {
+  // queue message in production
+  // or if is asynchronous send
+  if (isProduction() && !ENABLE_SYNC_TRANSPORT) {
     email.queue();
     done(null, email);
   }
 
-  //direct email send in development & test
+  // direct email send in development & test
   else {
     email.send(done);
   }

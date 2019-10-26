@@ -13,13 +13,13 @@
  */
 
 //global dependencies(or imports)
-const path = require('path');
 const _ = require('lodash');
 const async = require('async');
-const mongoose = require('mongoose');
+const { model } = require('@lykmapipo/mongoose-common');
+const { CONTACT_METHOD_MOBILE_APP } = require('@codetanzania/majifix-common');
 
 //local dependencies(or imports)
-const Media = require(path.join(__dirname, '..', 'schemas', 'media_schema'));
+const Media = require('../schemas/media_schema');
 
 module.exports = exports = function open311(schema /*,options*/ ) {
   /**
@@ -127,12 +127,12 @@ module.exports = exports = function open311(schema /*,options*/ ) {
 
       //refs
       const ServiceRequest = this;
-      const Service = mongoose.model('Service');
-      const Jurisdiction = mongoose.model('Jurisdiction');
+      const Service = model('Service');
+      const Jurisdiction = model('Jurisdiction');
 
       //use open311 submitted method
-      const CONTACT_METHOD_MOBILE_APP =
-        (serviceRequest.method || ServiceRequest.CONTACT_METHOD_MOBILE_APP);
+      serviceRequest.method =
+        (serviceRequest.method || CONTACT_METHOD_MOBILE_APP);
 
       async.waterfall([
 
@@ -203,7 +203,7 @@ module.exports = exports = function open311(schema /*,options*/ ) {
             },
             description: serviceRequest.description,
             address: serviceRequest.address_string,
-            method: { name: CONTACT_METHOD_MOBILE_APP },
+            method: { name: serviceRequest.method },
             location: location ? location : undefined,
             attachments: serviceRequest.attachments
           };

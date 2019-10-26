@@ -1,29 +1,19 @@
 'use strict';
 
+const { createSubSchema } = require('@lykmapipo/mongoose-common');
 
 /**
  * @module SLA
  * @description service level agreement schema
  * @author lally elias<lallyelias87@gmail.com>
+ * @type {Schema}
  * @since  0.1.0
  * @version 0.1.0
  */
-
-
-//dependencies
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-
-
-/**
- * @name SLASchema
- * @description Service Level Agreement schema
- * @type {Schema}
- */
-const SlaSchema = new Schema({
+const SlaSchema = createSubSchema({
   /**
    * @name ttr
-   * @description time required in hours to resolve(mark as done) 
+   * @description time required in hours to resolve(mark as done)
    *              an issue(service request)
    * @type {Object}
    */
@@ -31,7 +21,7 @@ const SlaSchema = new Schema({
     type: Number
   }
 
-}, { _id: false, timestamps: false });
+});
 
 /**
  * Exports service level agreement schema

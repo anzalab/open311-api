@@ -1,5 +1,53 @@
 'use strict';
 
+const _ = require('lodash');
+const { waterfall } = require('async');
+const { mergeObjects } = require('@lykmapipo/common');
+const {
+  model,
+  createSchema
+} = require('@lykmapipo/mongoose-common');
+const actions = require('mongoose-rest-actions');
+const { plugin: runInBackground } = require('mongoose-kue');
+const {
+  MODEL_NAME_CHANGELOG,
+  VISIBILITY_PRIVATE,
+  VISIBILITY_PUBLIC
+} = require('@codetanzania/majifix-common');
+const Send = require('../libs/send');
+
+// schemas
+const { changelogBase } = require('./schemas/base_schema');
+const basic = require('./schemas/changelog_basic_schema');
+const { changelogParties } = require('./schemas/parties_schema');
+const geos = require('./schemas/geos_schema');
+const files = require('./schemas/files_schema');
+const timestamps = require('./schemas/timestamps_schema');
+
+// definitions
+const SCHEMA = mergeObjects(
+  changelogBase,
+  basic,
+  changelogParties,
+  geos,
+  files,
+  timestamps
+);
+const SCHEMA_OPTIONS = {};
+const SCHEMA_PLUGINS = [actions, runInBackground];
+
+
+//TODO add changelog type i.e status, service, assignment, comment etc
+//TODO hook on service request pre validation
+//TODO hook on service request pre save
+//TODO hook on service request post save
+//TODO ensure notification is sent once there are changes
+//TODO always sort them in order of update before send them
+//TODO notify assignee once changed(previous and current)
+//TODO on assignee changed, update request zone from assignee if available
+//TODO support attachment changelog(audio, images etc)
+//TODO tract reopens, escallations etc
+
 
 /**
  * @module ChangeLog
@@ -18,527 +66,18 @@
  * @version 0.1.0
  * @public
  */
+const ChangeLogSchema = createSchema(
+  SCHEMA,
+  SCHEMA_OPTIONS,
+  ...SCHEMA_PLUGINS
+);
 
 
-//dependencies
-const _ = require('lodash');
-const { waterfall } = require('async');
-const { model, Schema, ObjectId } = require('@lykmapipo/mongoose-common');
-const actions = require('mongoose-rest-actions');
-const { Point } = require('mongoose-geojson-schemas');
-const { FileTypes } = require('@lykmapipo/file');
-const { Predefine } = require('@lykmapipo/predefine');
-const Send = require('../libs/send');
-
-
-//constants
-const VISIBILITY_PUBLIC = 'Public';
-const VISIBILITY_PRIVATE = 'Private';
-const VISIBILITIES = [VISIBILITY_PRIVATE, VISIBILITY_PUBLIC];
-
-
-//TODO add changelog type i.e status, service, assignement, comment etc
-//TODO hook on service request pre validation
-//TODO hook on service request pre save
-//TODO hook on service request post save
-//TODO ensure notification is sent once there are changes
-//TODO always sort them in order of update before send them
-//TODO notify assignee once changed(previous and current)
-//TODO support attachment changelog(audio, images etc)
-//TODO tract reopens, escallations etc
-
-
-/**
- * @name ChangeLogSchema
- * @type {Schema}
- * @since 0.1.0
- * @version 0.1.0
- * @private
+/*
+ *------------------------------------------------------------------------------
+ * Hooks
+ *------------------------------------------------------------------------------
  */
-const ChangeLogSchema = new Schema({
-  /**
-   * @name request
-   * @description Associated service request(issue)
-   * @type {ServiceRequest}
-   * @see {@link ServiceRequest}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  request: {
-    type: ObjectId,
-    ref: 'ServiceRequest',
-    required: true,
-    index: true,
-    exists: true,
-    hidden: true,
-    aggregatable: { unwind: true },
-    autopopulate: {
-      select: 'code',
-      maxDepth: 1
-    }
-  },
-
-  /**
-   * @name jurisdiction
-   * @description A current assigned jurisdiction of the service request(issue)
-   *
-   * @type {Object}
-   * @see {@link Jurisdiction}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  jurisdiction: {
-    type: ObjectId,
-    ref: 'Jurisdiction',
-    // required: true,
-    index: true,
-    // exists: true,
-    aggregatable: { unwind: true }
-  },
-
-  /**
-   * @name zone
-   * @description A current assigned zone of the service request(issue)
-   *
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  zone: {
-    type: ObjectId,
-    ref: 'Predefine',
-    // required: true,
-    index: true,
-    // exists: true,
-    aggregatable: { unwind: true }
-  },
-
-
-  /**
-   * @name group
-   * @description A current assigned service group of the
-   * service request(issue)
-   * @type {Object}
-   * @see {@link Service}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  group: {
-    type: ObjectId,
-    ref: 'ServiceGroup',
-    // required: true,
-    index: true,
-    // exists: true,
-    aggregatable: { unwind: true }
-  },
-
-
-  /**
-   * @name type
-   * @description A current assigned service type of the service request(issue)
-   * @type {Object}
-   * @see {@link Service}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  type: {
-    type: ObjectId,
-    ref: Predefine.MODEL_NAME,
-    // required: true,
-    // exists: true,
-    aggregatable: { unwind: true },
-    index: true,
-  },
-
-
-  /**
-   * @name service
-   * @description A current assigned service of the service request(issue)
-   * @type {Object}
-   * @see {@link Service}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  service: {
-    type: ObjectId,
-    ref: 'Service',
-    // required: true,
-    index: true,
-    // exists: true,
-    aggregatable: { unwind: true }
-  },
-
-
-  /**
-   * @name status
-   * @description A current assigned status of the service request(issue)
-   * @type {Status}
-   * @see {@link Status}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  status: {
-    type: ObjectId,
-    ref: 'Status',
-    index: true,
-    exists: true,
-    autopopulate: {
-      select: 'name weight color',
-      maxDepth: 1
-    },
-    aggregatable: { unwind: true }
-  },
-
-
-  /**
-   * @name priority
-   * @description A current assigned priority of the service request(issue)
-   * @type {Priority}
-   * @see {@link Priority}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  priority: {
-    type: ObjectId,
-    ref: 'Priority',
-    index: true,
-    exists: true,
-    autopopulate: {
-      select: 'name weight color',
-      maxDepth: 1
-    },
-    aggregatable: { unwind: true }
-  },
-
-
-  /**
-   * @name assignee
-   * @description A current assigned party to work on service request(issue)
-   * @type {Party}
-   * @see {@link Priority}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  assignee: {
-    type: ObjectId,
-    ref: 'Party',
-    index: true,
-    exists: true,
-    autopopulate: {
-      select: 'name email phone',
-      maxDepth: 1
-    },
-    aggregatable: { unwind: true }
-  },
-
-
-  /**
-   * @name changer
-   * @description A party who made changes to a servie request(issue)
-   * @type {Object}
-   * @see {@link Party}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  changer: {
-    type: ObjectId,
-    ref: 'Party',
-    index: true,
-    exists: true,
-    autopopulate: {
-      select: 'name email phone',
-      maxDepth: 1
-    },
-    aggregatable: { unwind: true }
-  },
-
-
-  /**
-   * @name comment
-   * @description Additional note for the changes. It may be an internal note
-   * telling how far the service request(issue) has been worked on or a message
-   * to a reporter.
-   *
-   * @type {Object}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  comment: {
-    type: String,
-    index: true,
-    trim: true,
-    searchable: true
-  },
-
-  /**
-   * @name confirmedAt
-   * @description Latest time when the service request(issue) was confirmed.
-   *
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  confirmedAt: {
-    type: Date,
-    index: true
-  },
-
-
-  /**
-   * @name resolvedAt
-   * @description Latest time when the service request(issue) was resolved.
-   * @type {Object}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  resolvedAt: {
-    type: Date,
-    index: true
-  },
-
-
-  /**
-   * @name reopenedAt
-   * @description Latest time when the service request(issue) was reopened.
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  reopenedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name assignedAt
-   * @description A latest time when the issue was assigned to latest assignee
-   * to work on it.
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  assignedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name attendedAt
-   * @description A latest time when the issue was marked as
-   * work in progress by latest assignee.
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  attendedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name completedAt
-   * @description A time when the issue was marked as complete(or done) by
-   * latest assignee.
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  completedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name verifiedAt
-   * @description A time when the issue was verified by immediate
-   * supervisor(technician).
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  verifiedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name approvedAt
-   * @description A time when the issue was approved by final
-   * supervisor(engineer).
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  approvedAt: {
-    type: Date,
-    index: true
-  },
-
-  /**
-   * @name shouldNotify
-   * @description Signal to send notification to a service request(issue)
-   * reporter using sms, email etc. about work(progress) done so far to resolve
-   * the issue.
-   *
-   * @type {Object}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  shouldNotify: {
-    type: Boolean,
-    default: false
-  },
-
-
-  /**
-   * @name wasNotificationSent
-   * @description Tells if a notification contain a changes was
-   * sent to a service request(issue) reporter using sms, email etc.
-   * once a service request changed.
-   *
-   * Note!: status changes trigger a notification to be sent always.
-   *
-   * @type {Object}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  wasNotificationSent: {
-    type: Boolean,
-    default: false
-  },
-
-
-  /**
-   * @name visibility
-   * @description Signal if this changelog is public or private viewable.
-   * Note!: status changes are always public viewable by default.
-   *
-   * @type {Object}
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   */
-  visibility: {
-    type: String,
-    index: true,
-    enum: VISIBILITIES,
-    default: VISIBILITY_PRIVATE
-  },
-
-  /**
-   * @name item
-   * @description A item(material, equipment etc) used on work on service
-   * request
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  item: {
-    type: ObjectId,
-    ref: 'Predefine',
-    exists: true,
-    autopopulate: true,
-    aggregatable: { unwind: true }
-  },
-
-  /**
-   * @name quantity
-   * @description Amount of item(material, equipment etc) used on work
-   * on service request
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  quantity: {
-    type: Number,
-    min: 1
-  },
-
-  /**
-   * @name image
-   * @description Associated image for service request(issue) changes
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  image: FileTypes.Image,
-
-  /**
-   * @name audio
-   * @description Associated audio for service request(issue) changes
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  audio: FileTypes.Audio,
-
-  /**
-   * @name video
-   * @description Associated video for service request(issue) changes
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  video: FileTypes.Video,
-
-  /**
-   * @name document
-   * @description Associated document for service request(issue) changes
-   * @type {Object}
-   * @private
-   * @since 0.1.0
-   * @version 0.1.0
-   */
-  document: FileTypes.Document,
-
-  /**
-   * @name centroid
-   * @description A geo-point where changes happened.
-   *
-   * @since 0.1.0
-   * @version 0.1.0
-   * @instance
-   * @example
-   * {
-   *    type: 'Point',
-   *    coordinates: [-76.80207859497996, 55.69469494228919]
-   * }
-   */
-  location: Point
-
-}, { timestamps: true, emitIndexErrors: true });
-
-
-//------------------------------------------------------------------------------
-// hooks
-//------------------------------------------------------------------------------
-
 
 /**
  * @name preValidate
@@ -548,7 +87,7 @@ const ChangeLogSchema = new Schema({
  * @version 0.1.0
  * @private
  */
-ChangeLogSchema.pre('validate', function (next) {
+ChangeLogSchema.pre('validate', function onPreValidate(next) {
 
   //always make status change to trigger notification
   //and public viewable
@@ -571,23 +110,18 @@ ChangeLogSchema.pre('validate', function (next) {
  * @version 0.1.0
  * @private
  */
-ChangeLogSchema.virtual('isPublic').get(function () {
+ChangeLogSchema.virtual('isPublic').get(function isPublic() {
   const isPublic = (this.visibility === VISIBILITY_PRIVATE ? false : true);
   return isPublic;
 });
 
 
-//------------------------------------------------------------------------------
-// statics
-//------------------------------------------------------------------------------
-
-ChangeLogSchema.statics.MODEL_NAME = 'ChangeLog';
-
-
-/* constants */
-ChangeLogSchema.statics.VISIBILITY_PRIVATE = VISIBILITY_PRIVATE;
-ChangeLogSchema.statics.VISIBILITY_PUBLIC = VISIBILITY_PUBLIC;
-ChangeLogSchema.statics.VISIBILITIES = VISIBILITIES;
+/*
+ *------------------------------------------------------------------------------
+ * Statics
+ *------------------------------------------------------------------------------
+ */
+ChangeLogSchema.statics.MODEL_NAME = MODEL_NAME_CHANGELOG;
 
 /**
  * @name notifyAssignee
@@ -601,7 +135,7 @@ ChangeLogSchema.statics.VISIBILITIES = VISIBILITIES;
  * @public
  */
 ChangeLogSchema.statics.notifyAssignee =
-  function (changelog, servicerequest, done) {
+  function notifyAssignee(changelog, servicerequest, done) {
     // refs
     const Party = model('Party');
 
@@ -640,7 +174,7 @@ ChangeLogSchema.statics.notifyAssignee =
 /**
  * @name track
  * @type Function
- * @description track service request changelogs
+ * @description track service request changelog
  * @param {Object} changes service request latest changes
  * @param {ObjectId} changes.request valid existing service request object id
  * @param {Function} done a callback to invoke on success or failure
@@ -650,7 +184,7 @@ ChangeLogSchema.statics.notifyAssignee =
  * @static
  * @public
  */
-ChangeLogSchema.statics.track = function (changes, done) {
+ChangeLogSchema.statics.track = function track(changes, done) {
 
   //ensure changelog
   let changelog = _.merge({}, changes);
@@ -715,6 +249,22 @@ ChangeLogSchema.statics.track = function (changes, done) {
             changelog.approvedAt = changelog.resolvedAt;
             servicerequest.approvedAt = changelog.resolvedAt;
           }
+
+          // ensure assignee, assignedAt, team member & zone
+          const assignee = changelog.assignee || changelog.changer;
+          const zone = assignee.zone;
+
+          if (!servicerequest.assignee) {
+            changelog.assignedAt = changelog.resolvedAt;
+            changelog.assignee = assignee;
+            changelog.member = assignee;
+            servicerequest.assignee = assignee;
+            servicerequest.assignedAt = changelog.resolvedAt;
+          }
+          if (!servicerequest.zone && zone) {
+            changelog.zone = zone;
+            servicerequest.zone = zone;
+          }
         }
 
         if (!changelog.resolvedAt) {
@@ -728,6 +278,8 @@ ChangeLogSchema.statics.track = function (changes, done) {
           servicerequest.completedAt = undefined;
           servicerequest.verifiedAt = undefined;
           servicerequest.approvedAt = undefined;
+
+          // TODO clear parties
 
           //set reopen time
           const reopenedAt = new Date();
@@ -752,7 +304,8 @@ ChangeLogSchema.statics.track = function (changes, done) {
 
       // ensure assigned date if assignee available
       if (changelog.assignee) {
-        changelog.assignedAt = new Date();
+        changelog.assignedAt =
+          changelog.assignedAt || changelog.resolvedAt || new Date();
       }
 
       //compute changelogs
@@ -761,12 +314,16 @@ ChangeLogSchema.statics.track = function (changes, done) {
         ([].concat(servicerequest.changelogs).concat(changelogs));
 
       // ensure common service request properties
-      changelog.jurisdiction = servicerequest.jurisdiction;
-      changelog.zone = servicerequest.zone;
-      changelog.group = servicerequest.group;
-      changelog.type = servicerequest.type;
-      changelog.service = servicerequest.service;
-      changelog.confirmedAt = servicerequest.confirmedAt;
+      // TODO: check if property exist on changelog
+      changelogs = _.map(changelogs, change => {
+        change.jurisdiction = servicerequest.jurisdiction;
+        change.zone = servicerequest.zone;
+        change.group = servicerequest.group;
+        change.type = servicerequest.type;
+        change.service = servicerequest.service;
+        change.confirmedAt = servicerequest.confirmedAt;
+        return change;
+      });
 
       //persists changes
       this.create(changelogs, function (error /*, changelogs*/ ) {
@@ -777,15 +334,20 @@ ChangeLogSchema.statics.track = function (changes, done) {
 
     //update service request
     function updateServiceRequest(servicerequest, next) {
-      // TODO ensure assignee if resolving changelog and there were no
-      // assigned worker
-
       //update
-      _.forEach(changelog, function (value, key) {
+      _.forEach(changelog, (value, key) => {
         const allowedKey =
           (!_.includes(['image', 'audio', 'video', 'document'], key));
         if (allowedKey) {
-          servicerequest.set(key, value);
+          // handle add team member
+          if (key === 'member') {
+            const team = _.union(servicerequest.team, [].concat(value));
+            servicerequest.set('team', team);
+          }
+          // handle other changes
+          else {
+            servicerequest.set(key, value);
+          }
         }
       });
 
@@ -805,6 +367,7 @@ ChangeLogSchema.statics.track = function (changes, done) {
 
     // notify assignee
     function notify(servicerequest, next) {
+      // TODO: run in background
       ChangeLog.notifyAssignee(changelog, servicerequest, next);
     }
 
@@ -817,12 +380,6 @@ ChangeLogSchema.statics.track = function (changes, done) {
 };
 
 
-//------------------------------------------------------------------------------
-// plugins
-//------------------------------------------------------------------------------
-ChangeLogSchema.plugin(actions);
-
-
 //TODO post save send notification
 //TODO for public comment notify reporter
 //TODO for assignment notify assignee
@@ -831,4 +388,4 @@ ChangeLogSchema.plugin(actions);
 
 
 /* export changelog model */
-module.exports = exports = model('ChangeLog', ChangeLogSchema);
+module.exports = model(MODEL_NAME_CHANGELOG, ChangeLogSchema);

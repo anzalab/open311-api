@@ -11,17 +11,18 @@
  */
 
 //dependencies
-const path = require('path');
 const _ = require('lodash');
-const async = require('async');
-const config = require('config');
+const { waterfall, parallel } = require('async');
 const moment = require('moment');
-const mongoose = require('mongoose');
+const { Schema, ObjectId, model } = require('mongoose');
+const { mergeObjects } = require('@lykmapipo/common');
+const { getString } = require('@lykmapipo/env');
 const actions = require('mongoose-rest-actions');
 const { toE164 } = require('@lykmapipo/phone');
+const { encode: jwtEncode } = require('@lykmapipo/jwt-common');
+const { Point } = require('mongoose-geojson-schemas');
 const irina = require('irina');
-const Schema = mongoose.Schema;
-const ObjectId = mongoose.Schema.ObjectId;
+const { WORKSPACE_OTHER } = require('@codetanzania/majifix-common');
 
 //relation name
 const RELATION_NAME_INTERNAL = 'Internal';
@@ -105,7 +106,7 @@ const PartyRelation = new Schema({
   workspace: {
     type: String,
     index: true,
-    default: RELATION_WORKSPACE_OTHER,
+    default: WORKSPACE_OTHER,
     searchable: true,
     taggable: true
   }
@@ -313,6 +314,31 @@ const PartySchema = new Schema({
     trim: true
   },
 
+  /**
+   * @name lastKnownLocation
+   * @description Party last known location.
+   *
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  lastKnownLocation: Point,
+
+  /**
+   * @name lastKnownLocation
+   * @description Party last known location address.
+   *
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  lastKnownAddress: {
+    type: String,
+    index: true
+  }
+
 }, {
   timestamps: true,
   emitIndexErrors: true
@@ -426,24 +452,20 @@ PartySchema.pre('validate', function (next) {
  */
 PartySchema.pre('save', function (next) {
 
-  //import jwt helpers
-  const JWT = require(path.join(__dirname, '..', 'libs', 'jwt'));
-
-  //obtain api token options
-  const options = config.get('token') || {};
-
   if (this.isApp) {
-    JWT
-      .encode(this, options, function (error, jwtToken) {
-        if (error || !jwtToken) {
-          error = error ? error : new Error('Fail To Generate API Token');
-          error.status = 500;
-          next(error);
-        } else {
-          this.token = jwtToken;
-          next(null, this);
-        }
-      }.bind(this)); //ensure party instance context
+    const expiresIn = getString('JWT_API_TOKEN_EXPIRES_IN', '1000y');
+    const payload = { id: this._id };
+    // TODO: const ignoreExpiration = true
+    jwtEncode(payload, { expiresIn }, function (error, jwtToken) {
+      if (error || !jwtToken) {
+        error = error ? error : new Error('Fail To Generate API Token');
+        error.status = 500;
+        next(error);
+      } else {
+        this.token = jwtToken;
+        next(null, this);
+      }
+    }.bind(this)); //ensure party instance context
   } else {
     next();
   }
@@ -522,7 +544,7 @@ PartySchema.methods.send = function (type, authenticable, done) {
  */
 PartySchema.methods.jurisdictions = function (done) {
   //refs
-  const Jurisdiction = mongoose.model('Jurisdiction');
+  const Jurisdiction = model('Jurisdiction');
 
   //does party have jurisdiction
   const hasJurisdiction = (this.jurisdiction && this.jurisdiction._id);
@@ -607,7 +629,7 @@ PartySchema.statics.RELATION_WORKSPACES = [
 PartySchema.statics.works = function (options, done) {
 
   //refs
-  const ServiceRequest = mongoose.model('ServiceRequest');
+  const ServiceRequest = model('ServiceRequest');
 
   //normalize results
   const normalize = function (work, length) {
@@ -623,7 +645,7 @@ PartySchema.statics.works = function (options, done) {
 
   };
 
-  async.parallel({
+  parallel({
     //1. compute total day work(service requests count)
     day: function (next) {
       const startedAt = options.day.startedAt;
@@ -692,7 +714,7 @@ PartySchema.statics.works = function (options, done) {
 PartySchema.statics.durations = function (options, done) {
 
   //refs
-  const ServiceRequest = mongoose.model('ServiceRequest');
+  const ServiceRequest = model('ServiceRequest');
 
   //normalize results
   const normalize = function (duration, length) {
@@ -714,7 +736,7 @@ PartySchema.statics.durations = function (options, done) {
 
   };
 
-  async.parallel({
+  parallel({
     //1. compute total day work duration
     day: function (next) {
       const startedAt = options.day.startedAt;
@@ -784,8 +806,8 @@ PartySchema.statics.performances = function (options, done) {
   //@see https://docs.mongodb.com/manual/reference/operator/aggregation/facet/
 
   //refs
-  const Party = mongoose.model('Party');
-  const ServiceRequest = mongoose.model('ServiceRequest');
+  const Party = model('Party');
+  const ServiceRequest = model('ServiceRequest');
 
   //prepare date range filtes
   const filters = {
@@ -806,7 +828,7 @@ PartySchema.statics.performances = function (options, done) {
   //compute performance reports
   const works = function (party, then) {
 
-    async.parallel({
+    parallel({
 
       //3.0 pick basic party details
       party: function (after) {
@@ -856,7 +878,7 @@ PartySchema.statics.performances = function (options, done) {
 
   };
 
-  async.waterfall([
+  waterfall([
 
     //1. loading full party instance
     function preLoadParty(next) {
@@ -906,6 +928,82 @@ PartySchema.statics.getPhones = function getPhones(criteria, done) {
 };
 
 
+/**
+ * @name findByJwt
+ * @function findByJwt
+ * @description find existing party from jwt payload
+ * @param {Object} jwt valid jwt payload
+ * @param {string} [jwt.id] valid party id
+ * @param {function} done a callback to invoke on success or error
+ * @return {String[]|Error}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ */
+PartySchema.statics.findByJwt = function findByJwt(jwt, done) {
+  // refs
+  const Party = this;
+
+  return waterfall([
+    // find by id
+    (next) => {
+      if (!jwt || !jwt.id) { return (null, null); }
+      return Party.findById(jwt.id, next);
+    },
+    // ensure exists
+    (party, next) => {
+      if (!party || party.deletedAt) {
+        const error = new Error('Invalid Authorization Token');
+        error.status = 403;
+        error.code = 403;
+        return next(error);
+      }
+      return next(null, party);
+    }
+  ], done);
+};
+
+
+/**
+ * @name locate
+ * @function locate
+ * @description Update existing party last known location
+ * @param {Object} optns valid location update options
+ * @param {String} optns._id valid party id
+ * @param {Object} optns.lastKnownLocation last known geo point
+ * @param {String} optns.lastKnownAddress last known address
+ * @param {string} [jwt.id] valid party id
+ * @param {function} done a callback to invoke on success or error
+ * @return {String[]|Error}
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ */
+PartySchema.statics.locate = function locate(optns, done) {
+  // refs
+  const Party = this;
+
+  // ensure options
+  const options = mergeObjects(optns);
+  const _id = options._id;
+  const changes = _.omit(options, '_id');
+
+  return waterfall([
+    // find by id
+    (next) => {
+      if (!_id || _.isEmpty(changes)) { return (null, null); }
+      return Party.findById(_id, next);
+    },
+    // update existing exists
+    (party, next) => {
+      if (!party) { return next(null, null); }
+      party.set(changes);
+      party.save(next);
+    }
+  ], done);
+};
+
+
 //-----------------------------------------------------------------------------
 // PartySchema Plugins
 //-----------------------------------------------------------------------------
@@ -920,4 +1018,4 @@ PartySchema.plugin(actions);
 
 
 //exports Party model
-module.exports = mongoose.model('Party', PartySchema);
+module.exports = model('Party', PartySchema);

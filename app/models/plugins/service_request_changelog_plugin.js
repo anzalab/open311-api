@@ -1,10 +1,16 @@
 'use strict';
 
+const _ = require('lodash');
+const async = require('async');
+const { model } = require('@lykmapipo/mongoose-common');
+const {
+  VISIBILITY_PUBLIC
+} = require('@codetanzania/majifix-common');
 
 /**
  * @name changelog
- * @description Extend service request(issue) with capability to track and log
- *              changes such as status change, priority change etc.
+ * @description Extend service request(issue) with capability to track and
+ * log changes such as status change, priority change etc.
  *
  * @see {@link ServiceRequest}
  * @author lally elias <lallyelias87@mail.com>
@@ -13,44 +19,29 @@
  * @public
  * @return {Function} valid mongoose plugin
  */
-
-
-//global dependencies(or import)
-const path = require('path');
-const _ = require('lodash');
-const async = require('async');
-const mongoose = require('mongoose');
-
-
-//local dependencies(or import)
-const ChangeLog =
-  require(path.join(__dirname, '..', 'schemas', 'changelog_schema'));
-
-
 module.exports = exports = function changelog(schema /*, options*/ ) {
 
   /**
+   * @function changes
    * @name changes
    * @description compute internal changes of the service request(issue)
-   *              for logging in changelogs
+   * for logging in changelogs
    *
-   * @param  {Object} changelog latest changes to apply
-   * @param  {Party} [changelog.changer] latest party to apply changes to service
-   *                                     sequest(issue)
-   *
+   * @param {Object} changelog latest changes to apply
+   * @param {Party} [changelog.changer] latest party to apply changes to
+   * service sequest(issue)
    * @param {String} [changelog.comment] comment(or note) to be added as a
-   *                                     descriptive of work performed so far or
-   *                                     reply to a reporter
-   *
-   * @param {Boolean} [changelog.shouldNotify] flag if notification should be send
-   *                                           when changes applied
-   * @param  {Function} done a callback to invoke on success or failure
+   * descriptive of work performed so far or reply to a reporter
+   * @param {Boolean} [changelog.shouldNotify] flag if notification should be
+   * send when changes applied
+   * @param {Function} done a callback to invoke on success or failure
    * @return {Object|Object[]} latest changelog(s) to be applied to a
-   *                           servicerequest(issue) instance
+   * servicerequest(issue) instance
+   *
+   * @type {Function}
    * @since  0.1.0
    * @version 0.1.0
    * @private
-   * @type {Function}
    */
   schema.methods.changes = function (changelog) {
 
@@ -70,8 +61,8 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
         createdAt: new Date(),
         status: this.status,
         priority: this.priority,
-        changer: this.operator, //TODO handle unattended issue
-        visibility: ChangeLog.VISIBILITY_PUBLIC
+        changer: this.operator, //TODO handle unconfirmed issue
+        visibility: VISIBILITY_PUBLIC
       };
       return [changelog];
     }
@@ -131,7 +122,7 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
       //record resolve date changes
       if (changelog.resolvedAt || changelog.reopenedAt) {
         changelog =
-          _.merge({}, changelog, { visibility: ChangeLog.VISIBILITY_PUBLIC });
+          _.merge({}, changelog, { visibility: VISIBILITY_PUBLIC });
       }
 
       //update dirty changes
@@ -152,7 +143,8 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
         changelog.verifiedAt || changelog.approvedAt ||
         changelog.item || changelog.image ||
         changelog.audio || changelog.video ||
-        changelog.document || changelog.location
+        changelog.document || changelog.location ||
+        changelog.member
       );
       changelog = isValid ? [].concat(changelog) : [];
       changelog = [].concat(dirtyChanges).concat(changelog);
@@ -176,8 +168,8 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
    */
   schema.statics.createAndTrack = function (request, done) {
     //ref
-    const ServiceRequest = mongoose.model('ServiceRequest');
-    const ChangeLog = mongoose.model('ChangeLog');
+    const ServiceRequest = model('ServiceRequest');
+    const ChangeLog = model('ChangeLog');
 
     async.waterfall([
 
@@ -192,7 +184,7 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
           status: servicerequest.status,
           priority: servicerequest.priority,
           changer: servicerequest.operator,
-          visibility: ChangeLog.VISIBILITY_PUBLIC,
+          visibility: VISIBILITY_PUBLIC,
           createdAt: new Date()
         }];
 

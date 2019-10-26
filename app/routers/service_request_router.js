@@ -105,29 +105,16 @@ router.all('/servicerequests*', jwtAuth);
  *      "servicerequests": [
  *       {
  *           "jurisdiction": {
+ *               "_id": "592029e5e8dd8e00048c184b",
  *               "code": "H",
  *               "name": "HQ",
  *               "phone": "255714999888",
- *               "email": "N/A",
- *               "domain": "dawasco.org",
- *               "_id": "592029e5e8dd8e00048c184b",
- *               "longitude": 0,
- *               "latitude": 0,
- *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e5e8dd8e00048c184b"
  *           },
  *           "service": {
- *               "group": {
- *                   "code": "N",
- *                   "name": "Non Commercial",
- *                   "color": "#960F1E",
- *                   "_id": "592029e6e8dd8e00048c184d",
- *                   "uri": "https://dawasco.herokuapp.com/servicegroups/592029e6e8dd8e00048c184d"
- *               },
+ *               "_id": "592029e6e8dd8e00048c1852",
  *               "code": "LW",
  *               "name": "Lack of Water",
  *               "color": "#960F1E",
- *               "_id": "592029e6e8dd8e00048c1852",
- *               "uri": "https://dawasco.herokuapp.com/services/592029e6e8dd8e00048c1852"
  *           },
  *           "call": {
  *               "startedAt": "2017-05-20T11:35:02.421Z",
@@ -140,140 +127,36 @@ router.all('/servicerequests*', jwtAuth);
  *               "email": "scala.lally@gmail.com"
  *           },
  *           "operator": {
+ *               "_id": "592029e6e8dd8e00048c1856",
  *               "name": "Juma John",
  *               "phone": "255765952971",
- *               "_id": "592029e6e8dd8e00048c1856",
- *               "permissions": [],
  *               "email": "scala.lally@gmail.com",
- *               "uri": "https://dawasco.herokuapp.com/parties/592029e6e8dd8e00048c1856"
  *           },
  *           "assignee": {
+ *               "_id": "592029e6e8dd8e00048c185f",
  *               "name": "Moses Kabungo",
  *               "phone": "255753111039",
- *               "_id": "592029e6e8dd8e00048c185f",
- *               "permissions": [],
  *               "email": "kbng.moses@gmail.com",
- *               "uri": "https://dawasco.herokuapp.com/parties/592029e6e8dd8e00048c185f"
  *           },
  *           "code": "HLW170001",
  *           "description": "For three days now we dont have water",
  *           "address": "Mikocheni",
  *           "method": "Call",
  *           "status": {
+ *               "_id": "592029e5e8dd8e00048c180d",
  *               "name": "Open",
  *               "weight": -5,
  *               "color": "#0D47A1",
- *               "_id": "592029e5e8dd8e00048c180d",
- *               "createdAt": "2017-05-20T11:35:01.059Z",
- *               "updatedAt": "2017-05-20T11:35:01.059Z",
- *               "uri": "https://dawasco.herokuapp.com/statuses/592029e5e8dd8e00048c180d"
  *           },
  *           "priority": {
+ *               "_id": "592029e5e8dd8e00048c1816",
  *               "name": "Low",
  *               "weight": 0,
  *               "color": "#1B5E29",
- *               "_id": "592029e5e8dd8e00048c1816",
- *               "createdAt": "2017-05-20T11:35:01.586Z",
- *               "updatedAt": "2017-07-29T19:12:40.178Z",
- *               "uri": "https://dawasco.herokuapp.com/priorities/592029e5e8dd8e00048c1816"
  *           },
- *           "attachments": [],
- *           "ttr": 0,
  *           "_id": "592029e6e8dd8e00048c1859",
  *           "createdAt": "2017-05-20T11:35:02.474Z",
  *           "updatedAt": "2017-05-20T11:36:45.294Z",
- *           "ttrSeconds": 0,
- *           "ttrMinutes": 0,
- *           "ttrHours": 0,
- *           "longitude": 0,
- *           "latitude": 0,
- *           "uri": "https://dawasco.herokuapp.com/servicerequests/592029e6e8dd8e00048c1859"
- *       },
- *       {
- *           "jurisdiction": {
- *               "code": "I",
- *               "name": "Ilala",
- *               "phone": "255714999887",
- *               "email": "N/A",
- *               "domain": "ilala.dawasco.org",
- *               "_id": "592029e6e8dd8e00048c1850",
- *               "longitude": 0,
- *               "latitude": 0,
- *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e6e8dd8e00048c1850"
- *           },
- *           "service": {
- *               "group": {
- *                   "code": "N",
- *                   "name": "Non Commercial",
- *                   "color": "#960F1E",
- *                   "_id": "592029e6e8dd8e00048c184d",
- *                   "uri": "https://dawasco.herokuapp.com/servicegroups/592029e6e8dd8e00048c184d"
- *               },
- *               "code": "LK",
- *               "name": "Leakage",
- *               "color": "#D31DBB",
- *               "_id": "592029e6e8dd8e00048c1853",
- *               "uri": "https://dawasco.herokuapp.com/services/592029e6e8dd8e00048c1853"
- *           },
- *           "call": {
- *               "startedAt": "2017-05-20T11:35:02.502Z",
- *               "endedAt": "2017-05-20T11:35:02.503Z",
- *               "duration": 0.001
- *           },
- *           "reporter": {
- *               "name": "Juma John",
- *               "phone": "255765952971",
- *               "email": "scala.lally@gmail.com"
- *           },
- *           "operator": {
- *               "name": "Juma John",
- *               "phone": "255765952971",
- *               "_id": "592029e6e8dd8e00048c1856",
- *               "permissions": [],
- *               "email": "scala.lally@gmail.com",
- *               "uri": "https://dawasco.herokuapp.com/parties/592029e6e8dd8e00048c1856"
- *           },
- *           "assignee": {
- *               "name": "Joachim Mangilima",
- *               "phone": "255713111111",
- *               "_id": "592029e6e8dd8e00048c1865",
- *               "permissions": [],
- *               "email": "joachimm3@gmail.com",
- *               "uri": "https://dawasco.herokuapp.com/parties/592029e6e8dd8e00048c1865"
- *           },
- *           "code": "ILK170001",
- *           "description": "There have been a leakage at my area. Lots of water in the street",
- *           "address": "Kijitonyama",
- *           "method": "Call",
- *           "status": {
- *               "name": "Open",
- *               "weight": -5,
- *               "color": "#0D47A1",
- *               "_id": "592029e5e8dd8e00048c180d",
- *               "createdAt": "2017-05-20T11:35:01.059Z",
- *               "updatedAt": "2017-05-20T11:35:01.059Z",
- *               "uri": "https://dawasco.herokuapp.com/statuses/592029e5e8dd8e00048c180d"
- *           },
- *           "priority": {
- *               "name": "Low",
- *               "weight": 0,
- *               "color": "#1B5E29",
- *               "_id": "592029e5e8dd8e00048c1816",
- *               "createdAt": "2017-05-20T11:35:01.586Z",
- *               "updatedAt": "2017-07-29T19:12:40.178Z",
- *               "uri": "https://dawasco.herokuapp.com/priorities/592029e5e8dd8e00048c1816"
- *           },
- *           "attachments": [],
- *           "ttr": 0,
- *           "_id": "592029e6e8dd8e00048c185a",
- *           "createdAt": "2017-05-20T11:35:02.523Z",
- *           "updatedAt": "2017-05-20T11:36:34.084Z",
- *           "ttrSeconds": 0,
- *           "ttrMinutes": 0,
- *           "ttrHours": 0,
- *           "longitude": 0,
- *           "latitude": 0,
- *           "uri": "https://dawasco.herokuapp.com/servicerequests/592029e6e8dd8e00048c185a"
  *       }
  *      ],
  *      "pages": 1,
@@ -420,30 +303,19 @@ router.get('/servicerequests', jurisdiction, function (request, response, next) 
  * @apiSuccessExample {json} Success-Response:
  *    HTTP/1.1 201 Created
  *    {
+ *           "_id": "592029e6e8dd8e00048c1859",
  *           "jurisdiction": {
+ *               "_id": "592029e5e8dd8e00048c184b",
  *               "code": "H",
  *               "name": "HQ",
  *               "phone": "255714999888",
  *               "email": "N/A",
- *               "domain": "dawasco.org",
- *               "_id": "592029e5e8dd8e00048c184b",
- *               "longitude": 0,
- *               "latitude": 0,
- *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e5e8dd8e00048c184b"
  *           },
  *           "service": {
- *               "group": {
- *                   "code": "N",
- *                   "name": "Non Commercial",
- *                   "color": "#960F1E",
- *                   "_id": "592029e6e8dd8e00048c184d",
- *                   "uri": "https://dawasco.herokuapp.com/servicegroups/592029e6e8dd8e00048c184d"
- *               },
+ *               "_id": "592029e6e8dd8e00048c1852",
  *               "code": "LW",
  *               "name": "Lack of Water",
  *               "color": "#960F1E",
- *               "_id": "592029e6e8dd8e00048c1852",
- *               "uri": "https://dawasco.herokuapp.com/services/592029e6e8dd8e00048c1852"
  *           },
  *           "call": {
  *               "startedAt": "2017-05-20T11:35:02.421Z",
@@ -456,54 +328,33 @@ router.get('/servicerequests', jurisdiction, function (request, response, next) 
  *               "email": "scala.lally@gmail.com"
  *           },
  *           "operator": {
+ *               "_id": "592029e6e8dd8e00048c1856",
  *               "name": "Juma John",
  *               "phone": "255765952971",
- *               "_id": "592029e6e8dd8e00048c1856",
- *               "permissions": [],
  *               "email": "scala.lally@gmail.com",
- *               "uri": "https://dawasco.herokuapp.com/parties/592029e6e8dd8e00048c1856"
  *           },
  *           "assignee": {
+ *               "_id": "592029e6e8dd8e00048c185f",
  *               "name": "Moses Kabungo",
  *               "phone": "255753111039",
- *               "_id": "592029e6e8dd8e00048c185f",
- *               "permissions": [],
  *               "email": "kbng.moses@gmail.com",
- *               "uri": "https://dawasco.herokuapp.com/parties/592029e6e8dd8e00048c185f"
  *           },
  *           "code": "HLW170001",
  *           "description": "For three days now we dont have water",
  *           "address": "Mikocheni",
  *           "method": "Call",
  *           "status": {
+ *               "_id": "592029e5e8dd8e00048c180d",
  *               "name": "Open",
  *               "weight": -5,
  *               "color": "#0D47A1",
- *               "_id": "592029e5e8dd8e00048c180d",
- *               "createdAt": "2017-05-20T11:35:01.059Z",
- *               "updatedAt": "2017-05-20T11:35:01.059Z",
- *               "uri": "https://dawasco.herokuapp.com/statuses/592029e5e8dd8e00048c180d"
  *           },
  *           "priority": {
+ *               "_id": "592029e5e8dd8e00048c1816",
  *               "name": "Low",
  *               "weight": 0,
  *               "color": "#1B5E29",
- *               "_id": "592029e5e8dd8e00048c1816",
- *               "createdAt": "2017-05-20T11:35:01.586Z",
- *               "updatedAt": "2017-07-29T19:12:40.178Z",
- *               "uri": "https://dawasco.herokuapp.com/priorities/592029e5e8dd8e00048c1816"
  *           },
- *           "attachments": [],
- *           "ttr": 0,
- *           "_id": "592029e6e8dd8e00048c1859",
- *           "createdAt": "2017-05-20T11:35:02.474Z",
- *           "updatedAt": "2017-05-20T11:36:45.294Z",
- *           "ttrSeconds": 0,
- *           "ttrMinutes": 0,
- *           "ttrHours": 0,
- *           "longitude": 0,
- *           "latitude": 0,
- *           "uri": "https://dawasco.herokuapp.com/servicerequests/592029e6e8dd8e00048c1859"
  *     }
  *
  *
@@ -608,32 +459,21 @@ router.post('/servicerequests', uploaderFor(),
  *        ServiceRequest URI
  *
  * @apiSuccessExample {json} Success-Response:
- *    HTTP/1.1 200 OK
+ *    HTTP/1.1 201 Created
  *    {
+ *           "_id": "592029e6e8dd8e00048c1859",
  *           "jurisdiction": {
+ *               "_id": "592029e5e8dd8e00048c184b",
  *               "code": "H",
  *               "name": "HQ",
  *               "phone": "255714999888",
  *               "email": "N/A",
- *               "domain": "dawasco.org",
- *               "_id": "592029e5e8dd8e00048c184b",
- *               "longitude": 0,
- *               "latitude": 0,
- *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e5e8dd8e00048c184b"
  *           },
  *           "service": {
- *               "group": {
- *                   "code": "N",
- *                   "name": "Non Commercial",
- *                   "color": "#960F1E",
- *                   "_id": "592029e6e8dd8e00048c184d",
- *                   "uri": "https://dawasco.herokuapp.com/servicegroups/592029e6e8dd8e00048c184d"
- *               },
+ *               "_id": "592029e6e8dd8e00048c1852",
  *               "code": "LW",
  *               "name": "Lack of Water",
  *               "color": "#960F1E",
- *               "_id": "592029e6e8dd8e00048c1852",
- *               "uri": "https://dawasco.herokuapp.com/services/592029e6e8dd8e00048c1852"
  *           },
  *           "call": {
  *               "startedAt": "2017-05-20T11:35:02.421Z",
@@ -646,54 +486,33 @@ router.post('/servicerequests', uploaderFor(),
  *               "email": "scala.lally@gmail.com"
  *           },
  *           "operator": {
+ *               "_id": "592029e6e8dd8e00048c1856",
  *               "name": "Juma John",
  *               "phone": "255765952971",
- *               "_id": "592029e6e8dd8e00048c1856",
- *               "permissions": [],
  *               "email": "scala.lally@gmail.com",
- *               "uri": "https://dawasco.herokuapp.com/parties/592029e6e8dd8e00048c1856"
  *           },
  *           "assignee": {
+ *               "_id": "592029e6e8dd8e00048c185f",
  *               "name": "Moses Kabungo",
  *               "phone": "255753111039",
- *               "_id": "592029e6e8dd8e00048c185f",
- *               "permissions": [],
  *               "email": "kbng.moses@gmail.com",
- *               "uri": "https://dawasco.herokuapp.com/parties/592029e6e8dd8e00048c185f"
  *           },
  *           "code": "HLW170001",
  *           "description": "For three days now we dont have water",
  *           "address": "Mikocheni",
  *           "method": "Call",
  *           "status": {
+ *               "_id": "592029e5e8dd8e00048c180d",
  *               "name": "Open",
  *               "weight": -5,
  *               "color": "#0D47A1",
- *               "_id": "592029e5e8dd8e00048c180d",
- *               "createdAt": "2017-05-20T11:35:01.059Z",
- *               "updatedAt": "2017-05-20T11:35:01.059Z",
- *               "uri": "https://dawasco.herokuapp.com/statuses/592029e5e8dd8e00048c180d"
  *           },
  *           "priority": {
+ *               "_id": "592029e5e8dd8e00048c1816",
  *               "name": "Low",
  *               "weight": 0,
  *               "color": "#1B5E29",
- *               "_id": "592029e5e8dd8e00048c1816",
- *               "createdAt": "2017-05-20T11:35:01.586Z",
- *               "updatedAt": "2017-07-29T19:12:40.178Z",
- *               "uri": "https://dawasco.herokuapp.com/priorities/592029e5e8dd8e00048c1816"
  *           },
- *           "attachments": [],
- *           "ttr": 0,
- *           "_id": "592029e6e8dd8e00048c1859",
- *           "createdAt": "2017-05-20T11:35:02.474Z",
- *           "updatedAt": "2017-05-20T11:36:45.294Z",
- *           "ttrSeconds": 0,
- *           "ttrMinutes": 0,
- *           "ttrHours": 0,
- *           "longitude": 0,
- *           "latitude": 0,
- *           "uri": "https://dawasco.herokuapp.com/servicerequests/592029e6e8dd8e00048c1859"
  *     }
  *
  *
@@ -836,32 +655,21 @@ router.get('/servicerequests/:id', function (request, response, next) {
  *        ServiceRequest URI
  *
  * @apiSuccessExample {json} Success-Response:
- *    HTTP/1.1 200 OK
+ *    HTTP/1.1 201 Created
  *    {
+ *           "_id": "592029e6e8dd8e00048c1859",
  *           "jurisdiction": {
+ *               "_id": "592029e5e8dd8e00048c184b",
  *               "code": "H",
  *               "name": "HQ",
  *               "phone": "255714999888",
  *               "email": "N/A",
- *               "domain": "dawasco.org",
- *               "_id": "592029e5e8dd8e00048c184b",
- *               "longitude": 0,
- *               "latitude": 0,
- *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e5e8dd8e00048c184b"
  *           },
  *           "service": {
- *               "group": {
- *                   "code": "N",
- *                   "name": "Non Commercial",
- *                   "color": "#960F1E",
- *                   "_id": "592029e6e8dd8e00048c184d",
- *                   "uri": "https://dawasco.herokuapp.com/servicegroups/592029e6e8dd8e00048c184d"
- *               },
+ *               "_id": "592029e6e8dd8e00048c1852",
  *               "code": "LW",
  *               "name": "Lack of Water",
  *               "color": "#960F1E",
- *               "_id": "592029e6e8dd8e00048c1852",
- *               "uri": "https://dawasco.herokuapp.com/services/592029e6e8dd8e00048c1852"
  *           },
  *           "call": {
  *               "startedAt": "2017-05-20T11:35:02.421Z",
@@ -874,54 +682,33 @@ router.get('/servicerequests/:id', function (request, response, next) {
  *               "email": "scala.lally@gmail.com"
  *           },
  *           "operator": {
+ *               "_id": "592029e6e8dd8e00048c1856",
  *               "name": "Juma John",
  *               "phone": "255765952971",
- *               "_id": "592029e6e8dd8e00048c1856",
- *               "permissions": [],
  *               "email": "scala.lally@gmail.com",
- *               "uri": "https://dawasco.herokuapp.com/parties/592029e6e8dd8e00048c1856"
  *           },
  *           "assignee": {
+ *               "_id": "592029e6e8dd8e00048c185f",
  *               "name": "Moses Kabungo",
  *               "phone": "255753111039",
- *               "_id": "592029e6e8dd8e00048c185f",
- *               "permissions": [],
  *               "email": "kbng.moses@gmail.com",
- *               "uri": "https://dawasco.herokuapp.com/parties/592029e6e8dd8e00048c185f"
  *           },
  *           "code": "HLW170001",
  *           "description": "For three days now we dont have water",
  *           "address": "Mikocheni",
  *           "method": "Call",
  *           "status": {
+ *               "_id": "592029e5e8dd8e00048c180d",
  *               "name": "Open",
  *               "weight": -5,
  *               "color": "#0D47A1",
- *               "_id": "592029e5e8dd8e00048c180d",
- *               "createdAt": "2017-05-20T11:35:01.059Z",
- *               "updatedAt": "2017-05-20T11:35:01.059Z",
- *               "uri": "https://dawasco.herokuapp.com/statuses/592029e5e8dd8e00048c180d"
  *           },
  *           "priority": {
+ *               "_id": "592029e5e8dd8e00048c1816",
  *               "name": "Low",
  *               "weight": 0,
  *               "color": "#1B5E29",
- *               "_id": "592029e5e8dd8e00048c1816",
- *               "createdAt": "2017-05-20T11:35:01.586Z",
- *               "updatedAt": "2017-07-29T19:12:40.178Z",
- *               "uri": "https://dawasco.herokuapp.com/priorities/592029e5e8dd8e00048c1816"
  *           },
- *           "attachments": [],
- *           "ttr": 0,
- *           "_id": "592029e6e8dd8e00048c1859",
- *           "createdAt": "2017-05-20T11:35:02.474Z",
- *           "updatedAt": "2017-05-20T11:36:45.294Z",
- *           "ttrSeconds": 0,
- *           "ttrMinutes": 0,
- *           "ttrHours": 0,
- *           "longitude": 0,
- *           "latitude": 0,
- *           "uri": "https://dawasco.herokuapp.com/servicerequests/592029e6e8dd8e00048c1859"
  *     }
  *
  *
@@ -1064,32 +851,21 @@ router.put('/servicerequests/:id', function (request, response, next) {
  *        ServiceRequest URI
  *
  * @apiSuccessExample {json} Success-Response:
- *    HTTP/1.1 200 OK
+ *    HTTP/1.1 201 Created
  *    {
+ *           "_id": "592029e6e8dd8e00048c1859",
  *           "jurisdiction": {
+ *               "_id": "592029e5e8dd8e00048c184b",
  *               "code": "H",
  *               "name": "HQ",
  *               "phone": "255714999888",
  *               "email": "N/A",
- *               "domain": "dawasco.org",
- *               "_id": "592029e5e8dd8e00048c184b",
- *               "longitude": 0,
- *               "latitude": 0,
- *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e5e8dd8e00048c184b"
  *           },
  *           "service": {
- *               "group": {
- *                   "code": "N",
- *                   "name": "Non Commercial",
- *                   "color": "#960F1E",
- *                   "_id": "592029e6e8dd8e00048c184d",
- *                   "uri": "https://dawasco.herokuapp.com/servicegroups/592029e6e8dd8e00048c184d"
- *               },
+ *               "_id": "592029e6e8dd8e00048c1852",
  *               "code": "LW",
  *               "name": "Lack of Water",
  *               "color": "#960F1E",
- *               "_id": "592029e6e8dd8e00048c1852",
- *               "uri": "https://dawasco.herokuapp.com/services/592029e6e8dd8e00048c1852"
  *           },
  *           "call": {
  *               "startedAt": "2017-05-20T11:35:02.421Z",
@@ -1102,54 +878,33 @@ router.put('/servicerequests/:id', function (request, response, next) {
  *               "email": "scala.lally@gmail.com"
  *           },
  *           "operator": {
+ *               "_id": "592029e6e8dd8e00048c1856",
  *               "name": "Juma John",
  *               "phone": "255765952971",
- *               "_id": "592029e6e8dd8e00048c1856",
- *               "permissions": [],
  *               "email": "scala.lally@gmail.com",
- *               "uri": "https://dawasco.herokuapp.com/parties/592029e6e8dd8e00048c1856"
  *           },
  *           "assignee": {
+ *               "_id": "592029e6e8dd8e00048c185f",
  *               "name": "Moses Kabungo",
  *               "phone": "255753111039",
- *               "_id": "592029e6e8dd8e00048c185f",
- *               "permissions": [],
  *               "email": "kbng.moses@gmail.com",
- *               "uri": "https://dawasco.herokuapp.com/parties/592029e6e8dd8e00048c185f"
  *           },
  *           "code": "HLW170001",
  *           "description": "For three days now we dont have water",
  *           "address": "Mikocheni",
  *           "method": "Call",
  *           "status": {
+ *               "_id": "592029e5e8dd8e00048c180d",
  *               "name": "Open",
  *               "weight": -5,
  *               "color": "#0D47A1",
- *               "_id": "592029e5e8dd8e00048c180d",
- *               "createdAt": "2017-05-20T11:35:01.059Z",
- *               "updatedAt": "2017-05-20T11:35:01.059Z",
- *               "uri": "https://dawasco.herokuapp.com/statuses/592029e5e8dd8e00048c180d"
  *           },
  *           "priority": {
+ *               "_id": "592029e5e8dd8e00048c1816",
  *               "name": "Low",
  *               "weight": 0,
  *               "color": "#1B5E29",
- *               "_id": "592029e5e8dd8e00048c1816",
- *               "createdAt": "2017-05-20T11:35:01.586Z",
- *               "updatedAt": "2017-07-29T19:12:40.178Z",
- *               "uri": "https://dawasco.herokuapp.com/priorities/592029e5e8dd8e00048c1816"
  *           },
- *           "attachments": [],
- *           "ttr": 0,
- *           "_id": "592029e6e8dd8e00048c1859",
- *           "createdAt": "2017-05-20T11:35:02.474Z",
- *           "updatedAt": "2017-05-20T11:36:45.294Z",
- *           "ttrSeconds": 0,
- *           "ttrMinutes": 0,
- *           "ttrHours": 0,
- *           "longitude": 0,
- *           "latitude": 0,
- *           "uri": "https://dawasco.herokuapp.com/servicerequests/592029e6e8dd8e00048c1859"
  *     }
  *
  *
@@ -1253,32 +1008,21 @@ router.patch('/servicerequests/:id', function (request, response, next) {
  *        ServiceRequest URI
  *
  * @apiSuccessExample {json} Success-Response:
- *    HTTP/1.1 200 OK
+ *    HTTP/1.1 201 Created
  *    {
+ *           "_id": "592029e6e8dd8e00048c1859",
  *           "jurisdiction": {
+ *               "_id": "592029e5e8dd8e00048c184b",
  *               "code": "H",
  *               "name": "HQ",
  *               "phone": "255714999888",
  *               "email": "N/A",
- *               "domain": "dawasco.org",
- *               "_id": "592029e5e8dd8e00048c184b",
- *               "longitude": 0,
- *               "latitude": 0,
- *               "uri": "https://dawasco.herokuapp.com/jurisdictions/592029e5e8dd8e00048c184b"
  *           },
  *           "service": {
- *               "group": {
- *                   "code": "N",
- *                   "name": "Non Commercial",
- *                   "color": "#960F1E",
- *                   "_id": "592029e6e8dd8e00048c184d",
- *                   "uri": "https://dawasco.herokuapp.com/servicegroups/592029e6e8dd8e00048c184d"
- *               },
+ *               "_id": "592029e6e8dd8e00048c1852",
  *               "code": "LW",
  *               "name": "Lack of Water",
  *               "color": "#960F1E",
- *               "_id": "592029e6e8dd8e00048c1852",
- *               "uri": "https://dawasco.herokuapp.com/services/592029e6e8dd8e00048c1852"
  *           },
  *           "call": {
  *               "startedAt": "2017-05-20T11:35:02.421Z",
@@ -1291,54 +1035,33 @@ router.patch('/servicerequests/:id', function (request, response, next) {
  *               "email": "scala.lally@gmail.com"
  *           },
  *           "operator": {
+ *               "_id": "592029e6e8dd8e00048c1856",
  *               "name": "Juma John",
  *               "phone": "255765952971",
- *               "_id": "592029e6e8dd8e00048c1856",
- *               "permissions": [],
  *               "email": "scala.lally@gmail.com",
- *               "uri": "https://dawasco.herokuapp.com/parties/592029e6e8dd8e00048c1856"
  *           },
  *           "assignee": {
+ *               "_id": "592029e6e8dd8e00048c185f",
  *               "name": "Moses Kabungo",
  *               "phone": "255753111039",
- *               "_id": "592029e6e8dd8e00048c185f",
- *               "permissions": [],
  *               "email": "kbng.moses@gmail.com",
- *               "uri": "https://dawasco.herokuapp.com/parties/592029e6e8dd8e00048c185f"
  *           },
  *           "code": "HLW170001",
  *           "description": "For three days now we dont have water",
  *           "address": "Mikocheni",
  *           "method": "Call",
  *           "status": {
+ *               "_id": "592029e5e8dd8e00048c180d",
  *               "name": "Open",
  *               "weight": -5,
  *               "color": "#0D47A1",
- *               "_id": "592029e5e8dd8e00048c180d",
- *               "createdAt": "2017-05-20T11:35:01.059Z",
- *               "updatedAt": "2017-05-20T11:35:01.059Z",
- *               "uri": "https://dawasco.herokuapp.com/statuses/592029e5e8dd8e00048c180d"
  *           },
  *           "priority": {
+ *               "_id": "592029e5e8dd8e00048c1816",
  *               "name": "Low",
  *               "weight": 0,
  *               "color": "#1B5E29",
- *               "_id": "592029e5e8dd8e00048c1816",
- *               "createdAt": "2017-05-20T11:35:01.586Z",
- *               "updatedAt": "2017-07-29T19:12:40.178Z",
- *               "uri": "https://dawasco.herokuapp.com/priorities/592029e5e8dd8e00048c1816"
  *           },
- *           "attachments": [],
- *           "ttr": 0,
- *           "_id": "592029e6e8dd8e00048c1859",
- *           "createdAt": "2017-05-20T11:35:02.474Z",
- *           "updatedAt": "2017-05-20T11:36:45.294Z",
- *           "ttrSeconds": 0,
- *           "ttrMinutes": 0,
- *           "ttrHours": 0,
- *           "longitude": 0,
- *           "latitude": 0,
- *           "uri": "https://dawasco.herokuapp.com/servicerequests/592029e6e8dd8e00048c1859"
  *     }
  *
  *
