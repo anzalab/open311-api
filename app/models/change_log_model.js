@@ -249,6 +249,22 @@ ChangeLogSchema.statics.track = function track(changes, done) {
             changelog.approvedAt = changelog.resolvedAt;
             servicerequest.approvedAt = changelog.resolvedAt;
           }
+
+          // ensure assignee, assignedAt, team member & zone
+          const assignee = changelog.assignee || changelog.changer;
+          const zone = assignee.zone;
+
+          if (!servicerequest.assignee) {
+            changelog.assignedAt = changelog.resolvedAt;
+            changelog.assignee = assignee;
+            changelog.member = assignee;
+            servicerequest.assignee = assignee;
+            servicerequest.assignedAt = changelog.resolvedAt;
+          }
+          if (!servicerequest.zone && zone) {
+            changelog.zone = zone;
+            servicerequest.zone = zone;
+          }
         }
 
         if (!changelog.resolvedAt) {
@@ -288,7 +304,8 @@ ChangeLogSchema.statics.track = function track(changes, done) {
 
       // ensure assigned date if assignee available
       if (changelog.assignee) {
-        changelog.assignedAt = new Date();
+        changelog.assignedAt =
+          changelog.assignedAt || changelog.resolvedAt || new Date();
       }
 
       //compute changelogs
@@ -317,11 +334,8 @@ ChangeLogSchema.statics.track = function track(changes, done) {
 
     //update service request
     function updateServiceRequest(servicerequest, next) {
-      // TODO ensure assignee if resolving changelog and there were no
-      // assigned worker
-
       //update
-      _.forEach(changelog, function (value, key) {
+      _.forEach(changelog, (value, key) => {
         const allowedKey =
           (!_.includes(['image', 'audio', 'video', 'document'], key));
         if (allowedKey) {
@@ -353,6 +367,7 @@ ChangeLogSchema.statics.track = function track(changes, done) {
 
     // notify assignee
     function notify(servicerequest, next) {
+      // TODO: run in background
       ChangeLog.notifyAssignee(changelog, servicerequest, next);
     }
 
