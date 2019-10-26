@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const { waterfall } = require('async');
-const { mergeObjects } = require('@lykmapipo/common');
+const { mergeObjects, idOf } = require('@lykmapipo/common');
 const {
   model,
   createSchema
@@ -12,7 +12,8 @@ const { plugin: runInBackground } = require('mongoose-kue');
 const {
   MODEL_NAME_CHANGELOG,
   VISIBILITY_PRIVATE,
-  VISIBILITY_PUBLIC
+  VISIBILITY_PUBLIC,
+  WORKSPACE_TECHNICAL,
 } = require('@codetanzania/majifix-common');
 const Send = require('../libs/send');
 
@@ -197,6 +198,7 @@ ChangeLogSchema.statics.track = function track(changes, done) {
 
 
   //refs
+  const Party = model('Party');
   const ServiceRequest = model('ServiceRequest');
   const ChangeLog = model('ChangeLog');
 
@@ -293,6 +295,35 @@ ChangeLogSchema.statics.track = function track(changes, done) {
       next(undefined, servicerequest);
 
     },
+
+    // extend service request team
+    function extendTeamMember(servicerequest, next) { //TODO: refactor
+      const jurisdiction =
+        idOf(servicerequest.jurisdiction) || servicerequest.jurisdiction;
+      const zone = _.get(changelog, 'assignee.zone', changelog.zone);
+      const criteria = {
+        $or: [{
+            'relation.workspace': WORKSPACE_TECHNICAL,
+            zone: { $eq: idOf(zone) || zone },
+            jurisdiction: { $eq: jurisdiction }
+          }, // same zone team
+          {
+            'relation.workspace': WORKSPACE_TECHNICAL,
+            zone: { $eq: null },
+            jurisdiction: { $eq: jurisdiction }
+          } // same jurisdiction team
+        ]
+      };
+      Party.find(criteria, function (error, parties) {
+        // update team members
+        if (!error) {
+          const team = _.union(servicerequest.team, [].concat(parties));
+          servicerequest.set('team', team);
+        }
+        next(undefined, servicerequest);
+      });
+    },
+
 
     //compute changes
     function computeChanges(servicerequest, next) {
