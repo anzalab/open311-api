@@ -2,7 +2,8 @@
 
 const _ = require('lodash');
 const { waterfall } = require('async');
-const { mergeObjects, idOf } = require('@lykmapipo/common');
+const { mergeObjects, idOf, parseTemplate } = require('@lykmapipo/common');
+const { getString, getStringSet } = require('@lykmapipo/common');
 const {
   model,
   createSchema
@@ -11,10 +12,13 @@ const actions = require('mongoose-rest-actions');
 const { plugin: runInBackground } = require('mongoose-kue');
 const {
   MODEL_NAME_CHANGELOG,
+  MODEL_NAME_PARTY,
+  MODEL_NAME_SERVICEREQUEST,
   VISIBILITY_PRIVATE,
   VISIBILITY_PUBLIC,
   WORKSPACE_TECHNICAL,
 } = require('@codetanzania/majifix-common');
+const { CHANNEL_EMAIL } = require('@lykmapipo/postman');
 const Send = require('../libs/send');
 
 // schemas
@@ -36,6 +40,9 @@ const SCHEMA = mergeObjects(
 );
 const SCHEMA_OPTIONS = {};
 const SCHEMA_PLUGINS = [actions, runInBackground];
+const DEFAULT_TEMPLATE = 'Issue #{ticket} has been updates by {party}.';
+const CHANGELOG_NOTIFICATION_CHANNELS =
+  getStringSet('CHANGELOG_NOTIFICATION_CHANNELS', [CHANNEL_EMAIL]);
 
 
 //TODO add changelog type i.e status, service, assignment, comment etc
@@ -135,10 +142,95 @@ ChangeLogSchema.statics.MODEL_NAME = MODEL_NAME_CHANGELOG;
  * @static
  * @public
  */
+ChangeLogSchema.statics.notify = (changelog, servicerequest, done) => {
+  // refs
+  const Party = model(MODEL_NAME_PARTY);
+
+  //TODO: re-fetch service request
+
+  //1. obtain service request team
+  const fetchTeam = next => {
+    const partyIds = _.map(servicerequest.team, member => {
+      return idOf(member) || member;
+    });
+    return Party.find({ _id: { $in: partyIds } }, next);
+  };
+
+  //2. compose notification campaign
+  const sendNotification = (parties, next) => {
+    let template = getString('TEMPLATES_CHANGELOG', DEFAULT_TEMPLATE);
+    let party = changelog.changer.name;
+    let to = _.map(parties, party => {
+      return {
+        name: party.name,
+        email: party.email,
+        mobile: party.phone,
+        pushToken: _.first(party.pushTokens)
+      };
+    });
+
+    if (changelog.member) {
+      template = getString('TEMPLATES_CHANGELOG_TEAM', template);
+      party = changelog.member.name;
+    }
+    if (changelog.assignedAt) {
+      template = getString('TEMPLATES_CHANGELOG_ASSIGNED', template);
+      party = changelog.assignee.name;
+    }
+    if (changelog.attendedAt) {
+      template = getString('TEMPLATES_CHANGELOG_ATTENDING', template);
+      party = changelog.changer.name;
+    }
+    if (changelog.completedAt) {
+      template = getString('TEMPLATES_CHANGELOG_COMPLETED', template);
+      party = changelog.changer.name;
+    }
+    if (changelog.verifiedAt) {
+      template = getString('TEMPLATES_CHANGELOG_VERIFIED', template);
+      party = changelog.changer.name;
+    }
+    if (changelog.approvedAt) {
+      template = getString('TEMPLATES_CHANGELOG_APPROVED', template);
+      party = changelog.changer.name;
+    }
+    if (changelog.resolvedAt) {
+      template = getString('TEMPLATES_CHANGELOG_RESOLVED', template);
+      party = changelog.changer.name;
+    }
+
+    // compile message campaign
+    const ticket = servicerequest.code;
+    const subject = [servicerequest.service.name.en, servicerequest.code].join(
+      ' - #');
+    const message = parseTemplate(template, { ticket, party });
+    const channels = [].concat(CHANGELOG_NOTIFICATION_CHANNELS);
+
+    // send(or queue) notification
+    return Send.campaign({ to, subject, message, channels }, next);
+  };
+
+  // 3. do sending
+  return waterfall([fetchTeam, sendNotification], (error /*, results*/ ) => {
+    return done(error, servicerequest);
+  });
+
+};
+
+/**
+ * @name notifyAssignee
+ * @type Function
+ * @description notify assignee on assigned service request
+ * @param {Function} done a callback to invoke on success or failure
+ * @return {Object} latest service request
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ * @public
+ */
 ChangeLogSchema.statics.notifyAssignee =
   function notifyAssignee(changelog, servicerequest, done) {
     // refs
-    const Party = model('Party');
+    const Party = model(MODEL_NAME_PARTY);
 
     // map service request to legacy
     const legacy = servicerequest.mapToLegacy();
@@ -198,9 +290,9 @@ ChangeLogSchema.statics.track = function track(changes, done) {
 
 
   //refs
-  const Party = model('Party');
-  const ServiceRequest = model('ServiceRequest');
-  const ChangeLog = model('ChangeLog');
+  const Party = model(MODEL_NAME_PARTY);
+  const ServiceRequest = model(MODEL_NAME_SERVICEREQUEST);
+  const ChangeLog = model(MODEL_NAME_CHANGELOG);
 
   waterfall([
 
