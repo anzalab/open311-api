@@ -3,14 +3,18 @@
 const _ = require('lodash');
 const { waterfall, parallel } = require('async');
 const moment = require('moment');
-const { Schema, ObjectId, model } = require('mongoose');
 const { mergeObjects } = require('@lykmapipo/common');
 const { getString } = require('@lykmapipo/env');
-const { createSubSchema } = require('@lykmapipo/mongoose-common');
-const actions = require('mongoose-rest-actions');
 const { toE164 } = require('@lykmapipo/phone');
 const { encode: jwtEncode } = require('@lykmapipo/jwt-common');
 const { Point } = require('mongoose-geojson-schemas');
+const {
+  Schema,
+  ObjectId,
+  model,
+  createSubSchema
+} = require('@lykmapipo/mongoose-common');
+const actions = require('mongoose-rest-actions');
 const irina = require('irina');
 const {
   RELATION_NAME_INTERNAL,
@@ -427,6 +431,10 @@ PartySchema.pre('validate', function (next) {
     this.relation.type = RELATION_TYPE_WORKER;
   }
 
+  if (!this.relation.workspace) {
+    this.relation.workspace = WORKSPACE_OTHER;
+  }
+
   // ensure push tokens
   this.pushTokens = [].concat(this.pushTokens);
 
@@ -601,14 +609,10 @@ PartySchema.statics.RELATION_TYPES = [
 
 
 //expose Party Relation Workspaces
-PartySchema.statics.WORKSPACE_CALL_CENTER =
-  WORKSPACE_CALL_CENTER;
-PartySchema.statics.WORKSPACE_CUSTOMER_CARE =
-  WORKSPACE_CUSTOMER_CARE;
-PartySchema.statics.WORKSPACE_TECHNICIAN =
-  WORKSPACE_TECHNICIAN;
-PartySchema.statics.WORKSPACE_OTHER =
-  WORKSPACE_OTHER;
+PartySchema.statics.WORKSPACE_CALL_CENTER = WORKSPACE_CALL_CENTER;
+PartySchema.statics.WORKSPACE_CUSTOMER_CARE = WORKSPACE_CUSTOMER_CARE;
+PartySchema.statics.WORKSPACE_TECHNICIAN = WORKSPACE_TECHNICIAN;
+PartySchema.statics.WORKSPACE_OTHER = WORKSPACE_OTHER;
 PartySchema.statics.RELATION_WORKSPACES = [
   WORKSPACE_CALL_CENTER,
   WORKSPACE_CUSTOMER_CARE,
