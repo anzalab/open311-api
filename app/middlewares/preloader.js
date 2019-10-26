@@ -1,5 +1,9 @@
 'use strict';
 
+const { idOf } = require('@lykmapipo/common');
+const { model } = require('@lykmapipo/mongoose-common');
+const { parallel } = require('async');
+const _ = require('lodash');
 
 /**
  * @name instance
@@ -8,14 +12,6 @@
  * @since 0.1.0
  * @version 0.1.0
  */
-
-
-//dependencies
-const mongoose = require('mongoose');
-const async = require('async');
-const _ = require('lodash');
-
-
 module.exports = exports = function (request, response, next) {
 
   //instance variable to model mapping
@@ -48,21 +44,22 @@ module.exports = exports = function (request, response, next) {
     //prepare instance preloads
     const bodyInstances = _.pick(request.body, _.keys(instances));
     let preloads = {};
-    _.forEach(bodyInstances, function (value, key) {
-      preloads[key] = function (after) {
-        const id = _.get(instances[key], '_id', instances[key]);
-        const Model = mongoose.model(id);
-        Model.findById(value, after);
+    _.forEach(bodyInstances, (value, key) => {
+      preloads[key] = (after) => {
+        const id = idOf(value) || value;
+        const modelName = instances[key];
+        const Model = model(modelName);
+        return Model.findById(id, after);
       };
     });
 
     //TODO try use sub process(or paralleljs)
     //perfom preload(s) in parallel
-    async.parallel(preloads, function (error, _preloads) {
+    parallel(preloads, (error, _preloads) => {
       if (error) {
         next(error);
       } else {
-        _.merge(request.body, _preloads);
+        request.body = _.merge({}, request.body, _preloads);
         next();
       }
     });

@@ -309,7 +309,7 @@ ChangeLogSchema.statics.track = function track(changes, done) {
       }
 
       // ensure zone
-      const zone = (changelog.zone || changelog.assignee.zone);
+      const zone = _.get(changelog, 'assignee.zone', changelog.zone);
       if (zone) {
         changelog.zone = zone;
         servicerequest.zone = zone;
