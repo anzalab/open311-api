@@ -315,22 +315,21 @@ ChangeLogSchema.statics.track = function track(changes, done) {
         servicerequest.zone = zone;
       }
 
-      //compute changelogs
+      // compute changelogs
       let changelogs = servicerequest.changes(changelog);
-      changelogs =
-        ([].concat(servicerequest.changelogs).concat(changelogs));
-
-      // ensure common service request properties
-      // TODO: check if property exist on changelog
       changelogs = _.map(changelogs, change => {
-        change.jurisdiction = servicerequest.jurisdiction;
+        change.jurisdiction = change.jurisdiction || servicerequest.jurisdiction;
         change.zone = change.zone || servicerequest.zone;
-        change.group = servicerequest.group;
-        change.type = servicerequest.type;
-        change.service = servicerequest.service;
+        change.group = change.group || servicerequest.group;
+        change.type = change.type || servicerequest.type;
+        change.service = change.service || servicerequest.service;
         change.confirmedAt = servicerequest.confirmedAt;
         return change;
       });
+
+      // merge existing
+      changelogs =
+        ([].concat(servicerequest.changelogs).concat(changelogs));
 
       //persists changes
       this.create(changelogs, function (error /*, changelogs*/ ) {
