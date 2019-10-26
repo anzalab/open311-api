@@ -11,10 +11,6 @@
  * Recommendation!: It also adviced to run each worker per process or per machine
  * with any number of concurrency(10 is sufficient max worker so far)
  */
-
-
-/* dependencies */
-const path = require('path');
 const { getNumber } = require('@lykmapipo/env');
 const { worker, listen } = require('@lykmapipo/postman');
 const mkdir = require('mkdir-p');
@@ -25,12 +21,12 @@ const KUE_HTTP_PORT = getNumber('KUE_HTTP_PORT');
 
 
 //build logs directory if does not exists
-const logPath = path.join(__dirname, 'logs');
+const logPath = './logs';
 mkdir.sync(logPath);
 
 
 /* setup models */
-require(path.join(__dirname, 'app', 'initializers', 'mongoose'));
+require('./app/initializers/mongoose');
 
 
 /* run work */

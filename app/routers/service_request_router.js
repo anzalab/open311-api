@@ -16,6 +16,7 @@ const { uploaderFor } = require('@lykmapipo/file');
 // enable token authentication
 const jwtAuth = require('../middlewares/jwtAuth');
 const jurisdiction = require('../middlewares/jurisdiction');
+const preloader = require('../middlewares/preloader'); //TODO: move to ChangeLog.track
 
 // add specific middlewares to servicerequests router
 router.all('/servicerequests*', jwtAuth);
@@ -379,7 +380,7 @@ router.get('/servicerequests', jurisdiction, function (request, response, next) 
  *      "error":{}
  *    }
  */
-router.post('/servicerequests', uploaderFor(),
+router.post('/servicerequests', uploaderFor(), preloader,
   function (request, response, next) {
     controller.create(request, response, next);
   });
@@ -1123,17 +1124,17 @@ router.delete('/servicerequests/:id', function (request, response, next) {
  *      "error":{}
  *    }
  */
-router.patch('/servicerequests/:id/changelogs', uploaderFor(),
+router.patch('/servicerequests/:id/changelogs', uploaderFor(), preloader,
   function (request, response, next) {
     controller.changelogs(request, response, next);
   });
 
-router.put('/servicerequests/:id/changelogs', uploaderFor(),
+router.put('/servicerequests/:id/changelogs', uploaderFor(), preloader,
   function (request, response, next) {
     controller.changelogs(request, response, next);
   });
 
-router.post('/servicerequests/:id/changelogs', uploaderFor(),
+router.post('/servicerequests/:id/changelogs', uploaderFor(), preloader,
   function (request, response, next) {
     controller.changelogs(request, response, next);
   });

@@ -32,15 +32,15 @@ module.exports = exports = function (request, response, next) {
     request: 'ServiceRequest',
     status: 'Status',
     zone: 'Predefine',
-    item: 'Predefine'
+    item: 'Predefine',
   };
 
   //check if request has any instance
-  const hasInstances =
-    request && request.body && _.reduce(_.keys(request.body), function (has,
-      key) {
-      return (has || _.keys(instances).indexOf(key) !== -1);
-    }, false);
+  const hasInstances = (
+    request &&
+    request.body &&
+    _.intersection(_.keys(request.body), _.keys(instances))
+  );
 
   //populate request body with instances
   if (hasInstances) {

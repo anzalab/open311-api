@@ -308,6 +308,13 @@ ChangeLogSchema.statics.track = function track(changes, done) {
           changelog.assignedAt || changelog.resolvedAt || new Date();
       }
 
+      // ensure zone
+      const zone = (changelog.zone || changelog.assignee.zone);
+      if (zone) {
+        changelog.zone = zone;
+        servicerequest.zone = zone;
+      }
+
       //compute changelogs
       let changelogs = servicerequest.changes(changelog);
       changelogs =
@@ -317,7 +324,7 @@ ChangeLogSchema.statics.track = function track(changes, done) {
       // TODO: check if property exist on changelog
       changelogs = _.map(changelogs, change => {
         change.jurisdiction = servicerequest.jurisdiction;
-        change.zone = servicerequest.zone;
+        change.zone = change.zone || servicerequest.zone;
         change.group = servicerequest.group;
         change.type = servicerequest.type;
         change.service = servicerequest.service;
