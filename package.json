@@ -75,7 +75,7 @@
     "@lykmapipo/mongoose-common": ">=0.26.4",
     "@lykmapipo/permission": ">=0.8.12",
     "@lykmapipo/phone": ">=0.5.10",
-    "@lykmapipo/postman": ">=0.15.0",
+    "@lykmapipo/postman": "^0.16.0",
     "@lykmapipo/predefine": "0.8.0",
     "@lykmapipo/role": ">=0.3.14",
     "async": ">=3.1.0",
