@@ -139,7 +139,7 @@ exports.resolvedAt = {
 
 /**
  * @name reopenedAt
- * @description A latest time when the service request(issue) was reopened
+ * @description A latest time when the service request(issue) was reopened.
  *
  * @type {Object}
  * @private
