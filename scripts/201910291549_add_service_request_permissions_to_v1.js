@@ -9,6 +9,13 @@ var permissions = [{
   "action": "reopen",
   "description": "ReOpen servicerequest",
   "wildcard": "servicerequest:reopen",
+},{
+  "updatedAt": ISODate("2019-10-29T15:50:03.432Z"),
+  "createdAt": ISODate("2019-10-29T15:50:03.432Z"),
+  "resource": "ServiceRequest",
+  "action": "change location",
+  "description": "ReOpen servicerequest",
+  "wildcard": "servicerequest:change location",
 }];
 
 //upsert zone permissions
