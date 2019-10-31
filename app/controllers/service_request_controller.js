@@ -125,6 +125,12 @@ module.exports = {
         _.get(request, 'body.operator.relation.workspace'));
     request.body = _.merge({}, request.body, { method: { workspace: workspace } });
 
+    //ensure server time in case its confirmed
+    if (request.body.confirmedAt) {
+      request.body.confirmedAt = new Date();
+      request.body.operator = request.body.operator || request.party;
+    }
+
     ServiceRequest
       .edit(request, { ignore: ['changelogs', 'attachments'] }, function (
         error, servicerequest) {
@@ -191,6 +197,12 @@ module.exports = {
     if (changelog.resolvedAt) {
       changelog.resolvedAt = new Date();
       //TODO ensure resolver & assignee
+    }
+
+    //ensure server time in case its confirmed
+    if (changelog.confirmedAt) {
+      changelog.confirmedAt = new Date();
+      changelog.operator = changelog.operator || request.party;
     }
 
     //ensure server time in case its attended
