@@ -280,7 +280,8 @@ const PartySchema = new Schema({
    */
   roles: [{
     type: ObjectId,
-    ref: 'Role'
+    ref: 'Role',
+    autopopulate: { maxDepth: 1, select: { name: 1 } }
   }],
 
 
