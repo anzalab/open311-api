@@ -362,7 +362,7 @@ ChangeLogSchema.statics.track = function track(changes, done) {
           }
         }
 
-        if (!changelog.resolvedAt) {
+        if (!changelog.resolvedAt || changelog.reopenedAt) {
 
           //clear resolve time
           servicerequest.ttr = undefined;

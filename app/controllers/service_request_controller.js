@@ -205,6 +205,11 @@ module.exports = {
       changelog.operator = changelog.operator || request.party;
     }
 
+    //ensure server time in case its assigned
+    if (changelog.assignedAt) {
+      changelog.assignedAt = new Date();
+    }
+
     //ensure server time in case its attended
     if (changelog.attendedAt) {
       changelog.attendedAt = new Date();
@@ -223,6 +228,12 @@ module.exports = {
     //ensure server time in case its approved
     if (changelog.approvedAt) {
       changelog.approvedAt = new Date();
+    }
+
+    //ensure server time in case its approved
+    if (changelog.reopenedAt) {
+      changelog.reopenedAt = new Date();
+      changelog.resolvedAt = null;
     }
 
     if (changelog.location) {
