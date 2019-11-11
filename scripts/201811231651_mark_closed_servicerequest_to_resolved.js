@@ -27,7 +27,7 @@ if (status && status._id) {
 }
 
 //get supervisor
-var supervisor = db.parties.findOne({ "email": "viviansilayo@dawasco.com" });
+var supervisor = db.parties.findOne({ "email": "vivian.silayo@dawasa.go.tz" });
 
 // set changelog for resolve
 // db.servicerequests.count({ $expr : {$eq: ["$resolvedAt","$updatedAt"]}})
