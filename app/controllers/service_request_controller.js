@@ -54,7 +54,20 @@ module.exports = {
     //set operator if not exists
     let body = request.body;
 
+    //ensure service request reporter
+    if (body.reporter && _.isString(body.reporter)) {
+      body.reporter = parseBody(body.reporter);
+    }
+
+    //ensure service request location
+    if (body.location && _.isString(body.location)) {
+      body.location = parseBody(body.location);
+    }
+
     //ensure service request method
+    if (body.method && _.isString(body.method)) {
+      body.method = parseBody(body.method);
+    }
     body.method = body.method || {};
 
     //ensure current party exists and is not an app
@@ -73,8 +86,14 @@ module.exports = {
       body.operator = request.party;
     }
 
+    // esnure assigned if assignee available
+    if (body.assignee) {
+      body.assignedAt = new Date();
+    }
+
     ServiceRequest.createAndTrack(body, function (error, servicerequest) {
       if (error) {
+        console.log(error);
         next(error);
       } else {
         //support legacy
