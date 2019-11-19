@@ -93,7 +93,6 @@ module.exports = {
 
     ServiceRequest.createAndTrack(body, function (error, servicerequest) {
       if (error) {
-        console.log(error);
         next(error);
       } else {
         //support legacy
