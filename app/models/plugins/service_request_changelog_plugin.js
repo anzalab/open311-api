@@ -193,6 +193,10 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
           next(null, servicerequest);
         });
 
+      },
+
+      function reload(servicerequest, next) {
+        ServiceRequest.getById(servicerequest._id, next);
       }
     ], done);
 
