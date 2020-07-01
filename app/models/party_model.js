@@ -945,19 +945,21 @@ PartySchema.statics.findByJwt = function findByJwt(jwt, done) {
   // refs
   const Party = this;
 
+  // prepare jwt error
+  const jwtError = new Error('Invalid Authorization Token');
+  jwtError.status = 403;
+  jwtError.code = 403;
+
   return waterfall([
     // find by id
     (next) => {
-      if (!jwt || !jwt.id) { return (null, null); }
+      if (!jwt || !jwt.id) { return next(jwtError); }
       return Party.findById(jwt.id, next);
     },
     // ensure exists
     (party, next) => {
       if (!party || party.deletedAt) {
-        const error = new Error('Invalid Authorization Token');
-        error.status = 403;
-        error.code = 403;
-        return next(error);
+        return next(jwtError);
       }
       return next(null, party);
     }
