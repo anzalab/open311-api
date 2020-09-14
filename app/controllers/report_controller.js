@@ -194,7 +194,7 @@ module.exports = {
    * @version 0.1.0
    * @public
    */
-  export: function (request, response /*, next*/) {
+  export: function (request, response /*, next*/ ) {
     //TODO implement plugin for other models(schemas)
 
     //prepare criteria
@@ -244,18 +244,18 @@ module.exports = {
             serviceRequest.resolvedAt).toISOString() : '',
           'Resolved Day': serviceRequest.resolvedAt ? moment(
             serviceRequest.resolvedAt).format(
-              'DD-MM-YYYY') : '',
+            'DD-MM-YYYY') : '',
           'Resolved Time': serviceRequest.resolvedAt ? moment(
             serviceRequest.resolvedAt).format(
-              'HH:mm:ss') : '',
+            'HH:mm:ss') : '',
           'Re-Opened Date': serviceRequest.reopenedAt ? moment(
             serviceRequest.reopenedAt).toISOString() : '',
           'Re-Opened Day': serviceRequest.reopenedAt ? moment(
             serviceRequest.reopenedAt).format(
-              'DD-MM-YYYY') : '',
+            'DD-MM-YYYY') : '',
           'Re-Opened Time': serviceRequest.reopenedAt ? moment(
             serviceRequest.reopenedAt).format(
-              'HH:mm:ss') : '',
+            'HH:mm:ss') : '',
           'Updated Date': serviceRequest.updatedAt ? moment(
             serviceRequest.updatedAt).toISOString() : '',
           'Contact Method': _.get(serviceRequest, 'method.name', ''),
@@ -264,6 +264,12 @@ module.exports = {
           'Latitude': (serviceRequest.latitude || 0),
           'Address': (serviceRequest.address || '').replace(/,/g, ';'),
           'Description': (serviceRequest.description || '').replace(
+            /,/g, ';'),
+          'Root Cause': _.get(serviceRequest, 'cause.name.en', '').replace(
+            /,/g, ';'),
+          'Action Taken': _.get(serviceRequest, 'measure.name.en', '').replace(
+            /,/g, ';'),
+          'Way Forward': _.get(serviceRequest, 'advisory.name.en', '').replace(
             /,/g, ';'),
         };
 
