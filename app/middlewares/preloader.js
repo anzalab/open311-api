@@ -22,12 +22,13 @@ module.exports = exports = function (request, response, next) {
     changer: 'Party',
     assignee: 'Party',
     jurisdiction: 'Jurisdiction',
+    zone: 'Predefine',
+    type: 'Predefine',
     group: 'ServiceGroup',
     service: 'Service',
+    status: 'Status',
     priority: 'Priority',
     request: 'ServiceRequest',
-    status: 'Status',
-    zone: 'Predefine',
     item: 'Predefine',
   };
 
