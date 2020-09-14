@@ -17,6 +17,9 @@ let group;
 let service;
 let status;
 let priority;
+let cause;
+let measure;
+let advisory;
 
 /**
  * @name base
@@ -198,6 +201,74 @@ exports.priority = priority = {
   }
 };
 
+/**
+ * @name cause
+ * @description A root cause underwhich request(issue) belongs to.
+ *
+ * This field is used for quality control.
+ *
+ * @type {Object}
+ * @see {@link Predefine}
+ * @private
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+exports.cause = cause = {
+  type: ObjectId,
+  ref: Predefine.MODEL_NAME,
+  // required: true,
+  index: true,
+  exists: true,
+  aggregatable: { unwind: true },
+  autopopulate: Predefine.OPTION_AUTOPOPULATE,
+};
+
+/**
+ * @name measure
+ * @description A action taken to resolve a service request(issue).
+ *
+ * This field is used for quality control.
+ *
+ * @type {Object}
+ * @see {@link Predefine}
+ * @private
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+exports.measure = measure = {
+  type: ObjectId,
+  ref: Predefine.MODEL_NAME,
+  // required: true,
+  index: true,
+  exists: true,
+  aggregatable: { unwind: true },
+  autopopulate: Predefine.OPTION_AUTOPOPULATE,
+};
+
+
+/**
+ * @name advisoru
+ * @description A recommendation or suggested way forward for the resolved
+ * service request(issue).
+ *
+ * This field is used for quality control.
+ *
+ * @type {Object}
+ * @see {@link Predefine}
+ * @private
+ * @since 0.1.0
+ * @version 0.1.0
+ */
+exports.advisory = advisory = {
+  type: ObjectId,
+  ref: Predefine.MODEL_NAME,
+  // required: true,
+  index: true,
+  exists: true,
+  aggregatable: { unwind: true },
+  autopopulate: Predefine.OPTION_AUTOPOPULATE,
+};
+
 
 exports.requestBase = mergeObjects({
   jurisdiction,
@@ -206,7 +277,10 @@ exports.requestBase = mergeObjects({
   group,
   service,
   status,
-  priority
+  priority,
+  cause,
+  measure,
+  advisory
 });
 exports.changelogBase = _.mapValues(
   mergeObjects(exports.requestBase),

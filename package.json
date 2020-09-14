@@ -48,6 +48,7 @@
     "dev": "BASE_PATH=./ NODE_ENV=development node server.js",
     "prod": "BASE_PATH=./ NODE_ENV=production node server.js",
     "test": "NODE_ENV=test grunt unit",
+    "lint": "NODE_ENV=test grunt jshint",
     "start": "pm2 start production.json",
     "stop": "pm2 stop production.json",
     "restart": "pm2 restart production.json --update-env",
