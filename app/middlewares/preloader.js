@@ -28,6 +28,9 @@ module.exports = exports = function (request, response, next) {
     service: 'Service',
     status: 'Status',
     priority: 'Priority',
+    cause: 'Predefine',
+    measure: 'Predefine',
+    advisory: 'Predefine',
     request: 'ServiceRequest',
     item: 'Predefine',
   };
