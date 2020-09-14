@@ -135,6 +135,7 @@ module.exports = exports = function changelog(schema /*, options*/ ) {
 
       //update changelogs
       const isValid = (
+        changelog.cause || changelog.measure || changelog.advisory ||
         changelog.status || changelog.priority ||
         changelog.assignee || changelog.comment ||
         changelog.resolvedAt || changelog.reopenedAt ||
