@@ -8,6 +8,8 @@ const {
   CONTACT_METHODS_WEB
 } = require('@codetanzania/majifix-common');
 
+const GENDERS = ['Female', 'Male', 'Unknown'];
+
 /**
  * @description middleware to load application settings
  * @param {HttpRequest} request  http request
@@ -25,6 +27,7 @@ module.exports = function loadSettings(request, response, next) {
       }
     },
     servicerequest: {
+      genders: GENDERS,
       methods: CONTACT_METHODS,
       webMethods: CONTACT_METHODS_WEB
     }

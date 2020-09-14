@@ -153,3 +153,33 @@ exports.ttr = Duration;
  * @since 0.1.0
  * @version 0.1.0
  */
+
+
+/**
+ * @name properties
+ * @description A map of key value pairs to allow to associate
+ * other meaningful information to a request.
+ *
+ * @type {object}
+ * @property {object} type - schema(data) type
+ * @property {boolean} trim - force trimming
+ * @property {boolean} index - ensure database index
+ * @property {boolean} taggable - allow field use for tagging
+ * @property {object} fake - fake data generator options
+ *
+ * @since 0.1.0
+ * @version 0.1.0
+ * @instance
+ * @example
+ * {
+ *   "section": "Billing"
+ * }
+ *
+ */
+exports.properties = {
+  type: Map,
+  of: String,
+  index: true,
+  taggable: true,
+  fake: f => f.helpers.createTransaction(),
+};

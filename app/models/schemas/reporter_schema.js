@@ -91,8 +91,36 @@ const ReporterSchema = createSubSchema({
     index: true,
     searchable: true,
     taggable: true
-  }
+  },
 
+  /**
+   * @name age
+   * @description Estimated age of the reporter
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  age: {
+    type: Number,
+    index: true
+  },
+
+  /**
+   * @name gender
+   * @description Gender of the reporter
+   * @type {Object}
+   * @private
+   * @since 0.1.0
+   * @version 0.1.0
+   */
+  gender: {
+    type: String,
+    trim: true,
+    index: true,
+    searchable: true,
+    taggable: true
+  }
 });
 
 
