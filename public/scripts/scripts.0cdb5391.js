@@ -2106,6 +2106,9 @@ angular
     Item,
     Comment,
     Message,
+    QualityCause,
+    QualityMeasure,
+    QualityAdvisory,
     Summary,
     endpoints,
     party
@@ -2116,6 +2119,7 @@ angular
     $scope.comments = [];
     $scope.worklogs = [];
     $scope.worklog = {};
+    $scope.quality = {};
     $scope.servicerequest = new ServiceRequest({
       call: {
         startedAt: new Date(),
@@ -2688,7 +2692,7 @@ angular
         ],
       })
         .then(function() {
-          if (!$scope.servicerequest.vefifiedAt) {
+          if (!$scope.servicerequest.verifiedAt) {
             var changelog = {
               //TODO flag internal or public
               changer: party._id,
@@ -2760,6 +2764,156 @@ angular
     };
 
     /**
+     * @function
+     * @name onResolveWithRemarks
+     * @description Resolve service request with a room to provide quality measures
+     */
+    $scope.onResolveWithRemarks = function() {
+      prompt({
+        title: 'Resolve Issue',
+        message: 'Are you sure you want to mark this issue as resolved?',
+        buttons: [
+          {
+            label: 'Yes',
+            primary: true,
+          },
+          {
+            label: 'No',
+            cancel: true,
+          },
+        ],
+      }).then(function() {
+        $scope.showResolveRemarksModal();
+      });
+    };
+
+    /**
+     * @function
+     * @name showResolveRemarksModal
+     * @description Show modal window for input resolve remarks
+     */
+    $scope.showResolveRemarksModal = function() {
+      $scope.quality = {
+        cause: $scope.servicerequest.cause,
+        measure: $scope.servicerequest.measure,
+        advisory: $scope.servicerequest.advisory,
+      };
+
+      //open resolve remarks modal
+      $scope.modal = $uibModal.open({
+        templateUrl:
+          'views/servicerequests/_partials/resolve_remarks_modal.html',
+        scope: $scope,
+        size: 'lg',
+      });
+
+      //handle modal close and dismissed
+      $scope.modal.result.then(
+        function onClose(/*selectedItem*/) {},
+        function onDismissed() {}
+      );
+    };
+
+    /**
+     * @function
+     * @name searchQualityCauses
+     * @description Search Root causes
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    $scope.searchQualityCauses = function(query) {
+      return QualityCause.find({
+        filter: {
+          deletedAt: {
+            $eq: null,
+          },
+        },
+        q: query,
+      }).then(function(response) {
+        return response.qualitycauses;
+      });
+    };
+
+    /**
+     * @function
+     * @name searchQualityMeasures
+     * @description Search Measures/action taken
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    $scope.searchQualityMeasures = function(query) {
+      return QualityMeasure.find({
+        filter: {
+          deletedAt: {
+            $eq: null,
+          },
+        },
+        q: query,
+      }).then(function(response) {
+        return response.qualitymeasures;
+      });
+    };
+
+    /**
+     * @function
+     * @name searchQualityAdvisories
+     * @description Search Advisories/ Way forward
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    $scope.searchQualityAdvisories = function(query) {
+      return QualityAdvisory.find({
+        filter: {
+          deletedAt: {
+            $eq: null,
+          },
+        },
+        q: query,
+      }).then(function(response) {
+        return response.qualityadvisories;
+      });
+    };
+
+    /**
+     * @function
+     * @name resolveWithRemarks
+     * @description Close and resolve issue with remarks
+     */
+    $scope.resolveWithRemarks = function() {
+      var resolvedAt = $scope.servicerequest.resolvedAt;
+
+      var changelog = {
+        //TODO flag internal or public
+        changer: party._id,
+        cause: $scope.quality.cause,
+        measure: $scope.quality.measure,
+        advisory: $scope.quality.advisory,
+        resolvedAt: resolvedAt ? undefined : new Date(),
+      };
+
+      //update changelog
+      var _id = $scope.servicerequest._id;
+      ServiceRequest.changelog(_id, changelog).then(function(response) {
+        // $scope.servicerequest = response;
+        $scope.select(response);
+        $scope.updated = true;
+
+        $scope.modal.close();
+        $scope.quality = {};
+        $rootScope.$broadcast('app:servicerequests:reload');
+
+        response = response || {};
+
+        response.message = response.message || 'Issue Marked As Resolved';
+
+        $rootScope.$broadcast('appSuccess', response);
+      });
+    };
+
+    /**
      * re-open close issue
      */
     $scope.onReOpen = function() {
@@ -2783,6 +2937,7 @@ angular
               //TODO flag internal or public
               changer: party._id,
               resolvedAt: null,
+              reopenedAt: new Date(),
             };
 
             //update changelog
@@ -4324,6 +4479,577 @@ angular.module('ng311').config(function($stateProvider) {
 
 /**
  * @ngdoc service
+ * @name ng311.Jurisdiction
+ * @description
+ * # Jurisdiction
+ * Factory in the ng311.
+ */
+angular
+  .module('ng311')
+  .factory('Jurisdiction', function($http, $resource, Utils) {
+    //create jurisdiction resource
+    var Jurisdiction = $resource(
+      Utils.asLink(['jurisdictions', ':id']),
+      {
+        id: '@_id',
+      },
+      {
+        update: {
+          method: 'PUT',
+        },
+      }
+    );
+
+    /**
+     * @description find jurisdiction with pagination
+     * @param  {[type]} params [description]
+     * @return {[type]}        [description]
+     */
+    Jurisdiction.find = function(params) {
+      return $http
+        .get(Utils.asLink('v1/jurisdictions'), {
+          params: params,
+        })
+        .then(function(response) {
+          //map plain jurisdiction object to resource instances
+          var jurisdictions = response.data.data.map(function(jurisdiction) {
+            //create jurisdiction as a resource instance
+            return new Jurisdiction(jurisdiction);
+          });
+
+          //return paginated response
+          return {
+            jurisdictions: jurisdictions,
+            total: response.data.total,
+          };
+        });
+    };
+
+    return Jurisdiction;
+  });
+
+'use strict';
+
+/**
+ * @ngdoc function
+ * @name ng311.controller:JurisdictionIndexCtrl
+ * @description
+ * # JurisdictionIndexCtrl
+ * Jurisdiction list controller of ng311
+ */
+angular
+  .module('ng311')
+  .controller('JurisdictionIndexCtrl', function(
+    $rootScope,
+    $scope,
+    $state,
+    Jurisdiction
+  ) {
+    //jurisdictions in the scope
+    $scope.spin = false;
+    $scope.jurisdictions = [];
+    $scope.page = 1;
+    $scope.limit = 10;
+    $scope.total = 0;
+
+    $scope.search = {};
+
+    $scope.onSearch = function() {
+      if ($scope.search.q && $scope.search.q.length >= 2) {
+        $scope.q = $scope.search.q;
+        $scope.find();
+      } else {
+        $scope.q = undefined;
+        $scope.find();
+      }
+    };
+
+    /**
+     * set current service request
+     */
+    $scope.select = function(jurisdiction) {
+      //sort comments in desc order
+      if (jurisdiction && jurisdiction._id) {
+        //update scope service request ref
+        $scope.jurisdiction = jurisdiction;
+        $rootScope.$broadcast('jurisdiction:selected', jurisdiction);
+      }
+
+      $scope.create = false;
+    };
+
+    /**
+     * @description load jurisdictions
+     */
+    $scope.find = function() {
+      //start show spinner
+      $scope.spin = true;
+
+      Jurisdiction.find({
+        page: $scope.page,
+        limit: $scope.limit,
+        sort: {
+          updatedAt: -1,
+          name: 1,
+        },
+        filter: {},
+        q: $scope.q,
+      })
+        .then(function(response) {
+          //update scope with jurisdictions when done loading
+          $scope.jurisdictions = response.jurisdictions;
+          if ($scope.updated) {
+            $scope.updated = false;
+          } else {
+            $scope.select(_.first($scope.jurisdictions));
+          }
+          $scope.total = response.total;
+          $scope.spin = false;
+        })
+        .catch(function(error) {
+          $scope.spin = false;
+        });
+    };
+
+    //check whether jurisdictions will paginate
+    $scope.willPaginate = function() {
+      var willPaginate =
+        $scope.jurisdictions && $scope.total && $scope.total > $scope.limit;
+      return willPaginate;
+    };
+
+    //pre load jurisdictions on state activation
+    $scope.find();
+
+    //listen for events
+    $rootScope.$on('app:jurisdictions:reload', function() {
+      $scope.find();
+    });
+  });
+
+'use strict';
+
+/**
+ * @ngdoc function
+ * @name ng311.controller:JurisdictionShowCtrl
+ * @description
+ * # JurisdictionShowCtrl
+ * Jurisdiction show controller of ng311
+ */
+angular
+  .module('ng311')
+  .controller('JurisdictionShowCtrl', function(
+    $rootScope,
+    $scope,
+    $state,
+    $stateParams,
+    Jurisdiction
+  ) {
+    $scope.edit = false;
+
+    /**
+     * @function
+     * @name setColorPickerOptions
+     * @description Set or Update color picker options when need to change
+     *
+     * @version  0.1.0
+     * @since 0.1.0
+     */
+    var setColorPickerOptions = function() {
+      $scope.colorPickerOptions = {
+        swatchPos: 'right',
+        disabled: !$scope.edit,
+        inputClass: 'form-control',
+        format: 'hexString',
+        round: true,
+      };
+    };
+
+    $scope.onEdit = function() {
+      $scope.edit = true;
+      setColorPickerOptions();
+    };
+
+    $scope.onCancel = function() {
+      $scope.edit = false;
+      setColorPickerOptions();
+      $rootScope.$broadcast('app:jurisdictions:reload');
+    };
+
+    $scope.onNew = function() {
+      $scope.jurisdiction = new Jurisdiction({
+        location: {
+          coordinates: [0, 0],
+        },
+      });
+      $scope.edit = true;
+      setColorPickerOptions();
+    };
+
+    //TODO show empty state if no jurisdiction selected
+    //listen for selected jurisdiction
+    $rootScope.$on('jurisdiction:selected', function(event, jurisdiction) {
+      $scope.jurisdiction = jurisdiction;
+    });
+
+    /**
+     * @description save created jurisdiction
+     */
+    $scope.save = function() {
+      //TODO show input prompt
+      //TODO show loading mask
+
+      //update location(longitude & latitude) coordinates
+      $scope.jurisdiction.location = {
+        type: 'Point',
+        coordinates: [
+          $scope.jurisdiction.longitude || 0,
+          $scope.jurisdiction.latitude || 0,
+        ],
+      };
+
+      //try update or save jurisdiction
+      /* jshint ignore:start */
+      var updateOrSave = !$scope.jurisdiction._id
+        ? $scope.jurisdiction.$save()
+        : $scope.jurisdiction.$update();
+
+      updateOrSave
+        .then(function(response) {
+          response = response || {};
+
+          response.message =
+            response.message || 'Jurisdiction Saved Successfully';
+
+          $rootScope.$broadcast('appSuccess', response);
+
+          $rootScope.$broadcast('app:jurisdictions:reload');
+
+          $scope.edit = false;
+          setColorPickerOptions();
+        })
+        .catch(function(error) {
+          $rootScope.$broadcast('appError', error);
+        });
+      /* jshint ignore:end */
+    };
+
+    setColorPickerOptions();
+  });
+
+'use strict';
+
+/**
+ * @ngdoc function
+ * @name ng311.states:Jurisdiction
+ * @description
+ * Jurisdiction states configuration of ng311
+ */
+angular.module('ng311').config(function($stateProvider) {
+  //jurisdictions management states
+  $stateProvider.state('app.manage.jurisdictions', {
+    url: '/jurisdictions',
+    views: {
+      list: {
+        templateUrl: 'views/jurisdictions/_partials/list.html',
+        controller: 'JurisdictionIndexCtrl',
+      },
+      detail: {
+        templateUrl: 'views/jurisdictions/_partials/detail.html',
+        controller: 'JurisdictionShowCtrl',
+      },
+    },
+    data: {
+      authenticated: true,
+    },
+  });
+});
+
+'use strict';
+
+/**
+ * @ngdoc service
+ * @name ng311.Zone
+ * @description
+ * # Zone
+ * Factory in the ng311.
+ */
+angular.module('ng311').factory('Zone', function($http, $resource, Utils) {
+  //create service resource
+  var Zone = $resource(
+    Utils.asLink(['v1/predefines/zones', ':id']),
+    {
+      id: '@_id',
+    },
+    {
+      update: {
+        method: 'PUT',
+      },
+    }
+  );
+
+  /**
+   * @description find service with pagination
+   * @param  {[type]} params [description]
+   * @return {[type]}        [description]
+   */
+  Zone.find = function(params) {
+    return $http
+      .get(Utils.asLink('v1/predefines/zones'), {
+        params: params,
+      })
+      .then(function(response) {
+        //map plain service object to resource instances
+        var zones = response.data.data.map(function(service) {
+          //create service as a resource instance
+          return new Zone(service);
+        });
+
+        //return paginated response
+        return {
+          zones: zones,
+          total: response.data.total,
+        };
+      });
+  };
+
+  return Zone;
+});
+
+'use strict';
+
+/**
+ * @ngdoc function
+ * @name ng311.controller:ZoneIndexCtrl
+ * @description
+ * # ZoneIndexCtrl
+ * Zone list controller of ng311
+ */
+angular
+  .module('ng311')
+  .controller('ZoneIndexCtrl', function($rootScope, $scope, $state, Zone) {
+    //zones in the scope
+    $scope.spin = false;
+    $scope.zones = [];
+    $scope.page = 1;
+    $scope.limit = 10;
+    $scope.total = 0;
+
+    $scope.search = {};
+
+    $scope.onSearch = function() {
+      if ($scope.search.q && $scope.search.q.length >= 2) {
+        $scope.q = $scope.search.q;
+        $scope.find();
+      } else {
+        $scope.q = undefined;
+        $scope.find();
+      }
+    };
+
+    /**
+     * set current zone request
+     */
+    $scope.select = function(zone) {
+      //sort comments in desc order
+      if (zone && zone._id) {
+        //update scope zone request ref
+        $scope.zone = zone;
+        $rootScope.$broadcast('zone:selected', zone);
+      }
+
+      $scope.create = false;
+    };
+
+    /**
+     * @description load zones
+     */
+    $scope.find = function() {
+      //start sho spinner
+      $scope.spin = true;
+
+      Zone.find({
+        page: $scope.page,
+        limit: $scope.limit,
+        sort: {
+          name: 1,
+        },
+        filter: {},
+        q: $scope.q,
+      })
+        .then(function(response) {
+          //update scope with zones when done loading
+          $scope.zones = response.zones;
+          if ($scope.updated) {
+            $scope.updated = false;
+          } else {
+            $scope.select(_.first($scope.zones));
+          }
+          $scope.total = response.total;
+          $scope.spin = false;
+        })
+        .catch(function(error) {
+          $scope.spin = false;
+        });
+    };
+
+    //check whether zones will paginate
+    $scope.willPaginate = function() {
+      var willPaginate =
+        $scope.zones && $scope.total && $scope.total > $scope.limit;
+      return willPaginate;
+    };
+
+    //pre load zones on state activation
+    $scope.find();
+
+    //listen for events
+    $rootScope.$on('app:zones:reload', function() {
+      $scope.find();
+    });
+  });
+
+'use strict';
+
+/**
+ * @ngdoc function
+ * @name ng311.controller:ZoneShowCtrl
+ * @description
+ * # ZoneShowCtrl
+ * Zone show controller of ng311
+ */
+angular
+  .module('ng311')
+  .controller('ZoneShowCtrl', function(
+    $rootScope,
+    $scope,
+    $state,
+    $stateParams,
+    Jurisdiction,
+    Zone
+  ) {
+    $scope.edit = false;
+
+    /**
+     * @function
+     * @name setColorPickerOptions
+     * @description Set or Update color picker options when need to change
+     *
+     * @version  0.1.0
+     * @since 0.1.0
+     */
+    var setColorPickerOptions = function() {
+      $scope.colorPickerOptions = {
+        swatchPos: 'right',
+        disabled: !$scope.edit,
+        inputClass: 'form-control',
+        format: 'hexString',
+        round: true,
+      };
+    };
+
+    $scope.onEdit = function() {
+      $scope.edit = true;
+      setColorPickerOptions();
+    };
+
+    $scope.onCancel = function() {
+      $scope.edit = false;
+      setColorPickerOptions();
+      $rootScope.$broadcast('app:zones:reload');
+    };
+
+    $scope.onNew = function() {
+      $scope.zone = new Zone({});
+      $scope.edit = true;
+      setColorPickerOptions();
+    };
+
+    /**
+     * @function
+     * @name searchJurisdictions
+     * @description Search jurisdictions by name
+     *
+     * @version 0.1.0
+     * @since 0.1.0
+     */
+    $scope.searchJurisdictions = function(query) {
+      return Jurisdiction.find({ q: query }).then(function(response) {
+        return response.jurisdictions;
+      });
+    };
+
+    //TODO show empty state if no zone selected
+    //listen for selected zone
+    $rootScope.$on('zone:selected', function(event, zone) {
+      $scope.zone = zone;
+    });
+
+    /**
+     * @description save created zone
+     */
+    $scope.save = function() {
+      //TODO show input prompt
+      //TODO show loading mask
+
+      //try update or save zone
+      var updateOrSave = !$scope.zone._id
+        ? $scope.zone.$save()
+        : $scope.zone.$update();
+
+      updateOrSave
+        .then(function(response) {
+          response = response || {};
+
+          response.message = response.message || 'Zone Saved Successfully';
+
+          $rootScope.$broadcast('appSuccess', response);
+
+          $rootScope.$broadcast('app:zones:reload');
+
+          $scope.edit = false;
+          setColorPickerOptions();
+        })
+        .catch(function(error) {
+          $rootScope.$broadcast('appError', error);
+        });
+    };
+
+    setColorPickerOptions();
+  });
+
+'use strict';
+
+/**
+ * @ngdoc function
+ * @name ng311.states:Zone
+ * @description
+ * Zone states configuration of ng311
+ */
+angular.module('ng311').config(function($stateProvider) {
+  //zones management states
+  $stateProvider.state('app.manage.zones', {
+    url: '/zones',
+    views: {
+      list: {
+        templateUrl: 'views/zones/_partials/list.html',
+        controller: 'ZoneIndexCtrl',
+      },
+      detail: {
+        templateUrl: 'views/zones/_partials/detail.html',
+        controller: 'ZoneShowCtrl',
+      },
+    },
+    data: {
+      authenticated: true,
+    },
+  });
+});
+
+'use strict';
+
+/**
+ * @ngdoc service
  * @name ng311.ServiceGroup
  * @description
  * # ServiceGroup
@@ -5753,296 +6479,6 @@ angular.module('ng311').config(function($stateProvider) {
 
 /**
  * @ngdoc service
- * @name ng311.Jurisdiction
- * @description
- * # Jurisdiction
- * Factory in the ng311.
- */
-angular
-  .module('ng311')
-  .factory('Jurisdiction', function($http, $resource, Utils) {
-    //create jurisdiction resource
-    var Jurisdiction = $resource(
-      Utils.asLink(['jurisdictions', ':id']),
-      {
-        id: '@_id',
-      },
-      {
-        update: {
-          method: 'PUT',
-        },
-      }
-    );
-
-    /**
-     * @description find jurisdiction with pagination
-     * @param  {[type]} params [description]
-     * @return {[type]}        [description]
-     */
-    Jurisdiction.find = function(params) {
-      return $http
-        .get(Utils.asLink('v1/jurisdictions'), {
-          params: params,
-        })
-        .then(function(response) {
-          //map plain jurisdiction object to resource instances
-          var jurisdictions = response.data.data.map(function(jurisdiction) {
-            //create jurisdiction as a resource instance
-            return new Jurisdiction(jurisdiction);
-          });
-
-          //return paginated response
-          return {
-            jurisdictions: jurisdictions,
-            total: response.data.total,
-          };
-        });
-    };
-
-    return Jurisdiction;
-  });
-
-'use strict';
-
-/**
- * @ngdoc function
- * @name ng311.controller:JurisdictionIndexCtrl
- * @description
- * # JurisdictionIndexCtrl
- * Jurisdiction list controller of ng311
- */
-angular
-  .module('ng311')
-  .controller('JurisdictionIndexCtrl', function(
-    $rootScope,
-    $scope,
-    $state,
-    Jurisdiction
-  ) {
-    //jurisdictions in the scope
-    $scope.spin = false;
-    $scope.jurisdictions = [];
-    $scope.page = 1;
-    $scope.limit = 10;
-    $scope.total = 0;
-
-    $scope.search = {};
-
-    $scope.onSearch = function() {
-      if ($scope.search.q && $scope.search.q.length >= 2) {
-        $scope.q = $scope.search.q;
-        $scope.find();
-      } else {
-        $scope.q = undefined;
-        $scope.find();
-      }
-    };
-
-    /**
-     * set current service request
-     */
-    $scope.select = function(jurisdiction) {
-      //sort comments in desc order
-      if (jurisdiction && jurisdiction._id) {
-        //update scope service request ref
-        $scope.jurisdiction = jurisdiction;
-        $rootScope.$broadcast('jurisdiction:selected', jurisdiction);
-      }
-
-      $scope.create = false;
-    };
-
-    /**
-     * @description load jurisdictions
-     */
-    $scope.find = function() {
-      //start show spinner
-      $scope.spin = true;
-
-      Jurisdiction.find({
-        page: $scope.page,
-        limit: $scope.limit,
-        sort: {
-          updatedAt: -1,
-          name: 1,
-        },
-        filter: {},
-        q: $scope.q,
-      })
-        .then(function(response) {
-          //update scope with jurisdictions when done loading
-          $scope.jurisdictions = response.jurisdictions;
-          if ($scope.updated) {
-            $scope.updated = false;
-          } else {
-            $scope.select(_.first($scope.jurisdictions));
-          }
-          $scope.total = response.total;
-          $scope.spin = false;
-        })
-        .catch(function(error) {
-          $scope.spin = false;
-        });
-    };
-
-    //check whether jurisdictions will paginate
-    $scope.willPaginate = function() {
-      var willPaginate =
-        $scope.jurisdictions && $scope.total && $scope.total > $scope.limit;
-      return willPaginate;
-    };
-
-    //pre load jurisdictions on state activation
-    $scope.find();
-
-    //listen for events
-    $rootScope.$on('app:jurisdictions:reload', function() {
-      $scope.find();
-    });
-  });
-
-'use strict';
-
-/**
- * @ngdoc function
- * @name ng311.controller:JurisdictionShowCtrl
- * @description
- * # JurisdictionShowCtrl
- * Jurisdiction show controller of ng311
- */
-angular
-  .module('ng311')
-  .controller('JurisdictionShowCtrl', function(
-    $rootScope,
-    $scope,
-    $state,
-    $stateParams,
-    Jurisdiction
-  ) {
-    $scope.edit = false;
-
-    /**
-     * @function
-     * @name setColorPickerOptions
-     * @description Set or Update color picker options when need to change
-     *
-     * @version  0.1.0
-     * @since 0.1.0
-     */
-    var setColorPickerOptions = function() {
-      $scope.colorPickerOptions = {
-        swatchPos: 'right',
-        disabled: !$scope.edit,
-        inputClass: 'form-control',
-        format: 'hexString',
-        round: true,
-      };
-    };
-
-    $scope.onEdit = function() {
-      $scope.edit = true;
-      setColorPickerOptions();
-    };
-
-    $scope.onCancel = function() {
-      $scope.edit = false;
-      setColorPickerOptions();
-      $rootScope.$broadcast('app:jurisdictions:reload');
-    };
-
-    $scope.onNew = function() {
-      $scope.jurisdiction = new Jurisdiction({
-        location: {
-          coordinates: [0, 0],
-        },
-      });
-      $scope.edit = true;
-      setColorPickerOptions();
-    };
-
-    //TODO show empty state if no jurisdiction selected
-    //listen for selected jurisdiction
-    $rootScope.$on('jurisdiction:selected', function(event, jurisdiction) {
-      $scope.jurisdiction = jurisdiction;
-    });
-
-    /**
-     * @description save created jurisdiction
-     */
-    $scope.save = function() {
-      //TODO show input prompt
-      //TODO show loading mask
-
-      //update location(longitude & latitude) coordinates
-      $scope.jurisdiction.location = {
-        type: 'Point',
-        coordinates: [
-          $scope.jurisdiction.longitude || 0,
-          $scope.jurisdiction.latitude || 0,
-        ],
-      };
-
-      //try update or save jurisdiction
-      /* jshint ignore:start */
-      var updateOrSave = !$scope.jurisdiction._id
-        ? $scope.jurisdiction.$save()
-        : $scope.jurisdiction.$update();
-
-      updateOrSave
-        .then(function(response) {
-          response = response || {};
-
-          response.message =
-            response.message || 'Jurisdiction Saved Successfully';
-
-          $rootScope.$broadcast('appSuccess', response);
-
-          $rootScope.$broadcast('app:jurisdictions:reload');
-
-          $scope.edit = false;
-          setColorPickerOptions();
-        })
-        .catch(function(error) {
-          $rootScope.$broadcast('appError', error);
-        });
-      /* jshint ignore:end */
-    };
-
-    setColorPickerOptions();
-  });
-
-'use strict';
-
-/**
- * @ngdoc function
- * @name ng311.states:Jurisdiction
- * @description
- * Jurisdiction states configuration of ng311
- */
-angular.module('ng311').config(function($stateProvider) {
-  //jurisdictions management states
-  $stateProvider.state('app.manage.jurisdictions', {
-    url: '/jurisdictions',
-    views: {
-      list: {
-        templateUrl: 'views/jurisdictions/_partials/list.html',
-        controller: 'JurisdictionIndexCtrl',
-      },
-      detail: {
-        templateUrl: 'views/jurisdictions/_partials/detail.html',
-        controller: 'JurisdictionShowCtrl',
-      },
-    },
-    data: {
-      authenticated: true,
-    },
-  });
-});
-
-'use strict';
-
-/**
- * @ngdoc service
  * @name ng311.Item
  * @description
  * # Item
@@ -6309,68 +6745,75 @@ angular.module('ng311').config(function($stateProvider) {
 
 /**
  * @ngdoc service
- * @name ng311.Zone
+ * @name ng311.QualityCause
  * @description
- * # Zone
+ * # QualityCause
  * Factory in the ng311.
  */
-angular.module('ng311').factory('Zone', function($http, $resource, Utils) {
-  //create service resource
-  var Zone = $resource(
-    Utils.asLink(['v1/predefines/zones', ':id']),
-    {
-      id: '@_id',
-    },
-    {
-      update: {
-        method: 'PUT',
+angular
+  .module('ng311')
+  .factory('QualityCause', function($http, $resource, Utils) {
+    //create qualitycause resource
+    var QualityCause = $resource(
+      Utils.asLink(['v1/predefines/qualitycauses', ':id']),
+      {
+        id: '@_id',
       },
-    }
-  );
+      {
+        update: {
+          method: 'PUT',
+        },
+      }
+    );
 
-  /**
-   * @description find service with pagination
-   * @param  {[type]} params [description]
-   * @return {[type]}        [description]
-   */
-  Zone.find = function(params) {
-    return $http
-      .get(Utils.asLink('v1/predefines/zones'), {
-        params: params,
-      })
-      .then(function(response) {
-        //map plain service object to resource instances
-        var zones = response.data.data.map(function(service) {
-          //create service as a resource instance
-          return new Zone(service);
+    /**
+     * @description find qualitycause with pagination
+     * @param  {[type]} params [description]
+     * @return {[type]}        [description]
+     */
+    QualityCause.find = function(params) {
+      return $http
+        .get(Utils.asLink('v1/predefines/qualitycauses'), {
+          params: params,
+        })
+        .then(function(response) {
+          //map plain qualitycause object to resource instances
+          var qualitycauses = response.data.data.map(function(qualitycause) {
+            //create qualitycause as a resource instance
+            return new QualityCause(qualitycause);
+          });
+
+          //return paginated response
+          return {
+            qualitycauses: qualitycauses,
+            total: response.data.total,
+          };
         });
+    };
 
-        //return paginated response
-        return {
-          zones: zones,
-          total: response.data.total,
-        };
-      });
-  };
-
-  return Zone;
-});
+    return QualityCause;
+  });
 
 'use strict';
 
 /**
  * @ngdoc function
- * @name ng311.controller:ZoneIndexCtrl
+ * @name ng311.controller:QualityCauseIndexCtrl
  * @description
- * # ZoneIndexCtrl
- * Zone list controller of ng311
+ * # QualityCauseIndexCtrl
+ * QualityCause list controller of ng311
  */
 angular
   .module('ng311')
-  .controller('ZoneIndexCtrl', function($rootScope, $scope, $state, Zone) {
-    //zones in the scope
+  .controller('QualityCauseIndexCtrl', function(
+    $rootScope,
+    $scope,
+    $state,
+    QualityCause
+  ) {
+    //qualitycauses in the scope
     $scope.spin = false;
-    $scope.zones = [];
+    $scope.qualitycauses = [];
     $scope.page = 1;
     $scope.limit = 10;
     $scope.total = 0;
@@ -6388,42 +6831,42 @@ angular
     };
 
     /**
-     * set current zone request
+     * set current qualitycause request
      */
-    $scope.select = function(zone) {
+    $scope.select = function(qualitycause) {
       //sort comments in desc order
-      if (zone && zone._id) {
-        //update scope zone request ref
-        $scope.zone = zone;
-        $rootScope.$broadcast('zone:selected', zone);
+      if (qualitycause && qualitycause._id) {
+        //update scope qualitycause request ref
+        $scope.qualitycause = qualitycause;
+        $rootScope.$broadcast('qualitycause:selected', qualitycause);
       }
 
       $scope.create = false;
     };
 
     /**
-     * @description load zones
+     * @description load qualitycauses
      */
     $scope.find = function() {
       //start sho spinner
       $scope.spin = true;
 
-      Zone.find({
+      QualityCause.find({
         page: $scope.page,
         limit: $scope.limit,
         sort: {
-          name: 1,
+          'name.en': 1,
         },
         filter: {},
         q: $scope.q,
       })
         .then(function(response) {
-          //update scope with zones when done loading
-          $scope.zones = response.zones;
+          //update scope with qualitycauses when done loading
+          $scope.qualitycauses = response.qualitycauses;
           if ($scope.updated) {
             $scope.updated = false;
           } else {
-            $scope.select(_.first($scope.zones));
+            $scope.select(_.first($scope.qualitycauses));
           }
           $scope.total = response.total;
           $scope.spin = false;
@@ -6433,18 +6876,18 @@ angular
         });
     };
 
-    //check whether zones will paginate
+    //check whether qualitycauses will paginate
     $scope.willPaginate = function() {
       var willPaginate =
-        $scope.zones && $scope.total && $scope.total > $scope.limit;
+        $scope.qualitycauses && $scope.total && $scope.total > $scope.limit;
       return willPaginate;
     };
 
-    //pre load zones on state activation
+    //pre load qualitycauses on state activation
     $scope.find();
 
     //listen for events
-    $rootScope.$on('app:zones:reload', function() {
+    $rootScope.$on('app:qualitycauses:reload', function() {
       $scope.find();
     });
   });
@@ -6453,20 +6896,19 @@ angular
 
 /**
  * @ngdoc function
- * @name ng311.controller:ZoneShowCtrl
+ * @name ng311.controller:QualityCauseShowCtrl
  * @description
- * # ZoneShowCtrl
- * Zone show controller of ng311
+ * # QualityCauseShowCtrl
+ * QualityCause show controller of ng311
  */
 angular
   .module('ng311')
-  .controller('ZoneShowCtrl', function(
+  .controller('QualityCauseShowCtrl', function(
     $rootScope,
     $scope,
     $state,
     $stateParams,
-    Jurisdiction,
-    Zone
+    QualityCause
   ) {
     $scope.edit = false;
 
@@ -6496,56 +6938,43 @@ angular
     $scope.onCancel = function() {
       $scope.edit = false;
       setColorPickerOptions();
-      $rootScope.$broadcast('app:zones:reload');
+      $rootScope.$broadcast('app:qualitycauses:reload');
     };
 
     $scope.onNew = function() {
-      $scope.zone = new Zone({});
+      $scope.qualitycause = new QualityCause({});
       $scope.edit = true;
       setColorPickerOptions();
     };
 
-    /**
-     * @function
-     * @name searchJurisdictions
-     * @description Search jurisdictions by name
-     *
-     * @version 0.1.0
-     * @since 0.1.0
-     */
-    $scope.searchJurisdictions = function(query) {
-      return Jurisdiction.find({ q: query }).then(function(response) {
-        return response.jurisdictions;
-      });
-    };
-
-    //TODO show empty state if no zone selected
-    //listen for selected zone
-    $rootScope.$on('zone:selected', function(event, zone) {
-      $scope.zone = zone;
+    //TODO show empty state if no qualitycause selected
+    //listen for selected qualitycause
+    $rootScope.$on('qualitycause:selected', function(event, qualitycause) {
+      $scope.qualitycause = qualitycause;
     });
 
     /**
-     * @description save created zone
+     * @description save created qualitycause
      */
     $scope.save = function() {
       //TODO show input prompt
       //TODO show loading mask
 
-      //try update or save zone
-      var updateOrSave = !$scope.zone._id
-        ? $scope.zone.$save()
-        : $scope.zone.$update();
+      //try update or save qualitycause
+      var updateOrSave = !$scope.qualitycause._id
+        ? $scope.qualitycause.$save()
+        : $scope.qualitycause.$update();
 
       updateOrSave
         .then(function(response) {
           response = response || {};
 
-          response.message = response.message || 'Zone Saved Successfully';
+          response.message =
+            response.message || 'Quality Cause Saved Successfully';
 
           $rootScope.$broadcast('appSuccess', response);
 
-          $rootScope.$broadcast('app:zones:reload');
+          $rootScope.$broadcast('app:qualitycauses:reload');
 
           $scope.edit = false;
           setColorPickerOptions();
@@ -6562,22 +6991,22 @@ angular
 
 /**
  * @ngdoc function
- * @name ng311.states:Zone
+ * @name ng311.states:QualityCause
  * @description
- * Zone states configuration of ng311
+ * QualityCause states configuration of ng311
  */
 angular.module('ng311').config(function($stateProvider) {
-  //zones management states
-  $stateProvider.state('app.manage.zones', {
-    url: '/zones',
+  //qualitycauses management states
+  $stateProvider.state('app.manage.qualitycauses', {
+    url: '/qualitycauses',
     views: {
       list: {
-        templateUrl: 'views/zones/_partials/list.html',
-        controller: 'ZoneIndexCtrl',
+        templateUrl: 'views/qualitycauses/_partials/list.html',
+        controller: 'QualityCauseIndexCtrl',
       },
       detail: {
-        templateUrl: 'views/zones/_partials/detail.html',
-        controller: 'ZoneShowCtrl',
+        templateUrl: 'views/qualitycauses/_partials/detail.html',
+        controller: 'QualityCauseShowCtrl',
       },
     },
     data: {
@@ -6590,67 +7019,77 @@ angular.module('ng311').config(function($stateProvider) {
 
 /**
  * @ngdoc service
- * @name ng311.Role
+ * @name ng311.QualityMeasure
  * @description
- * # Role
- * Factory in ng311
+ * # QualityMeasure
+ * Factory in the ng311.
  */
-angular.module('ng311').factory('Role', function($http, $resource, Utils) {
-  //create role resource
-  var Role = $resource(
-    Utils.asLink(['roles', ':id']),
-    {
-      id: '@_id',
-    },
-    {
-      update: {
-        method: 'PUT',
+angular
+  .module('ng311')
+  .factory('QualityMeasure', function($http, $resource, Utils) {
+    //create qualitymeasure resource
+    var QualityMeasure = $resource(
+      Utils.asLink(['v1/predefines/qualitymeasures', ':id']),
+      {
+        id: '@_id',
       },
-    }
-  );
+      {
+        update: {
+          method: 'PUT',
+        },
+      }
+    );
 
-  /**
-   * @description find roles with pagination
-   * @param  {Object} params [description]
-   */
-  Role.find = function(params) {
-    return $http
-      .get(Utils.asLink('roles'), {
-        params: params,
-      })
-      .then(function(response) {
-        //map plain role object to resource instances
-        var roles = response.data.roles.map(function(role) {
-          //create role as a resource instance
-          return new Role(role);
+    /**
+     * @description find qualitymeasure with pagination
+     * @param  {[type]} params [description]
+     * @return {[type]}        [description]
+     */
+    QualityMeasure.find = function(params) {
+      return $http
+        .get(Utils.asLink('v1/predefines/qualitymeasures'), {
+          params: params,
+        })
+        .then(function(response) {
+          //map plain qualitymeasure object to resource instances
+          var qualitymeasures = response.data.data.map(function(
+            qualitymeasure
+          ) {
+            //create qualitymeasure as a resource instance
+            return new QualityMeasure(qualitymeasure);
+          });
+
+          //return paginated response
+          return {
+            qualitymeasures: qualitymeasures,
+            total: response.data.total,
+          };
         });
+    };
 
-        //return paginated response
-        return {
-          roles: roles,
-          total: response.data.count,
-        };
-      });
-  };
-
-  return Role;
-});
+    return QualityMeasure;
+  });
 
 'use strict';
 
 /**
  * @ngdoc function
- * @name ng311.controller:RoleIndexCtrl
+ * @name ng311.controller:QualityMeasureIndexCtrl
  * @description
- * # RoleIndexCtrl
- * Role list controller of ng311
+ * # QualityMeasureIndexCtrl
+ * QualityMeasure list controller of ng311
  */
 angular
   .module('ng311')
-  .controller('RoleIndexCtrl', function($rootScope, $scope, $state, Role) {
-    //roles in the scope
+  .controller('QualityMeasureIndexCtrl', function(
+    $rootScope,
+    $scope,
+    $state,
+    QualityMeasure
+  ) {
+    //qualitymeasures in the scope
     $scope.spin = false;
-    $scope.roles = [];
+    $scope.qualitymeasures = [];
     $scope.page = 1;
     $scope.limit = 10;
     $scope.total = 0;
@@ -6668,46 +7107,42 @@ angular
     };
 
     /**
-     * set current service request
+     * set current qualitymeasure request
      */
-    $scope.select = function(role) {
+    $scope.select = function(qualitymeasure) {
       //sort comments in desc order
-      if (role && role._id) {
-        //update scope service request ref
-        $scope.role = role;
-
-        //deduce assigned roles
-        role._assigned = _.map(role.permissions, '_id');
-
-        $rootScope.$broadcast('role:selected', role);
+      if (qualitymeasure && qualitymeasure._id) {
+        //update scope qualitymeasure request ref
+        $scope.qualitymeasure = qualitymeasure;
+        $rootScope.$broadcast('qualitymeasure:selected', qualitymeasure);
       }
 
       $scope.create = false;
     };
 
     /**
-     * @description load roles
+     * @description load qualitymeasures
      */
     $scope.find = function() {
       //start sho spinner
       $scope.spin = true;
 
-      Role.find({
+      QualityMeasure.find({
         page: $scope.page,
         limit: $scope.limit,
         sort: {
-          name: 1,
+          'name.en': 1,
         },
         filter: {},
         q: $scope.q,
       })
         .then(function(response) {
-          //update scope with roles when done loading
-          $scope.roles = response.roles;
+          //update scope with qualitymeasures when done loading
+          $scope.qualitymeasures = response.qualitymeasures;
           if ($scope.updated) {
             $scope.updated = false;
           } else {
-            $scope.select(_.first($scope.roles));
+            $scope.select(_.first($scope.qualitymeasures));
           }
           $scope.total = response.total;
           $scope.spin = false;
@@ -6717,18 +7152,18 @@ angular
         });
     };
 
-    //check whether roles will paginate
+    //check whether qualitymeasures will paginate
     $scope.willPaginate = function() {
       var willPaginate =
-        $scope.roles && $scope.total && $scope.total > $scope.limit;
+        $scope.qualitymeasures && $scope.total && $scope.total > $scope.limit;
       return willPaginate;
     };
 
-    //pre load roles on state activation
+    //pre load qualitymeasures on state activation
     $scope.find();
 
     //listen for events
-    $rootScope.$on('app:roles:reload', function() {
+    $rootScope.$on('app:qualitymeasures:reload', function() {
       $scope.find();
     });
   });
@@ -6737,131 +7172,396 @@ angular
 
 /**
  * @ngdoc function
- * @name ng311.controller:RoleShowCtrl
+ * @name ng311.controller:QualityMeasureShowCtrl
  * @description
- * # RoleShowCtrl
- * Role show controller of ng311
+ * # QualityMeasureShowCtrl
+ * QualityMeasure show controller of ng311
  */
 angular
   .module('ng311')
-  .controller('RoleShowCtrl', function(
+  .controller('QualityMeasureShowCtrl', function(
     $rootScope,
     $scope,
     $state,
     $stateParams,
-    Role,
-    permissions
+    QualityMeasure
   ) {
-    $scope.permissions = permissions.permissions;
-
-    //prepare grouped permissions
-    $scope.grouped = _.groupBy($scope.permissions, 'resource');
-    $scope.grouped = _.map($scope.grouped, function(values, key) {
-      return { resource: key, permits: values };
-    });
-
     $scope.edit = false;
+
+    /**
+     * @function
+     * @name setColorPickerOptions
+     * @description Set or Update color picker options when need to change
+     *
+     * @version  0.1.0
+     * @since 0.1.0
+     */
+    var setColorPickerOptions = function() {
+      $scope.colorPickerOptions = {
+        swatchPos: 'right',
+        disabled: !$scope.edit,
+        inputClass: 'form-control',
+        format: 'hexString',
+        round: true,
+      };
+    };
 
     $scope.onEdit = function() {
       $scope.edit = true;
+      setColorPickerOptions();
     };
 
     $scope.onCancel = function() {
       $scope.edit = false;
-      $rootScope.$broadcast('app:roles:reload');
+      setColorPickerOptions();
+      $rootScope.$broadcast('app:qualitymeasures:reload');
     };
 
     $scope.onNew = function() {
-      $scope.role = new Role({
-        permissions: [],
-      });
+      $scope.qualitymeasure = new QualityMeasure({});
       $scope.edit = true;
+      setColorPickerOptions();
     };
 
-    /**
-     * @description block created role
-     */
-    $scope.block = function() {
-      //TODO show input prompt
-      //TODO show loading mask
-      $scope.role.deletedAt = new Date();
-      $scope.save();
-    };
-
-    /**
-     * @description unblock created role
-     */
-    $scope.unblock = function() {
-      //TODO show input prompt
-      //TODO show loading mask
-      $scope.role.deletedAt = null;
-      $scope.save();
-    };
-
-    //TODO show empty state if no role selected
-    //listen for selected juridiction
-    $rootScope.$on('role:selected', function(event, role) {
-      $scope.role = role;
+    //TODO show empty state if no qualitymeasure selected
+    //listen for selected qualitymeasure
+    $rootScope.$on('qualitymeasure:selected', function(event, qualitymeasure) {
+      $scope.qualitymeasure = qualitymeasure;
     });
 
     /**
-     * @description save created role
+     * @description save created qualitymeasure
      */
     $scope.save = function() {
       //TODO show input prompt
       //TODO show loading mask
 
-      //update assigned permissions
-      $scope.role.permissions = $scope.role._assigned;
-
-      //try update or save role
-      var updateOrSave = !$scope.role._id
-        ? $scope.role.$save()
-        : $scope.role.$update();
+      //try update or save qualitymeasure
+      var updateOrSave = !$scope.qualitymeasure._id
+        ? $scope.qualitymeasure.$save()
+        : $scope.qualitymeasure.$update();
 
       updateOrSave
         .then(function(response) {
           response = response || {};
 
-          response.message = response.message || 'Role Saved Successfully';
+          response.message =
+            response.message || 'Quality Measure Saved Successfully';
 
           $rootScope.$broadcast('appSuccess', response);
 
-          $rootScope.$broadcast('app:roles:reload');
+          $rootScope.$broadcast('app:qualitymeasures:reload');
 
           $scope.edit = false;
+          setColorPickerOptions();
         })
         .catch(function(error) {
           $rootScope.$broadcast('appError', error);
         });
     };
+
+    setColorPickerOptions();
   });
 
 'use strict';
 
 /**
  * @ngdoc function
- * @name ng311.states:Role
+ * @name ng311.states:QualityMeasure
  * @description
- * Role states configuration of ng311
+ * QualityMeasure states configuration of ng311
  */
 angular.module('ng311').config(function($stateProvider) {
-  //role management states
-  $stateProvider.state('app.manage.roles', {
-    url: '/roles',
+  //qualitymeasures management states
+  $stateProvider.state('app.manage.qualitymeasures', {
+    url: '/qualitymeasures',
     views: {
       list: {
-        templateUrl: 'views/roles/_partials/list.html',
-        controller: 'RoleIndexCtrl',
+        templateUrl: 'views/qualitymeasures/_partials/list.html',
+        controller: 'QualityMeasureIndexCtrl',
       },
       detail: {
-        templateUrl: 'views/roles/_partials/detail.html',
-        controller: 'RoleShowCtrl',
-        resolve: {
-          permissions: function(Permission) {
-            return Permission.find();
-          },
+        templateUrl: 'views/qualitymeasures/_partials/detail.html',
+        controller: 'QualityMeasureShowCtrl',
+      },
+    },
+    data: {
+      authenticated: true,
+    },
+  });
+});
+
+'use strict';
+
+/**
+ * @ngdoc service
+ * @name ng311.QualityAdvisory
+ * @description
+ * # QualityAdvisory
+ * Factory in the ng311.
+ */
+angular
+  .module('ng311')
+  .factory('QualityAdvisory', function($http, $resource, Utils) {
+    //create qualityadvisory resource
+    var QualityAdvisory = $resource(
+      Utils.asLink(['v1/predefines/qualityadvisories', ':id']),
+      {
+        id: '@_id',
+      },
+      {
+        update: {
+          method: 'PUT',
         },
+      }
+    );
+
+    /**
+     * @description find qualityadvisory with pagination
+     * @param  {[type]} params [description]
+     * @return {[type]}        [description]
+     */
+    QualityAdvisory.find = function(params) {
+      return $http
+        .get(Utils.asLink('v1/predefines/qualityadvisories'), {
+          params: params,
+        })
+        .then(function(response) {
+          //map plain qualityadvisory object to resource instances
+          var qualityadvisories = response.data.data.map(function(
+            qualityadvisory
+          ) {
+            //create qualityadvisory as a resource instance
+            return new QualityAdvisory(qualityadvisory);
+          });
+
+          //return paginated response
+          return {
+            qualityadvisories: qualityadvisories,
+            total: response.data.total,
+          };
+        });
+    };
+
+    return QualityAdvisory;
+  });
+
+'use strict';
+
+/**
+ * @ngdoc function
+ * @name ng311.controller:QualityAdvisoryIndexCtrl
+ * @description
+ * # QualityAdvisoryIndexCtrl
+ * QualityAdvisory list controller of ng311
+ */
+angular
+  .module('ng311')
+  .controller('QualityAdvisoryIndexCtrl', function(
+    $rootScope,
+    $scope,
+    $state,
+    QualityAdvisory
+  ) {
+    //qualityadvisories in the scope
+    $scope.spin = false;
+    $scope.qualityadvisories = [];
+    $scope.page = 1;
+    $scope.limit = 10;
+    $scope.total = 0;
+
+    $scope.search = {};
+
+    $scope.onSearch = function() {
+      if ($scope.search.q && $scope.search.q.length >= 2) {
+        $scope.q = $scope.search.q;
+        $scope.find();
+      } else {
+        $scope.q = undefined;
+        $scope.find();
+      }
+    };
+
+    /**
+     * set current qualityadvisory request
+     */
+    $scope.select = function(qualityadvisory) {
+      //sort comments in desc order
+      if (qualityadvisory && qualityadvisory._id) {
+        //update scope qualityadvisory request ref
+        $scope.qualityadvisory = qualityadvisory;
+        $rootScope.$broadcast('qualityadvisory:selected', qualityadvisory);
+      }
+
+      $scope.create = false;
+    };
+
+    /**
+     * @description load qualityadvisories
+     */
+    $scope.find = function() {
+      //start sho spinner
+      $scope.spin = true;
+
+      QualityAdvisory.find({
+        page: $scope.page,
+        limit: $scope.limit,
+        sort: {
+          'name.en': 1,
+        },
+        filter: {},
+        q: $scope.q,
+      })
+        .then(function(response) {
+          //update scope with qualityadvisories when done loading
+          $scope.qualityadvisories = response.qualityadvisories;
+          if ($scope.updated) {
+            $scope.updated = false;
+          } else {
+            $scope.select(_.first($scope.qualityadvisories));
+          }
+          $scope.total = response.total;
+          $scope.spin = false;
+        })
+        .catch(function(error) {
+          $scope.spin = false;
+        });
+    };
+
+    //check whether qualityadvisories will paginate
+    $scope.willPaginate = function() {
+      var willPaginate =
+        $scope.qualityadvisories && $scope.total && $scope.total > $scope.limit;
+      return willPaginate;
+    };
+
+    //pre load qualityadvisories on state activation
+    $scope.find();
+
+    //listen for events
+    $rootScope.$on('app:qualityadvisories:reload', function() {
+      $scope.find();
+    });
+  });
+
+'use strict';
+
+/**
+ * @ngdoc function
+ * @name ng311.controller:QualityAdvisoryShowCtrl
+ * @description
+ * # QualityAdvisoryShowCtrl
+ * QualityAdvisory show controller of ng311
+ */
+angular
+  .module('ng311')
+  .controller('QualityAdvisoryShowCtrl', function(
+    $rootScope,
+    $scope,
+    $state,
+    $stateParams,
+    QualityAdvisory
+  ) {
+    $scope.edit = false;
+
+    /**
+     * @function
+     * @name setColorPickerOptions
+     * @description Set or Update color picker options when need to change
+     *
+     * @version  0.1.0
+     * @since 0.1.0
+     */
+    var setColorPickerOptions = function() {
+      $scope.colorPickerOptions = {
+        swatchPos: 'right',
+        disabled: !$scope.edit,
+        inputClass: 'form-control',
+        format: 'hexString',
+        round: true,
+      };
+    };
+
+    $scope.onEdit = function() {
+      $scope.edit = true;
+      setColorPickerOptions();
+    };
+
+    $scope.onCancel = function() {
+      $scope.edit = false;
+      setColorPickerOptions();
+      $rootScope.$broadcast('app:qualityadvisories:reload');
+    };
+
+    $scope.onNew = function() {
+      $scope.qualityadvisory = new QualityAdvisory({});
+      $scope.edit = true;
+      setColorPickerOptions();
+    };
+
+    //TODO show empty state if no qualityadvisory selected
+    //listen for selected qualityadvisory
+    $rootScope.$on('qualityadvisory:selected', function(
+      event,
+      qualityadvisory
+    ) {
+      $scope.qualityadvisory = qualityadvisory;
+    });
+
+    /**
+     * @description save created qualityadvisory
+     */
+    $scope.save = function() {
+      //TODO show input prompt
+      //TODO show loading mask
+
+      //try update or save qualityadvisory
+      var updateOrSave = !$scope.qualityadvisory._id
+        ? $scope.qualityadvisory.$save()
+        : $scope.qualityadvisory.$update();
+
+      updateOrSave
+        .then(function(response) {
+          response = response || {};
+
+          response.message =
+            response.message || 'Quality Advisory Saved Successfully';
+
+          $rootScope.$broadcast('appSuccess', response);
+
+          $rootScope.$broadcast('app:qualityadvisories:reload');
+
+          $scope.edit = false;
+          setColorPickerOptions();
+        })
+        .catch(function(error) {
+          $rootScope.$broadcast('appError', error);
+        });
+    };
+
+    setColorPickerOptions();
+  });
+
+'use strict';
+
+/**
+ * @ngdoc function
+ * @name ng311.states:QualityAdvisory
+ * @description
+ * QualityAdvisory states configuration of ng311
+ */
+angular.module('ng311').config(function($stateProvider) {
+  //qualityadvisories management states
+  $stateProvider.state('app.manage.qualityadvisories', {
+    url: '/qualityadvisories',
+    views: {
+      list: {
+        templateUrl: 'views/qualityadvisories/_partials/list.html',
+        controller: 'QualityAdvisoryIndexCtrl',
+      },
+      detail: {
+        templateUrl: 'views/qualityadvisories/_partials/detail.html',
+        controller: 'QualityAdvisoryShowCtrl',
       },
     },
     data: {
@@ -7343,6 +8043,290 @@ angular.module('ng311').config(function($stateProvider) {
           },
         });
       },
+    },
+  });
+});
+
+'use strict';
+
+/**
+ * @ngdoc service
+ * @name ng311.Role
+ * @description
+ * # Role
+ * Factory in ng311
+ */
+angular.module('ng311').factory('Role', function($http, $resource, Utils) {
+  //create role resource
+  var Role = $resource(
+    Utils.asLink(['roles', ':id']),
+    {
+      id: '@_id',
+    },
+    {
+      update: {
+        method: 'PUT',
+      },
+    }
+  );
+
+  /**
+   * @description find roles with pagination
+   * @param  {Object} params [description]
+   */
+  Role.find = function(params) {
+    return $http
+      .get(Utils.asLink('roles'), {
+        params: params,
+      })
+      .then(function(response) {
+        //map plain role object to resource instances
+        var roles = response.data.roles.map(function(role) {
+          //create role as a resource instance
+          return new Role(role);
+        });
+
+        //return paginated response
+        return {
+          roles: roles,
+          total: response.data.count,
+        };
+      });
+  };
+
+  return Role;
+});
+
+'use strict';
+
+/**
+ * @ngdoc function
+ * @name ng311.controller:RoleIndexCtrl
+ * @description
+ * # RoleIndexCtrl
+ * Role list controller of ng311
+ */
+angular
+  .module('ng311')
+  .controller('RoleIndexCtrl', function($rootScope, $scope, $state, Role) {
+    //roles in the scope
+    $scope.spin = false;
+    $scope.roles = [];
+    $scope.page = 1;
+    $scope.limit = 10;
+    $scope.total = 0;
+
+    $scope.search = {};
+
+    $scope.onSearch = function() {
+      if ($scope.search.q && $scope.search.q.length >= 2) {
+        $scope.q = $scope.search.q;
+        $scope.find();
+      } else {
+        $scope.q = undefined;
+        $scope.find();
+      }
+    };
+
+    /**
+     * set current service request
+     */
+    $scope.select = function(role) {
+      //sort comments in desc order
+      if (role && role._id) {
+        //update scope service request ref
+        $scope.role = role;
+
+        //deduce assigned roles
+        role._assigned = _.map(role.permissions, '_id');
+
+        $rootScope.$broadcast('role:selected', role);
+      }
+
+      $scope.create = false;
+    };
+
+    /**
+     * @description load roles
+     */
+    $scope.find = function() {
+      //start sho spinner
+      $scope.spin = true;
+
+      Role.find({
+        page: $scope.page,
+        limit: $scope.limit,
+        sort: {
+          name: 1,
+        },
+        filter: {},
+        q: $scope.q,
+      })
+        .then(function(response) {
+          //update scope with roles when done loading
+          $scope.roles = response.roles;
+          if ($scope.updated) {
+            $scope.updated = false;
+          } else {
+            $scope.select(_.first($scope.roles));
+          }
+          $scope.total = response.total;
+          $scope.spin = false;
+        })
+        .catch(function(error) {
+          $scope.spin = false;
+        });
+    };
+
+    //check whether roles will paginate
+    $scope.willPaginate = function() {
+      var willPaginate =
+        $scope.roles && $scope.total && $scope.total > $scope.limit;
+      return willPaginate;
+    };
+
+    //pre load roles on state activation
+    $scope.find();
+
+    //listen for events
+    $rootScope.$on('app:roles:reload', function() {
+      $scope.find();
+    });
+  });
+
+'use strict';
+
+/**
+ * @ngdoc function
+ * @name ng311.controller:RoleShowCtrl
+ * @description
+ * # RoleShowCtrl
+ * Role show controller of ng311
+ */
+angular
+  .module('ng311')
+  .controller('RoleShowCtrl', function(
+    $rootScope,
+    $scope,
+    $state,
+    $stateParams,
+    Role,
+    permissions
+  ) {
+    $scope.permissions = permissions.permissions;
+
+    //prepare grouped permissions
+    $scope.grouped = _.groupBy($scope.permissions, 'resource');
+    $scope.grouped = _.map($scope.grouped, function(values, key) {
+      return { resource: key, permits: values };
+    });
+
+    $scope.edit = false;
+
+    $scope.onEdit = function() {
+      $scope.edit = true;
+    };
+
+    $scope.onCancel = function() {
+      $scope.edit = false;
+      $rootScope.$broadcast('app:roles:reload');
+    };
+
+    $scope.onNew = function() {
+      $scope.role = new Role({
+        permissions: [],
+      });
+      $scope.edit = true;
+    };
+
+    /**
+     * @description block created role
+     */
+    $scope.block = function() {
+      //TODO show input prompt
+      //TODO show loading mask
+      $scope.role.deletedAt = new Date();
+      $scope.save();
+    };
+
+    /**
+     * @description unblock created role
+     */
+    $scope.unblock = function() {
+      //TODO show input prompt
+      //TODO show loading mask
+      $scope.role.deletedAt = null;
+      $scope.save();
+    };
+
+    //TODO show empty state if no role selected
+    //listen for selected juridiction
+    $rootScope.$on('role:selected', function(event, role) {
+      $scope.role = role;
+    });
+
+    /**
+     * @description save created role
+     */
+    $scope.save = function() {
+      //TODO show input prompt
+      //TODO show loading mask
+
+      //update assigned permissions
+      $scope.role.permissions = $scope.role._assigned;
+
+      //try update or save role
+      var updateOrSave = !$scope.role._id
+        ? $scope.role.$save()
+        : $scope.role.$update();
+
+      updateOrSave
+        .then(function(response) {
+          response = response || {};
+
+          response.message = response.message || 'Role Saved Successfully';
+
+          $rootScope.$broadcast('appSuccess', response);
+
+          $rootScope.$broadcast('app:roles:reload');
+
+          $scope.edit = false;
+        })
+        .catch(function(error) {
+          $rootScope.$broadcast('appError', error);
+        });
+    };
+  });
+
+'use strict';
+
+/**
+ * @ngdoc function
+ * @name ng311.states:Role
+ * @description
+ * Role states configuration of ng311
+ */
+angular.module('ng311').config(function($stateProvider) {
+  //role management states
+  $stateProvider.state('app.manage.roles', {
+    url: '/roles',
+    views: {
+      list: {
+        templateUrl: 'views/roles/_partials/list.html',
+        controller: 'RoleIndexCtrl',
+      },
+      detail: {
+        templateUrl: 'views/roles/_partials/detail.html',
+        controller: 'RoleShowCtrl',
+        resolve: {
+          permissions: function(Permission) {
+            return Permission.find();
+          },
+        },
+      },
+    },
+    data: {
+      authenticated: true,
     },
   });
 });
@@ -11464,7 +12448,7 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/manage/side_subnav.html',
-    " <div class=\"row-col bg b-r\"> <div class=\"b-b\"> <div class=\"navbar\"> <ul class=\"nav navbar-nav\"> <li class=\"nav-item\"> <span class=\"navbar-item text-md\">Settings</span> </li> </ul> </div> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\"> <div class=\"p-a-md\"> <div class=\"m-b text-muted text-xs\" title=\"System Settings\"> System </div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li show-if-has-any-permit=\"jurisdiction:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.jurisdictions\" class=\"nav-link text-muted block\"> Jurisdictions </a> </li> <li show-if-has-any-permit=\"zone:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.zones\" class=\"nav-link text-muted block\"> Zones </a> </li> <li show-if-has-any-permit=\"servicegroup:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.servicegroups\" class=\"nav-link text-muted block\"> Groups </a> </li> <li show-if-has-any-permit=\"servicetype:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.servicetypes\" class=\"nav-link text-muted block\"> Types </a> </li> <li show-if-has-any-permit=\"service:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.services\" class=\"nav-link text-muted block\"> Services </a> </li> <li show-if-has-any-permit=\"priority:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.priorities\" class=\"nav-link text-muted block\"> Priorities </a> </li> <li show-if-has-any-permit=\"status:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.statuses\" class=\"nav-link text-muted block\"> Statuses </a> </li> <li show-if-has-any-permit=\"item:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.items\" class=\"nav-link text-muted block\"> Items </a> </li> </ul> </div> </div> <div class=\"p-a-md\" show-if-has-any-permit=\"user:view, role:view\"> <div class=\"m-b text-muted text-xs\" title=\"General Settings\"> General </div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li show-if-has-any-permit=\"user:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.parties\" class=\"nav-link text-muted block\"> Parties </a> </li> <li show-if-has-any-permit=\"role:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.roles\" class=\"nav-link text-muted block\"> Roles </a> </li> </ul> </div> </div> </div> </div> </div> </div> "
+    " <div class=\"row-col bg b-r\"> <div class=\"b-b\"> <div class=\"navbar\"> <ul class=\"nav navbar-nav\"> <li class=\"nav-item\"> <span class=\"navbar-item text-md\">Settings</span> </li> </ul> </div> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\"> <div class=\"p-a-md\"> <div class=\"m-b text-muted text-xs\" title=\"System Settings\"> System </div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li show-if-has-any-permit=\"jurisdiction:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.jurisdictions\" class=\"nav-link text-muted block\"> Jurisdictions </a> </li> <li show-if-has-any-permit=\"zone:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.zones\" class=\"nav-link text-muted block\"> Zones </a> </li> <li show-if-has-any-permit=\"servicegroup:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.servicegroups\" class=\"nav-link text-muted block\"> Groups </a> </li> <li show-if-has-any-permit=\"servicetype:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.servicetypes\" class=\"nav-link text-muted block\"> Types </a> </li> <li show-if-has-any-permit=\"service:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.services\" class=\"nav-link text-muted block\"> Services </a> </li> <li show-if-has-any-permit=\"status:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.statuses\" class=\"nav-link text-muted block\"> Statuses </a> </li> <li show-if-has-any-permit=\"priority:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.priorities\" class=\"nav-link text-muted block\"> Priorities </a> </li> <li show-if-has-any-permit=\"item:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.items\" class=\"nav-link text-muted block\"> Items </a> </li> </ul> </div> </div> <div class=\"p-a-md\" show-if-has-any-permit=\"qualitycause:view, qualitymeasure:view, qualityadvisory:view\"> <div class=\"m-b text-muted text-xs\" title=\"Quality Control Settings\"> Quality Control </div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li show-if-has-any-permit=\"qualitycause:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.qualitycauses\" class=\"nav-link text-muted block\"> Causes </a> </li> <li show-if-has-any-permit=\"qualitymeasure:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.qualitymeasures\" class=\"nav-link text-muted block\"> Measures </a> </li> <li show-if-has-any-permit=\"qualityadvisory:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.qualityadvisories\" class=\"nav-link text-muted block\"> Advisories </a> </li> </ul> </div> </div> <div class=\"p-a-md\" show-if-has-any-permit=\"user:view, role:view\"> <div class=\"m-b text-muted text-xs\" title=\"User Management\"> User Management </div> <div class=\"nav-active-white\"> <ul class=\"nav\"> <li show-if-has-any-permit=\"user:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.parties\" class=\"nav-link text-muted block\"> Parties </a> </li> <li show-if-has-any-permit=\"role:view\" ui-sref-active=\"active\" class=\"nav-item m-b-xs\"> <a ui-sref=\"app.manage.roles\" class=\"nav-link text-muted block\"> Roles </a> </li> </ul> </div> </div> </div> </div> </div> </div> "
   );
 
 
@@ -11495,6 +12479,54 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
   $templateCache.put('views/priorities/_partials/list.html',
     " <div class=\"row-col lt\"> <div class=\"p-a b-b list-search\"> <form> <div class=\"input-group\"> <input type=\"text\" ng-change=\"onSearch()\" ng-model=\"search.q\" class=\"form-control form-control-sm\" placeholder=\"Search Priorities ...\"> <span class=\"input-group-btn\"> <button class=\"btn btn-default btn-sm no-shadow\" type=\"button\"> <i class=\"ti-search\"></i> </button> </span> </div> </form> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\"> <div class=\"list\" data-ui-list=\"info\"> <div ng-click=\"select(priority)\" class=\"list-item list-item-padded\" ng-repeat=\"priority in priorities\" title=\"{{ priority.about }}\"> <div class=\"list-left\"> <span class=\"w-40 avatar circle\"> <letter-avatar title=\"Priority Visual Color\" data=\"{{ priority.name.en }}\" height=\"60\" width=\"60\" color=\"{{ priority.color }}\" shape=\"round\"> </letter-avatar> </span> </div> <div class=\"list-body\"> <span title=\"Priority Weight\" class=\"pull-right text-xs text-muted\"> {{ priority.weight }} </span> <div class=\"item-title\" title=\"Priority Name\"> <span class=\"_500\">{{ priority.name.en }}</span> </div> <p title=\"Priority Description\" class=\"block text-muted text-ellipsis\"> {{ priority.name.en }} </p> </div> </div> </div> </div> </div> </div> <div class=\"p-x-md p-y\"> <div class=\"btn-group pull-right list-pager\" uib-pager ng-show=\"willPaginate()\" total-items=\"total\" ng-model=\"page\" items-per-page=\"limit\" ng-change=\"find()\" template-url=\"views/_partials/list_pager.html\" style=\"padding-left: 12px;\" role=\"group\"></div> <div class=\"btn-group pull-right\"> <a title=\"Click To Refresh Priorities\" ng-click=\"find()\" class=\"btn btn-default btn-xs\"> <i class=\"icon-reload\"></i> </a> </div> <span class=\"text-sm text-muted\">Total: {{ total }}</span> </div> </div> "
+  );
+
+
+  $templateCache.put('views/qualityadvisories/_partials/action_bar.html',
+    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Advisory Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Advisory\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit && qualityadvisory._id\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted no-border\" title=\"Click to edit advisory\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"save()\" class=\"nav-link text-muted no-border\" title=\"Click to save advisory\"> Save </a> </li> </ul> "
+  );
+
+
+  $templateCache.put('views/qualityadvisories/_partials/detail.html',
+    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/qualityadvisories/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"qualityAdvisoryForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Advisory Code\"> <div class=\"form-group\"> <label title=\"Advisory Code\" class=\"floating-label\">Code</label> <input title=\"Advisory Code\" ng-disabled=\"!edit\" ng-model=\"qualityadvisory.code\" ng-required ng-minlength=\"1\" type=\"text\" name=\"code\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Advisory Name\"> <div class=\"form-group\"> <label title=\"Advisory Name\" class=\"floating-label\">Name</label> <input title=\"Advisory Name\" ng-disabled=\"!edit\" ng-model=\"qualityadvisory.name.en\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Advisory Color\"> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Advisory Color\" class=\"floating-label\">Color(HEX)</label> <color-picker ng-model=\"qualityadvisory.color\" options=\"colorPickerOptions\"> </color-picker> </div> </div> </div> <div class=\"m-t-lg\" title=\"Advisory Description\"> <div class=\"form-group\"> <label class=\"floating-label\">Description</label> <textarea title=\"Advisory Description\" ng-disabled=\"!edit\" ng-model=\"qualityadvisory.description.en\" msd-elastic name=\"description\" class=\"form-control\" rows=\"3\">\n" +
+    "                    </textarea> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
+  );
+
+
+  $templateCache.put('views/qualityadvisories/_partials/list.html',
+    " <div class=\"row-col lt\"> <div class=\"p-a b-b list-search\"> <form> <div class=\"input-group\"> <input type=\"text\" ng-change=\"onSearch()\" ng-model=\"search.q\" class=\"form-control form-control-sm\" placeholder=\"Search Advisories ...\"> <span class=\"input-group-btn\"> <button class=\"btn btn-default btn-sm no-shadow\" type=\"button\"> <i class=\"ti-search\"></i> </button> </span> </div> </form> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\"> <div class=\"list\" data-ui-list=\"info\"> <div ng-click=\"select(qualityadvisory)\" class=\"list-item list-item-padded\" ng-repeat=\"qualityadvisory in qualityadvisories\" title=\"{{qualityadvisory.description.en}}\"> <div class=\"list-left\"> <span class=\"w-40 avatar circle\"> <letter-avatar title=\"Advisory Code\" data=\"{{qualityadvisory.code}}\" height=\"60\" width=\"60\" color=\"{{qualityadvisory.color}}\" shape=\"round\"> </letter-avatar> </span> </div> <div class=\"list-body\"> <span title=\"Advisory Code\" class=\"pull-right text-xs text-muted\"> {{qualityadvisory.code}} </span> <div class=\"item-title\"> <span title=\"Advisory Name\" class=\"_500\">{{qualityadvisory.name.en}}</span> </div> <p title=\"Advisory Description\" class=\"block text-muted text-ellipsis\"> {{qualityadvisory.description.en}} </p> </div> </div> </div> </div> </div> </div> <div class=\"p-x-md p-y\"> <div class=\"btn-group pull-right list-pager\" uib-pager ng-show=\"willPaginate()\" total-qualityadvisories=\"total\" ng-model=\"page\" qualityadvisories-per-page=\"limit\" ng-change=\"find()\" template-url=\"views/_partials/list_pager.html\" style=\"padding-left: 12px;\" role=\"group\"></div> <div class=\"btn-group pull-right\"> <a title=\"Click To Refresh Advisories\" ng-click=\"find()\" class=\"btn btn-default btn-xs\"> <i class=\"icon-reload\"></i> </a> </div> <span class=\"text-sm text-muted\">Total: {{total}}</span> </div> </div> "
+  );
+
+
+  $templateCache.put('views/qualitycauses/_partials/action_bar.html',
+    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Cause Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Cause\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit && qualitycause._id\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted no-border\" title=\"Click to edit cause\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"save()\" class=\"nav-link text-muted no-border\" title=\"Click to save cause\"> Save </a> </li> </ul> "
+  );
+
+
+  $templateCache.put('views/qualitycauses/_partials/detail.html',
+    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/qualitycauses/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"qualityCauseForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Cause Code\"> <div class=\"form-group\"> <label title=\"Cause Code\" class=\"floating-label\">Code</label> <input title=\"Cause Code\" ng-disabled=\"!edit\" ng-model=\"qualitycause.code\" ng-required ng-minlength=\"1\" type=\"text\" name=\"code\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Cause Name\"> <div class=\"form-group\"> <label title=\"Cause Name\" class=\"floating-label\">Name</label> <input title=\"Cause Name\" ng-disabled=\"!edit\" ng-model=\"qualitycause.name.en\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Cause Color\"> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Cause Color\" class=\"floating-label\">Color(HEX)</label> <color-picker ng-model=\"qualitycause.color\" options=\"colorPickerOptions\"> </color-picker> </div> </div> </div> <div class=\"m-t-lg\" title=\"Cause Description\"> <div class=\"form-group\"> <label class=\"floating-label\">Description</label> <textarea title=\"Cause Description\" ng-disabled=\"!edit\" ng-model=\"qualitycause.description.en\" msd-elastic name=\"description\" class=\"form-control\" rows=\"3\">\n" +
+    "                    </textarea> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
+  );
+
+
+  $templateCache.put('views/qualitycauses/_partials/list.html',
+    " <div class=\"row-col lt\"> <div class=\"p-a b-b list-search\"> <form> <div class=\"input-group\"> <input type=\"text\" ng-change=\"onSearch()\" ng-model=\"search.q\" class=\"form-control form-control-sm\" placeholder=\"Search Causes ...\"> <span class=\"input-group-btn\"> <button class=\"btn btn-default btn-sm no-shadow\" type=\"button\"> <i class=\"ti-search\"></i> </button> </span> </div> </form> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\"> <div class=\"list\" data-ui-list=\"info\"> <div ng-click=\"select(qualitycause)\" class=\"list-item list-item-padded\" ng-repeat=\"qualitycause in qualitycauses\" title=\"{{qualitycause.description.en}}\"> <div class=\"list-left\"> <span class=\"w-40 avatar circle\"> <letter-avatar title=\"Cause Code\" data=\"{{qualitycause.code}}\" height=\"60\" width=\"60\" color=\"{{qualitycause.color}}\" shape=\"round\"> </letter-avatar> </span> </div> <div class=\"list-body\"> <span title=\"Cause Code\" class=\"pull-right text-xs text-muted\"> {{qualitycause.code}} </span> <div class=\"item-title\"> <span title=\"Cause Name\" class=\"_500\">{{qualitycause.name.en}}</span> </div> <p title=\"Cause Description\" class=\"block text-muted text-ellipsis\"> {{qualitycause.description.en}} </p> </div> </div> </div> </div> </div> </div> <div class=\"p-x-md p-y\"> <div class=\"btn-group pull-right list-pager\" uib-pager ng-show=\"willPaginate()\" total-qualitycauses=\"total\" ng-model=\"page\" qualitycauses-per-page=\"limit\" ng-change=\"find()\" template-url=\"views/_partials/list_pager.html\" style=\"padding-left: 12px;\" role=\"group\"></div> <div class=\"btn-group pull-right\"> <a title=\"Click To Refresh Causes\" ng-click=\"find()\" class=\"btn btn-default btn-xs\"> <i class=\"icon-reload\"></i> </a> </div> <span class=\"text-sm text-muted\">Total: {{total}}</span> </div> </div> "
+  );
+
+
+  $templateCache.put('views/qualitymeasures/_partials/action_bar.html',
+    " <ul class=\"nav navbar-nav\"> <li ng-if=\"edit\" class=\"nav-item\"> <a ng-click=\"onCancel()\" class=\"nav-link text-muted\" title=\"Click to Cancel Measure Edit\"> <span class=\"nav-text\"> <i class=\"icon ti-close\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit\" class=\"nav-item\"> <a ng-click=\"onNew()\" class=\"nav-link text-muted\" title=\"Click to Add New Measure\"> <span class=\"nav-text\"> <i class=\"icon ti-plus\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"!edit && qualitymeasure._id\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"onEdit()\" class=\"nav-link text-muted no-border\" title=\"Click to edit measure\"> <span class=\"nav-text\"> <i class=\"icon-pencil\" aria-hidden=\"true\"></i> </span> </a> </li> <li ng-if=\"edit\" class=\"nav-item b-l p-l p-r\"> <a ng-click=\"save()\" class=\"nav-link text-muted no-border\" title=\"Click to save measure\"> Save </a> </li> </ul> "
+  );
+
+
+  $templateCache.put('views/qualitymeasures/_partials/detail.html',
+    " <div class=\"row-col\"> <div class=\"white b-b bg\"> <div ng-include=\"'views/qualitymeasures/_partials/action_bar.html'\" class=\"navbar\"></div> </div> <div class=\"row-row\"> <div class=\"row-body\"> <div class=\"row-inner\"> <div class=\"padding\"> <form ng-submit=\"save()\" name=\"qualityCauseForm\" role=\"form\" autocomplete=\"off\" novalidate> <div class=\"box\"> <div class=\"box-body\"> <div class=\"m-b\" title=\"Measure Code\"> <div class=\"form-group\"> <label title=\"Measure Code\" class=\"floating-label\">Code</label> <input title=\"Measure Code\" ng-disabled=\"!edit\" ng-model=\"qualitymeasure.code\" ng-required ng-minlength=\"1\" type=\"text\" name=\"code\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Measure Name\"> <div class=\"form-group\"> <label title=\"Measure Name\" class=\"floating-label\">Name</label> <input title=\"Measure Name\" ng-disabled=\"!edit\" ng-model=\"qualitymeasure.name.en\" ng-required ng-minlength=\"2\" type=\"text\" name=\"name\" class=\"form-control\"> </div> </div> <div class=\"m-t-lg\" title=\"Measure Color\"> <div class=\"m-t-lg\"> <div class=\"form-group\"> <label title=\"Measure Color\" class=\"floating-label\">Color(HEX)</label> <color-picker ng-model=\"qualitymeasure.color\" options=\"colorPickerOptions\"> </color-picker> </div> </div> </div> <div class=\"m-t-lg\" title=\"Measure Description\"> <div class=\"form-group\"> <label class=\"floating-label\">Description</label> <textarea title=\"Measure Description\" ng-disabled=\"!edit\" ng-model=\"qualitymeasure.description.en\" msd-elastic name=\"description\" class=\"form-control\" rows=\"3\">\n" +
+    "                    </textarea> </div> </div> </div> </div> </form> </div> </div> </div> </div> </div> "
+  );
+
+
+  $templateCache.put('views/qualitymeasures/_partials/list.html',
+    " <div class=\"row-col lt\"> <div class=\"p-a b-b list-search\"> <form> <div class=\"input-group\"> <input type=\"text\" ng-change=\"onSearch()\" ng-model=\"search.q\" class=\"form-control form-control-sm\" placeholder=\"Search Measures ...\"> <span class=\"input-group-btn\"> <button class=\"btn btn-default btn-sm no-shadow\" type=\"button\"> <i class=\"ti-search\"></i> </button> </span> </div> </form> </div> <div class=\"row-row\"> <div class=\"row-body scrollable hover\"> <div class=\"row-inner\"> <div class=\"list\" data-ui-list=\"info\"> <div ng-click=\"select(qualitymeasure)\" class=\"list-item list-item-padded\" ng-repeat=\"qualitymeasure in qualitymeasures\" title=\"{{qualitymeasure.description.en}}\"> <div class=\"list-left\"> <span class=\"w-40 avatar circle\"> <letter-avatar title=\"Measure Code\" data=\"{{qualitymeasure.code}}\" height=\"60\" width=\"60\" color=\"{{qualitymeasure.color}}\" shape=\"round\"> </letter-avatar> </span> </div> <div class=\"list-body\"> <span title=\"Measure Code\" class=\"pull-right text-xs text-muted\"> {{qualitymeasure.code}} </span> <div class=\"item-title\"> <span title=\"Measure Name\" class=\"_500\">{{qualitymeasure.name.en}}</span> </div> <p title=\"Measure Description\" class=\"block text-muted text-ellipsis\"> {{qualitymeasure.description.en}} </p> </div> </div> </div> </div> </div> </div> <div class=\"p-x-md p-y\"> <div class=\"btn-group pull-right list-pager\" uib-pager ng-show=\"willPaginate()\" total-qualitymeasures=\"total\" ng-model=\"page\" qualitymeasures-per-page=\"limit\" ng-change=\"find()\" template-url=\"views/_partials/list_pager.html\" style=\"padding-left: 12px;\" role=\"group\"></div> <div class=\"btn-group pull-right\"> <a title=\"Click To Refresh Measures\" ng-click=\"find()\" class=\"btn btn-default btn-xs\"> <i class=\"icon-reload\"></i> </a> </div> <span class=\"text-sm text-muted\">Total: {{total}}</span> </div> </div> "
   );
 
 
@@ -11532,8 +12564,8 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('views/servicerequests/_partials/action_bar.html',
-    " <ul class=\"nav navbar-nav\"> <li ng-if=\"!servicerequest.operator\" class=\"nav-item b-r p-r\"> <a show-if-has-permit=\"servicerequest:confirm\" class=\"nav-link text-muted no-border\" title=\"Click To Confirm Issue\" ng-click=\"onConfirm()\"> <span class=\"nav-text\"> <i class=\"ion-ios-shuffle-strong\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item\"> <a ng-click=\"onSend()\" class=\"nav-link text-muted\" title=\"Click to Send Issue to Area\"> <span class=\"nav-text\"> <i class=\"icon-action-redo\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && canWatch()\" class=\"nav-item b-l p-l\"> <a ng-click=\"onWatch()\" class=\"nav-link text-muted no-border\" title=\"Click to Watch Issue & Receive Updates\"> <span class=\"nav-text\"> <i class=\"ti-eye\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && !servicerequest.attendedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:attend\" ng-click=\"onAttended()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Attended\"> <span class=\"nav-text\"> <i class=\"icon-crop\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee &&\n" +
-    "    servicerequest.attendedAt && !servicerequest.completedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:complete\" ng-click=\"onComplete()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Complete\"> <span class=\"nav-text\"> <i class=\"ti-check-box\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && servicerequest.attendedAt && servicerequest.completedAt && !servicerequest.verifiedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:verify\" ng-click=\"onVerify()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Verified\"> <span class=\"nav-text\"> <i class=\"ion-android-done-all\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && servicerequest.attendedAt && servicerequest.completedAt && servicerequest.verifiedAt && !servicerequest.approvedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:approve\" ng-click=\"onApprove()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Approve\"> <span class=\"nav-text\"> <i class=\"ion-android-checkmark-circle\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && servicerequest.attendedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:complete\" ng-click=\"showWorklogModal()\" class=\"nav-link text-muted no-border\" title=\"Click to Record Material & Equipment Used\"> <span class=\"nav-text\"> <i class=\"icon-basket-loaded\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ngf-select=\"onImage($file)\" class=\"nav-link text-muted no-border\" title=\"Click To Attach Supporting Images\"> <span class=\"nav-text\"> <i class=\"icon-camera\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ngf-select=\"onDocument($file)\" class=\"nav-link text-muted no-border\" title=\"Click To Attach Supporting Documents\"> <span class=\"nav-text\"> <i class=\"icon-paper-clip\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:resolve\" ng-click=\"onResolve()\" class=\"nav-link text-muted no-border\" title=\"Click To Resolve and Signal Feedback Provided To Reporter\"> <span class=\"nav-text\"> <i class=\"icon-call-out\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ng-click=\"onReOpen()\" class=\"nav-link text-muted no-border\" title=\"Click To Re-Open The Issue\"> <span class=\"nav-text\"> <i class=\"icon-call-in\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item b-l p-l\"> <a ng-click=\"onCopy()\" class=\"nav-link text-muted no-border\" title=\"Click To Copy Reporter Information & Create New Issue\"> <span class=\"nav-text\"> <i class=\"ti-cut\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\" title=\"Click To Add Team Member to Watch Issue & Receive Updates\"> <a ng-click=\"showTeamModal()\" class=\"nav-link text-muted no-border\"> <span class=\"nav-text\"> <i class=\"icon-user-follow\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item b-l p-l\" title=\"Click To Refresh Issue\"> <a ng-click=\"onRefresh()\" class=\"nav-link text-muted no-border\"> <span class=\"nav-text\"> <i class=\"icon-reload\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item b-l p-l p-r\"> <a print-btn class=\"nav-link text-muted no-border\" title=\"Click To Print Issue\"> <span class=\"nav-text\"> <i class=\"icon-printer\"></i> </span> </a> </li> </ul> "
+    " <ul class=\"nav navbar-nav\"> <li ng-if=\"!servicerequest.operator\" class=\"nav-item b-r p-r\"> <a show-if-has-permit=\"servicerequest:confirm\" class=\"nav-link text-muted no-border\" title=\"Click To Confirm Issue\" ng-click=\"onConfirm()\"> <span class=\"nav-text\"> <i class=\"ion-ios-shuffle-strong\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item\"> <a ng-click=\"onSend()\" class=\"nav-link text-muted\" title=\"Click to Send Issue to Area\"> <span class=\"nav-text\"> <i class=\"icon-action-redo\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt && canWatch()\" class=\"nav-item b-l p-l\"> <a ng-click=\"onWatch()\" class=\"nav-link text-muted no-border\" title=\"Click to Watch Issue & Receive Updates\"> <span class=\"nav-text\"> <i class=\"ti-eye\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && !servicerequest.attendedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:attend\" ng-click=\"onAttended()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Attended\"> <span class=\"nav-text\"> <i class=\"icon-crop\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee &&\n" +
+    "    servicerequest.attendedAt && !servicerequest.completedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:complete\" ng-click=\"onComplete()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Complete\"> <span class=\"nav-text\"> <i class=\"ti-check-box\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && servicerequest.attendedAt && servicerequest.completedAt && !servicerequest.verifiedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:verify\" ng-click=\"onVerify()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Verified\"> <span class=\"nav-text\"> <i class=\"ion-android-done-all\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && servicerequest.attendedAt && servicerequest.completedAt && servicerequest.verifiedAt && !servicerequest.approvedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:approve\" ng-click=\"onApprove()\" class=\"nav-link text-muted no-border\" title=\"Click To Mark Issue as Approve\"> <span class=\"nav-text\"> <i class=\"ion-android-checkmark-circle\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.assignee && servicerequest.attendedAt && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:complete\" ng-click=\"showWorklogModal()\" class=\"nav-link text-muted no-border\" title=\"Click to Record Material & Equipment Used\"> <span class=\"nav-text\"> <i class=\"icon-basket-loaded\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ngf-select=\"onImage($file)\" class=\"nav-link text-muted no-border\" title=\"Click To Attach Supporting Images\"> <span class=\"nav-text\"> <i class=\"icon-camera\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a ngf-select=\"onDocument($file)\" class=\"nav-link text-muted no-border\" title=\"Click To Attach Supporting Documents\"> <span class=\"nav-text\"> <i class=\"icon-paper-clip\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:resolve\" ng-click=\"onResolveWithRemarks()\" class=\"nav-link text-muted no-border\" title=\"Click To Resolve and Signal Feedback Provided To Reporter\"> <span class=\"nav-text\"> <i class=\"icon-call-out\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.resolvedAt && (!servicerequest.cause || !servicerequest.measure || !servicerequest.advisory)\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:control quality\" ng-click=\"showResolveRemarksModal()\" class=\"nav-link text-muted no-border\" title=\"Click To Perform Quality Control Checks\"> <span class=\"nav-text\"> <i class=\"icon-tag\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && servicerequest.resolvedAt\" class=\"nav-item b-l p-l\"> <a show-if-has-permit=\"servicerequest:reopen\" ng-click=\"onReOpen()\" class=\"nav-link text-muted no-border\" title=\"Click To Re-Open The Issue\"> <span class=\"nav-text\"> <i class=\"icon-call-in\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item b-l p-l\"> <a ng-click=\"onCopy()\" class=\"nav-link text-muted no-border\" title=\"Click To Copy Reporter Information & Create New Issue\"> <span class=\"nav-text\"> <i class=\"ti-cut\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator && !servicerequest.resolvedAt\" class=\"nav-item b-l p-l\" title=\"Click To Add Team Member to Watch Issue & Receive Updates\"> <a ng-click=\"showTeamModal()\" class=\"nav-link text-muted no-border\"> <span class=\"nav-text\"> <i class=\"icon-user-follow\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item b-l p-l\" title=\"Click To Refresh Issue\"> <a ng-click=\"onRefresh()\" class=\"nav-link text-muted no-border\"> <span class=\"nav-text\"> <i class=\"icon-reload\"></i> </span> </a> </li> <li ng-if=\"servicerequest.operator\" class=\"nav-item b-l p-l p-r\"> <a print-btn class=\"nav-link text-muted no-border\" title=\"Click To Print Issue\"> <span class=\"nav-text\"> <i class=\"icon-printer\"></i> </span> </a> </li> </ul> "
   );
 
 
@@ -11577,6 +12609,11 @@ angular.module('ng311').run(['$templateCache', function($templateCache) {
 
   $templateCache.put('views/servicerequests/_partials/reported_time_filter.html',
     "<div> <div class=\"modal-header\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$dismiss()\" aria-hidden=\"true\"> × </button> <h4 class=\"modal-title\">Reported Date - Filters</h4> </div> <div class=\"modal-body\"> <div class=\"container-fluid\"> <div class=\"row\"> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> From </h6> </div> <div pickadate ng-model=\"dateFilters.reportedAt.from\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> <div class=\"col-md-6\"> <div class=\"p-a p-l-none p-b-none\"> <h6 class=\"m-a-0\"> To </h6> </div> <div pickadate ng-model=\"dateFilters.reportedAt.to\" max-date=\"maxDate\" class=\"p-a p-l-none\"></div> </div> </div> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" ng-click=\"$dismiss()\">Cancel</button> <button class=\"btn btn-primary\" ng-click=\"filter()\">Filter</button> </div> </div> "
+  );
+
+
+  $templateCache.put('views/servicerequests/_partials/resolve_remarks_modal.html',
+    " <div class=\"modal-header\"> <div class=\"b-b\"> <button type=\"button\" class=\"close pull-right\" ng-click=\"$close()\" aria-hidden=\"true\"> × </button> <h4 class=\"modal-title\">Quality Control Checks</h4> </div> </div> <div class=\"modal-body\"> <div class=\"box\"> <div class=\"m-l-lg m-r-lg\"> <form role=\"form\"> <div class=\"row m-t-sm\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Root Cause </h6> </div> </div> <div class=\"col-md-12\"> <div class=\"form-group form-material\" title=\"Select Item\"> <oi-select oi-options=\"cause.name.en for cause in searchQualityCauses($query) track by cause.id\" ng-model=\"quality.cause\" placeholder=\"Select Root Cause\" class=\"form-control\" oi-select-options=\"{cleanModel: true}\"></oi-select> </div> </div> </div> <div class=\"row m-t-sm\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Action Taken </h6> </div> </div> <div class=\"col-md-12\"> <div class=\"form-group form-material\" title=\"Select Item\"> <oi-select oi-options=\"measure.name.en for measure in searchQualityMeasures($query) track by measure.id\" ng-model=\"quality.measure\" placeholder=\"Select Action Taken\" class=\"form-control\" oi-select-options=\"{cleanModel: true}\"></oi-select> </div> </div> </div> <div class=\"row m-t-sm\"> <div class=\"col-md-12\"> <div class=\"p-a p-l-none\"> <h6 class=\"m-a-0\"> Way Forward </h6> </div> </div> <div class=\"col-md-12\"> <div class=\"form-group form-material\" title=\"Select Item\"> <oi-select oi-options=\"advisory.name.en for advisory in searchQualityAdvisories($query) track by advisory.id\" ng-model=\"quality.advisory\" placeholder=\"Select Way Forward\" class=\"form-control\" oi-select-options=\"{cleanModel: true}\"></oi-select> </div> </div> </div> </form> </div> </div> <div class=\"modal-footer\"> <button class=\"btn btn-default\" title=\"Click to Cancel\" ng-click=\"$dismiss()\"> Cancel </button> <button ng-disabled=\" !quality.cause || !quality.measure\" class=\"btn btn-primary\" title=\"Click to Save Remarks\" ng-click=\"resolveWithRemarks()\"> Save </button> </div> </div> "
   );
 
 
