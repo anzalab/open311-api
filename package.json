@@ -79,7 +79,7 @@
     "@lykmapipo/postman": ">=0.16.0",
     "@lykmapipo/predefine": "0.8.0",
     "@lykmapipo/role": ">=0.3.14",
-    "async": ">=3.1.0",
+    "async": ">=3.2.2",
     "csv": ">=5.3.0",
     "ejs": ">=2.7.3",
     "email-templates": ">=6.0.3",
